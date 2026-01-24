@@ -10,7 +10,7 @@ predicate/
 │   ├── global.md            # Base engineering ruleset
 │   └── fragments/           # Composable extensions
 │       ├── go.md            # Go-specific idioms
-│       ├── mcp.md           # MCP tool guidance
+│       ├── depmap.md        # DepMap MCP server usage
 │       ├── personalization.md # User naming preferences
 │       ├── rust.md          # Rust-specific idioms
 │       └── typescript.md    # TS/JS-specific idioms
@@ -42,7 +42,7 @@ your-project/
 │   │   ├── global.md          # Base ruleset (required)
 │   │   └── fragments/         # Active extensions
 │   │       ├── go.md
-│   │       └── mcp.md
+│   │       └── depmap.md
 │   └── workflows/
 │       ├── ai-audit.md
 │       └── core.md
@@ -84,7 +84,7 @@ The base `global.md` predicate is language-agnostic. Add extensions by appending
 cat predicates/global.md \
     predicates/fragments/go.md \
     predicates/fragments/rust.md \
-    predicates/fragments/mcp.md \
+    predicates/fragments/depmap.md \
     > my-predicate.md
 ```
 
@@ -95,7 +95,7 @@ cat predicates/global.md \
 | `go.md`              | Go language idioms           |
 | `rust.md`            | Rust language idioms         |
 | `typescript.md`      | TypeScript/JavaScript idioms |
-| `mcp.md`             | MCP tool usage guidance      |
+| `depmap.md`          | DepMap MCP server usage      |
 | `personalization.md` | User naming preferences      |
 
 Or manually include the content from relevant fragments at the end of your predicate.

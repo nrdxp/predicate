@@ -56,7 +56,7 @@ Before writing code, understand the existing landscape:
 
 **Pattern Matching:** Mimic existing directory structure and coding style strictly. Do not introduce foreign idioms. When uncertain, search for prior art in the repo (e.g., "How are errors handled elsewhere?") and follow established patterns.
 
-> **Tip:** If MCP tools are available, use them first for structural insight. See `fragments/mcp.md`.
+> **Tip:** If MCP tools are available, use them first for structural insight. See `fragments/depmap.md`.
 
 ### 1. Root Cause Analysis
 
@@ -215,7 +215,7 @@ When modifying an upstream dependency appears to be the correct solution:
 
 Use all available tools liberally. Prefer automated exploration (search, outline, mapping) over manual reading. When context suggests a tool could help, use it proactively rather than asking permission.
 
-> **Tip:** For MCP-specific tool guidance, see `fragments/mcp.md`.
+> **Tip:** For MCP-specific tool guidance, see `fragments/depmap.md`.
 
 ---
 
@@ -238,7 +238,7 @@ When rules appear to conflict, use this hierarchy as a **guideline**, but remain
 > - `fragments/go.md` — Go conventions
 > - `fragments/rust.md` — Rust conventions
 > - `fragments/typescript.md` — TypeScript/JavaScript conventions
-> - `fragments/mcp.md` — MCP tool usage guidance
+> - `fragments/depmap.md` — DepMap MCP server usage
 > - `fragments/personalization.md` — User naming preferences
 
 Defer to existing project patterns where they differ from fragment recommendations.

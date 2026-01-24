@@ -19,7 +19,7 @@ The agent MUST read and adhere to the global engineering ruleset and any active 
 ├── predicate/
 │   ├── global.md              # Base engineering ruleset (required)
 │   └── fragments/             # Active extensions (optional)
-│       └── ...                # e.g., go.md, rust.md, mcp.md
+│       └── ...                # e.g., go.md, rust.md, depmap.md
 └── workflows/
     └── ...                    # Task-specific workflows
 ```
