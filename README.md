@@ -10,6 +10,8 @@ predicate/
 │   ├── global.md            # Base engineering ruleset
 │   └── fragments/           # Composable extensions
 │       ├── go.md            # Go-specific idioms
+│       ├── mcp.md           # MCP tool guidance
+│       ├── personalization.md # User naming preferences
 │       ├── rust.md          # Rust-specific idioms
 │       └── typescript.md    # TS/JS-specific idioms
 └── workflows/               # Manually-triggered SOPs
@@ -59,12 +61,26 @@ Most agentic tools support a "system prompt" or "user rules" file. Copy/symlink 
 
 ## Composing Predicates with Fragments
 
-The base `global.md` predicate is language-agnostic. Add language-specific rules by appending fragments to your predicate file:
+The base `global.md` predicate is language-agnostic. Add extensions by appending fragments to your predicate file:
 
 ```bash
-# Create a project-specific predicate with Go and Rust idioms
-cat predicates/global.md predicates/fragments/go.md predicates/fragments/rust.md > my-predicate.md
+# Create a project-specific predicate with Go, Rust, and MCP guidance
+cat predicates/global.md \
+    predicates/fragments/go.md \
+    predicates/fragments/rust.md \
+    predicates/fragments/mcp.md \
+    > my-predicate.md
 ```
+
+### Available Fragments
+
+| Fragment             | Purpose                      |
+| :------------------- | :--------------------------- |
+| `go.md`              | Go language idioms           |
+| `rust.md`            | Rust language idioms         |
+| `typescript.md`      | TypeScript/JavaScript idioms |
+| `mcp.md`             | MCP tool usage guidance      |
+| `personalization.md` | User naming preferences      |
 
 Or manually include the content from relevant fragments at the end of your predicate.
 
