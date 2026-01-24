@@ -104,10 +104,11 @@ Or manually include the content from relevant fragments at the end of your predi
 
 ## Available Workflows
 
-| Workflow                             | Trigger     | Description                                          |
-| :----------------------------------- | :---------- | :--------------------------------------------------- |
-| [ai-audit.md](workflows/ai-audit.md) | `/ai-audit` | 4-layer audit framework for AI-generated code        |
-| [core.md](workflows/core.md)         | `/core`     | C.O.R.E. protocol for structured agentic interaction |
+| Workflow                               | Trigger      | Description                                          |
+| :------------------------------------- | :----------- | :--------------------------------------------------- |
+| [ai-audit.md](workflows/ai-audit.md)   | `/ai-audit`  | 4-layer audit framework for AI-generated code        |
+| [core.md](workflows/core.md)           | `/core`      | C.O.R.E. protocol for structured agentic interaction |
+| [predicate.md](workflows/predicate.md) | `/predicate` | Re-read global rules; combats context drift          |
 
 ---
 
