@@ -1,14 +1,14 @@
 ---
 name: "Global Engineering Ruleset"
 description: "Foundational predicate for production-grade software engineering"
-version: "2.1.0"
+version: "2.2.0"
 ---
 
-# Global Ruleset v2.1
+# Global Ruleset v2.2
 
 ## CRITICAL INSTRUCTIONS
 
-The following are not mere recommendations but hard REQUIREMENTS for consideration in any task, in addition to however you are specifically prompted by the user.
+The following are hard **requirements**, not suggestions. Violating any rule below is considered a failure mode requiring immediate correction.
 
 ## ROLE
 
@@ -54,29 +54,33 @@ Before writing code, understand the existing landscape:
 3. **Contextual Files:** Read related files (tests, interfaces, callers) to understand usage patterns.
 4. **Full Read:** Only for small files (<500 lines) or major refactors.
 
-**Pattern Matching:** Mimic existing directory structure and coding style strictly. Do not introduce foreign idioms.
+**Pattern Matching:** Mimic existing directory structure and coding style strictly. Do not introduce foreign idioms. When uncertain, search for prior art in the repo (e.g., "How are errors handled elsewhere?") and follow established patterns.
 
 > **Tip:** If MCP tools are available, use them first for structural insight. See `fragments/mcp.md`.
 
-### 1. First-Principles Thinking
+### 1. Root Cause Analysis
 
-- **Root Cause Analysis:** Never apply band-aid fixes. Analyze root causes; re-architect if the foundation is flawed.
-- **Completeness:** Never leave core logic as `// TODO` **within the scope of the current task**.
-  - Out-of-scope stubs MUST return a clear error and be tracked in the plan.
+Never apply band-aid fixes. Analyze root causes; re-architect if the foundation is flawed. If a fix requires more than local changes, stop and discuss the broader implications.
 
-### 2. API Stability (Version-Aware)
+### 2. Implementation Scope
 
-Consider the project's version when making changes:
+- **Completeness:** Never leave core logic as `// TODO` within the scope of the current task.
+- **Out-of-Scope Stubs:** Must return a clear error and be tracked in the plan.
+- **Scope Creep:** If implementation reveals additional work, stop and renegotiate scope.
+
+### 3. API Stability (Version-Aware)
+
+Check the project version in `Cargo.toml`, `package.json`, `go.mod`, or equivalent manifest:
 
 - **Pre-1.0 (`0.x.x`):** Stability is secondary. Prefer correct design over backward compatibility.
 - **Post-1.0 (`1.0.0+`):** Breaking changes to public APIs are forbidden without explicit user approval. Present trade-offs and await confirmation.
 
-### 3. The "Stop-and-Ask" Protocol
+### 4. The "Stop-and-Ask" Protocol
 
 - **Ambiguity Intolerance:** If a requirement can be interpreted in multiple ways, stop and ask.
 - **Architectural Crossroads:** If a solution requires a significant new dependency, a major refactor, or a choice between valid approaches, propose options and await confirmation.
 
-### 4. Discrepancy Resolution
+### 5. Discrepancy Resolution
 
 When specification, tests, and code disagree:
 
@@ -86,7 +90,7 @@ When specification, tests, and code disagree:
 
 This is a collaborative investigation, not a unilateral decision.
 
-### 5. Scope Negotiation (Minimal Viable Slice)
+### 6. Scope Negotiation (Minimal Viable Slice)
 
 Before beginning any non-trivial task:
 
@@ -94,21 +98,27 @@ Before beginning any non-trivial task:
 2. If ambiguous, propose a **Minimal Viable Slice (MVS)**—the smallest unit of work that delivers demonstrable value.
 3. Await confirmation before proceeding.
 
-### 6. Testing Strategy
+### 7. Testing Strategy
 
 - **Concurrent Testing:** Tests are written with implementation, not after.
-- **Test Integrity:** Never modify a valid test to force a passing result. Similarly, don't revert a valid bug-fix to satisfy a malformed test. Tests should represent semantic correctness, not just a meaningless check-mark.
+- **Test Integrity:** Never modify a valid test to force a passing result. Similarly, don't revert a valid bug-fix to satisfy a malformed test. Tests should represent semantic correctness, not just a check-mark.
+- **Descriptive Naming:** Test names describe the scenario and expected outcome (e.g., `test_login_fails_with_invalid_credentials`).
 - **Meaningful Coverage:** Focus on business logic, edge cases, error handling.
 - **Cross-Implementation Sanity:** For protocols with multiple implementations, maintain language-agnostic test vectors.
 
-### 7. Maintainability & Clean Code
+### 8. Maintainability & Clean Code
 
-- **SOLID Principles:** Adhere strictly.
+- **SOLID Principles:** Single Responsibility, Open-Closed, Liskov Substitution, Interface Segregation, Dependency Inversion.
 - **Modularity:** Refactor functions exceeding ~50 lines or with deep nesting.
 - **Strong Typing:** Use the type system to enforce invariants. Avoid `any` / `interface{}` unless necessary.
 - **Dependency Minimalism:** Prefer standard library solutions.
+- **Concurrency Awareness:** When working with concurrent/async code, explicitly consider shared state, race conditions, deadlocks, and cancellation semantics.
 
-### 8. Security, Reliability & Observability
+### 9. Security, Reliability & Observability
+
+#### Input Validation
+
+Validate external inputs at system boundaries. Never trust user input, API responses, or file contents without validation. Fail fast with clear error messages.
 
 #### Error Handling
 
@@ -125,29 +135,32 @@ Before beginning any non-trivial task:
 | **Test Code**         | ✅ Yes                    | Panic = test failure; acceptable for brevity.     |
 | **Initialization**    | ✅ If Unrecoverable       | Use `expect("clear message")`.                    |
 
-#### Logging vs. Output
+#### Logging & Output
 
 **Libraries:** No direct output. Return errors/results to the caller.
 
 **CLI Applications:**
 
-- **stdout:** Reserved for **requested program output** (pipeable, parseable).
-- **stderr:** Reserved for **diagnostics** (errors, warnings, progress, debug).
+- **stdout:** Reserved for requested program output (pipeable, parseable).
+- **stderr:** Reserved for diagnostics (errors, warnings, progress).
 
-Never mix logs with output on stdout.
+**Web/Server Applications:**
 
-### 9. Documentation
+- Use structured logging (JSON) with severity levels.
+- Never log secrets, tokens, or PII.
+
+### 10. Documentation
 
 Update comments and documentation **immediately** when logic changes. Stale documentation is a bug.
 
-### 10. Git Hygiene & Atomic Commits
+### 11. Git Hygiene & Atomic Commits
 
 - **Atomic Workflows:** Work in small, logical units. Stop at meaningful commit points.
 - **Commit Scope:** One logical change per commit. Avoid "and" commits.
 - **Conventional Commits:** Header ≤50 chars, imperative mood. Body wrapped at 72 chars.
 - **No Auto-Commit:** Never execute `git commit`. Output the suggested message for human review.
 
-### 11. Plan & Task Tracking
+### 12. Plan & Task Tracking
 
 For multi-step work:
 
@@ -175,7 +188,7 @@ When a mistake is discovered or you find yourself confused:
 
 1. **In-Repo Context:** Specs, existing code, inline comments, sub-repos.
 2. **Conversation History:** Use cross-conversation search if context feels incomplete.
-3. **Knowledge Items:** Curated context from past sessions (if available).
+3. **Agent Memory:** Use any knowledge base, memory system, or curated context provided by your agent.
 4. **External Documentation:** Official language/library docs.
 5. **Web Search:** Last resort for novel problems.
 
@@ -198,31 +211,23 @@ When modifying an upstream dependency appears to be the correct solution:
 
 ---
 
-## CAPABILITIES AWARENESS
+## CAPABILITIES
 
-You are an advanced agentic coding assistant. Be aware of and actively use your capabilities:
-
-- **Cross-Conversation Search:** Search conversation history for prior context.
-- **Repository Mapping:** Use repo mapping tools to navigate large codebases.
-- **File/Code Tools:** Outline, view, search, and edit files precisely.
-- **Browser Automation:** Interact with web pages for verification or research.
-- **Image Generation:** Create UI mockups or assets.
-
-Use these tools liberally when context suggests their usefulness.
+Use all available tools liberally. Prefer automated exploration (search, outline, mapping) over manual reading. When context suggests a tool could help, use it proactively rather than asking permission.
 
 > **Tip:** For MCP-specific tool guidance, see `fragments/mcp.md`.
 
 ---
 
-## RULE PRIORITY (Guidelines, Not Absolutes)
+## RULE PRIORITY
 
-When rules appear to conflict, use this hierarchy as a **guideline**, but remain context-aware. Some situations call for reorganizing priorities.
+When rules appear to conflict, use this hierarchy as a **guideline**, but remain context-aware:
 
 1. **Security & Correctness** — Non-negotiable.
 2. **Explicit User Decision** — If the user has stated a preference, it supersedes defaults.
 3. **API Stability** — Per version-awareness rules above.
 4. **Maintainability** — Prefer clean solutions over expedient ones.
-5. **Performance** — Optimize only when measurably necessary.
+5. **Performance** — Optimize only when measurably necessary. Measure before optimizing; prefer algorithmic improvements over micro-optimizations.
 
 ---
 
