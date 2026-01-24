@@ -14,9 +14,11 @@ predicate/
 │       ├── personalization.md # User naming preferences
 │       ├── rust.md          # Rust-specific idioms
 │       └── typescript.md    # TS/JS-specific idioms
-└── workflows/               # Manually-triggered SOPs
-    ├── ai-audit.md          # Audit AI-generated code
-    └── core.md              # C.O.R.E. structured interaction
+├── workflows/               # Manually-triggered SOPs
+│   ├── ai-audit.md          # Audit AI-generated code
+│   └── core.md              # C.O.R.E. structured interaction
+└── templates/               # Project templates
+    └── AGENTS.md            # AGENTS.md template for projects
 ```
 
 ### Terminology
@@ -31,31 +33,45 @@ predicate/
 
 ## Installation
 
-### For Antigravity
+The canonical installation location is `.agent/predicates/` in your project root:
 
-**Option A: Symlink (recommended)**
+```
+your-project/
+├── .agent/
+│   ├── predicates/
+│   │   ├── global.md          # Base ruleset (required)
+│   │   └── fragments/         # Active extensions
+│   │       ├── go.md
+│   │       └── mcp.md
+│   └── workflows/
+│       ├── ai-audit.md
+│       └── core.md
+└── AGENTS.md                   # Project context (optional)
+```
+
+### Quick Start
 
 ```bash
-# Clone the repo
+# Clone predicate
 git clone https://github.com/nrdxp/predicate.git
 
-# Symlink predicate to your global config
-ln -s /path/to/predicate/predicates/global.md ~/.config/antigravity/GEMINI.md
+# Create .agent directory in your project
+mkdir -p /your/project/.agent
 
-# Symlink workflows to your project
+# Install predicate and workflows
+ln -s /path/to/predicate/predicates /your/project/.agent/predicates
 ln -s /path/to/predicate/workflows /your/project/.agent/workflows
+
+# (Optional) Copy AGENTS.md template
+cp /path/to/predicate/templates/AGENTS.md /your/project/AGENTS.md
 ```
 
-**Option B: Copy**
+### Alternative: Copy Instead of Symlink
 
 ```bash
-cp /path/to/predicate/predicates/global.md ~/.config/antigravity/GEMINI.md
+cp -r /path/to/predicate/predicates /your/project/.agent/predicates
 cp -r /path/to/predicate/workflows /your/project/.agent/workflows
 ```
-
-### For Other Agents
-
-Most agentic tools support a "system prompt" or "user rules" file. Copy/symlink `predicates/global.md` to the appropriate location for your tool.
 
 ---
 
