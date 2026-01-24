@@ -10,13 +10,13 @@
 
 This project uses [predicate](https://github.com/nrdxp/predicate) for agent configuration.
 
-**Installation Location:** `.agent/predicate/`
+**Installation Location:** `.agent/predicates/`
 
 The agent MUST read and adhere to the global engineering ruleset and any active fragments:
 
 ```
 .agent/
-├── predicate/
+├── predicates/
 │   ├── global.md              # Base engineering ruleset (required)
 │   └── fragments/             # Active extensions (optional)
 │       └── ...                # e.g., go.md, rust.md, depmap.md
@@ -37,6 +37,7 @@ The agent MUST read and adhere to the global engineering ruleset and any active 
 
 - `/ai-audit` — Audit code for AI-generated patterns
 - `/core` — C.O.R.E. structured interaction protocol
+- `/predicate` — Re-read global rules; combats context drift
 
 ---
 
