@@ -12,10 +12,12 @@ trigger: "/predicate"
 
 ## Instructions
 
-Before proceeding with any task, read and internalize the following:
+Before proceeding with the requested task, read and internalize the following:
 
-1. **AGENTS.md** (if present at project root)
-   - Project-specific context and constraints
+1. **AGENTS.md** (check for hierarchy)
+   - Root `AGENTS.md` — project-wide context and constraints (always relevant)
+   - Subdirectory `AGENTS.md` — scoped context for that subtree only
+   - Nearest ancestor takes precedence for the current working directory
 
 2. **Global Predicate** (`.agent/predicates/global.md`)
    - Core engineering principles
@@ -23,30 +25,7 @@ Before proceeding with any task, read and internalize the following:
    - API stability rules
    - Documentation standards
 
-3. **Relevant Fragments** (in `.agent/predicates/fragments`, based on current task)
-   - Language-specific: `go.md`, `rust.md`, `typescript.md`
-   - Tooling: `depmap.md`
-
----
-
-## Checklist
-
-After reading, confirm understanding of:
-
-- [ ] Current project constraints from AGENTS.md
-- [ ] Error handling and panic policies
-- [ ] API stability requirements (pre/post 1.0)
-- [ ] Documentation, testing and commit standards
-- [ ] Language-specific idioms for this task
-
----
-
-## Chaining
-
-This workflow is designed to chain with others:
-
-```
-/predicate + /core
-```
-
-Use `/predicate` first to refresh context, then `/core` for structured execution.
+3. **Active Fragments** (in `.agent/predicates/fragments/`)
+   - Check AGENTS.md for which fragments are marked "active"
+   - Only load fragments relevant to the current request
+   - Example: A README update doesn't require loading the Rust fragment even when active
