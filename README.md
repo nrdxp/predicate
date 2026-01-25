@@ -32,6 +32,43 @@ predicate/
 
 ---
 
+## Philosophy
+
+### Why Predicate?
+
+AI coding assistants work best with clear, consistent guidance—but system prompts quickly become unwieldy. Predicate separates concerns:
+
+- **Global ruleset** → Engineering principles that apply everywhere
+- **Fragments** → Context-specific rules loaded only when relevant
+- **Workflows** → Structured procedures triggered on demand
+
+This prevents context overload. A Rust-focused request doesn't need Go idioms; a README update doesn't need language fragments at all. The agent loads only what's relevant to the current task.
+
+### Built on Standards
+
+Predicate integrates with existing conventions rather than inventing new ones:
+
+- **[AGENTS.md](https://agent.md)** — The emerging standard for project-level agent configuration
+- **`.agent/` directory** — Common location recognized by agentic tools
+- **Workflow triggers** — Slash commands familiar to most agent interfaces
+
+### The C.O.R.E. Protocol
+
+The `/core` workflow embodies predicate's philosophy of structured, bounded work:
+
+> **C**ontext → **O**bstacles → **R**esolution → **E**xecution
+
+Instead of diving straight into code, C.O.R.E. enforces:
+
+1. **Explicit context gathering** before action
+2. **Ambiguity detection** that blocks premature execution
+3. **User approval gates** at plan boundaries
+4. **Verification assertions** for every change
+
+This keeps work well-specified and prevents the common failure mode of agents confidently executing on misunderstood requirements.
+
+---
+
 ## Installation
 
 ### Option 1: Git Submodule (Recommended)
