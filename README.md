@@ -37,7 +37,7 @@ predicate/
 
 ### Why Predicate?
 
-AI coding assistants work best with clear, consistent guidance—but system prompts quickly become unwieldy. Predicate separates concerns:
+AI coding assistants need clear, consistent guidance, but system prompts quickly become unwieldy. Predicate separates concerns:
 
 - **Global ruleset** → Engineering principles that apply everywhere
 - **Fragments** → Context-specific rules loaded only when relevant
@@ -55,7 +55,7 @@ Predicate integrates with existing conventions rather than inventing new ones:
 
 ### The C.O.R.E. Protocol
 
-The `/core` workflow embodies predicate's philosophy of structured, bounded work:
+The `/core` workflow is predicate's structured approach to bounded work:
 
 > **C**ontext → **O**bstacles → **R**esolution → **E**xecution
 
@@ -74,7 +74,7 @@ This keeps work well-specified and prevents the common failure mode of agents co
 
 ### Option 1: Git Submodule (Recommended)
 
-The cleanest approach—adds predicate as a submodule at `.agent`:
+Add predicate as a submodule at `.agent`:
 
 ```bash
 # Add predicate as submodule
