@@ -10,13 +10,14 @@ predicate/
 │   ├── global.md            # Base engineering ruleset
 │   └── fragments/           # Composable extensions
 │       ├── go.md            # Go-specific idioms
-│       ├── depmap.md        # DepMap MCP server usage
-│       ├── personalization.md # User naming preferences
 │       ├── rust.md          # Rust-specific idioms
-│       └── typescript.md    # TS/JS-specific idioms
+│       ├── typescript.md    # TS/JS-specific idioms
+│       ├── depmap.md        # DepMap MCP server usage
+│       └── personalization.md # User naming preferences
 ├── workflows/               # Manually-triggered SOPs
 │   ├── ai-audit.md          # Audit AI-generated code
-│   └── core.md              # C.O.R.E. structured interaction
+│   ├── core.md              # C.O.R.E. structured interaction
+│   └── predicate.md         # Context refresh workflow
 └── templates/               # Project templates
     └── AGENTS.md            # AGENTS.md template for projects
 ```
@@ -33,60 +34,84 @@ predicate/
 
 ## Installation
 
-The canonical installation location is `.agent/predicates/` in your project root:
+### Option 1: Git Submodule (Recommended)
+
+The cleanest approach—adds predicate as a submodule at `.agent`:
+
+```bash
+# Add predicate as submodule
+git submodule add https://github.com/nrdxp/predicate.git .agent
+
+# Copy AGENTS.md template to project root
+cp .agent/templates/AGENTS.md ./AGENTS.md
+
+# Edit AGENTS.md to mark which fragments are "active" for your project
+```
+
+**Updating:**
+
+```bash
+git submodule update --remote .agent
+```
+
+### Option 2: Symlinks
+
+Clone once, symlink into each project:
+
+```bash
+# Clone predicate somewhere
+git clone https://github.com/nrdxp/predicate.git ~/predicate
+
+# In your project
+mkdir -p .agent
+ln -s ~/predicate/predicates .agent/predicates
+ln -s ~/predicate/workflows .agent/workflows
+
+# Copy AGENTS.md template
+cp ~/predicate/templates/AGENTS.md ./AGENTS.md
+```
+
+### Option 3: Copy
+
+For projects that can't use submodules or symlinks:
+
+```bash
+cp -r /path/to/predicate/predicates .agent/predicates
+cp -r /path/to/predicate/workflows .agent/workflows
+cp /path/to/predicate/templates/AGENTS.md ./AGENTS.md
+```
+
+---
+
+## Project Structure After Installation
 
 ```
 your-project/
 ├── .agent/
 │   ├── predicates/
 │   │   ├── global.md          # Base ruleset (required)
-│   │   └── fragments/         # Active extensions
-│   │       ├── go.md
-│   │       └── depmap.md
+│   │   └── fragments/         # Extensions (mark active in AGENTS.md)
 │   └── workflows/
 │       ├── ai-audit.md
-│       └── core.md
-└── AGENTS.md                   # Project context (optional)
-```
-
-### Quick Start
-
-```bash
-# Clone predicate
-git clone https://github.com/nrdxp/predicate.git
-
-# Create .agent directory in your project
-mkdir -p /your/project/.agent
-
-# Install predicate and workflows
-ln -s /path/to/predicate/predicates /your/project/.agent/predicates
-ln -s /path/to/predicate/workflows /your/project/.agent/workflows
-
-# (Optional) Copy AGENTS.md template
-cp /path/to/predicate/templates/AGENTS.md /your/project/AGENTS.md
-```
-
-### Alternative: Copy Instead of Symlink
-
-```bash
-cp -r /path/to/predicate/predicates /your/project/.agent/predicates
-cp -r /path/to/predicate/workflows /your/project/.agent/workflows
+│       ├── core.md
+│       └── predicate.md
+└── AGENTS.md                   # Project context + active fragments
 ```
 
 ---
 
-## Composing Predicates with Fragments
+## Configuring Active Fragments
 
-The base `global.md` predicate is language-agnostic. Add extensions by appending fragments to your predicate file:
+Not all fragments apply to every project. In your project's `AGENTS.md`, specify which fragments are active:
 
-```bash
-# Create a project-specific predicate with Go, Rust, and MCP guidance
-cat predicates/global.md \
-    predicates/fragments/go.md \
-    predicates/fragments/rust.md \
-    predicates/fragments/depmap.md \
-    > my-predicate.md
+```markdown
+**Active Fragments:**
+
+- Go idioms
+- DepMap MCP usage
 ```
+
+The agent will only load fragments marked as active and relevant to the current request.
 
 ### Available Fragments
 
@@ -98,8 +123,6 @@ cat predicates/global.md \
 | `depmap.md`          | DepMap MCP server usage      |
 | `personalization.md` | User naming preferences      |
 
-Or manually include the content from relevant fragments at the end of your predicate.
-
 ---
 
 ## Available Workflows
@@ -109,6 +132,8 @@ Or manually include the content from relevant fragments at the end of your predi
 | [ai-audit.md](workflows/ai-audit.md)   | `/ai-audit`  | 4-layer audit framework for AI-generated code        |
 | [core.md](workflows/core.md)           | `/core`      | C.O.R.E. protocol for structured agentic interaction |
 | [predicate.md](workflows/predicate.md) | `/predicate` | Re-read global rules; combats context drift          |
+
+Workflows can be chained: `/predicate + /core`
 
 ---
 
