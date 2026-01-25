@@ -45,7 +45,7 @@ git submodule add https://github.com/nrdxp/predicate.git .agent
 # Copy AGENTS.md template to project root
 cp .agent/templates/AGENTS.md ./AGENTS.md
 
-# Edit AGENTS.md to mark which fragments are "active" for your project
+# Edit AGENTS.md: fill in project details, build commands, active fragments, etc.
 ```
 
 **Updating:**
@@ -151,6 +151,16 @@ PRs welcome. When adding new content:
   trigger: "/slash-command"
   ---
   ```
+
+### Forking for Custom Rulesets
+
+Predicate is designed to be forked. If you want to:
+
+- Add organization-specific rules or fragments
+- Create domain-specific workflows
+- Maintain a curated subset of fragments
+
+Fork this repo and use your fork as the submodule source. The composable structure makes it easy to extend without modifying upstream files.
 
 ## License
 
