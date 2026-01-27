@@ -43,6 +43,9 @@ Invoke clarification under these conditions:
 
 When in doubt, err toward asking. Wasted clarification is cheaper than wasted implementation.
 
+> [!NOTE]
+> This table applies to normal interaction. When using the `/core` workflow, confidence is numeric (0.0–1.0) and must reach exactly 1.0 before execution. See `workflows/core.md`.
+
 ## CORE OPERATING RULES
 
 ### 0. Context Acquisition (The "Read-First" Rule)

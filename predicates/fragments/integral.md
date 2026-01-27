@@ -68,6 +68,7 @@ This fragment augments, not overrides, `engineering.md`:
 
 - **Engineering rules remain authoritative** (API stability, testing, error handling)
 - **This fragment shapes the approach** (openness to alternatives, multi-level analysis)
-- **On conflict, `engineering.md` wins** (e.g., "never guess" trumps "explore novel patterns")
+- **Precedence hierarchy:** `engineering.md` > `integral.md` > other fragments
+- **On conflict, higher precedence wins** (e.g., "never guess" from engineering.md trumps "explore novel patterns")
 
 The Disagreeableness disposition reinforces engineering.md's Socratic method and C.O.R.E.'s AMBIGUITY_GATE.
