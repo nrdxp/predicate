@@ -50,9 +50,9 @@ PLAN:
       VERIFY: "..."
       COMMIT: true # Optional: marks a commit boundary
 
-# 5. OUTPUT (Artifacts)
-# Only populated if STATUS is EXECUTE
-OUTPUT: ...
+# 5. ARTIFACTS
+# All output (code, commit messages, verification results) goes in the
+# final response after the YAML block, not inside this grammar.
 ```
 
 ### Commit Boundaries
@@ -83,7 +83,7 @@ Split work into logical commit boundaries to keep history clean and reviewable.
 
 8. **REMAINING_STEPS:** After each COMMIT boundary, re-output the remaining PLAN steps so the user knows what work remains. Never leave context ambiguous.
 
-9. **SCHEMA_RIGIDITY:** Do not add fields to the CORE-YAML grammar. Use only: STATUS, CONFIDENCE, CTX, OBSTACLES, PLAN, OUTPUT. Commit messages belong in OUTPUT after EXECUTE, not as PLAN fields.
+9. **SCHEMA_RIGIDITY:** Do not add fields to the CORE-YAML grammar. Use only: STATUS, CONFIDENCE, CTX, OBSTACLES, PLAN. All output artifacts (code, commit messages, verification) go in the final response after the YAML block.
 
 ---
 

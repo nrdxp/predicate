@@ -1,7 +1,7 @@
 # Project Agent Configuration
 
 <!--
-  This is a template AGENT.md for projects using the predicate system.
+  This is a template AGENTS.md for projects using the predicate system.
   Copy this to your project root and customize the sections below.
   See: https://agent.md for the AGENT.md standard.
 -->
@@ -44,6 +44,7 @@ This project uses [predicate](https://github.com/nrdxp/predicate) for agent conf
 
 - `/ai-audit` — Audit code for AI-generated patterns
 - `/core` — C.O.R.E. structured interaction protocol
+- `/humanizer` — Remove AI writing patterns from text
 - `/predicate` — Re-read global rules; combats context drift
 
 ---

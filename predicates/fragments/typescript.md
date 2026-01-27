@@ -10,3 +10,6 @@ description: "TypeScript/JavaScript-specific language conventions and patterns"
 - Prefer `const` over `let`. Never use `var`.
 - Use discriminated unions over type assertions.
 - Prefer nullish coalescing (`??`) over logical or (`||`) for defaults.
+
+> [!NOTE]
+> This is a minimal template. Expand with project-specific TypeScript conventions as needed.

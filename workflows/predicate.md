@@ -30,3 +30,6 @@ Before proceeding with the requested task, read and internalize the following:
    - Check AGENTS.md for which fragments are marked "active"
    - Only load fragments relevant to the current request
    - Example: A README update doesn't require loading the Rust fragment even when active
+
+4. **Confirm Completion**
+   - Output: "Predicate refresh complete. Active fragments: [list from AGENTS.md]"

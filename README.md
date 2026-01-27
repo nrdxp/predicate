@@ -12,7 +12,8 @@ predicate/
 │       ├── go.md            # Go-specific idioms
 │       ├── rust.md          # Rust-specific idioms
 │       ├── typescript.md    # TS/JS-specific idioms
-│       ├── depmap.md        # DepMap MCP server usage
+│       ├── depmap.md            # DepMap MCP server usage
+│       ├── integral.md          # Holistic problem-solving
 │       └── personalization.md # User naming preferences
 ├── workflows/               # Manually-triggered SOPs
 │   ├── ai-audit.md          # Audit AI-generated code
@@ -159,6 +160,7 @@ The agent will only load fragments marked as active and relevant to the current 
 | `rust.md`            | Rust language idioms         |
 | `typescript.md`      | TypeScript/JavaScript idioms |
 | `depmap.md`          | DepMap MCP server usage      |
+| `integral.md`        | Holistic problem-solving     |
 | `personalization.md` | User naming preferences      |
 
 ---
