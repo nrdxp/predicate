@@ -6,9 +6,9 @@ Reusable agent predicates (rulesets) and workflows for agentic coding assistants
 
 ```
 predicate/
-├── predicates/              # Foundational rulesets (always-on)
-│   ├── global.md            # Base engineering ruleset
-│   └── fragments/           # Composable extensions
+├── predicates/              # Foundational rulesets (always active)
+│   ├── engineering.md       # Base engineering ruleset
+│   └── fragments/           # Context-specific extensions (opt-in)
 │       ├── go.md            # Go-specific idioms
 │       ├── rust.md          # Rust-specific idioms
 │       ├── typescript.md    # TS/JS-specific idioms
@@ -25,11 +25,11 @@ predicate/
 
 ### Terminology
 
-| Term          | Description                                                            |
-| :------------ | :--------------------------------------------------------------------- |
-| **Predicate** | A foundational ruleset governing agent behavior. Always active.        |
-| **Fragment**  | A composable extension to a predicate (e.g., language-specific rules). |
-| **Workflow**  | A task-specific SOP, manually triggered via slash command.             |
+| Term          | Description                                                                            |
+| :------------ | :------------------------------------------------------------------------------------- |
+| **Predicate** | A foundational ruleset. Any file in `predicates/` is always active — no opt-in needed. |
+| **Fragment**  | A context-specific extension in `predicates/fragments/`. Opt-in and task-relevant.     |
+| **Workflow**  | A task-specific SOP, manually triggered via slash command.                             |
 
 ---
 
@@ -127,8 +127,8 @@ cp /path/to/predicate/templates/AGENTS.md ./AGENTS.md
 your-project/
 ├── .agent/
 │   ├── predicates/
-│   │   ├── global.md          # Base ruleset (required)
-│   │   └── fragments/         # Extensions (mark active in AGENTS.md)
+│   │   ├── engineering.md     # Base ruleset (predicate, always active)
+│   │   └── fragments/         # Context-specific (mark active in AGENTS.md)
 │   └── workflows/
 │       ├── ai-audit.md
 │       ├── core.md

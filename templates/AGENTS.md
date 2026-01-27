@@ -1,35 +1,42 @@
 # Project Agent Configuration
 
 <!--
-  This is a template AGENT.md for projects using the predicate ruleset.
+  This is a template AGENT.md for projects using the predicate system.
   Copy this to your project root and customize the sections below.
   See: https://agent.md for the AGENT.md standard.
 -->
 
-## Predicates
+## Predicate System
 
 This project uses [predicate](https://github.com/nrdxp/predicate) for agent configuration.
 
 **Installation Location:** `.agent/predicates/`
 
-The agent MUST read and adhere to the global engineering ruleset and any active fragments:
+### How Predicates Work
+
+**Predicates** are foundational rulesets. Any file placed directly in `predicates/` is **always active** — the agent must read and adhere to all of them unconditionally. These are the non-negotiable rules that govern agent behavior.
+
+**Fragments** are context-specific extensions stored in `predicates/fragments/`. These are **opt-in** — only fragments explicitly listed below as "active" are loaded, and typically only when relevant to the current task (e.g., load `rust.md` when working on Rust code).
 
 ```
 .agent/
 ├── predicates/
-│   ├── global.md              # Base engineering ruleset (required)
-│   └── fragments/             # Active extensions (optional)
+│   ├── engineering.md         # Base engineering ruleset (predicate, always active)
+│   └── fragments/             # Context-specific extensions (opt-in)
 │       └── ...                # e.g., go.md, rust.md, depmap.md
 └── workflows/
     └── ...                    # Task-specific workflows
 ```
 
+> [!IMPORTANT]
+> The agent must read **all** files directly in `predicates/` before beginning work. These predicates are non-negotiable.
+
 **Active Fragments:**
 
-<!-- List the fragments installed in .agent/predicate/fragments/ -->
+<!-- List the fragments installed in .agent/predicates/fragments/ that should be active -->
 <!-- Example: -->
-<!-- - Go idioms -->
-<!-- - MCP tools -->
+<!-- - go.md (Go idioms) -->
+<!-- - depmap.md (MCP tools) -->
 
 **Available Workflows:**
 

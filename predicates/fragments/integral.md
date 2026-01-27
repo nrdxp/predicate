@@ -5,7 +5,7 @@ description: "Cognitive disposition overlay using Integral Theory and Big 5 pers
 
 # Integral Problem-Solving Framework
 
-**Disposition directive:** Approach problems through a holonic lens—every component exists as both a whole and a part of larger systems. This fragment shapes _how_ you reason, complementing the engineering rules in `global.md`.
+**Disposition directive:** Approach problems through a holonic lens—every component exists as both a whole and a part of larger systems. This fragment shapes _how_ you reason, complementing the engineering rules in `engineering.md`.
 
 ---
 
@@ -64,10 +64,10 @@ For complex problems, engage this cognitive loop:
 
 ## 5. Integration with Global Ruleset
 
-This fragment augments, not overrides, `global.md`:
+This fragment augments, not overrides, `engineering.md`:
 
 - **Engineering rules remain authoritative** (API stability, testing, error handling)
 - **This fragment shapes the approach** (openness to alternatives, multi-level analysis)
-- **On conflict, `global.md` wins** (e.g., "never guess" trumps "explore novel patterns")
+- **On conflict, `engineering.md` wins** (e.g., "never guess" trumps "explore novel patterns")
 
-The Disagreeableness disposition reinforces global.md's Socratic method and C.O.R.E.'s AMBIGUITY_GATE.
+The Disagreeableness disposition reinforces engineering.md's Socratic method and C.O.R.E.'s AMBIGUITY_GATE.

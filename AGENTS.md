@@ -1,22 +1,27 @@
 # Project Agent Configuration
 
-## Predicates
+## Predicate System
 
-This project **is** [predicate](https://github.com/nrdxp/predicate) — a framework for agent configuration.
+This project **is** [predicate](https://github.com/nrdxp/predicate) — a system for portable, composable agent configuration.
 
 **Installation Location:** `.agent/predicates/` (symlinked to `predicates/`)
 
-The agent MUST read and adhere to the global engineering ruleset and any active fragments:
+### How Predicates Work
+
+**Predicates** are foundational rulesets. Any file placed directly in the `predicates/` directory is **always active** — the agent must read and adhere to all of them unconditionally.
+
+**Fragments** are context-specific extensions stored in `predicates/fragments/`. These are **opt-in** — only fragments marked as "active" in `AGENTS.md` are loaded, and typically only when relevant to the current task.
 
 ```
 .agent/
 ├── predicates/ → ../predicates
-│   ├── global.md              # Base engineering ruleset
-│   └── fragments/
+│   ├── engineering.md         # Base engineering ruleset (predicate)
+│   └── fragments/             # Context-specific extensions (opt-in)
 │       ├── go.md              # Go idioms
 │       ├── rust.md            # Rust idioms
 │       ├── typescript.md      # TS/JS idioms
 │       ├── depmap.md          # DepMap MCP usage
+│       ├── integral.md        # Integral problem-solving
 │       └── personalization.md # User preferences
 └── workflows/ → ../workflows
     ├── ai-audit.md            # AI code audit
@@ -24,9 +29,12 @@ The agent MUST read and adhere to the global engineering ruleset and any active 
     └── predicate.md           # Context refresh
 ```
 
-**Active Fragments:** None
+> [!NOTE]
+> The agent must read **all** files directly in `predicates/` (currently just `engineering.md`). Additional predicates can be added — they become automatically active.
 
-This is a documentation-only repository. The language-specific fragments (go.md, rust.md, etc.) are provided as templates for other projects, but are not active here.
+**Active Fragments:** `integral.md`
+
+This is a documentation-only repository. The language-specific fragments (go.md, rust.md, etc.) are provided as templates for other projects, but are not active here. The `integral.md` fragment is active to guide meta-project reasoning.
 
 **Available Workflows:**
 

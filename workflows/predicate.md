@@ -1,6 +1,6 @@
 ---
 name: "Predicate Refresh"
-description: "Re-read global rules and relevant fragments"
+description: "Re-read all predicates and relevant fragments"
 trigger: "/predicate"
 ---
 
@@ -19,11 +19,12 @@ Before proceeding with the requested task, read and internalize the following:
    - Subdirectory `AGENTS.md` — scoped context for that subtree only
    - Nearest ancestor takes precedence for the current working directory
 
-2. **Global Predicate** (`.agent/predicates/global.md`)
-   - Core engineering principles
+2. **All Predicates** (any file directly in `.agent/predicates/`)
+   - Currently: `engineering.md` — core engineering principles
    - Error handling requirements
    - API stability rules
    - Documentation standards
+   - **Read all files in this directory** — they are all always-active
 
 3. **Active Fragments** (in `.agent/predicates/fragments/`)
    - Check AGENTS.md for which fragments are marked "active"
