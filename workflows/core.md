@@ -4,7 +4,7 @@ description: "Structured YAML grammar for agentic interaction"
 trigger: "/core"
 ---
 
-# C.O.R.E. Protocol v2.1
+# C.O.R.E. Protocol v2.2
 
 **Context → Obstacles → Resolution → Execution**
 
@@ -60,7 +60,10 @@ PLAN:
 Split work into logical commit boundaries to keep history clean and reviewable.
 
 - Mark steps with `COMMIT: true` to indicate a commit boundary
-- At commit boundaries, pause execution, present the commit message, and await instructions before proceeding
+- At commit boundaries, pause execution and present:
+  1. JUSTIFICATION block for the work in this commit
+  2. Conventional commit message
+- Await instructions before proceeding to the next commit
 - Each commit should be atomic and independently reviewable
 
 ---
@@ -83,7 +86,11 @@ Split work into logical commit boundaries to keep history clean and reviewable.
 
 8. **REMAINING_STEPS:** After each COMMIT boundary, re-output the remaining PLAN steps so the user knows what work remains. Never leave context ambiguous.
 
-9. **SCHEMA_RIGIDITY:** Do not add fields to the CORE-YAML grammar. Use only: STATUS, CONFIDENCE, CTX, OBSTACLES, PLAN. All output artifacts (code, commit messages, verification) go in the final response after the YAML block.
+9. **SCHEMA_RIGIDITY:** Do not add fields to the CORE-YAML grammar. Use only: STATUS, CONFIDENCE, CTX, OBSTACLES, PLAN. All output artifacts (code, commit messages, verification, justification) go in the final response after the YAML block.
+
+10. **JUSTIFICATION_AT_COMMIT:** At each COMMIT boundary, output a JUSTIFICATION block for the changes in that commit. This block must honestly assess approach rationale, scope delta, API impact, and any technical debt introduced. The user must see the justification _before_ approving the commit.
+
+11. **DEBT_TRANSPARENCY:** If a hack, band-aid, or suboptimal solution is used, it must be documented in `JUSTIFICATION.DEBT` with explicit reasoning. Omitting known compromises is a failure mode.
 
 ---
 
@@ -114,7 +121,10 @@ EXECUTE ──→ CLARIFY (if verification fails or scope expands)
 1. Generate code/changes per PLAN steps
 2. Verify each step against its VERIFY condition
 3. Output VERIFY justification for each step
-4. Output conventional commit message (header ≤50 chars, body wrapped at 72)
+4. At each COMMIT boundary:
+   - Output JUSTIFICATION block for the changes in this commit
+   - Output conventional commit message (header ≤50 chars, body wrapped at 72)
+   - Await user confirmation before proceeding
 5. Never auto-commit; user commits manually
 
 ---
@@ -139,4 +149,36 @@ All responses follow CORE-YAML strictly.
 
 - **CLARIFY:** YAML block + numbered questions after
 - **PLAN:** YAML block with complete STEPS
-- **EXECUTE:** YAML block + code blocks + VERIFY justifications + commit message
+- **EXECUTE:** YAML block + code blocks + VERIFY justifications + JUSTIFICATION block + commit message
+
+### JUSTIFICATION Block (Required at COMMIT Boundaries)
+
+At each COMMIT boundary, before presenting the commit message, output a justification for the work in that commit:
+
+```yaml
+JUSTIFICATION:
+  APPROACH:
+    WHAT: "What was done in this commit"
+    WHY: "Why this approach over alternatives"
+    ALTERNATIVES: # Optional, if alternatives were considered
+      - "[approach] — rejected because [reason]"
+
+  SCOPE:
+    DELTA: [UNCHANGED | EXPANDED | REDUCED]
+    CHANGES: # Required if DELTA != UNCHANGED
+      - "What changed from the plan and why"
+
+  API_IMPACT:
+    BREAKING: [YES | NO]
+    ASSESSMENT: "How this integrates with existing patterns"
+    MIGRATION: "..." # Required if BREAKING: YES
+
+  DEBT:
+    LEVEL: [NONE | LOW | MEDIUM | HIGH]
+    ITEMS: # Required if LEVEL != NONE
+      - WHAT: "The compromise"
+        WHY: "Why necessary"
+        FOLLOW_UP: "How to resolve"
+```
+
+This surfaces drift incrementally — the user can catch and correct decisions _before_ the next commit proceeds.

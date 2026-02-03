@@ -167,12 +167,13 @@ The agent will only load fragments marked as active and relevant to the current 
 
 ## Available Workflows
 
-| Workflow                               | Trigger      | Description                                          |
-| :------------------------------------- | :----------- | :--------------------------------------------------- |
-| [ai-audit.md](workflows/ai-audit.md)   | `/ai-audit`  | 4-layer audit framework for AI-generated code        |
-| [core.md](workflows/core.md)           | `/core`      | C.O.R.E. protocol for structured agentic interaction |
-| [humanizer.md](workflows/humanizer.md) | `/humanizer` | Remove AI writing patterns; make text more natural   |
-| [predicate.md](workflows/predicate.md) | `/predicate` | Re-read global rules; combats context drift          |
+| Workflow                                 | Trigger       | Description                                          |
+| :--------------------------------------- | :------------ | :--------------------------------------------------- |
+| [ai-audit.md](workflows/ai-audit.md)     | `/ai-audit`   | 4-layer audit framework for AI-generated code        |
+| [core.md](workflows/core.md)             | `/core`       | C.O.R.E. protocol for structured agentic interaction |
+| [git-review.md](workflows/git-review.md) | `/git-review` | Review git history for coherence and scope drift     |
+| [humanizer.md](workflows/humanizer.md)   | `/humanizer`  | Remove AI writing patterns; make text more natural   |
+| [predicate.md](workflows/predicate.md)   | `/predicate`  | Re-read global rules; combats context drift          |
 
 Workflows can be chained: `/predicate + /core`
 
