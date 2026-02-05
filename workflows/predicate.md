@@ -1,7 +1,6 @@
 ---
-name: "Predicate Refresh"
-description: "Re-read all predicates and relevant fragments"
-trigger: "/predicate"
+name: "predicate"
+description: "Re-read all predicates and relevant fragments to combat context drift"
 ---
 
 # Predicate Refresh

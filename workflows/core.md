@@ -1,7 +1,6 @@
 ---
-name: "C.O.R.E. Protocol"
-description: "Structured YAML grammar for agentic interaction"
-trigger: "/core"
+name: "core"
+description: "Structured YAML grammar for agentic interaction (C.O.R.E. Protocol)"
 ---
 
 # C.O.R.E. Protocol v2.2

@@ -1,7 +1,6 @@
 ---
-name: "Core Continue"
+name: "continue"
 description: "Resume C.O.R.E. execution with invariant reinforcement"
-trigger: "/continue"
 ---
 
 # Core Continue

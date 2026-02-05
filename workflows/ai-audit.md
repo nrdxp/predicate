@@ -1,7 +1,6 @@
 ---
-name: "AI Audit Workflow"
+name: "ai-audit"
 description: "Auditing AI-generated code for common issues"
-trigger: "/ai-audit"
 ---
 
 # AI-Generated Code Audit Workflow
