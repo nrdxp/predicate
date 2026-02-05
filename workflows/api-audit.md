@@ -1,7 +1,6 @@
 ---
-name: "API Coherence Audit"
+name: "api-audit"
 description: "Iterative protocol for auditing API surface coherence, type safety, and design elegance"
-trigger: "/api-audit"
 ---
 
 # API Coherence Audit Protocol v1.0

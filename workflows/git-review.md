@@ -1,7 +1,6 @@
 ---
-name: "Git Review Workflow"
+name: "git-review"
 description: "Goal-directed review of git history for change coherence"
-trigger: "/git-review"
 ---
 
 # Git Review Workflow

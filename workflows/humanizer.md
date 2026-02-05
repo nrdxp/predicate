@@ -1,7 +1,6 @@
 ---
-name: "Humanizer"
+name: "humanizer"
 description: "Remove signs of AI-generated writing from text"
-trigger: "/humanizer"
 version: "2.1.1"
 attribution: "Based on blader/humanizer (https://github.com/blader/humanizer)"
 ---
