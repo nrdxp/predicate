@@ -4,40 +4,12 @@
 
 This project **is** [predicate](https://github.com/nrdxp/predicate) — a system for portable, composable agent configuration.
 
-**Installation Location:** `.agent/predicates/` (symlinked to `predicates/`)
-
-### How Predicates Work
-
-Predicate content lives under `.agent/` at the project root:
-
-```
-.agent/
-├── predicates/          # Foundational rulesets
-│   └── fragments/       # Context-specific extensions
-└── workflows/           # Task-specific SOPs
-```
-
-**Predicates** are foundational rulesets that are **always active**. Any `.md` file placed directly in `.agent/predicates/` (not in a subdirectory) must be read and followed unconditionally — these are the non-negotiable rules governing agent behavior.
-
-**Fragments** are context-specific extensions stored in `.agent/predicates/fragments/`. These are **opt-in** — only fragments explicitly listed below as "active" are loaded, typically when relevant to the current task.
-
 > [!IMPORTANT]
-> The agent must scan `.agent/predicates/` and read **all** `.md` files there before beginning work. Do not rely on any file listing in this document — scan the directory itself.
+> You **must** review [.agent/PREDICATE.md](.agent/PREDICATE.md) and follow its instructions before beginning work.
 
-### Hierarchical Configuration
-
-The [AGENTS.md standard](https://agents.md) supports hierarchical configuration. When working in a subdirectory, the agent should also check for and read any `AGENTS.md` file in that directory for additional context-specific rules. Subdirectory rules supplement (not replace) the root configuration.
-
-**Active Fragments:** None (no fragments are currently marked active)
+**Active Fragments:** None
 
 This is a documentation-only repository. The language-specific fragments (go.md, rust.md, etc.) are provided as templates for other projects, but are not active here. The `integral.md` predicate guides meta-project reasoning.
-
-**Available Workflows:**
-
-- `/ai-audit` — Audit code for AI-generated patterns
-- `/core` — C.O.R.E. structured interaction protocol
-- `/humanizer` — Remove AI writing patterns from text
-- `/predicate` — Re-read global rules; combats context drift
 
 ---
 

@@ -127,14 +127,13 @@ cp /path/to/predicate/templates/AGENTS.md ./AGENTS.md
 ```
 your-project/
 ├── .agent/
+│   ├── PREDICATE.md              # Predicate system documentation (read first)
 │   ├── predicates/
-│   │   ├── engineering.md     # Base ruleset (predicate, always active)
-│   │   └── fragments/         # Context-specific (mark active in AGENTS.md)
+│   │   ├── engineering.md        # Base ruleset (predicate, always active)
+│   │   └── fragments/            # Context-specific (mark active in AGENTS.md)
 │   └── workflows/
-│       ├── ai-audit.md
-│       ├── core.md
-│       └── predicate.md
-└── AGENTS.md                   # Project context + active fragments
+│       └── ...                   # Task-specific SOPs
+└── AGENTS.md                     # Project context + active fragments
 ```
 
 ---
