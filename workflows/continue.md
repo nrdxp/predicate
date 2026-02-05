@@ -37,3 +37,14 @@ Output in this order, then HALT:
 3. **REMAINING STEPS** — re-output remaining PLAN steps
 
 Await explicit approval for the next commit.
+
+---
+
+## Predicate Awareness
+
+If predicates and active fragments are still in context, keep them in mind as execution invariants. If context has drifted (long execution, many steps), re-read:
+
+1. **Predicates** — all `.md` files directly in `.agent/predicates/` (always active)
+2. **Active Fragments** — check `AGENTS.md` at the repo root for which fragments in `.agent/predicates/fragments/` are marked active
+
+Alternatively, invoke `/predicate` for a full refresh before continuing, if necessary.
