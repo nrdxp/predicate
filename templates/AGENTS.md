@@ -14,22 +14,25 @@ This project uses [predicate](https://github.com/nrdxp/predicate) for agent conf
 
 ### How Predicates Work
 
-**Predicates** are foundational rulesets. Any file placed directly in `predicates/` is **always active** — the agent must read and adhere to all of them unconditionally. These are the non-negotiable rules that govern agent behavior.
-
-**Fragments** are context-specific extensions stored in `predicates/fragments/`. These are **opt-in** — only fragments explicitly listed below as "active" are loaded, and typically only when relevant to the current task (e.g., load `rust.md` when working on Rust code).
+Predicate content lives under `.agent/` at the project root:
 
 ```
 .agent/
-├── predicates/
-│   ├── engineering.md         # Base engineering ruleset (predicate, always active)
-│   └── fragments/             # Context-specific extensions (opt-in)
-│       └── ...                # e.g., go.md, rust.md, depmap.md
-└── workflows/
-    └── ...                    # Task-specific workflows
+├── predicates/          # Foundational rulesets
+│   └── fragments/       # Context-specific extensions
+└── workflows/           # Task-specific SOPs
 ```
 
+**Predicates** are foundational rulesets that are **always active**. Any `.md` file placed directly in `.agent/predicates/` (not in a subdirectory) must be read and followed unconditionally — these are the non-negotiable rules governing agent behavior.
+
+**Fragments** are context-specific extensions stored in `.agent/predicates/fragments/`. These are **opt-in** — only fragments explicitly listed below as "active" are loaded, typically when relevant to the current task.
+
 > [!IMPORTANT]
-> The agent must read **all** files directly in `predicates/` before beginning work. These predicates are non-negotiable.
+> The agent must scan `.agent/predicates/` and read **all** `.md` files there before beginning work. Do not rely on any file listing in this document — scan the directory itself.
+
+### Hierarchical Configuration
+
+The [AGENTS.md standard](https://agent.md) supports hierarchical configuration. When working in a subdirectory, the agent should also check for and read any `AGENTS.md` file in that directory for additional context-specific rules. Subdirectory rules supplement (not replace) the root configuration.
 
 **Active Fragments:**
 
