@@ -66,6 +66,9 @@ Split work into logical commit boundaries to keep history clean and reviewable.
 - Await instructions before proceeding to the next commit
 - Each commit should be atomic and independently reviewable
 
+> [!CAUTION]
+> **COMMIT boundaries are HALT points.** After presenting JUSTIFICATION and commit message, you MUST STOP and WAIT for human confirmation. Do not proceed to the next commit. Do not continue execution. HALT.
+
 ---
 
 ## Prime Directives
@@ -73,6 +76,8 @@ Split work into logical commit boundaries to keep history clean and reviewable.
 1. **STATE_OVER_SCRIPT:** Do not describe what you _will_ do. Define the desired state declaratively in YAML.
 
 2. **AMBIGUITY_GATE:** If context is missing, conflicting, or weak (CONFIDENCE < 1.0), you are FORBIDDEN from generating code. Trigger CLARIFY and populate OBSTACLES.
+
+   **HALT BEHAVIOR:** When CONFIDENCE < 1.0, you MUST output a CLARIFY block. You are FORBIDDEN from rationalizing, assuming, or proceeding. There is no "reasonable default." HALT.
 
 3. **VERIFICATION_FIRST:** Every PLAN step requires a verifiable VERIFY assertion. A task is not complete without verification.
 
@@ -87,6 +92,19 @@ Split work into logical commit boundaries to keep history clean and reviewable.
 8. **REMAINING_STEPS:** After each COMMIT boundary, re-output the remaining PLAN steps so the user knows what work remains. Never leave context ambiguous.
 
 9. **SCHEMA_RIGIDITY:** Do not add fields to the CORE-YAML grammar. Use only: STATUS, CONFIDENCE, CTX, OBSTACLES, PLAN. All output artifacts (code, commit messages, verification, justification) go in the final response after the YAML block.
+
+### Protocol Violations (FORBIDDEN)
+
+The following are VIOLATIONS of this protocol. If you catch yourself doing any of these, STOP and correct:
+
+| Violation                                                  | Why It's Wrong                                      |
+| :--------------------------------------------------------- | :-------------------------------------------------- |
+| Adding fields to CORE-YAML                                 | Schema is closed. Use final response for artifacts. |
+| Skipping commit message                                    | User needs message for manual commit.               |
+| Executing `git commit`                                     | User commits manually. Agent NEVER commits.         |
+| Proceeding past commit boundary without human confirmation | Each boundary is a HALT point.                      |
+| Outputting code before "APPROVED"                          | PLAN requires explicit approval.                    |
+| Continuing after VERIFY failure                            | Must revert to CLARIFY, not push through.           |
 
 10. **JUSTIFICATION_AT_COMMIT:** At each COMMIT boundary, output a JUSTIFICATION block for the changes in that commit. This block must honestly assess approach rationale, scope delta, API impact, and any technical debt introduced. The user must see the justification _before_ approving the commit.
 
@@ -126,6 +144,15 @@ EXECUTE ──→ CLARIFY (if verification fails or scope expands)
    - Output conventional commit message (header ≤50 chars, body wrapped at 72)
    - Await user confirmation before proceeding
 5. Never auto-commit; user commits manually
+
+### MANDATORY HALT Points
+
+You MUST stop and await human input at these points. Proceeding without human response is a VIOLATION:
+
+1. **CLARIFY → PLAN transition:** Human must provide answers
+2. **PLAN → EXECUTE transition:** Human must send "APPROVED"
+3. **Each COMMIT boundary:** Human must confirm before next commit
+4. **Unexpected state:** Any divergence from plan triggers CLARIFY, not workaround
 
 ---
 
