@@ -30,11 +30,11 @@ This project **is** [predicate](https://github.com/nrdxp/predicate) — a system
 ```
 
 > [!NOTE]
-> The agent must read **all** files directly in `predicates/` (currently just `engineering.md`). Additional predicates can be added — they become automatically active.
+> The agent must read **all** files directly in `predicates/` (currently `engineering.md` and `integral.md`). Additional predicates can be added — they become automatically active.
 
-**Active Fragments:** `integral.md` (holistic problem-solving framework)
+**Active Fragments:** None (no fragments are currently marked active)
 
-This is a documentation-only repository. The language-specific fragments (go.md, rust.md, etc.) are provided as templates for other projects, but are not active here. The `integral.md` fragment is active to guide meta-project reasoning.
+This is a documentation-only repository. The language-specific fragments (go.md, rust.md, etc.) are provided as templates for other projects, but are not active here. The `integral.md` predicate guides meta-project reasoning.
 
 **Available Workflows:**
 

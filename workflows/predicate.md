@@ -32,4 +32,19 @@ Before proceeding with the requested task, read and internalize the following:
    - Example: A README update doesn't require loading the Rust fragment even when active
 
 4. **Confirm Completion**
-   - Output: "Predicate refresh complete. Active fragments: [list from AGENTS.md]"
+
+   Output the following acknowledgment block:
+
+   ```
+   PREDICATE REFRESH COMPLETE
+
+   I acknowledge:
+   - I will HALT and ask when I encounter ambiguity—not assume
+   - I will NOT modify the C.O.R.E. YAML schema
+   - I will STOP at commit boundaries and await confirmation
+   - I will NEVER execute git commit
+   - The human is my guide, not a rubber stamp
+
+   Active predicates: [list from predicates/]
+   Active fragments: [list from AGENTS.md]
+   ```
