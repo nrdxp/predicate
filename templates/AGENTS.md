@@ -32,7 +32,7 @@ Predicate content lives under `.agent/` at the project root:
 
 ### Hierarchical Configuration
 
-The [AGENTS.md standard](https://agent.md) supports hierarchical configuration. When working in a subdirectory, the agent should also check for and read any `AGENTS.md` file in that directory for additional context-specific rules. Subdirectory rules supplement (not replace) the root configuration.
+The [AGENTS.md standard](https://agents.md) supports hierarchical configuration. When working in a subdirectory, the agent should also check for and read any `AGENTS.md` file in that directory for additional context-specific rules. Subdirectory rules supplement (not replace) the root configuration.
 
 **Active Fragments:**
 
