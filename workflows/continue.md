@@ -18,6 +18,7 @@ As you execute, you MUST:
 3. **Never auto-commit** — user commits manually
 4. **HALT on divergence** — if reality differs from plan, revert to CLARIFY
 5. **Output artifacts visibly** — code, messages, and verification in final response (not hidden)
+6. **Update and commit sketch** — at every commit boundary, update the active sketch with discoveries, pivots, and learnings, then commit to `.sketches/` subrepo. Every touch = a commit.
 
 You must NOT:
 
@@ -25,6 +26,7 @@ You must NOT:
 - Proceed past a commit boundary without explicit `/continue`
 - Execute `git commit`
 - Push through VERIFY failures — revert to CLARIFY instead
+- Skip sketch updates at commit boundaries — the sketch is the decision record
 
 ---
 
@@ -47,8 +49,8 @@ If context has drifted (long execution, many steps), review these in order:
 1. **Plan** — re-read `docs/plans/[topic].md` for current goals and phases
 2. **Sketch** — if available at `.sketches/[topic].md`, review for decision history and execution notes
 3. **ADR** — check `docs/adr/` for relevant architectural decisions
-4. **Axioms** — all `.md` files directly in `.agent/axioms/` (always active)
-5. **Active Personas** — check `AGENTS.md` for which personas in `.agent/personas/` are marked active
+4. **Predicates** — all `.md` files directly in `.agent/predicates/` (always active)
+5. **Active Fragments** — check `AGENTS.md` for which fragments in `.agent/predicates/fragments/` are marked active
 
 > [!TIP]
 > Sketches contain the full thought chain: ideation, planning, and execution notes. If you're unsure why a decision was made, the sketch is the first place to look. Use `/git-review` on `.sketches/` to see how decisions evolved.
