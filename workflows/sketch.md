@@ -31,6 +31,13 @@ SKETCH embodies this discipline:
 
 ---
 
+## Scope
+
+> [!IMPORTANT]
+> SKETCH is for **pathfinding** — exploring the problem space and finding a potential direction. It is NOT design specification (that's `/plan`) and NOT implementation (that's `/core`). If you find yourself specifying exact file changes or writing code, you've left SKETCH territory.
+
+---
+
 ## Sketch Storage
 
 Sketches live in `.sketches/`, a git-ignored subtree with its own local history. This preserves ideation archaeology without bloating the main repository.
@@ -80,6 +87,47 @@ Examples:
 ### Additive History
 
 Sketches are **additive**: new explorations create new files. Revisions to existing sketches are committed to the local `.sketches/.git/` history. Never overwrite without committing first.
+
+---
+
+## Sketch Discipline
+
+### Commit Discipline
+
+Every modification to a sketch file MUST be immediately followed by a `git commit` within the `.sketches/` subrepo. **Every touch = a commit.** This creates a linear changelog of all decisions, findings, and pivots — an agentic history of the thought process.
+
+- Commit **after every state transition** (EXPLORE → DIVERGE, etc.)
+- Commit **after every significant finding** or change in direction
+- Commit **before any HALT point**
+- Commit messages should be descriptive: `"sketch: DIVERGE — added approach C (hybrid)"`, not `"update sketch"`
+
+> [!CAUTION]
+> Modifying a sketch without committing is a **protocol violation**. The sketch's git history IS the decision record. If it's not committed, it didn't happen.
+
+### Content Philosophy
+
+The YAML grammar is a **scaffold, not a cage**. Sketches should capture anything a future agent would need to go from **zero to full context** at any point in the project:
+
+- Problem framing and constraints discovered
+- Rejected paths and why they were rejected
+- Surprising discoveries or environmental constraints
+- Links to relevant conversations, documents, or prior work
+- Domain-specific context that wouldn't be obvious
+- User feedback and how it changed direction
+
+The YAML structure (PROBLEM, UNKNOWNS, APPROACHES, EVALUATION) provides the skeleton. Freeform prose sections below the YAML block provide the flesh. **Be generous with context — the cost of recording too much is negligible; the cost of losing context is severe.**
+
+### Update Cadence
+
+The sketch is a **living document** throughout the full lifecycle:
+
+| Phase     | When to Update Sketch                             |
+| :-------- | :------------------------------------------------ |
+| `/sketch` | Every state transition, every finding             |
+| `/plan`   | Every challenge finding, every refinement         |
+| `/core`   | Every commit boundary, every unexpected discovery |
+
+Every update MUST be committed to the `.sketches/` subrepo immediately.
 
 ---
 
@@ -177,6 +225,15 @@ PROPOSE ──→ /plan    (on human approval)
 5. **ADDITIVE_HISTORY:** Never overwrite a sketch. Create new files for new topics. Use git commits within `.sketches/` for revisions.
 
 6. **HALT_ON_UNKNOWNS:** If UNKNOWNS is non-empty, you are FORBIDDEN from transitioning to DIVERGE. Surface questions to the human.
+
+### Protocol Violations (FORBIDDEN)
+
+| Violation                                           | Why It's Wrong                                        |
+| :-------------------------------------------------- | :---------------------------------------------------- |
+| Modifying sketch without committing to `.sketches/` | Breaks changelog linearity; decision history is lost  |
+| Silently overwriting sketch content                 | Destroys ideation archaeology                         |
+| Restricting content to only the YAML formula        | Loses context needed for 0-to-full-context recovery   |
+| Skipping freeform context in favor of terse YAML    | Future agents can't reconstruct the reasoning journey |
 
 ---
 
