@@ -43,6 +43,9 @@ PLAN typically receives a SKETCH as input:
 - The sketch's APPROACHES document considered alternatives
 - The sketch's RISKS inform what to stress-test
 
+> [!IMPORTANT]
+> **The sketch remains active during planning.** Challenge findings, refinements, and discovered risks should be written back to the sketch. The sketch tracks your _thinking_; the plan captures the _outcome_.
+
 PLAN can also be invoked standalone for well-understood work, but prefer SKETCH → PLAN for anything non-trivial.
 
 ---
@@ -122,7 +125,8 @@ DESIGN:
       DEPENDENCIES: [1]
       ESTIMATED_SCOPE: "..."
 
-# 5. ADR (Populated in COMMIT)
+# 5. ADR (Optional — for significant architectural decisions)
+# Omit for scoped work that doesn't warrant permanent decision records
 ADR:
   TITLE: "ADR-NNNN: Decision title"
   STATUS: [PROPOSED | ACCEPTED]
@@ -173,7 +177,7 @@ COMMIT ──→ /core   (on human approval, per-phase execution)
 
 4. **PHASE_ATOMICITY:** Each phase must be independently valuable. If Phase 2 fails, Phase 1's work should still be useful.
 
-5. **ADR_REQUIRED:** No plan commits without an ADR. The ADR captures the _why_ for posterity.
+5. **ADR_WHEN_WARRANTED:** ADRs are required for significant architectural decisions. Scoped work may commit without an ADR if no lasting decision record is needed. When in doubt, produce an ADR—it's cheap insurance.
 
 6. **HALT_ON_RISK:** If CHALLENGE.RISKS contains unmitigated HIGH or CRITICAL items, you are FORBIDDEN from transitioning to SCOPE. Surface to human.
 
@@ -226,9 +230,15 @@ The recommended flow for non-trivial work:
 ```
 /sketch  →  explore problem space, diverge on approaches
          ↓
-/plan    →  stress-test direction, produce ADR
+/plan    →  stress-test direction, finalize structured plan
          ↓
 /core    →  per-phase granular execution (repeat per phase)
 ```
+
+**Sketch is living:** The sketch should be updated with challenge findings and refinements during the PLAN phase. The sketch tracks your thinking; the plan captures the culmination of that thought.
+
+**Plan is the procedure:** The plan is a well-structured procedure to guide /core execution. It should be professional, complete, and ready to hand off. Iterate in the sketch; commit in the plan.
+
+**ADR is optional:** Significant architectural decisions warrant an ADR. Scoped work may not. Use judgment.
 
 SKETCH is optional for well-understood work. PLAN is always required before significant execution.
