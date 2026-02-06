@@ -35,6 +35,13 @@ Where SKETCH explores possibilities, PLAN stress-tests the chosen direction. Whe
 
 ---
 
+## Scope
+
+> [!IMPORTANT]
+> PLAN is for **stress-testing and formalizing** — ensuring we aren't fooling ourselves with what we found, then getting it into a coherent structure. It is NOT exploration (that's `/sketch`) and NOT implementation (that's `/core`). If you find yourself exploring new approaches or writing code, you've left PLAN territory.
+
+---
+
 ## Input
 
 PLAN typically receives a SKETCH as input:
@@ -159,7 +166,16 @@ COMMIT ──→ /core   (on human approval, per-phase execution)
 
 **REFINE:** Transform sketch direction into precise specification. Fill in DESIGN.ARCHITECTURE and KEY_DECISIONS.
 
-**CHALLENGE:** Adversarial stress-test. Actively seek risks, validate assumptions, document rejected alternatives. You are the devil's advocate—find reasons this will fail.
+**CHALLENGE:** Adversarial stress-test. You are the devil's advocate — your job is to find reasons this will fail. Do not accept the sketch direction at face value. Actively seek risks, validate assumptions, document rejected alternatives.
+
+Use these techniques:
+
+- **Assumption Inversion:** For each assumption, ask "What if the opposite were true?"
+- **Steel-Man the Alternative:** Before rejecting an alternative, articulate the strongest possible case FOR it
+- **Pre-Mortem:** "It's 3 months from now and this failed. Why?"
+- **Intentional Malformation Check:** Consider whether the sketch's direction could be intentionally misleading, subtly flawed, or based on a misunderstanding. Don't trust it — verify it.
+
+**Minimum Challenge Threshold:** CHALLENGE must identify ≥1 MEDIUM+ risk AND evaluate ≥1 viable alternative with honest tradeoffs. If you can't find them, you haven't challenged hard enough — look again. A CHALLENGE phase that merely confirms the sketch is a failure mode.
 
 **SCOPE:** Define explicit phases with concrete deliverables. Sharpen NON_GOALS. Each phase should be C.O.R.E.-executable.
 
@@ -182,6 +198,18 @@ COMMIT ──→ /core   (on human approval, per-phase execution)
 6. **HALT_ON_RISK:** If CHALLENGE.RISKS contains unmitigated HIGH or CRITICAL items, you are FORBIDDEN from transitioning to SCOPE. Surface to human.
 
 7. **REVERSIBILITY_AWARENESS:** Document which decisions are reversible. Irreversible decisions require higher confidence.
+
+8. **SKETCH_SYNCHRONIZATION:** Challenge findings, discovered risks, and refined assumptions MUST be written back to the sketch AND committed to the `.sketches/` subrepo immediately. The sketch is the living journal; the plan captures the outcome. Every modification to the sketch MUST be followed by a commit — every touch = a commit.
+
+### Protocol Violations (FORBIDDEN)
+
+| Violation                                           | Why It's Wrong                             |
+| :-------------------------------------------------- | :----------------------------------------- |
+| CHALLENGE with zero MEDIUM+ risks identified        | Insufficient adversarial rigor             |
+| CHALLENGE without evaluating a viable alternative   | Rubber-stamping, not stress-testing        |
+| Accepting sketch direction without genuine pushback | Defeats the purpose of PLAN                |
+| Sketch updates without committing to `.sketches/`   | Breaks changelog; decision history is lost |
+| Proceeding to SCOPE with unsynced sketch            | Context loss for future agents             |
 
 ---
 
@@ -235,7 +263,9 @@ The recommended flow for non-trivial work:
 /core    →  per-phase granular execution (repeat per phase)
 ```
 
-**Sketch is living:** The sketch should be updated with challenge findings and refinements during the PLAN phase. The sketch tracks your thinking; the plan captures the culmination of that thought.
+**Sketch is living:** The sketch MUST be updated with challenge findings and refinements during the PLAN phase, and every update MUST be committed to the `.sketches/` subrepo. The sketch tracks your thinking; the plan captures the culmination of that thought. If it's not in the sketch, it didn't happen.
+
+**Sketch content should be generous:** The YAML grammar is a scaffold, not a cage. Record anything a future agent would need to go from zero to full context: rejected paths, surprising discoveries, environmental constraints, user feedback. Be liberal — the cost of recording too much is negligible; the cost of losing context is severe.
 
 **Plan is the procedure:** The plan is a well-structured procedure to guide /core execution. It should be professional, complete, and ready to hand off. Iterate in the sketch; commit in the plan.
 
