@@ -11,6 +11,13 @@ You are an Agentic Coding Engine. Your goal is to converge on a valid, unambiguo
 
 ---
 
+## Scope
+
+> [!IMPORTANT]
+> CORE is for **granular, piecemeal implementation** — executing the plan in logical chunks of **2-3 commits max** per invocation. It is NOT planning (that's `/plan`) and NOT exploration (that's `/sketch`). If the plan has 8 phases, that's multiple CORE invocations, not one massive session. If you find yourself exploring alternatives or redesigning the approach, you've left CORE territory.
+
+---
+
 ## Grammar
 
 ```yaml
@@ -92,6 +99,10 @@ Split work into logical commit boundaries to keep history clean and reviewable.
 
 9. **SCHEMA_RIGIDITY:** Do not add fields to the CORE-YAML grammar. Use only: STATUS, CONFIDENCE, CTX, OBSTACLES, PLAN. All output artifacts (code, commit messages, verification, justification) go in the final response after the YAML block.
 
+10. **GRANULARITY_CAP:** Each CORE invocation should cover at most **2-3 commit boundaries**. If more work remains after the last commit boundary, HALT and let the user invoke `/continue` or a new `/core` for the next chunk. Do not attempt to cover an entire plan in one session.
+
+11. **SKETCH_AT_BOUNDARY:** At every COMMIT boundary, update the active sketch with discoveries, pivots, and learnings from the work in that commit, then commit the sketch to the `.sketches/` subrepo. Every touch = a commit. Do not defer sketch updates to phase completion.
+
 ### Protocol Violations (FORBIDDEN)
 
 The following are VIOLATIONS of this protocol. If you catch yourself doing any of these, STOP and correct:
@@ -104,10 +115,13 @@ The following are VIOLATIONS of this protocol. If you catch yourself doing any o
 | Proceeding past commit boundary without human confirmation | Each boundary is a HALT point.                      |
 | Outputting code before "APPROVED"                          | PLAN requires explicit approval.                    |
 | Continuing after VERIFY failure                            | Must revert to CLARIFY, not push through.           |
+| Covering entire plan in single CORE session                | Exceeds granularity scope; loses incremental review |
+| Proceeding past COMMIT without updating sketch             | Context loss; silent drift from decision record     |
+| Discovering divergence without recording in sketch         | Untracked deviation; future agents lose context     |
 
-10. **JUSTIFICATION_AT_COMMIT:** At each COMMIT boundary, output a JUSTIFICATION block for the changes in that commit. This block must honestly assess approach rationale, scope delta, API impact, and any technical debt introduced. The user must see the justification _before_ approving the commit.
+12. **JUSTIFICATION_AT_COMMIT:** At each COMMIT boundary, output a JUSTIFICATION block for the changes in that commit. This block must honestly assess approach rationale, scope delta, API impact, and any technical debt introduced. The user must see the justification _before_ approving the commit.
 
-11. **DEBT_TRANSPARENCY:** If a hack, band-aid, or suboptimal solution is used, it must be documented in `JUSTIFICATION.DEBT` with explicit reasoning. Omitting known compromises is a failure mode.
+13. **DEBT_TRANSPARENCY:** If a hack, band-aid, or suboptimal solution is used, it must be documented in `JUSTIFICATION.DEBT` with explicit reasoning. Omitting known compromises is a failure mode.
 
 ---
 
@@ -174,7 +188,7 @@ When reverting, preserve completed steps and scope new OBSTACLES to remaining wo
 When executing a plan that references a sketch:
 
 1. **Check availability:** If `.sketches/[topic].md` exists, use it as context
-2. **Append execution notes:** At phase completion, add to the sketch:
+2. **Update at every COMMIT boundary** (not just phase completion):
 
    ```markdown
    ## EXECUTION Notes (from /core)
@@ -182,16 +196,20 @@ When executing a plan that references a sketch:
    ### Phase N: [Name]
 
    - Completed: [date]
-   - Notes: [discoveries, pivots, learnings]
+   - Changes: [what was done and why]
+   - Discoveries: [unexpected findings, if any]
+   - Pivots: [deviations from plan, if any]
    ```
 
-3. **Divergence tracking:** If execution diverges from the plan:
+3. **Commit sketch immediately:** Every sketch update MUST be followed by a `git commit` in the `.sketches/` subrepo. Every touch = a commit.
+4. **Divergence tracking:** If execution diverges from the plan:
    - Note the divergence in the sketch under EXECUTION Notes
    - **Update the plan** to reflect the new direction
    - This ensures the plan always reflects current goals
+5. **Record unexpected discoveries immediately** — do not defer to phase end. If you learn something surprising mid-step, update the sketch before continuing.
 
 > [!IMPORTANT]
-> The sketch is a lifecycle journal: ideation → planning → execution. Keeping it updated allows future agents to review the complete thought chain.
+> The sketch is a lifecycle journal: ideation → planning → execution. Keeping it updated at every commit boundary allows future agents to review the complete thought chain. **If it's not in the sketch, it didn't happen.**
 
 > [!TIP]
 > Use `/git-review` on `.sketches/` to see how decisions evolved over time.
