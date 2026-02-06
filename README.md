@@ -16,12 +16,16 @@ predicate/
 │       ├── integral.md          # Holistic problem-solving
 │       └── personalization.md # User naming preferences
 ├── workflows/               # Manually-triggered SOPs
+│   ├── sketch.md            # Exploratory planning (SKETCH protocol)
+│   ├── plan.md              # Rigorous planning (PLAN protocol)
+│   ├── core.md              # Granular execution (C.O.R.E. protocol)
 │   ├── ai-audit.md          # Audit AI-generated code
-│   ├── core.md              # C.O.R.E. structured interaction
 │   ├── humanizer.md         # Remove AI writing patterns
-│   └── predicate.md         # Context refresh workflow
+│   └── ...                  # See Available Workflows below
 └── templates/               # Project templates
-    └── AGENTS.md            # AGENTS.md template for projects
+    ├── AGENTS.md            # AGENTS.md template for projects
+    ├── ADR.md               # Architecture Decision Record template
+    └── .gitignore           # Gitignore template (includes .sketches/)
 ```
 
 ### Terminology
@@ -54,20 +58,21 @@ Predicate integrates with existing conventions rather than inventing new ones:
 - **`.agent/` directory** — Common location recognized by agentic tools
 - **Workflow triggers** — Slash commands familiar to most agent interfaces
 
-### The C.O.R.E. Protocol
+### The Planning Protocols
 
-The `/core` workflow is predicate's structured approach to bounded work:
+Predicate includes a layered approach to planning and execution:
 
-> **C**ontext → **O**bstacles → **R**esolution → **E**xecution
+```
+/sketch  →  /plan  →  /core
+```
 
-Instead of diving straight into code, C.O.R.E. enforces:
+**SKETCH** (`/sketch`) — Exploratory planning. Diverge before converging. Sketches live in `.sketches/` (gitignored) with their own local git history, preserving ideation archaeology without bloating the main repo.
 
-1. **Explicit context gathering** before action
-2. **Ambiguity detection** that blocks premature execution
-3. **User approval gates** at plan boundaries
-4. **Verification assertions** for every change
+**PLAN** (`/plan`) — Rigorous planning. Actively seek reasons _not_ to proceed. Produces a committed plan artifact and an ADR before execution begins.
 
-This keeps work well-specified and prevents the common failure mode of agents confidently executing on misunderstood requirements.
+**C.O.R.E.** (`/core`) — Granular execution. Takes each phase from the plan and executes with explicit verification.
+
+> **The best code is no code.** We don't commit to building until we're confident the design is correct. Planning deserves the same rigor we bring to execution.
 
 ---
 
@@ -166,15 +171,17 @@ The agent will only load fragments marked as active and relevant to the current 
 
 ## Available Workflows
 
-| Workflow                                 | Trigger       | Description                                          |
-| :--------------------------------------- | :------------ | :--------------------------------------------------- |
-| [ai-audit.md](workflows/ai-audit.md)     | `/ai-audit`   | 4-layer audit framework for AI-generated code        |
-| [core.md](workflows/core.md)             | `/core`       | C.O.R.E. protocol for structured agentic interaction |
-| [git-review.md](workflows/git-review.md) | `/git-review` | Review git history for coherence and scope drift     |
-| [humanizer.md](workflows/humanizer.md)   | `/humanizer`  | Remove AI writing patterns; make text more natural   |
-| [predicate.md](workflows/predicate.md)   | `/predicate`  | Re-read global rules; combats context drift          |
+| Workflow                                 | Trigger       | Description                                        |
+| :--------------------------------------- | :------------ | :------------------------------------------------- |
+| [sketch.md](workflows/sketch.md)         | `/sketch`     | Exploratory planning — diverge before converging   |
+| [plan.md](workflows/plan.md)             | `/plan`       | Rigorous planning — stress-test before committing  |
+| [core.md](workflows/core.md)             | `/core`       | Granular execution — C.O.R.E. protocol             |
+| [ai-audit.md](workflows/ai-audit.md)     | `/ai-audit`   | 4-layer audit framework for AI-generated code      |
+| [git-review.md](workflows/git-review.md) | `/git-review` | Review git history for coherence and scope drift   |
+| [humanizer.md](workflows/humanizer.md)   | `/humanizer`  | Remove AI writing patterns; make text more natural |
+| [predicate.md](workflows/predicate.md)   | `/predicate`  | Re-read global rules; combats context drift        |
 
-Workflows can be chained: `/predicate + /core`
+Workflows can be chained: `/sketch + /plan + /core`
 
 ---
 
