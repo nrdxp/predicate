@@ -64,5 +64,11 @@
 
 ## References
 
+<!--
+  Sketch contains the full thought chain (ideation, planning, execution notes).
+  It may not be available to all users (sketches can be kept private).
+  Plan should be self-sufficient, but linking enables deeper archaeology.
+-->
+
 - Sketch: `.sketches/[topic].md`
 - ADR: `docs/adr/[number].md` _(if applicable)_

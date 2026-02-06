@@ -211,3 +211,42 @@ When the human approves the PROPOSE output:
 
 > [!NOTE]
 > SKETCH is exploratory. `/plan` is where we stress-test the direction and commit to specifics.
+
+---
+
+## Sketch as Lifecycle Journal
+
+The sketch is not abandoned after `/plan` begins. It remains a **living document** throughout the full lifecycle:
+
+| Phase     | Sketch Role                       |
+| :-------- | :-------------------------------- |
+| `/sketch` | Ideation, divergence, convergence |
+| `/plan`   | Challenge findings written back   |
+| `/core`   | Execution notes appended          |
+
+### Execution Notes Format
+
+When `/core` completes a phase, append to the sketch:
+
+```markdown
+## EXECUTION Notes (from /core)
+
+### Phase N: [Name]
+
+- Completed: [date]
+- Notes: [discoveries, pivots, learnings]
+```
+
+### Divergence Tracking
+
+If execution diverges from the plan:
+
+1. Note the divergence in EXECUTION Notes
+2. Update the plan document to reflect the new direction
+3. This ensures the plan always represents current goals
+
+> [!IMPORTANT]
+> The sketch provides complete archaeology: ideation → planning → execution. Future agents can review the entire thought chain by reading the sketch history.
+
+> [!TIP]
+> Use `/git-review` on the `.sketches/` repository to review how planning and execution evolved. The sketch's git history shows the full decision-making journey.

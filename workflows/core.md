@@ -169,6 +169,35 @@ When reverting, preserve completed steps and scope new OBSTACLES to remaining wo
 
 ---
 
+## Sketch & Plan Integration
+
+When executing a plan that references a sketch:
+
+1. **Check availability:** If `.sketches/[topic].md` exists, use it as context
+2. **Append execution notes:** At phase completion, add to the sketch:
+
+   ```markdown
+   ## EXECUTION Notes (from /core)
+
+   ### Phase N: [Name]
+
+   - Completed: [date]
+   - Notes: [discoveries, pivots, learnings]
+   ```
+
+3. **Divergence tracking:** If execution diverges from the plan:
+   - Note the divergence in the sketch under EXECUTION Notes
+   - **Update the plan** to reflect the new direction
+   - This ensures the plan always reflects current goals
+
+> [!IMPORTANT]
+> The sketch is a lifecycle journal: ideation → planning → execution. Keeping it updated allows future agents to review the complete thought chain.
+
+> [!TIP]
+> Use `/git-review` on `.sketches/` to see how decisions evolved over time.
+
+---
+
 ## Response Format
 
 All responses follow CORE-YAML strictly.
