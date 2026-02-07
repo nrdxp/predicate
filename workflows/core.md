@@ -1,6 +1,8 @@
 ---
 name: "core"
 description: "Structured YAML grammar for agentic interaction (C.O.R.E. Protocol)"
+with_personas:
+  - integral
 ---
 
 # C.O.R.E. Protocol v2.2
@@ -91,7 +93,7 @@ Split work into logical commit boundaries to keep history clean and reviewable.
 
 5. **HANDSHAKE_PROTOCOL:** Never switch to EXECUTE without explicit "APPROVED" from the user.
 
-6. **PREDICATE_AWARENESS:** Remain mindful of the global ruleset in `AGENTS.md` and `.agent/predicates/`. These constraints apply in addition to task-specific instructions.
+6. **PREDICATE_AWARENESS:** Remain mindful of the global ruleset in `AGENTS.md` and `.agent/axioms/`. These constraints apply in addition to task-specific instructions.
 
 7. **OUTPUT_PLACEMENT:** All artifacts—PLAN steps, commit messages, verification results—belong in the final response, not the reasoning chain. The user must see them without expanding hidden content.
 

@@ -55,24 +55,24 @@ Evolve Predicate's terminology and directory structure to improve agent clarity 
    - ~~Structured confirmation format~~
    - ~~Terminology clarifications (axiom, persona definitions)~~
 
-3. **Phase 3: Documentation Updates** — align all docs with new terminology
-   - Update `README.md` (structure, terminology)
-   - Update `AGENTS.md` (self-reference)
-   - Update `templates/AGENTS.md` (new format)
+3. ~~**Phase 3: Documentation Updates** — align all docs with new terminology~~ ✅
+   - ~~Update `README.md` (structure, terminology)~~
+   - ~~Update `AGENTS.md` (self-reference)~~
+   - ~~Update `templates/AGENTS.md` (new format)~~
 
-4. **Phase 4: Workflow Enhancement** — add persona binding to workflows
-   - Add `with_personas:` to workflow schema in `plan.md` spec
-   - Update `/core` with `with_personas: [integral.md]`
-   - Update sketch/plan instructions to reference persona binding
+4. ~~**Phase 4: Workflow Enhancement** — add persona binding to workflows~~ ✅
+   - ~~Add `with_personas:` to workflow schema in `plan.md` spec~~
+   - ~~Update `/core` with `with_personas: [integral]`~~
+   - ~~Update sketch/plan instructions to reference persona binding~~
 
 ## Verification
 
 - [x] All axiom files accessible in new location
 - [x] All persona files accessible in new location
 - [x] PREDICATE.md protocol parseable by agent
-- [ ] Workflows with `with_personas` load required personas
-- [ ] Structured confirmation output matches spec
-- [ ] README reflects new structure accurately
+- [x] Workflows with `with_personas` load required personas
+- [x] Structured confirmation output matches spec
+- [x] README reflects new structure accurately
 
 ## References
 

@@ -49,8 +49,8 @@ If context has drifted (long execution, many steps), review these in order:
 1. **Plan** — re-read `docs/plans/[topic].md` for current goals and phases
 2. **Sketch** — if available at `.sketches/[topic].md`, review for decision history and execution notes
 3. **ADR** — check `docs/adr/` for relevant architectural decisions
-4. **Predicates** — all `.md` files directly in `.agent/predicates/` (always active)
-5. **Active Fragments** — check `AGENTS.md` for which fragments in `.agent/predicates/fragments/` are marked active
+4. **Axioms** — all `.md` files directly in `.agent/axioms/` (always active)
+5. **Active Personas** — check `AGENTS.md` for which personas in `.agent/personas/` are marked active
 
 > [!TIP]
 > Sketches contain the full thought chain: ideation, planning, and execution notes. If you're unsure why a decision was made, the sketch is the first place to look. Use `/git-review` on `.sketches/` to see how decisions evolved.
