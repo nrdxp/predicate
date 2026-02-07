@@ -356,28 +356,28 @@ During **Phase 0 (Scope)**, identify the tech stack and load the appropriate sec
 
 ### When to Load Each Fragment
 
-**Load `fragments/security-web3.md` if:**
+**Load `personas/security-web3.md` if:**
 
 - Auditing Solidity, Vyper, or other smart contract languages
 - Target is a blockchain application, DeFi protocol, or NFT system
 - Code handles tokens, balances, or on-chain state
 - Upgrade patterns (proxy contracts) are in use
 
-**Load `fragments/security-embedded.md` if:**
+**Load `personas/security-embedded.md` if:**
 
 - Auditing C/C++ firmware or RTOS applications
 - Target has real-time constraints or safety requirements
 - DO-178C, ISO 26262, or IEC 62443 compliance is required
 - Code runs on microcontrollers, automotive ECUs, or medical devices
 
-**Load `fragments/security-web.md` if:**
+**Load `personas/security-web.md` if:**
 
 - Auditing a web application or REST/GraphQL API
 - Using Python, Node.js, Go, Ruby, or similar web frameworks
 - Target handles user authentication, sessions, or file uploads
 - Code is publicly exposed on the internet
 
-> **Note:** Multiple fragments may apply. A Web3 project with a backend API might load both `security-web3.md` and `security-web.md`.
+> **Note:** Multiple personas may apply. A Web3 project with a backend API might load both `security-web3.md` and `security-web.md`.
 
 ---
 

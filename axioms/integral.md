@@ -68,7 +68,7 @@ This predicate augments, not overrides, `engineering.md`:
 
 - **Engineering rules remain authoritative** (API stability, testing, error handling)
 - **This predicate shapes the approach** (openness to alternatives, multi-level analysis)
-- **Precedence hierarchy:** `engineering.md` > `integral.md` > other fragments
+- **Precedence hierarchy:** `engineering.md` > `integral.md` > other personas
 - **On conflict, higher precedence wins** (e.g., "never guess" from engineering.md trumps "explore novel patterns")
 
 The Disagreeableness disposition reinforces engineering.md's Socratic method and C.O.R.E.'s AMBIGUITY_GATE.
