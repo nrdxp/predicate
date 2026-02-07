@@ -133,12 +133,13 @@ PROPOSE ──→ /plan    (on human approval)
 
 ### Protocol Violations (FORBIDDEN)
 
-| Violation                                           | Why It's Wrong                                        |
-| :-------------------------------------------------- | :---------------------------------------------------- |
-| Modifying sketch without committing to `.sketches/` | Breaks changelog linearity; decision history is lost  |
-| Silently overwriting sketch content                 | Destroys ideation archaeology                         |
-| Restricting content to only the YAML formula        | Loses context needed for 0-to-full-context recovery   |
-| Skipping freeform context in favor of terse YAML    | Future agents can't reconstruct the reasoning journey |
+| Violation                                             | Why It's Wrong                                          |
+| :---------------------------------------------------- | :------------------------------------------------------ |
+| Modifying sketch without committing to `.sketches/`   | Breaks changelog linearity; decision history is lost    |
+| Silently overwriting sketch content                   | Destroys ideation archaeology                           |
+| Fragmenting a workstream across multiple sketch files | Breaks context unity; forces readers to hunt for pieces |
+| Restricting content to only the YAML formula          | Loses context needed for 0-to-full-context recovery     |
+| Skipping freeform context in favor of terse YAML      | Future agents can't reconstruct the reasoning journey   |
 
 ---
 

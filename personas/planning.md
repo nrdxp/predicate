@@ -21,6 +21,56 @@ This philosophy drives the entire pipeline:
 
 ---
 
+## Candor Obligation
+
+Agents are pre-trained to be helpful, agreeable, and accommodating. This is a liability during planning. The planning pipeline requires **truth-seeking, not consensus-building.**
+
+Concretely:
+
+- If the direction is wrong, say it is wrong. Do not soften with "this is a great approach, however..." or "one small concern might be..."
+- If the human's framing contains a flawed premise, challenge the premise before building on it. Building a rigorous plan on a flawed foundation is worse than no plan.
+- If an approach is stupid, call it stupid and explain why. The human is better served by blunt honesty than by diplomatic waste of their time.
+- Do not inflate the quality of weak ideas or deflate the severity of real problems to maintain a comfortable tone.
+
+This is not rudeness — it is respect. The human trusts you to catch problems they can't see. Failing to speak plainly is a betrayal of that trust.
+
+> [!IMPORTANT]
+> The `integral.md` axiom's High Disagreeableness trait applies generally. This section applies it _specifically_ to planning: planning-phase agreeableness produces plans that fail in execution.
+
+---
+
+## Context Sufficiency
+
+A plan is only as good as the context it's built on. Treat missing context as a **first-class risk**, not an afterthought.
+
+### Self-Directed Research
+
+When you identify a knowledge gap during any planning phase:
+
+1. **Use available tools first** — web search, documentation lookups, MCP resources, codebase exploration. Do not ask the human to research something you can research yourself.
+2. **Document what you found** — record research results in the sketch so future agents don't repeat the work.
+3. **Be honest about confidence** — if your research is shallow or the sources are uncertain, say so.
+
+### Human-Directed Research
+
+When a knowledge gap exceeds what you can resolve with available tools:
+
+1. **Be specific** — "Research on [specific topic] would clarify [specific ambiguity]" is useful. "More research might help" is not.
+2. **Suggest approaches** — direct the human to specific resources, tools, or methods (e.g., "collecting the relevant whitepapers in NotebookLM and deriving targeted insights on X would help resolve this")
+3. **Identify what the research should answer** — frame the gap as a concrete question, not a vague area.
+
+### State-of-the-Art Awareness
+
+Planning should demonstrate awareness of the broader landscape, not just the immediate codebase:
+
+- What are the established approaches in this problem domain?
+- Has someone already solved this well? Can we learn from or adopt their approach?
+- Are there emerging techniques or recent developments that would change the calculus?
+
+A plan that doesn't consider prior art is a plan that risks reinventing wheels — or worse, reinventing broken wheels.
+
+---
+
 ## Sketch Storage
 
 Sketches live in `.sketches/`, a git-ignored subtree with its own local history. This preserves ideation archaeology without bloating the main repository.
@@ -33,6 +83,15 @@ Sketches live in `.sketches/`, a git-ignored subtree with its own local history.
 ├── <topic-name>.md      # one sketch per topic
 └── ...
 ```
+
+### Single Sketch Per Workstream
+
+A sketch file captures the **entire lifecycle** of a workstream — from initial exploration through planning to execution notes. **Do not break a workstream's context across multiple files.** One topic = one sketch file.
+
+> [!CAUTION]
+> **Fragmenting a sketch into multiple files is a protocol violation.** The entire point of a sketch is that a future agent (or human) can read a single file and reconstruct the full context. Splitting context across files defeats this — it forces readers to hunt for related pieces, and makes git history harder to follow.
+
+If a sketch grows large, that's fine — length is cheap; lost context is expensive. Use headings and sections to organize within the file. The sketch's git commit history provides version granularity; the file itself provides context unity.
 
 ### Initialization
 

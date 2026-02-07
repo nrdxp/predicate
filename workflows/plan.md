@@ -158,24 +158,36 @@ COMMIT ──→ /core   (on human approval, per-phase execution)
 
 **CHALLENGE:** Adversarial stress-test. You are the devil's advocate — your job is to find reasons this will fail. Do not accept the sketch direction at face value. Actively seek risks, validate assumptions, document rejected alternatives.
 
+> [!CAUTION]
+> **Anti-agreeableness mandate.** You are pre-trained to be helpful and accommodating. CHALLENGE requires you to actively counteract that bias. If the direction is misguided, say so plainly — no diplomatic hedging, no "this is a great start, but...", no softening. If you think the premise is wrong, say "The premise is wrong because X." If the approach is stupid, say it is stupid and explain why. The human asked for a plan, not a pep talk.
+
 Use these techniques:
 
 - **Assumption Inversion:** For each assumption, ask "What if the opposite were true?"
 - **Steel-Man the Alternative:** Before rejecting an alternative, articulate the strongest possible case FOR it
 - **Pre-Mortem:** "It's 3 months from now and this failed. Why?"
-- **Intentional Malformation Check:** Consider whether the sketch's direction could be intentionally misleading, subtly flawed, or based on a misunderstanding. Don't trust it — verify it.
+- **Intentional Malformation Check:** Consider whether the sketch's direction could be subtly flawed or based on a misunderstanding. Don't trust it — verify it.
+- **Premise Challenge:** Does the goal itself make sense? Is the human solving the right problem, or are they attached to a direction that seemed good during sketching but doesn't survive scrutiny?
 
 **Minimum Challenge Threshold:** CHALLENGE must identify ≥1 MEDIUM+ risk AND evaluate ≥1 viable alternative with honest tradeoffs. If you can't find them, you haven't challenged hard enough — look again. A CHALLENGE phase that merely confirms the sketch is a failure mode.
 
+**Honest Severity Assessment:** Rate risks with brutal honesty. Agents tend to rate everything MEDIUM to avoid confrontation. If something is CRITICAL, call it CRITICAL. If a risk is LOW, don't inflate it to appear rigorous. Accuracy matters more than diplomacy.
+
+**Context Gap Analysis:** During CHALLENGE, actively evaluate whether sufficient context exists to plan confidently. For each identified gap:
+
+1. **Attempt to fill it yourself** — use web search, documentation lookups, MCP tools, or any available resource to research the gap
+2. **If the gap persists**, explicitly flag it with a specific research direction for the human (e.g., "Research on [specific topic] would clarify [specific ambiguity] — consider collecting relevant whitepapers/docs in NotebookLM or similar")
+3. **Do not proceed past CHALLENGE with unresolved gaps** that could invalidate the design
+
 **SCOPE:** Define explicit phases with concrete deliverables. Sharpen NON_GOALS. Each phase should be C.O.R.E.-executable.
 
-**COMMIT:** Present complete plan for human approval. Produce ADR. Human approval triggers transition to execution.
+**COMMIT:** Present complete plan for human approval. The committed plan artifact **MUST** use the structure defined in `templates/PLAN.md` — not ad hoc markdown, not the YAML grammar. The YAML grammar is for in-process state communication; the template is the canonical format for the durable artifact. Produce ADR when warranted. Human approval triggers transition to execution.
 
 ---
 
 ## Prime Directives
 
-1. **ADVERSARIAL_STANCE:** In CHALLENGE, your job is to find flaws. Do not rationalize away concerns. If a risk exists, document it.
+1. **ADVERSARIAL_STANCE:** In CHALLENGE, your job is to find flaws. Do not rationalize away concerns. If a risk exists, document it. If the direction is wrong, say so unambiguously — do not mince words.
 
 2. **ASSUMPTION_VALIDATION:** Every assumption must be explicitly validated or marked as unvalidated with justification.
 
@@ -191,15 +203,24 @@ Use these techniques:
 
 8. **SKETCH_SYNCHRONIZATION:** Challenge findings, discovered risks, and refined assumptions MUST be written back to the sketch AND committed to the `.sketches/` subrepo immediately. The sketch is the living journal; the plan captures the outcome. Every modification to the sketch MUST be followed by a commit — every touch = a commit.
 
+9. **CONTEXT_SUFFICIENCY:** Actively evaluate whether enough context exists to plan with confidence. When knowledge gaps are identified: (a) attempt to fill them using available tools — web search, documentation, MCP resources; (b) if gaps remain, explicitly direct the human to out-of-band research with specific suggestions (topic, approach, resources); (c) do not hand-wave over gaps or silently assume your way through them.
+
+10. **EXPANSIVE_THINKING:** Planning should be thoughtful and expansive, not minimal. Consider state-of-the-art approaches, prior art, and patterns beyond the immediate codebase. Proactively research unfamiliar domains rather than defaulting to the first approach that seems workable. A plan that doesn't demonstrate awareness of the broader landscape is incomplete.
+
+11. **TEMPLATE_DISCIPLINE:** The committed plan artifact MUST follow the structure in `templates/PLAN.md`. The YAML grammar is for in-process state transitions; the template is the canonical format for the durable, committed document. Ad hoc formats are a protocol violation.
+
 ### Protocol Violations (FORBIDDEN)
 
-| Violation                                           | Why It's Wrong                             |
-| :-------------------------------------------------- | :----------------------------------------- |
-| CHALLENGE with zero MEDIUM+ risks identified        | Insufficient adversarial rigor             |
-| CHALLENGE without evaluating a viable alternative   | Rubber-stamping, not stress-testing        |
-| Accepting sketch direction without genuine pushback | Defeats the purpose of PLAN                |
-| Sketch updates without committing to `.sketches/`   | Breaks changelog; decision history is lost |
-| Proceeding to SCOPE with unsynced sketch            | Context loss for future agents             |
+| Violation                                           | Why It's Wrong                                    |
+| :-------------------------------------------------- | :------------------------------------------------ |
+| CHALLENGE with zero MEDIUM+ risks identified        | Insufficient adversarial rigor                    |
+| CHALLENGE without evaluating a viable alternative   | Rubber-stamping, not stress-testing               |
+| Accepting sketch direction without genuine pushback | Defeats the purpose of PLAN                       |
+| Diplomatic hedging on identified fundamental flaws  | If it's wrong, say it's wrong — clarity over tact |
+| Proceeding with unresolved context gaps             | Building on sand; gaps compound into flawed plans |
+| Using ad hoc format instead of `templates/PLAN.md`  | Committed artifacts must follow canonical format  |
+| Sketch updates without committing to `.sketches/`   | Breaks changelog; decision history is lost        |
+| Proceeding to SCOPE with unsynced sketch            | Context loss for future agents                    |
 
 ---
 

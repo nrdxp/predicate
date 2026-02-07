@@ -27,6 +27,28 @@
 | :------- | :----- | :-------- |
 | ...      | ...    | ...       |
 
+## Risks & Assumptions
+
+<!--
+  From the CHALLENGE phase. Don't sanitize — if a risk is CRITICAL, say so.
+  Every assumption should be marked validated or unvalidated.
+  If CHALLENGE revealed the direction was flawed, that should be visible here.
+-->
+
+| Risk / Assumption | Severity | Status | Mitigation / Evidence |
+| :---------------- | :------- | :----- | :-------------------- |
+| ...               | ...      | ...    | ...                   |
+
+## Open Questions
+
+<!--
+  Knowledge gaps identified during planning.
+  If you filled the gap, note how. If it remains open, note what research is needed.
+  Gaps that could invalidate the design must be resolved before COMMIT.
+-->
+
+- ...
+
 ## Scope
 
 ### In Scope
