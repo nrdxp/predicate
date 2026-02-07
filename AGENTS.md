@@ -5,17 +5,17 @@
 This project **is** [predicate](https://github.com/nrdxp/predicate) — a system for portable, composable agent configuration.
 
 > [!IMPORTANT]
-> You **must** review [.agent/PREDICATE.md](.agent/PREDICATE.md) and follow its instructions before beginning work.
+> You **must** review [PREDICATE.md](PREDICATE.md) and follow its protocol before beginning work.
 
-**Active Fragments:** None
+**Active Personas:** None
 
-This is a documentation-only repository. The language-specific fragments (go.md, rust.md, etc.) are provided as templates for other projects, but are not active here. The `integral.md` predicate guides meta-project reasoning.
+This is a documentation-only repository. The language-specific personas (go.md, rust.md, etc.) are provided as templates for other projects, but are not active here. The `integral.md` axiom guides meta-project reasoning.
 
 ---
 
 ## Project Overview
 
-Predicate is a framework for configuring AI coding agents with reusable rulesets (predicates), composable extensions (fragments), and task-specific procedures (workflows).
+Predicate is a framework for configuring AI coding agents with reusable rulesets (axioms), composable extensions (personas), and task-specific procedures (workflows).
 
 **Purpose:** Replace ad-hoc system prompts with version-controlled, shareable agent configuration.
 
@@ -23,11 +23,12 @@ Predicate is a framework for configuring AI coding agents with reusable rulesets
 
 ## Repository Structure
 
-| Directory     | Purpose                       |
-| :------------ | :---------------------------- |
-| `predicates/` | Base ruleset and fragments    |
-| `workflows/`  | Manually-triggered SOPs       |
-| `templates/`  | Project templates (AGENTS.md) |
+| Directory    | Purpose                        |
+| :----------- | :----------------------------- |
+| `axioms/`    | Foundational rulesets (axioms) |
+| `personas/`  | Context-specific extensions    |
+| `workflows/` | Manually-triggered SOPs        |
+| `templates/` | Project templates (AGENTS.md)  |
 
 ---
 
@@ -55,8 +56,8 @@ See [README.md](README.md#contributing) for contribution guidelines.
 
 When adding content:
 
-- New predicates → `predicates/`
-- New fragments → `predicates/fragments/`
+- New axioms → `axioms/`
+- New personas → `personas/`
 - New workflows → `workflows/` with proper front-matter
 
 ---

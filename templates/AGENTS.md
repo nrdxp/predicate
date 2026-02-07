@@ -13,9 +13,9 @@ This project uses [predicate](https://github.com/nrdxp/predicate) for agent conf
 > [!IMPORTANT]
 > You **must** review [.agent/PREDICATE.md](.agent/PREDICATE.md) and follow its instructions before beginning work.
 
-**Active Fragments:** None
+**Active Personas:** None
 
-<!-- List active fragments from .agent/predicates/fragments/ here -->
+<!-- List active personas from .agent/personas/ here -->
 <!-- Example: -->
 <!-- - rust.md (Rust idioms) -->
 <!-- - depmap.md (MCP tools) -->

@@ -1,20 +1,21 @@
 # Predicate
 
-Reusable agent predicates (rulesets) and workflows for agentic coding assistants.
+Reusable agent axioms (rulesets) and workflows for agentic coding assistants.
 
 ## What's In Here
 
 ```
 predicate/
-├── predicates/              # Foundational rulesets (always active)
+├── axioms/                  # Foundational rulesets (always active)
 │   ├── engineering.md       # Base engineering ruleset
-│   └── fragments/           # Context-specific extensions (opt-in)
-│       ├── go.md            # Go-specific idioms
-│       ├── rust.md          # Rust-specific idioms
-│       ├── typescript.md    # TS/JS-specific idioms
-│       ├── depmap.md            # DepMap MCP server usage
-│       ├── integral.md          # Holistic problem-solving
-│       └── personalization.md # User naming preferences
+│   └── integral.md          # Holistic problem-solving
+├── personas/                # Context-specific extensions (opt-in)
+│   ├── go.md                # Go-specific idioms
+│   ├── rust.md              # Rust-specific idioms
+│   ├── typescript.md        # TS/JS-specific idioms
+│   ├── depmap.md            # DepMap MCP server usage
+│   ├── personalization.md   # User naming preferences
+│   └── ...                  # See Available Personas below
 ├── workflows/               # Manually-triggered SOPs
 │   ├── sketch.md            # Exploratory planning (SKETCH protocol)
 │   ├── plan.md              # Rigorous planning (PLAN protocol)
@@ -30,11 +31,11 @@ predicate/
 
 ### Terminology
 
-| Term          | Description                                                                            |
-| :------------ | :------------------------------------------------------------------------------------- |
-| **Predicate** | A foundational ruleset. Any file in `predicates/` is always active — no opt-in needed. |
-| **Fragment**  | A context-specific extension in `predicates/fragments/`. Opt-in and task-relevant.     |
-| **Workflow**  | A task-specific SOP, manually triggered via slash command.                             |
+| Term         | Description                                                                 |
+| :----------- | :-------------------------------------------------------------------------- |
+| **Axiom**    | A foundational ruleset. Any file in `axioms/` is always active — no opt-in. |
+| **Persona**  | A context-specific extension in `personas/`. Opt-in and task-relevant.      |
+| **Workflow** | A task-specific SOP, manually triggered via slash command.                  |
 
 ---
 
@@ -44,11 +45,11 @@ predicate/
 
 AI coding assistants need clear, consistent guidance, but system prompts quickly become unwieldy. Predicate separates concerns:
 
-- **Global ruleset** → Engineering principles that apply everywhere
-- **Fragments** → Context-specific rules loaded only when relevant
+- **Axioms** → Engineering principles that apply everywhere
+- **Personas** → Context-specific rules loaded only when relevant
 - **Workflows** → Structured procedures triggered on demand
 
-This prevents context overload. A Rust-focused request doesn't need Go idioms; a README update doesn't need language fragments at all. The agent loads only what's relevant to the current task.
+This prevents context overload. A Rust-focused request doesn't need Go idioms; a README update doesn't need language personas at all. The agent loads only what's relevant to the current task.
 
 ### Built on Standards
 
@@ -89,7 +90,7 @@ git submodule add https://github.com/nrdxp/predicate.git .agent
 # Copy AGENTS.md template to project root
 cp .agent/templates/AGENTS.md ./AGENTS.md
 
-# Edit AGENTS.md: fill in project details, build commands, active fragments, etc.
+# Edit AGENTS.md: fill in project details, build commands, active personas, etc.
 ```
 
 **Updating:**
@@ -108,7 +109,8 @@ git clone https://github.com/nrdxp/predicate.git ~/predicate
 
 # In your project
 mkdir -p .agent
-ln -s ~/predicate/predicates .agent/predicates
+ln -s ~/predicate/axioms .agent/axioms
+ln -s ~/predicate/personas .agent/personas
 ln -s ~/predicate/workflows .agent/workflows
 
 # Copy AGENTS.md template
@@ -120,7 +122,8 @@ cp ~/predicate/templates/AGENTS.md ./AGENTS.md
 For projects that can't use submodules or symlinks:
 
 ```bash
-cp -r /path/to/predicate/predicates .agent/predicates
+cp -r /path/to/predicate/axioms .agent/axioms
+cp -r /path/to/predicate/personas .agent/personas
 cp -r /path/to/predicate/workflows .agent/workflows
 cp /path/to/predicate/templates/AGENTS.md ./AGENTS.md
 ```
@@ -133,32 +136,36 @@ cp /path/to/predicate/templates/AGENTS.md ./AGENTS.md
 your-project/
 ├── .agent/
 │   ├── PREDICATE.md              # Predicate system documentation (read first)
-│   ├── predicates/
-│   │   ├── engineering.md        # Base ruleset (predicate, always active)
-│   │   └── fragments/            # Context-specific (mark active in AGENTS.md)
+│   ├── axioms/
+│   │   ├── engineering.md        # Base ruleset (axiom, always active)
+│   │   └── integral.md          # Holistic problem-solving (axiom)
+│   ├── personas/                 # Context-specific (mark active in AGENTS.md)
+│   │   ├── go.md
+│   │   ├── rust.md
+│   │   └── ...
 │   └── workflows/
 │       └── ...                   # Task-specific SOPs
-└── AGENTS.md                     # Project context + active fragments
+└── AGENTS.md                     # Project context + active personas
 ```
 
 ---
 
-## Configuring Active Fragments
+## Configuring Active Personas
 
-Not all fragments apply to every project. In your project's `AGENTS.md`, specify which fragments are active:
+Not all personas apply to every project. In your project's `AGENTS.md`, specify which personas are active:
 
 ```markdown
-**Active Fragments:**
+**Active Personas:**
 
 - Go idioms
 - DepMap MCP usage
 ```
 
-The agent will only load fragments marked as active and relevant to the current request.
+The agent will only load personas marked as active and relevant to the current request.
 
-### Available Fragments
+### Available Personas
 
-| Fragment             | Purpose                      |
+| Persona              | Purpose                      |
 | :------------------- | :--------------------------- |
 | `go.md`              | Go language idioms           |
 | `rust.md`            | Rust language idioms         |
@@ -189,8 +196,8 @@ Workflows can be chained: `/sketch + /plan + /core`
 
 PRs welcome. When adding new content:
 
-- **New predicates**: Add to `predicates/`
-- **New fragments**: Add to `predicates/fragments/`
+- **New axioms**: Add to `axioms/`
+- **New personas**: Add to `personas/`
 - **New workflows**: Add to `workflows/` with proper front-matter:
   ```yaml
   ---
@@ -204,9 +211,9 @@ PRs welcome. When adding new content:
 
 Predicate is designed to be forked. If you want to:
 
-- Add organization-specific rules or fragments
+- Add organization-specific rules or personas
 - Create domain-specific workflows
-- Maintain a curated subset of fragments
+- Maintain a curated subset of personas
 
 Fork this repo and use your fork as the submodule source. The composable structure makes it easy to extend without modifying upstream files.
 
