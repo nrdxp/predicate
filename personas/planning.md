@@ -1,6 +1,6 @@
 # Planning Pipeline Persona
 
-This persona contains the shared foundations for the `/sketch → /plan → /core` pipeline. All three workflows (plus `/continue`) require this persona to ensure consistent understanding of planning discipline, sketch management, and execution boundaries.
+This persona contains the shared foundations for the `/sketch → /plan → /core` pipeline. All three workflows (plus `/continue`) require this persona via `required_personas:` to ensure consistent understanding of planning discipline and sketch management.
 
 ---
 

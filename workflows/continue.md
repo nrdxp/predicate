@@ -1,6 +1,8 @@
 ---
 name: "continue"
 description: "Resume C.O.R.E. execution with invariant reinforcement"
+required_personas:
+  - planning
 ---
 
 # Core Continue

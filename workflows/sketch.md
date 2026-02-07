@@ -2,6 +2,8 @@
 name: "sketch"
 description: "Exploratory planning phase — diverge before you converge"
 trigger: "/sketch"
+required_personas:
+  - planning
 ---
 
 # SKETCH Protocol v1.0
@@ -76,13 +78,13 @@ git commit -m "init: sketch repository"
 
 ### Naming Convention
 
-`<topic-name>.md` — lowercase, hyphenated, descriptive.
+`YYYY-MM-DD-<topic-name>.md` — date-prefixed, lowercase, hyphenated, descriptive. The date prefix gives readers an at-a-glance understanding of when the sketch cycle started.
 
 Examples:
 
-- `auth-system-redesign.md`
-- `api-versioning-strategy.md`
-- `dependency-reduction.md`
+- `2026-02-07-auth-system-redesign.md`
+- `2026-01-15-api-versioning-strategy.md`
+- `2026-02-01-dependency-reduction.md`
 
 ### Additive History
 

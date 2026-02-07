@@ -2,6 +2,8 @@
 name: "plan"
 description: "Rigorous planning phase — convince us not to do something stupid"
 trigger: "/plan"
+required_personas:
+  - planning
 ---
 
 # PLAN Protocol v1.0

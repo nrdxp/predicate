@@ -1,8 +1,8 @@
 ---
 name: "core"
 description: "Structured YAML grammar for agentic interaction (C.O.R.E. Protocol)"
-with_personas:
-  - integral
+required_personas:
+  - planning
 ---
 
 # C.O.R.E. Protocol v2.2

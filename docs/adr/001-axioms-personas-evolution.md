@@ -38,7 +38,7 @@ These are **peer directories**, not nested. Both are first-class concepts.
    - Missing axiom → HALT (foundational failure)
    - Missing required persona → HALT, ask if proceed
 
-3. **Workflow binding:** Workflows can declare `with_personas:` to require specific context when invoked.
+3. **Workflow binding:** Workflows can declare `required_personas:` to require specific context when invoked.
 
 ### Protocol Flow
 

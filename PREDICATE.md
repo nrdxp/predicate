@@ -16,7 +16,7 @@ Execute these steps in order. Each step has an implicit verification condition �
 
 4. **REVIEW** available personas — everything in `.agent/personas/` not already loaded. If a persona's domain matches the current task, you **may** adopt it discretionarily. Announce which persona you are adopting and why.
 
-5. **CHECK** the current workflow (if invoked via slash command). If the workflow declares `with_personas:` in its frontmatter, load those personas. Missing workflow-required persona → **HALT**.
+5. **CHECK** the current workflow (if invoked via slash command). If the workflow declares `required_personas:` in its frontmatter, load those personas. Missing workflow-required persona → **HALT**.
 
 6. **CONFIRM** understanding by outputting a structured confirmation:
 

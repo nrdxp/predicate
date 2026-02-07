@@ -18,7 +18,7 @@ Evolve Predicate's terminology and directory structure to improve agent clarity 
 | Terminology         | predicates→axioms, fragments→personas             | Axioms connote non-negotiable; personas connote adoptable context |
 | Directory structure | `.agent/axioms/` + `.agent/personas/` as siblings | Cleaner hierarchy; both are peer concepts                         |
 | Available personas  | Implicit (everything in `personas/`)              | Reduces maintenance burden; only "Active" is explicit             |
-| Workflow binding    | `with_personas:` in frontmatter                   | Workflows can require specific personas                           |
+| Workflow binding    | `required_personas:` in frontmatter               | Workflows can require specific personas                           |
 | Backwards compat    | Hard break                                        | Project is unstable; consistency > compat                         |
 | Project name        | Keep "Predicate"                                  | Axiom/persona are internal terms; Predicate is umbrella           |
 | Scan verification   | Agent echoes found axioms/personas                | Makes scanning verifiable                                         |
@@ -33,7 +33,7 @@ Evolve Predicate's terminology and directory structure to improve agent clarity 
 - Move `integral.md` to axioms (it's always-on)
 - Rewrite `PREDICATE.md` with numbered protocol + structured confirmation
 - Update `README.md`, `AGENTS.md`, and templates
-- Add `with_personas:` to workflow frontmatter schema
+- Add `required_personas:` to workflow frontmatter schema
 - Update `/core` workflow to demonstrate persona binding
 
 ### Out of Scope
@@ -61,8 +61,8 @@ Evolve Predicate's terminology and directory structure to improve agent clarity 
    - ~~Update `templates/AGENTS.md` (new format)~~
 
 4. ~~**Phase 4: Workflow Enhancement** — add persona binding to workflows~~ ✅
-   - ~~Add `with_personas:` to workflow schema in `plan.md` spec~~
-   - ~~Update `/core` with `with_personas: [integral]`~~
+   - ~~Add `required_personas:` to workflow schema in `plan.md` spec~~
+   - ~~Update `/core` with `required_personas: [integral]`~~
    - ~~Update sketch/plan instructions to reference persona binding~~
 
 ## Verification
@@ -70,7 +70,7 @@ Evolve Predicate's terminology and directory structure to improve agent clarity 
 - [x] All axiom files accessible in new location
 - [x] All persona files accessible in new location
 - [x] PREDICATE.md protocol parseable by agent
-- [x] Workflows with `with_personas` load required personas
+- [x] Workflows with `required_personas` load required personas
 - [x] Structured confirmation output matches spec
 - [x] README reflects new structure accurately
 
