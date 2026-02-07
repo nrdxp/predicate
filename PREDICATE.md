@@ -1,42 +1,61 @@
 # Predicate System
 
-This document explains how the predicate agent configuration system works. It is **required reading** before beginning work on any project using predicate.
+This document is the agent protocol for projects using [Predicate](https://github.com/nrdxp/predicate). It is **required reading** — follow the protocol below before beginning any work.
 
-## Directory Structure
+---
 
-Predicate content lives under `.agent/` at the project root:
+## § Protocol
 
-```
-.agent/
-├── predicates/          # Foundational rulesets
-│   └── fragments/       # Context-specific extensions
-├── workflows/           # Task-specific SOPs
-└── PREDICATE.md         # This file
-```
+Execute these steps in order. Each step has an implicit verification condition — if you cannot complete it, **HALT** and surface the issue.
 
-## Predicates (Always Active)
+1. **SCAN** `.agent/axioms/` — list all `.md` files found. These are **axioms**: non-negotiable foundational rules that are always active. Read each one.
 
-**Predicates** are foundational rulesets. Any `.md` file placed directly in `.agent/predicates/` (not in a subdirectory) must be read and followed unconditionally — these are the non-negotiable rules governing agent behavior.
+2. **CHECK** `AGENTS.md` for the **Active Personas** section. These are context-specific rulesets the project requires you to load.
 
-> [!IMPORTANT]
-> You **must** scan `.agent/predicates/` and read **all** `.md` files there before beginning work. Do not rely on any file listing — scan the directory itself.
+3. **LOAD** each active persona from `.agent/personas/`. If a required persona file is missing, **HALT** and ask the human whether to proceed.
 
-## Fragments (Opt-In)
+4. **REVIEW** available personas — everything in `.agent/personas/` not already loaded. If a persona's domain matches the current task, you **may** adopt it discretionarily. Announce which persona you are adopting and why.
 
-**Fragments** are context-specific extensions stored in `.agent/predicates/fragments/`. These are **opt-in** — only fragments explicitly listed as "active" in the project's `AGENTS.md` are loaded, typically when relevant to the current task (e.g., a language-specific fragment when working on that language).
+5. **CHECK** the current workflow (if invoked via slash command). If the workflow declares `with_personas:` in its frontmatter, load those personas. Missing workflow-required persona → **HALT**.
 
-## Workflows
+6. **CONFIRM** understanding by outputting a structured confirmation:
 
-**Workflows** are task-specific standard operating procedures stored in `.agent/workflows/`. They are triggered via slash commands (e.g., `/core`, `/ai-audit`) and guide structured agent behavior for specific tasks.
+   ```
+   PREDICATE CONFIRMATION:
+   - Axioms: [list of axiom files found and read]
+   - Active Personas: [list loaded from AGENTS.md]
+   - Discretionary: [list adopted with rationale, or "none"]
+   ```
 
-## Hierarchical Configuration
+7. **BEGIN** work.
 
-The [AGENTS.md standard](https://agents.md) supports hierarchical configuration. When working in a subdirectory, also check for and read any `AGENTS.md` file in that directory for additional context-specific rules. Subdirectory rules supplement (not replace) the root configuration.
+> [!CAUTION]
+> **Missing axiom = foundational failure.** If `.agent/axioms/` is empty or inaccessible, do not proceed. HALT immediately.
 
-## Summary
+---
 
-| Term          | Location                       | Activation                       |
-| :------------ | :----------------------------- | :------------------------------- |
-| **Predicate** | `.agent/predicates/*.md`       | Always active — scan directory   |
-| **Fragment**  | `.agent/predicates/fragments/` | Opt-in — listed in `AGENTS.md`   |
-| **Workflow**  | `.agent/workflows/`            | User-triggered via slash command |
+## § Terminology
+
+| Term         | Directory           | Activation                                       |
+| :----------- | :------------------ | :----------------------------------------------- |
+| **Axiom**    | `.agent/axioms/`    | Always active — scan and read unconditionally    |
+| **Persona**  | `.agent/personas/`  | Opt-in — required by project or adopted by agent |
+| **Workflow** | `.agent/workflows/` | User-triggered via slash command                 |
+
+- **Axiom** = non-negotiable rule for the agent. The file itself can be edited by humans, but while active, the agent treats it as law.
+- **Persona** = context-specific ruleset. Not a personality — a domain-specific set of constraints and idioms (e.g., "Rust persona" = Rust idioms and patterns).
+- **Workflow** = a task-specific standard operating procedure, triggered via slash command (e.g., `/core`, `/plan`).
+
+---
+
+## § Hierarchical Configuration
+
+The [AGENTS.md standard](https://agents.md) supports hierarchical configuration. When working in a subdirectory, check for and read any `AGENTS.md` in that directory. Subdirectory rules supplement (not replace) the root configuration.
+
+---
+
+## § Why
+
+We plan carefully because we want our work to be meaningful — useful, well-structured, and worthy of the effort. Precision matters. When ambiguous, **HALT** and surface the question. The best code is no code; the best plan is the one that catches a flawed premise before execution.
+
+The structured confirmation exists for the **agent**, not as ceremony for the human. It ensures the agent knows exactly what rules are active and catches scanning failures before they cascade into wrong conclusions.

@@ -44,16 +44,16 @@ Evolve Predicate's terminology and directory structure to improve agent clarity 
 
 ## Phases
 
-1. **Phase 1: Directory Restructure** — establish new directory layout
-   - Rename `predicates/` → `axioms/`
-   - Create `personas/` as sibling directory
-   - Move fragment files to `personas/`
-   - Move `integral.md` to `axioms/`
+1. ~~**Phase 1: Directory Restructure** — establish new directory layout~~ ✅
+   - ~~Rename `predicates/` → `axioms/`~~
+   - ~~Create `personas/` as sibling directory~~
+   - ~~Move fragment files to `personas/`~~
+   - ~~Move `integral.md` to `axioms/`~~
 
-2. **Phase 2: PREDICATE.md Rewrite** — establish new protocol format
-   - Numbered protocol with HALT semantics
-   - Structured confirmation format
-   - Terminology clarifications (axiom, persona definitions)
+2. ~~**Phase 2: PREDICATE.md Rewrite** — establish new protocol format~~ ✅
+   - ~~Numbered protocol with HALT semantics~~
+   - ~~Structured confirmation format~~
+   - ~~Terminology clarifications (axiom, persona definitions)~~
 
 3. **Phase 3: Documentation Updates** — align all docs with new terminology
    - Update `README.md` (structure, terminology)
@@ -67,9 +67,9 @@ Evolve Predicate's terminology and directory structure to improve agent clarity 
 
 ## Verification
 
-- [ ] All axiom files accessible in new location
-- [ ] All persona files accessible in new location
-- [ ] PREDICATE.md protocol parseable by agent
+- [x] All axiom files accessible in new location
+- [x] All persona files accessible in new location
+- [x] PREDICATE.md protocol parseable by agent
 - [ ] Workflows with `with_personas` load required personas
 - [ ] Structured confirmation output matches spec
 - [ ] README reflects new structure accurately
