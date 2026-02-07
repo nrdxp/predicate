@@ -59,21 +59,113 @@ Predicate integrates with existing conventions rather than inventing new ones:
 - **`.agent/` directory** — Common location recognized by agentic tools
 - **Workflow triggers** — Slash commands familiar to most agent interfaces
 
-### The Planning Protocols
+### The Planning Pipeline
 
-Predicate includes a layered approach to planning and execution:
+AI coding agents are powerful executors — but execution without disciplined planning produces fragile, misdirected work. The most common failure modes we see:
+
+- **Ambiguity** — vague requirements silently interpreted by the agent, producing code that solves the wrong problem
+- **Imprecise planning → imprecise execution** — if the plan is hand-wavy, the code will be too
+- **Silent assumptions** — the agent "fills in the blanks" instead of surfacing unknowns, embedding invisible decisions that compound
+- **Scope creep** — without explicit non-goals, work balloons until the agent runs out of context
+- **Wasted implementation** — building before validating the design means discovering fundamental flaws in finished code
+
+Predicate addresses these with a structured pipeline that separates _thinking_ from _doing_:
 
 ```
 /sketch  →  /plan  →  /core
+  explore      stress-test     execute
+  diverge      challenge       verify
+  propose      commit plan     commit code
 ```
 
-**SKETCH** (`/sketch`) — Exploratory planning. Diverge before converging. Sketches live in `.sketches/` (gitignored) with their own local git history, preserving ideation archaeology without bloating the main repo.
+Each phase has its own workflow, state machine, and mandatory halt points. They chain naturally but enforce boundaries — you can't skip ahead without meeting each phase's exit criteria.
 
-**PLAN** (`/plan`) — Rigorous planning. Actively seek reasons _not_ to proceed. Produces a committed plan artifact and an ADR before execution begins.
+---
 
-**C.O.R.E.** (`/core`) — Granular execution. Takes each phase from the plan and executes with explicit verification.
+#### `/sketch` — Explore Before You Commit
 
-> **The best code is no code.** We don't commit to building until we're confident the design is correct. Planning deserves the same rigor we bring to execution.
+**Purpose:** Diverge before converging. Explore the problem space honestly before picking a direction.
+
+SKETCH is deliberately low-fidelity. It moves through four states:
+
+| State        | What Happens                                                         |
+| :----------- | :------------------------------------------------------------------- |
+| **EXPLORE**  | Understand the problem. Surface unknowns. _Block_ until resolved.    |
+| **DIVERGE**  | Generate ≥2 meaningfully different approaches. No premature winners. |
+| **CONVERGE** | Evaluate tradeoffs against explicit criteria. Form a recommendation. |
+| **PROPOSE**  | Present the sketch draft to the human for approval.                  |
+
+**Key mechanics:**
+
+- **Unknowns gate progress** — if UNKNOWNS is non-empty, the agent is _forbidden_ from advancing. Questions get surfaced, not assumed away.
+- **Alternatives are mandatory** — a single approach means you haven't explored enough.
+- **Honest tradeoffs** — every approach must list cons. If you can't name them, you don't understand it.
+
+Sketches live in `.sketches/`, a gitignored subtree with its own local git history. This preserves the full ideation record — every approach considered, every direction rejected — without bloating the main repo. Sketches are additive: new explorations create new files, revisions are committed locally, nothing is silently overwritten.
+
+---
+
+#### `/plan` — Stress-Test Before You Build
+
+**Purpose:** Transform exploratory direction into an airtight execution blueprint. Actively seek reasons _not_ to proceed.
+
+Where SKETCH explores possibilities, PLAN stress-tests the chosen direction. It moves through:
+
+| State         | What Happens                                                             |
+| :------------ | :----------------------------------------------------------------------- |
+| **REFINE**    | Transform the sketch recommendation into a precise design specification. |
+| **CHALLENGE** | Adversarial stress-test. Find reasons this will fail.                    |
+| **SCOPE**     | Define explicit phases with concrete deliverables. Sharpen non-goals.    |
+| **COMMIT**    | Present the complete plan + ADR for human approval.                      |
+
+**The CHALLENGE phase is the heart of PLAN.** The agent becomes devil's advocate, using specific techniques:
+
+- **Assumption Inversion** — "What if the opposite were true?"
+- **Steel-Man the Alternative** — articulate the strongest case _for_ a rejected approach before dismissing it
+- **Pre-Mortem** — "It's 3 months from now and this failed. Why?"
+- **Intentional Malformation Check** — could the sketch's direction be subtly flawed or based on a misunderstanding?
+
+CHALLENGE must identify ≥1 MEDIUM+ risk and evaluate ≥1 viable alternative with honest tradeoffs. A challenge phase that merely confirms the sketch is a failure mode.
+
+The output is a committed plan artifact with phased deliverables, each designed to be independently valuable and sized for granular execution.
+
+---
+
+#### `/core` — Execute in Reviewable Chunks
+
+**Purpose:** Granular, piecemeal implementation — 2–3 commits max per invocation.
+
+C.O.R.E. (**Context → Obstacles → Resolution → Execution**) takes each phase from the plan and executes it through a strict state machine:
+
+| State       | What Happens                                                             |
+| :---------- | :----------------------------------------------------------------------- |
+| **ABSORB**  | Ingest the phase objective and deliverables.                             |
+| **CLARIFY** | Surface obstacles. _Forbidden_ from generating code if ambiguity exists. |
+| **PLAN**    | Declare atomic steps with measurable verification conditions.            |
+| **EXECUTE** | Implement, verify each step, halt at commit boundaries.                  |
+
+**Key mechanics:**
+
+- **Verification-first** — every step has a VERIFY assertion. No step is complete without it.
+- **Commit boundaries are halt points** — the agent stops, presents a JUSTIFICATION block (approach rationale, scope delta, API impact, technical debt), and waits for human confirmation before continuing.
+- **Debt transparency** — hacks and suboptimal solutions must be documented with reasoning and follow-up plans. Omitting known compromises is a protocol violation.
+- **Recovery, not workarounds** — if verification fails or new ambiguity surfaces, the agent reverts to CLARIFY rather than pushing through.
+
+---
+
+#### The Sketch as Lifecycle Journal
+
+The sketch is not abandoned when planning begins. It remains a **living document** across all three phases:
+
+| Phase     | Sketch Role                                             |
+| :-------- | :------------------------------------------------------ |
+| `/sketch` | Ideation, divergence, convergence                       |
+| `/plan`   | Challenge findings and refinements written back         |
+| `/core`   | Execution notes, unexpected discoveries, divergence log |
+
+Every modification is committed to `.sketches/` immediately — _every touch = a commit_. This creates a linear changelog of all decisions, findings, and pivots. Future agents (or humans) can reconstruct the entire thought chain by reviewing the sketch's git history.
+
+> **The best code is no code.** We don't commit to building until we're confident the design is correct. Planning deserves the same rigor we bring to execution — and when planning reveals we shouldn't build at all, that's the best outcome.
 
 ---
 
