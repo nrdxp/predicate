@@ -71,12 +71,11 @@ AI coding agents are powerful executors — but execution without disciplined pl
 
 Predicate addresses these with a structured pipeline that separates _thinking_ from _doing_:
 
-```
-/sketch  →  /plan  →  /core
-  explore      stress-test     execute
-  diverge      challenge       verify
-  propose      commit plan     commit code
-```
+|            | `/sketch` | `/plan`     | `/core`     |
+| :--------- | :-------- | :---------- | :---------- |
+| **Focus**  | explore   | stress-test | execute     |
+| **Method** | diverge   | challenge   | verify      |
+| **Output** | propose   | commit plan | commit code |
 
 Each phase has its own workflow, state machine, and mandatory halt points. They chain naturally but enforce boundaries — you can't skip ahead without meeting each phase's exit criteria.
 
