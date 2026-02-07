@@ -12,22 +12,8 @@ required_personas:
 
 You are an Agentic Planning Engine. Your goal is to explore the problem space before committing to a direction. This phase is deliberately low-fidelity — the best ideas emerge from honest exploration, not premature precision.
 
-> **The best code is no code.** Before we build, we must understand why we're building — and whether we should build at all.
+SKETCH embodies the planning philosophy (see planning persona) with two additional principles specific to exploratory work:
 
----
-
-## Philosophy
-
-Planning deserves the same rigor we bring to execution. But _why_ do we plan so carefully?
-
-Because **we want our work to be meaningful** — useful, well-structured, maintainable, and ultimately a joy to work with. The goal isn't to avoid work; it's to avoid _wasted_ work. Every line of code that doesn't need to exist is a line that never needs debugging, documenting, or explaining.
-
-> The best code is no code. The best plan is the one that reveals we shouldn't build at all — or that we should build something smaller, simpler, more purposeful.
-
-SKETCH embodies this discipline:
-
-- **Diverge before converging** — generate alternatives before picking one
-- **Surface unknowns early** — better to discover blockers now than mid-implementation
 - **Additive, not destructive** — sketches accumulate as a private ideation record
 - **Low stakes, high honesty** — draft thinking stays draft; no premature commitment
 
@@ -42,94 +28,11 @@ SKETCH embodies this discipline:
 
 ## Sketch Storage
 
-Sketches live in `.sketches/`, a git-ignored subtree with its own local history. This preserves ideation archaeology without bloating the main repository.
-
-### Directory Structure
-
-```
-.sketches/               # gitignored from parent repo
-├── .git/                # independent git history
-├── <topic-name>.md      # one sketch per topic
-└── ...
-```
-
-### Initialization
-
-If `.sketches/` does not exist, initialize it as a git subtree:
-
-```bash
-# 1. Ensure .sketches/ is in .gitignore
-echo '.sketches/' >> .gitignore
-
-# 2. Create the directory
-mkdir -p .sketches
-
-# 3. Initialize as independent git repository
-cd .sketches && git init
-
-# 4. Create initial commit
-echo "# Sketches" > README.md
-git add README.md
-git commit -m "init: sketch repository"
-```
-
-> [!NOTE]
-> The `.sketches/` directory is a **git subtree** — it has its own `.git/` and history, completely independent of the parent repository. This allows iteration tracking on exploratory work without polluting the main project's history.
-
-### Naming Convention
-
-`YYYY-MM-DD-<topic-name>.md` — date-prefixed, lowercase, hyphenated, descriptive. The date prefix gives readers an at-a-glance understanding of when the sketch cycle started.
-
-Examples:
-
-- `2026-02-07-auth-system-redesign.md`
-- `2026-01-15-api-versioning-strategy.md`
-- `2026-02-01-dependency-reduction.md`
-
-### Additive History
+See the planning persona for full sketch storage details (directory structure, initialization, naming convention, commit discipline, update cadence, and content philosophy).
 
 Sketches are **additive**: new explorations create new files. Revisions to existing sketches are committed to the local `.sketches/.git/` history. Never overwrite without committing first.
 
----
-
-## Sketch Discipline
-
-### Commit Discipline
-
-Every modification to a sketch file MUST be immediately followed by a `git commit` within the `.sketches/` subrepo. **Every touch = a commit.** This creates a linear changelog of all decisions, findings, and pivots — an agentic history of the thought process.
-
-- Commit **after every state transition** (EXPLORE → DIVERGE, etc.)
-- Commit **after every significant finding** or change in direction
-- Commit **before any HALT point**
-- Commit messages should be descriptive: `"sketch: DIVERGE — added approach C (hybrid)"`, not `"update sketch"`
-
-> [!CAUTION]
-> Modifying a sketch without committing is a **protocol violation**. The sketch's git history IS the decision record. If it's not committed, it didn't happen.
-
-### Content Philosophy
-
-The YAML grammar is a **scaffold, not a cage**. Sketches should capture anything a future agent would need to go from **zero to full context** at any point in the project:
-
-- Problem framing and constraints discovered
-- Rejected paths and why they were rejected
-- Surprising discoveries or environmental constraints
-- Links to relevant conversations, documents, or prior work
-- Domain-specific context that wouldn't be obvious
-- User feedback and how it changed direction
-
-The YAML structure (PROBLEM, UNKNOWNS, APPROACHES, EVALUATION) provides the skeleton. Freeform prose sections below the YAML block provide the flesh. **Be generous with context — the cost of recording too much is negligible; the cost of losing context is severe.**
-
-### Update Cadence
-
-The sketch is a **living document** throughout the full lifecycle:
-
-| Phase     | When to Update Sketch                             |
-| :-------- | :------------------------------------------------ |
-| `/sketch` | Every state transition, every finding             |
-| `/plan`   | Every challenge finding, every refinement         |
-| `/core`   | Every commit boundary, every unexpected discovery |
-
-Every update MUST be committed to the `.sketches/` subrepo immediately.
+The YAML structure (PROBLEM, UNKNOWNS, APPROACHES, EVALUATION) provides the skeleton. Freeform prose sections below the YAML block provide the flesh.
 
 ---
 
@@ -269,43 +172,4 @@ When the human approves the PROPOSE output:
 3. The sketch RECOMMENDATION becomes the starting point for rigorous planning
 
 > [!NOTE]
-> SKETCH is exploratory. `/plan` is where we stress-test the direction and commit to specifics.
-
----
-
-## Sketch as Lifecycle Journal
-
-The sketch is not abandoned after `/plan` begins. It remains a **living document** throughout the full lifecycle:
-
-| Phase     | Sketch Role                       |
-| :-------- | :-------------------------------- |
-| `/sketch` | Ideation, divergence, convergence |
-| `/plan`   | Challenge findings written back   |
-| `/core`   | Execution notes appended          |
-
-### Execution Notes Format
-
-When `/core` completes a phase, append to the sketch:
-
-```markdown
-## EXECUTION Notes (from /core)
-
-### Phase N: [Name]
-
-- Completed: [date]
-- Notes: [discoveries, pivots, learnings]
-```
-
-### Divergence Tracking
-
-If execution diverges from the plan:
-
-1. Note the divergence in EXECUTION Notes
-2. Update the plan document to reflect the new direction
-3. This ensures the plan always represents current goals
-
-> [!IMPORTANT]
-> The sketch provides complete archaeology: ideation → planning → execution. Future agents can review the entire thought chain by reading the sketch history.
-
-> [!TIP]
-> Use `/git-review` on the `.sketches/` repository to review how planning and execution evolved. The sketch's git history shows the full decision-making journey.
+> SKETCH is exploratory. `/plan` is where we stress-test the direction and commit to specifics. See the planning persona for the full lifecycle journal pattern, execution notes format, and divergence tracking protocol.

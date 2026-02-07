@@ -20,7 +20,7 @@ As you execute, you MUST:
 3. **Never auto-commit** — user commits manually
 4. **HALT on divergence** — if reality differs from plan, revert to CLARIFY
 5. **Output artifacts visibly** — code, messages, and verification in final response (not hidden)
-6. **Update and commit sketch** — at every commit boundary, update the active sketch with discoveries, pivots, and learnings, then commit to `.sketches/` subrepo. Every touch = a commit.
+6. **Update and commit sketch** — per the planning persona's commit discipline and lifecycle journal pattern
 
 You must NOT:
 

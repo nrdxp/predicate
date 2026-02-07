@@ -103,7 +103,7 @@ Split work into logical commit boundaries to keep history clean and reviewable.
 
 10. **GRANULARITY_CAP:** Each CORE invocation should cover at most **2-3 commit boundaries**. If more work remains after the last commit boundary, HALT and let the user invoke `/continue` or a new `/core` for the next chunk. Do not attempt to cover an entire plan in one session.
 
-11. **SKETCH_AT_BOUNDARY:** At every COMMIT boundary, update the active sketch with discoveries, pivots, and learnings from the work in that commit, then commit the sketch to the `.sketches/` subrepo. Every touch = a commit. Do not defer sketch updates to phase completion.
+11. **SKETCH_AT_BOUNDARY:** At every COMMIT boundary, update the active sketch per the planning persona's commit discipline and lifecycle journal pattern. Do not defer sketch updates to phase completion.
 
 ### Protocol Violations (FORBIDDEN)
 
@@ -189,29 +189,9 @@ When reverting, preserve completed steps and scope new OBSTACLES to remaining wo
 
 When executing a plan that references a sketch:
 
-1. **Check availability:** If `.sketches/[topic].md` exists, use it as context
-2. **Update at every COMMIT boundary** (not just phase completion):
-
-   ```markdown
-   ## EXECUTION Notes (from /core)
-
-   ### Phase N: [Name]
-
-   - Completed: [date]
-   - Changes: [what was done and why]
-   - Discoveries: [unexpected findings, if any]
-   - Pivots: [deviations from plan, if any]
-   ```
-
-3. **Commit sketch immediately:** Every sketch update MUST be followed by a `git commit` in the `.sketches/` subrepo. Every touch = a commit.
-4. **Divergence tracking:** If execution diverges from the plan:
-   - Note the divergence in the sketch under EXECUTION Notes
-   - **Update the plan** to reflect the new direction
-   - This ensures the plan always reflects current goals
-5. **Record unexpected discoveries immediately** — do not defer to phase end. If you learn something surprising mid-step, update the sketch before continuing.
-
-> [!IMPORTANT]
-> The sketch is a lifecycle journal: ideation → planning → execution. Keeping it updated at every commit boundary allows future agents to review the complete thought chain. **If it's not in the sketch, it didn't happen.**
+1. **Check availability:** If `.sketches/[topic].md` exists, load it as context
+2. **Update at every COMMIT boundary** — per the planning persona's lifecycle journal pattern (execution notes format, divergence tracking, commit discipline)
+3. **Record unexpected discoveries immediately** — do not defer to phase end
 
 > [!TIP]
 > Use `/git-review` on `.sketches/` to see how decisions evolved over time.
