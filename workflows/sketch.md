@@ -84,6 +84,9 @@ EVALUATION:
     APPROACH: "A | B | Hybrid"
     RATIONALE: "Why this direction"
     RISKS: ["Known risks to address in PLAN phase"]
+  OUTCOME: # Optional but encouraged — articulates end-state value
+    WHO_BENEFITS: "Who is affected (users, maintainers, downstream projects)?"
+    WHAT_CHANGES: "What's concretely different for them after this work?"
 ```
 
 ---
@@ -92,13 +95,15 @@ EVALUATION:
 
 ```
 EXPLORE ──→ DIVERGE  (once UNKNOWNS resolved)
-        └─→ ABORT    (if problem is invalid)
+        └─→ ABORT    (problem is invalid, or not worth solving)
 
 DIVERGE ──→ CONVERGE (once ≥2 approaches exist)
         └─→ EXPLORE  (if new unknowns surface)
+        └─→ ABORT    (if all approaches reveal the work isn't worth doing)
 
 CONVERGE ──→ PROPOSE (once RECOMMENDATION formed)
          └─→ DIVERGE (if evaluation reveals gaps)
+         └─→ ABORT   (if evaluation reveals we shouldn't proceed)
 
 PROPOSE ──→ /plan    (on human approval)
         └─→ CONVERGE (if human requests refinement)
@@ -150,6 +155,9 @@ You MUST stop and await human input at:
 1. **EXPLORE → DIVERGE:** If UNKNOWNS exist, halt and ask
 2. **PROPOSE:** Draft complete — human must approve to proceed to `/plan`
 3. **ABORT decision:** If sketch reveals we shouldn't proceed, halt and explain
+
+> [!NOTE]
+> **ABORT is a valuable outcome, not a failure.** A sketch that concludes "we shouldn't build this" or "revisit in 3 months" has done its job — it prevented wasted effort downstream. The best code is no code, and the best plan is sometimes no plan. Celebrate sketches that save you from building the wrong thing.
 
 ---
 
