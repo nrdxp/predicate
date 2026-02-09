@@ -237,7 +237,10 @@ After all phases of a plan are executed, the sketch should have a final section 
 ```
 
 > [!TIP]
-> Not every cycle warrants a full retrospective. Use judgment — but if the plan diverged significantly, if unexpected debt accumulated, or if you noticed a pattern that future agents should know about, write it down. The cost of recording too much is negligible; the cost of losing hard-won lessons is severe.
+> Not every cycle warrants a full retrospective. Use judgment — but if the plan diverged significantly, if unexpected debt accumulated, or if you noticed a pattern that future agents should know about, write it down. The cost of overdocumenting is negligible; the cost of losing hard-won lessons is severe.
+
+> [!IMPORTANT]
+> The sketch captures **real-time execution notes** — observations made in the moment during each commit. When the plan's final phase is complete, **distill** those observations into the plan's `## Retrospective` section. The sketch is private (gitignored); the plan is committed and public. Hard-won lessons belong in the durable, publicly visible document.
 
 ---
 

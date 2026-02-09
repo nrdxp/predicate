@@ -100,6 +100,35 @@
 | Item | Severity | Why Introduced | Follow-Up |
 | :--- | :------- | :------------- | :-------- |
 
+## Retrospective
+
+<!--
+  Filled in after execution is complete. This is the committed, public record
+  of lessons learned — distilled from execution notes in the sketch lifecycle
+  journal. The sketch captures real-time observations; the plan gets the
+  durable takeaways that future agents and humans should know about.
+
+  Not every plan warrants a full retrospective. But if the plan diverged,
+  if unexpected debt accumulated, or if you noticed a pattern that future
+  cycles should know about — write it down. The cost of overdocumenting is
+  negligible; the cost of losing hard-won lessons is severe.
+-->
+
+### Process
+
+- Did the plan hold up? Where did we diverge and why?
+- Were the estimates/appetite realistic?
+- Did CHALLENGE catch the risks that actually materialized?
+
+### Outcomes
+
+- What unexpected debt was introduced?
+- What would we do differently next cycle?
+
+### Pipeline Improvements
+
+- Should any axiom/persona/workflow be updated based on this experience?
+
 ## References
 
 <!--

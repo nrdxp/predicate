@@ -98,6 +98,35 @@ Augment the `/charter → /sketch → /plan → /core` pipeline with research-ba
 - [x] README.md workflow table includes `/charter`
 - [x] No stale or contradictory references introduced: `rg "customer|product.engineering|PR.FAQ|betting|cool.down" workflows/ personas/` returns zero results
 
+## Technical Debt
+
+| Item     | Severity | Why Introduced | Follow-Up |
+| :------- | :------- | :------------- | :-------- |
+| _(none)_ |          |                |           |
+
+## Retrospective
+
+### Process
+
+- **Plan held up well.** Phase 1 delivered exactly as scoped (10 surgical edits in 4 commits). Phase 2 expanded from 2→3 commits after discovering that the charter needs a committed artifact template and plan cross-reference — a genuine improvement surfaced by human review during execution.
+- **Estimates were realistic.** Phase 1: 4 commits estimated, 4 delivered (+2 correction commits for debt tracking location). Phase 2: 2 estimated, 3 delivered. All well within single-session appetite.
+- **CHALLENGE caught the right risks.** "Cross-file consistency after many edits" (MEDIUM) materialized — the retrospective found 3 stale references (README "three phases", planning.md "three workflows", README "can't skip ahead"). Corporate vocabulary risk was verified at each commit boundary via `rg`.
+- **Verification command had a bug.** The `rg "appetite"` check was written during planning but the actual implementation used "worth the investment" prose — the word "appetite" never appeared. Corrected to `rg "worth the investment"`.
+
+### Outcomes
+
+- **No debt introduced.** All changes are additive documentation.
+- **What we'd do differently:**
+  - Check off plan items _during_ execution, not after — the PLAN_PROGRESS directive (#14) we added in Phase 1 exists for exactly this reason
+  - Test verification commands when writing them, not after execution
+  - Template/artifact decisions (CHARTER.md, plan cross-ref) should surface during `/plan`, not mid-execution
+  - Retrospective sections should have been in the plan template from the start — the sketch captures real-time notes, but durable lessons belong in the committed plan
+
+### Pipeline Improvements
+
+- **Flexible entry language is now canonical.** The pipeline is not rigidly sequential — entry point depends on scope. This framing should be the default anywhere the pipeline is introduced.
+- **Plan template now includes Retrospective section** — added during this retrospective as a self-referential fix. Same pattern as debt tracking: durable records belong in committed documents, not gitignored sketches.
+
 ## References
 
 - Sketch: `.sketches/2026-02-08-pipeline-augmentation.md`
