@@ -7,6 +7,7 @@ Reusable agent axioms (rulesets) and workflows for agentic coding assistants.
 ```
 predicate/
 ├── axioms/                  # Foundational rulesets (always active)
+│   ├── documentation.md    # Writing & documentation principles
 │   ├── engineering.md       # Base engineering ruleset
 │   └── integral.md          # Holistic problem-solving
 ├── personas/                # Context-specific extensions (opt-in)
@@ -21,6 +22,7 @@ predicate/
 │   ├── sketch.md            # Exploratory planning (SKETCH protocol)
 │   ├── plan.md              # Rigorous planning (PLAN protocol)
 │   ├── core.md              # Granular execution (C.O.R.E. protocol)
+│   ├── doc.md               # Documentation lifecycle (DOC protocol)
 │   ├── ai-audit.md          # Audit AI-generated code
 │   ├── humanizer.md         # Remove AI writing patterns
 │   └── ...                  # See Available Workflows below
@@ -179,6 +181,29 @@ C.O.R.E. (**Context → Obstacles → Resolution → Execution**) takes each pha
 
 ---
 
+#### `/doc` — Structured Documentation Lifecycle
+
+**Purpose:** Deliberate documentation work — writing guides, auditing existing docs, or tackling documentation debt through a disciplined lifecycle.
+
+| State      | What Happens                                                      |
+| :--------- | :---------------------------------------------------------------- |
+| **AUDIT**  | Catalogue existing docs. Identify debt, staleness, and gaps.      |
+| **PLAN**   | Define deliverables with Divio quadrant and audience declared.    |
+| **DRAFT**  | Write the documentation, applying the documentation axiom fully.  |
+| **REVIEW** | Self-critique against axiom principles. Mechanical, not generous. |
+| **VERIFY** | Present to human for approval.                                    |
+
+**When to use `/doc` vs. the pipeline:**
+
+- **Single document** (README, how-to guide) — invoke `/doc` directly
+- **Multi-document restructuring** — use `/sketch` to explore architecture first, then `/doc` for drafting
+- **Documentation alongside code changes** — use `/core` for the code, `/doc` for the docs
+- **Large documentation initiative** — use `/plan` to define phases, then `/doc` within each phase
+
+The documentation axiom (`axioms/documentation.md`) governs writing quality automatically — Section 1 for all text, Section 2 when producing standalone documents. `/doc` adds the _process_ for deliberate documentation work.
+
+---
+
 #### The Sketch as Lifecycle Journal
 
 The sketch is not abandoned when planning begins. It remains a **living document** across the full pipeline:
@@ -302,6 +327,7 @@ The agent will only load personas marked as active and relevant to the current r
 | [sketch.md](workflows/sketch.md)         | `/sketch`     | Exploratory planning — diverge before converging   |
 | [plan.md](workflows/plan.md)             | `/plan`       | Rigorous planning — stress-test before committing  |
 | [core.md](workflows/core.md)             | `/core`       | Granular execution — C.O.R.E. protocol             |
+| [doc.md](workflows/doc.md)               | `/doc`        | Documentation lifecycle — audit, draft, verify     |
 | [ai-audit.md](workflows/ai-audit.md)     | `/ai-audit`   | 4-layer audit framework for AI-generated code      |
 | [git-review.md](workflows/git-review.md) | `/git-review` | Review git history for coherence and scope drift   |
 | [humanizer.md](workflows/humanizer.md)   | `/humanizer`  | Remove AI writing patterns; make text more natural |
