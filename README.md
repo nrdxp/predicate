@@ -17,6 +17,7 @@ predicate/
 │   ├── personalization.md   # User naming preferences
 │   └── ...                  # See Available Personas below
 ├── workflows/               # Manually-triggered SOPs
+│   ├── charter.md           # Strategic framing (CHARTER protocol)
 │   ├── sketch.md            # Exploratory planning (SKETCH protocol)
 │   ├── plan.md              # Rigorous planning (PLAN protocol)
 │   ├── core.md              # Granular execution (C.O.R.E. protocol)
@@ -26,6 +27,8 @@ predicate/
 └── templates/               # Project templates
     ├── AGENTS.md            # AGENTS.md template for projects
     ├── ADR.md               # Architecture Decision Record template
+    ├── CHARTER.md           # Charter artifact template
+    ├── PLAN.md              # Plan artifact template
     └── .gitignore           # Gitignore template (includes .sketches/)
 ```
 
@@ -71,13 +74,37 @@ AI coding agents are powerful executors — but execution without disciplined pl
 
 Predicate addresses these with a structured pipeline that separates _thinking_ from _doing_:
 
-|            | `/sketch` | `/plan`     | `/core`     |
-| :--------- | :-------- | :---------- | :---------- |
-| **Focus**  | explore   | stress-test | execute     |
-| **Method** | diverge   | challenge   | verify      |
-| **Output** | propose   | commit plan | commit code |
+|            | `/charter` | `/sketch` | `/plan`     | `/core`     |
+| :--------- | :--------- | :-------- | :---------- | :---------- |
+| **Focus**  | frame      | explore   | stress-test | execute     |
+| **Method** | declare    | diverge   | challenge   | verify      |
+| **Output** | priorities | propose   | commit plan | commit code |
 
-Each phase has its own workflow, state machine, and mandatory halt points. They chain naturally but enforce boundaries — you can't skip ahead without meeting each phase's exit criteria.
+Each phase has its own workflow and mandatory halt points. They chain naturally but enforce boundaries — you can't skip ahead without meeting each phase's exit criteria. The charter is optional — self-contained work can begin directly with `/sketch`.
+
+---
+
+#### `/charter` — Frame Before You Explore
+
+**Purpose:** Define _why_ a project or initiative exists, _what_ success looks like, and _what's worth doing first_.
+
+A charter is a **declaration**, not a process. There is no state machine — the divergence happens in sketches. The charter frames the strategic intent that guides them.
+
+| Field           | What It Answers                                   |
+| :-------------- | :------------------------------------------------ |
+| **PURPOSE**     | What problem in the world does this solve?        |
+| **NORTH_STAR**  | What does full success look like long-term?       |
+| **WORKSTREAMS** | What's worth doing, in priority order?            |
+| **NON_GOALS**   | What are we deliberately _not_ pursuing, and why? |
+| **APPETITE**    | How much investment is this worth?                |
+
+**Key mechanics:**
+
+- **Workstreams spawn sketch cycles** — each workstream is independently explorable via `/sketch`. If it's too large to sketch, it's a sub-charter; too small, it's a plan item.
+- **Strategic non-goals** — charter non-goals are strategic ("not our problem"), distinct from plan-level tactical non-goals ("not this phase").
+- **Honest appetite** — not a deadline, but an investment tolerance. If work exceeds appetite, descope rather than push harder.
+
+Charters are committed to `docs/charters/` as public, durable artifacts using `templates/CHARTER.md`.
 
 ---
 
@@ -271,6 +298,7 @@ The agent will only load personas marked as active and relevant to the current r
 
 | Workflow                                 | Trigger       | Description                                        |
 | :--------------------------------------- | :------------ | :------------------------------------------------- |
+| [charter.md](workflows/charter.md)       | `/charter`    | Strategic framing — define purpose and priorities  |
 | [sketch.md](workflows/sketch.md)         | `/sketch`     | Exploratory planning — diverge before converging   |
 | [plan.md](workflows/plan.md)             | `/plan`       | Rigorous planning — stress-test before committing  |
 | [core.md](workflows/core.md)             | `/core`       | Granular execution — C.O.R.E. protocol             |
@@ -279,7 +307,7 @@ The agent will only load personas marked as active and relevant to the current r
 | [humanizer.md](workflows/humanizer.md)   | `/humanizer`  | Remove AI writing patterns; make text more natural |
 | [predicate.md](workflows/predicate.md)   | `/predicate`  | Re-read global rules; combats context drift        |
 
-Workflows can be chained: `/sketch + /plan + /core`
+Workflows can be chained: `/charter + /sketch + /plan + /core`
 
 ---
 

@@ -78,9 +78,9 @@ Augment the `/sketch → /plan → /core` pipeline with research-backed refineme
 
 2. **Phase 2: `/charter` Workflow** — new workflow for multi-cycle strategic framing
    - [x] Create charter.md — grammar, purpose, usage guidance
-   - [ ] Create templates/CHARTER.md — committed artifact template
-   - [ ] Add Charter cross-reference to templates/PLAN.md
-   - [ ] Update README.md workflow table and pipeline documentation
+   - [x] Create templates/CHARTER.md — committed artifact template
+   - [x] Add Charter cross-reference to templates/PLAN.md
+   - [x] Update README.md workflow table and pipeline documentation
 
 ## Verification
 
