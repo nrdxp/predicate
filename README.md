@@ -80,7 +80,7 @@ Predicate addresses these with a structured pipeline that separates _thinking_ f
 | **Method** | declare    | diverge   | challenge   | verify      |
 | **Output** | priorities | propose   | commit plan | commit code |
 
-Each phase has its own workflow and mandatory halt points. They chain naturally but enforce boundaries — you can't skip ahead without meeting each phase's exit criteria. The charter is optional — self-contained work can begin directly with `/sketch`.
+Each phase has its own workflow and mandatory halt points. They chain naturally, but your entry point depends on the scope of work — not every task needs every phase. A multi-cycle initiative starts with `/charter`. An unfamiliar problem starts with `/sketch`. A well-understood design can go straight to `/plan`. A small, well-scoped change can begin directly with `/core`. The pipeline provides structure where it's needed, not ceremony where it isn't.
 
 ---
 
@@ -181,7 +181,7 @@ C.O.R.E. (**Context → Obstacles → Resolution → Execution**) takes each pha
 
 #### The Sketch as Lifecycle Journal
 
-The sketch is not abandoned when planning begins. It remains a **living document** across all three phases:
+The sketch is not abandoned when planning begins. It remains a **living document** across the full pipeline:
 
 | Phase     | Sketch Role                                             |
 | :-------- | :------------------------------------------------------ |
