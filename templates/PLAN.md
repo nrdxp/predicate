@@ -108,5 +108,6 @@
   Plan should be self-sufficient, but linking enables deeper archaeology.
 -->
 
+- Charter: `docs/charters/[initiative].md` _(if applicable)_
 - Sketch: `.sketches/[topic].md`
 - ADR: `docs/adr/[number].md` _(if applicable)_
