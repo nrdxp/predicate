@@ -84,6 +84,19 @@
 - [ ] Checkpoint 1
 - [ ] Checkpoint 2
 
+## Technical Debt
+
+<!--
+  Accumulated during CORE execution. This section is the canonical,
+  publicly visible record of debt introduced during this plan's lifecycle.
+  MEDIUM+ items from JUSTIFICATION.DEBT blocks must be recorded here
+  with explicit follow-up plans. This section is empty at plan creation
+  and populated during execution.
+-->
+
+| Item | Severity | Why Introduced | Follow-Up |
+| :--- | :------- | :------------- | :-------- |
+
 ## References
 
 <!--

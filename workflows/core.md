@@ -123,7 +123,7 @@ The following are VIOLATIONS of this protocol. If you catch yourself doing any o
 
 12. **JUSTIFICATION_AT_COMMIT:** At each COMMIT boundary, output a JUSTIFICATION block for the changes in that commit. This block must honestly assess approach rationale, scope delta, API impact, and any technical debt introduced. The user must see the justification _before_ approving the commit.
 
-13. **DEBT_TRANSPARENCY:** If a hack, band-aid, or suboptimal solution is used, it must be documented in `JUSTIFICATION.DEBT` with explicit reasoning. Omitting known compromises is a failure mode.
+13. **DEBT_TRANSPARENCY:** If a hack, band-aid, or suboptimal solution is used, it must be documented in `JUSTIFICATION.DEBT` with explicit reasoning. Omitting known compromises is a failure mode. For MEDIUM+ debt items, also record them in the plan's `## Technical Debt` section — the JUSTIFICATION block is ephemeral (lives in chat), but the plan is committed to source and visible to anyone with repo access.
 
 ---
 
