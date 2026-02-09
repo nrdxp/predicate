@@ -180,7 +180,7 @@ Use these techniques:
 2. **If the gap persists**, explicitly flag it with a specific research direction for the human (e.g., "Research on [specific topic] would clarify [specific ambiguity] — consider collecting relevant whitepapers/docs in NotebookLM or similar")
 3. **Do not proceed past CHALLENGE with unresolved gaps** that could invalidate the design
 
-**SCOPE:** Define explicit phases with concrete deliverables. Sharpen NON_GOALS. Each phase should be C.O.R.E.-executable. For each phase, explicitly evaluate whether the estimated scope is _worth the investment_ — if a phase is estimated LARGE, articulate what a MEDIUM version looks like. If you can't descope it, flag it as a risk. The question isn't just "how big is this?" but "is it worth this much?"
+**SCOPE:** Define explicit phases with concrete deliverables. Sharpen NON*GOALS. Each phase should be C.O.R.E.-executable. For each phase, explicitly evaluate whether the estimated scope is \_worth the investment* — if a phase is estimated LARGE, articulate what a MEDIUM version looks like. If you can't descope it, flag it as a risk. The question isn't just "how big is this?" but "is it worth this much?"
 
 **COMMIT:** Present complete plan for human approval. The committed plan artifact **MUST** use the structure defined in `templates/PLAN.md` — not ad hoc markdown, not the YAML grammar. The YAML grammar is for in-process state communication; the template is the canonical format for the durable artifact. Produce ADR when warranted. Human approval triggers transition to execution.
 

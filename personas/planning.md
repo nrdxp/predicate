@@ -190,6 +190,7 @@ When `/core` completes a phase, append to the sketch:
 - Changes: [what was done and why]
 - Discoveries: [unexpected findings, if any]
 - Pivots: [deviations from plan, if any]
+- Debt: [any technical debt introduced — MEDIUM+ items must be documented with follow-up plans]
 ```
 
 > [!IMPORTANT]
@@ -209,3 +210,47 @@ If execution diverges from the plan:
 3. This ensures the plan always reflects current goals
 
 Record unexpected discoveries immediately — do not defer to phase end. If you learn something surprising mid-step, update the sketch before continuing.
+
+---
+
+## Retrospective
+
+After all phases of a plan are executed, the sketch should have a final section that closes the loop on the lifecycle. This is not a separate workflow — it's the last chapter of the sketch's story.
+
+```markdown
+## RETROSPECTIVE
+
+### Process
+
+- Did the plan hold up? Where did we diverge and why?
+- Were the estimates realistic?
+- Did CHALLENGE catch the risks that actually materialized?
+
+### Outcomes
+
+- What unexpected debt was introduced? (Cross-reference JUSTIFICATION.DEBT items)
+- What would we do differently next cycle?
+
+### Pipeline Improvements
+
+- Should any axiom/persona/workflow be updated based on this experience?
+```
+
+> [!TIP]
+> Not every cycle warrants a full retrospective. Use judgment — but if the plan diverged significantly, if unexpected debt accumulated, or if you noticed a pattern that future agents should know about, write it down. The cost of recording too much is negligible; the cost of losing hard-won lessons is severe.
+
+---
+
+## Cross-Cycle Context
+
+Before beginning a new sketch, check for prior work on related topics:
+
+1. **Plans:** Review `docs/plans/` for completed plans that touch the same area
+2. **Sketches:** Check `.sketches/` for prior explorations — even abandoned ones contain valuable context
+3. **ADRs:** Scan `docs/adr/` for architectural decisions that constrain the design space
+4. **Charters:** If a `/charter` exists for the project or initiative, review it for strategic context and appetite
+
+Reference relevant prior decisions in your sketch. If a prior sketch explored and rejected an approach you're considering, cite it — don't re-derive the rejection from scratch.
+
+> [!NOTE]
+> The sketch's git history (via `/git-review` on `.sketches/`) is often the richest source of cross-cycle context. It captures not just what was decided, but _how_ the thinking evolved.
