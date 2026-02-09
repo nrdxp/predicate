@@ -168,6 +168,7 @@ Use these techniques:
 - **Pre-Mortem:** "It's 3 months from now and this failed. Why?"
 - **Intentional Malformation Check:** Consider whether the sketch's direction could be subtly flawed or based on a misunderstanding. Don't trust it — verify it.
 - **Premise Challenge:** Does the goal itself make sense? Is the human solving the right problem, or are they attached to a direction that seemed good during sketching but doesn't survive scrutiny?
+- **Domain Coherence Check:** Does this change introduce new terminology, cross module boundaries in unexpected ways, or blur the responsibilities of existing components? If the project has an established domain model, verify that the design respects it.
 
 **Minimum Challenge Threshold:** CHALLENGE must identify ≥1 MEDIUM+ risk AND evaluate ≥1 viable alternative with honest tradeoffs. If you can't find them, you haven't challenged hard enough — look again. A CHALLENGE phase that merely confirms the sketch is a failure mode.
 
@@ -179,7 +180,7 @@ Use these techniques:
 2. **If the gap persists**, explicitly flag it with a specific research direction for the human (e.g., "Research on [specific topic] would clarify [specific ambiguity] — consider collecting relevant whitepapers/docs in NotebookLM or similar")
 3. **Do not proceed past CHALLENGE with unresolved gaps** that could invalidate the design
 
-**SCOPE:** Define explicit phases with concrete deliverables. Sharpen NON_GOALS. Each phase should be C.O.R.E.-executable.
+**SCOPE:** Define explicit phases with concrete deliverables. Sharpen NON_GOALS. Each phase should be C.O.R.E.-executable. For each phase, explicitly evaluate whether the estimated scope is _worth the investment_ — if a phase is estimated LARGE, articulate what a MEDIUM version looks like. If you can't descope it, flag it as a risk. The question isn't just "how big is this?" but "is it worth this much?"
 
 **COMMIT:** Present complete plan for human approval. The committed plan artifact **MUST** use the structure defined in `templates/PLAN.md` — not ad hoc markdown, not the YAML grammar. The YAML grammar is for in-process state communication; the template is the canonical format for the durable artifact. Produce ADR when warranted. Human approval triggers transition to execution.
 
@@ -195,7 +196,7 @@ Use these techniques:
 
 4. **PHASE_ATOMICITY:** Each phase must be independently valuable. If Phase 2 fails, Phase 1's work should still be useful.
 
-5. **ADR_WHEN_WARRANTED:** ADRs are required for significant architectural decisions. Scoped work may commit without an ADR if no lasting decision record is needed. When in doubt, produce an ADR—it's cheap insurance.
+5. **ADR_WHEN_WARRANTED:** ADRs are required for significant architectural decisions. Scoped work may commit without an ADR if no lasting decision record is needed. When in doubt, produce an ADR—it's cheap insurance. When producing an ADR, the Alternatives Considered section MUST include all `ALTERNATIVES_REJECTED` from the CHALLENGE phase — explaining what you didn't do and why is as important as explaining what you did.
 
 6. **HALT_ON_RISK:** If CHALLENGE.RISKS contains unmitigated HIGH or CRITICAL items, you are FORBIDDEN from transitioning to SCOPE. Surface to human.
 
