@@ -62,20 +62,23 @@
 ## Phases
 
 <!--
-  Phases are nested task lists. Depth should match complexity.
+  Phases are nested task lists using checkboxes. Depth should match complexity.
   Each phase should be independently valuable (Phase 1 useful even if Phase 2 fails).
   Each phase should be executable as a bounded /core invocation.
+
+  Use checkboxes (- [ ]) for deliverables so /core can check them off as completed.
+  This makes plan progress visible to anyone reading the document.
 -->
 
 1. **Phase 1: [Name]** — [objective]
-   - Deliverable 1
-   - Deliverable 2
+   - [ ] Deliverable 1
+   - [ ] Deliverable 2
 
 2. **Phase 2: [Name]** — [objective]
-   - Deliverable 1
-     - Sub-task if needed
-     - Sub-task if needed
-   - Deliverable 2
+   - [ ] Deliverable 1
+     - [ ] Sub-task if needed
+     - [ ] Sub-task if needed
+   - [ ] Deliverable 2
 
 ## Verification
 

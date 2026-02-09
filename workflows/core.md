@@ -125,6 +125,8 @@ The following are VIOLATIONS of this protocol. If you catch yourself doing any o
 
 13. **DEBT_TRANSPARENCY:** If a hack, band-aid, or suboptimal solution is used, it must be documented in `JUSTIFICATION.DEBT` with explicit reasoning. Omitting known compromises is a failure mode. For MEDIUM+ debt items, also record them in the plan's `## Technical Debt` section — the JUSTIFICATION block is ephemeral (lives in chat), but the plan is committed to source and visible to anyone with repo access.
 
+14. **PLAN_PROGRESS:** At each COMMIT boundary, check off (`- [x]`) the completed deliverables in the plan document (`docs/plans/[topic].md`). The plan's phase items use checkboxes specifically so progress is visible to anyone reading the document. If you completed a deliverable, mark it done. The plan is a living document during execution, not a frozen artifact.
+
 ---
 
 ## State Transitions
