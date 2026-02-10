@@ -24,6 +24,7 @@ Execute these steps in order. Each step has an implicit verification condition â
    PREDICATE CONFIRMATION:
    - Axioms: [list of axiom files found and read]
    - Active Personas: [list loaded from AGENTS.md]
+   - Workflow-Required: [list loaded via required_personas: frontmatter, or "none"]
    - Discretionary: [list adopted with rationale, or "none"]
    ```
 

@@ -97,8 +97,8 @@
   and populated during execution.
 -->
 
-| Item | Severity | Why Introduced | Follow-Up |
-| :--- | :------- | :------------- | :-------- |
+| Item | Severity | Why Introduced | Follow-Up | Resolved |
+| :--- | :------- | :------------- | :-------- | :------: |
 
 ## Retrospective
 

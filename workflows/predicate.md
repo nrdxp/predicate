@@ -46,4 +46,5 @@ Before proceeding with the requested task, read and internalize the following:
 
    Active axioms: [list from axioms/]
    Active personas: [list from AGENTS.md]
+   Workflow-required: [list from required_personas: frontmatter, or "none"]
    ```
