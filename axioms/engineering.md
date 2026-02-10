@@ -267,6 +267,7 @@ When rules appear to conflict, use this hierarchy as a **guideline**, but remain
 > Language-specific idioms and other extensions are available in `personas/`:
 >
 > - `personas/go.md` — Go conventions
+> - `personas/python.md` — Python conventions
 > - `personas/rust.md` — Rust conventions
 > - `personas/typescript.md` — TypeScript/JavaScript conventions
 > - `personas/depmap.md` — DepMap MCP server usage

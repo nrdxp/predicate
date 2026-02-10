@@ -12,6 +12,7 @@ predicate/
 │   └── integral.md          # Holistic problem-solving
 ├── personas/                # Context-specific extensions (opt-in)
 │   ├── go.md                # Go-specific idioms
+│   ├── python.md            # Python-specific idioms
 │   ├── rust.md              # Rust-specific idioms
 │   ├── typescript.md        # TS/JS-specific idioms
 │   ├── depmap.md            # DepMap MCP server usage
@@ -311,6 +312,7 @@ The agent will only load personas marked as active and relevant to the current r
 | Persona              | Purpose                      |
 | :------------------- | :--------------------------- |
 | `go.md`              | Go language idioms           |
+| `python.md`          | Python language idioms       |
 | `rust.md`            | Rust language idioms         |
 | `typescript.md`      | TypeScript/JavaScript idioms |
 | `depmap.md`          | DepMap MCP server usage      |
