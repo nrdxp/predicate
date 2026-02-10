@@ -67,6 +67,12 @@ PLAN-<topic-name>.md
 
 ## Grammar
 
+> [!CAUTION]
+> **This grammar is for chat responses and internal state tracking — not for the
+> committed plan document.** Use it freely during REFINE, CHALLENGE, and SCOPE to
+> communicate state to the human. At **COMMIT**, the plan artifact MUST use the
+> markdown template at `templates/PLAN.md` — not the YAML grammar.
+
 ```yaml
 # 1. METADATA
 PLAN: "<topic-name>"
@@ -182,7 +188,7 @@ Use these techniques:
 
 **SCOPE:** Define explicit phases with concrete deliverables. Sharpen NON_GOALS. Each phase should be C.O.R.E.-executable. For each phase, explicitly evaluate whether the estimated scope is _worth the investment_ — if a phase is estimated LARGE, articulate what a MEDIUM version looks like. If you can't descope it, flag it as a risk. The question isn't just "how big is this?" but "is it worth this much?"
 
-**COMMIT:** Present complete plan for human approval. The committed plan artifact **MUST** use the structure defined in `templates/PLAN.md` — not ad hoc markdown, not the YAML grammar. The YAML grammar is for in-process state communication; the template is the canonical format for the durable artifact. Phase deliverables **MUST** use checkboxes (`- [ ]`) so `/core` can check them off as completed — this makes plan progress visible to anyone reading the document. Produce ADR when warranted. Human approval triggers transition to execution.
+**COMMIT:** Present complete plan for human approval. The committed plan artifact **MUST** use `templates/PLAN.md` — see [Response Format](#response-format). Produce ADR when warranted. Human approval triggers transition to execution.
 
 ---
 
@@ -238,12 +244,21 @@ You MUST stop and await human input at:
 
 ## Response Format
 
-All responses during PLAN follow the grammar above.
+All responses during REFINE, CHALLENGE, and SCOPE follow the grammar above:
 
 - **REFINE:** YAML block with DESIGN draft
 - **CHALLENGE:** YAML block with RISKS, ASSUMPTIONS, ALTERNATIVES_REJECTED
 - **SCOPE:** YAML block with complete PHASES
-- **COMMIT:** Full YAML block + ADR + summary prose
+
+At **COMMIT**, produce the plan artifact using the **markdown template** at `templates/PLAN.md`.
+This is the canonical format for the durable, committed document.
+
+> [!CAUTION]
+> **The committed plan document MUST use `templates/PLAN.md` — not the YAML grammar.**
+> The grammar is for chat-level state communication during iteration. The template is
+> the format for the durable artifact that gets committed to the repository. If the
+> committed plan contains YAML grammar blocks instead of the template structure, it is
+> malformed and violates protocol.
 
 ---
 

@@ -144,6 +144,9 @@ Every modification to a sketch file MUST be immediately followed by a `git commi
 
 The YAML grammar in each workflow is a **scaffold, not a cage**. Sketches should capture anything a future agent would need to go from **zero to full context** at any point in the project:
 
+> [!IMPORTANT]
+> **The YAML grammar belongs in chat and sketches — not in committed plan documents.** The grammar is valuable for tracking state during conversation (REFINE, CHALLENGE, SCOPE) and for capturing context in sketches. But the committed plan artifact — the file that gets checked into the repository — MUST use `templates/PLAN.md`. A plan document that reproduces the YAML grammar instead of the template structure is malformed.
+
 - Problem framing and constraints discovered
 - Rejected paths and why they were rejected
 - Surprising discoveries or environmental constraints
