@@ -274,7 +274,7 @@ When the human approves the COMMIT output:
    - Phase completion verified before next phase begins
 
 > [!IMPORTANT]
-> PLAN produces the blueprint. C.O.R.E. executes it. Each phase is a bounded C.O.R.E. invocation with explicit deliverables.
+> PLAN produces the blueprint. C.O.R.E. **zooms in** on each phase — mapping specific steps, verification goals, and best-effort file estimations — then implements while tracking divergence. Each phase is a bounded C.O.R.E. invocation with explicit deliverables.
 
 ---
 

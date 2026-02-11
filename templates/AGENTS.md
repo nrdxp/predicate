@@ -3,7 +3,7 @@
 <!--
   This is a template AGENTS.md for projects using the predicate system.
   Copy this to your project root and customize the sections below.
-  See: https://agent.md for the AGENT.md standard.
+  See: https://agents.md for the AGENT.md standard.
 -->
 
 ## Predicate System

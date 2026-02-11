@@ -160,11 +160,11 @@ The output is a committed plan artifact with phased deliverables, each designed 
 
 ---
 
-#### `/core` — Execute in Reviewable Chunks
+#### `/core` — Zoom In and Execute
 
-**Purpose:** Granular, piecemeal implementation — 2–3 commits max per invocation.
+**Purpose:** Focus on a plan segment (2–3 commits), map the execution in detail, then implement — tracking divergence as it surfaces.
 
-C.O.R.E. (**Context → Obstacles → Resolution → Execution**) takes each phase from the plan and executes it through a strict state machine:
+C.O.R.E. (**Context → Obstacles → Resolution → Execution**) takes each phase from the plan, maps it at a finer level of detail — specific files, clear verification goals, best-effort estimations — and then implements through a strict state machine:
 
 | State       | What Happens                                                             |
 | :---------- | :----------------------------------------------------------------------- |
