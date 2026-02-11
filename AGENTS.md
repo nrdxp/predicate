@@ -29,6 +29,7 @@ Predicate is a framework for configuring AI coding agents with reusable rulesets
 | `personas/`  | Context-specific extensions    |
 | `workflows/` | Manually-triggered SOPs        |
 | `templates/` | Project templates (AGENTS.md)  |
+| `docs/`      | Guides, plans, and ADRs        |
 
 ---
 

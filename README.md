@@ -6,33 +6,11 @@ Reusable agent axioms (rulesets) and workflows for agentic coding assistants.
 
 ```
 predicate/
-├── axioms/                  # Foundational rulesets (always active)
-│   ├── documentation.md    # Writing & documentation principles
-│   ├── engineering.md       # Base engineering ruleset
-│   └── integral.md          # Holistic problem-solving
-├── personas/                # Context-specific extensions (opt-in)
-│   ├── go.md                # Go-specific idioms
-│   ├── python.md            # Python-specific idioms
-│   ├── rust.md              # Rust-specific idioms
-│   ├── typescript.md        # TS/JS-specific idioms
-│   ├── depmap.md            # DepMap MCP server usage
-│   ├── personalization.md   # User naming preferences
-│   └── ...                  # See Available Personas below
-├── workflows/               # Manually-triggered SOPs
-│   ├── charter.md           # Strategic framing (CHARTER protocol)
-│   ├── sketch.md            # Exploratory planning (SKETCH protocol)
-│   ├── plan.md              # Rigorous planning (PLAN protocol)
-│   ├── core.md              # Granular execution (C.O.R.E. protocol)
-│   ├── doc.md               # Documentation lifecycle (DOC protocol)
-│   ├── ai-audit.md          # Audit AI-generated code
-│   ├── humanizer.md         # Remove AI writing patterns
-│   └── ...                  # See Available Workflows below
-└── templates/               # Project templates
-    ├── AGENTS.md            # AGENTS.md template for projects
-    ├── ADR.md               # Architecture Decision Record template
-    ├── CHARTER.md           # Charter artifact template
-    ├── PLAN.md              # Plan artifact template
-    └── .gitignore           # Gitignore template (includes .sketches/)
+├── axioms/      # Foundational rulesets (always active)
+├── personas/    # Context-specific extensions (opt-in)
+├── workflows/   # Manually-triggered SOPs
+├── templates/   # Project templates (AGENTS.md, PLAN.md, etc.)
+└── docs/        # Guides, plans, and ADRs
 ```
 
 ### Terminology
@@ -296,7 +274,7 @@ your-project/
 
 ## Configuring Active Personas
 
-Not all personas apply to every project. In your project's `AGENTS.md`, specify which personas are active:
+Not all personas apply to every project. In your project's `AGENTS.md`, specify which are active:
 
 ```markdown
 **Active Personas:**
@@ -305,64 +283,17 @@ Not all personas apply to every project. In your project's `AGENTS.md`, specify 
 - DepMap MCP usage
 ```
 
-The agent will only load personas marked as active and relevant to the current request.
+The agent loads only personas marked active and relevant to the current task. Browse `personas/` for the full set — each file's frontmatter describes its purpose.
 
-### Available Personas
-
-| Persona              | Purpose                      |
-| :------------------- | :--------------------------- |
-| `go.md`              | Go language idioms           |
-| `python.md`          | Python language idioms       |
-| `rust.md`            | Rust language idioms         |
-| `typescript.md`      | TypeScript/JavaScript idioms |
-| `depmap.md`          | DepMap MCP server usage      |
-| `integral.md`        | Holistic problem-solving     |
-| `personalization.md` | User naming preferences      |
-
----
-
-## Available Workflows
-
-| Workflow                                 | Trigger       | Description                                        |
-| :--------------------------------------- | :------------ | :------------------------------------------------- |
-| [charter.md](workflows/charter.md)       | `/charter`    | Strategic framing — define purpose and priorities  |
-| [sketch.md](workflows/sketch.md)         | `/sketch`     | Exploratory planning — diverge before converging   |
-| [plan.md](workflows/plan.md)             | `/plan`       | Rigorous planning — stress-test before committing  |
-| [core.md](workflows/core.md)             | `/core`       | Granular execution — C.O.R.E. protocol             |
-| [doc.md](workflows/doc.md)               | `/doc`        | Documentation lifecycle — audit, draft, verify     |
-| [ai-audit.md](workflows/ai-audit.md)     | `/ai-audit`   | 4-layer audit framework for AI-generated code      |
-| [git-review.md](workflows/git-review.md) | `/git-review` | Review git history for coherence and scope drift   |
-| [humanizer.md](workflows/humanizer.md)   | `/humanizer`  | Remove AI writing patterns; make text more natural |
-| [predicate.md](workflows/predicate.md)   | `/predicate`  | Re-read global rules; combats context drift        |
-
-Workflows can be chained: `/charter + /sketch + /plan + /core`
+Workflows are triggered via slash commands (`/sketch`, `/plan`, `/core`, `/doc`, etc.). Browse `workflows/` for the full set. They can be chained: `/charter + /sketch + /plan + /core`.
 
 ---
 
 ## Contributing
 
-PRs welcome. When adding new content:
+PRs welcome. See [docs/authoring.md](docs/authoring.md) for how to write custom axioms, personas, and workflows.
 
-- **New axioms**: Add to `axioms/`
-- **New personas**: Add to `personas/`
-- **New workflows**: Add to `workflows/` with proper front-matter:
-  ```yaml
-  ---
-  name: "Workflow Name"
-  description: "One-line description"
-  trigger: "/slash-command"
-  ---
-  ```
-
-### Forking for Custom Rulesets
-
-Predicate is designed to be forked. If you want to:
-
-- Add organization-specific rules or personas
-- Create domain-specific workflows
-- Maintain a curated subset of personas
-
-Fork this repo and use your fork as the submodule source. The composable structure makes it easy to extend without modifying upstream files.
+Predicate is designed to be forked. The composable structure makes it easy to add organization-specific rules, domain-specific workflows, or curated persona subsets without modifying upstream files.
 
 ## License
 
