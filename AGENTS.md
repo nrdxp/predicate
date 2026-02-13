@@ -23,13 +23,13 @@ Predicate is a framework for configuring AI coding agents with reusable rulesets
 
 ## Repository Structure
 
-| Directory    | Purpose                        |
-| :----------- | :----------------------------- |
-| `axioms/`    | Foundational rulesets (axioms) |
-| `personas/`  | Context-specific extensions    |
-| `workflows/` | Manually-triggered SOPs        |
-| `templates/` | Project templates (AGENTS.md)  |
-| `docs/`      | Guides, plans, and ADRs        |
+| Directory    | Purpose                             |
+| :----------- | :---------------------------------- |
+| `axioms/`    | Foundational rulesets (axioms)      |
+| `personas/`  | Context-specific extensions         |
+| `workflows/` | Manually-triggered SOPs             |
+| `templates/` | Project templates (AGENTS.md)       |
+| `docs/`      | Guides, plans, and ADRs, formalisms |
 
 ---
 

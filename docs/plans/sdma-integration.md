@@ -124,10 +124,10 @@ Incorporate the Structural Domain Modeling Atlas (SDMA) — a corpus distilled f
      - Implications (what the model reveals for downstream design, implementation, testing)
 
 4. **Phase 4: Integration updates** — Update existing files to reference the new content
-   - [ ] Update `planning.md` persona pipeline references to include `/model`
-   - [ ] Update `AGENTS.md` repository structure table
-   - [ ] Update `README.md` to mention models directory and SDMA content
-   - [ ] Remove `sdma.txt`, `sdma-foundations.txt`, `sdma-extents.txt` from repo root
+   - [x] Update `planning.md` persona pipeline references to include `/model`
+   - [x] Update `AGENTS.md` repository structure table
+   - [x] Update `README.md` to mention models directory and SDMA content
+   - [x] Remove `sdma.txt`, `sdma-foundations.txt`, `sdma-extents.txt` from repo root
 
 ## Verification
 

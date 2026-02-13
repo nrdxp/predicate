@@ -1,6 +1,6 @@
 # Planning Pipeline Persona
 
-This persona contains the shared foundations for the `/charter → /sketch → /plan → /core` pipeline. All four workflows (plus `/continue`) require this persona via `required_personas:` to ensure consistent understanding of planning discipline and sketch management.
+This persona contains the shared foundations for the `/charter → /sketch → /plan → /core` pipeline and the `/model` formal modeling workflow. All planning workflows (plus `/continue`) require this persona via `required_personas:` to ensure consistent understanding of planning discipline and sketch management.
 
 ---
 
@@ -164,6 +164,7 @@ The sketch is a **living document** throughout the full lifecycle:
 | :-------- | :------------------------------------------------ |
 | `/sketch` | Every state transition, every finding             |
 | `/plan`   | Every challenge finding, every refinement         |
+| `/model`  | Formalism selection rationale, validation results |
 | `/core`   | Every commit boundary, every unexpected discovery |
 
 Every update MUST be committed to the `.sketches/` subrepo immediately.
@@ -174,11 +175,12 @@ Every update MUST be committed to the `.sketches/` subrepo immediately.
 
 The sketch is not abandoned after `/plan` begins. It remains a **living document** throughout the full lifecycle:
 
-| Phase     | Sketch Role                       |
-| :-------- | :-------------------------------- |
-| `/sketch` | Ideation, divergence, convergence |
-| `/plan`   | Challenge findings written back   |
-| `/core`   | Execution notes appended          |
+| Phase     | Sketch Role                                       |
+| :-------- | :------------------------------------------------ |
+| `/sketch` | Ideation, divergence, convergence                 |
+| `/plan`   | Challenge findings written back                   |
+| `/model`  | Domain formalization findings, validation results |
+| `/core`   | Execution notes appended                          |
 
 ### Execution Notes Format
 

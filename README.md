@@ -10,7 +10,7 @@ predicate/
 ├── personas/    # Context-specific extensions (opt-in)
 ├── workflows/   # Manually-triggered SOPs
 ├── templates/   # Project templates (AGENTS.md, PLAN.md, etc.)
-└── docs/        # Guides, plans, and ADRs
+└── docs/        # Guides, plans, ADRs, and formal models
 ```
 
 ### Terminology
@@ -55,13 +55,13 @@ AI coding agents are powerful executors — but execution without disciplined pl
 
 Predicate addresses these with a structured pipeline that separates _thinking_ from _doing_:
 
-|            | `/charter` | `/sketch` | `/plan`     | `/core`     |
-| :--------- | :--------- | :-------- | :---------- | :---------- |
-| **Focus**  | frame      | explore   | stress-test | execute     |
-| **Method** | declare    | diverge   | challenge   | verify      |
-| **Output** | priorities | propose   | commit plan | commit code |
+|            | `/charter` | `/sketch` | `/plan`     | `/model`     | `/core`     |
+| :--------- | :--------- | :-------- | :---------- | :----------- | :---------- |
+| **Focus**  | frame      | explore   | stress-test | formalize    | execute     |
+| **Method** | declare    | diverge   | challenge   | construct    | verify      |
+| **Output** | priorities | propose   | commit plan | commit model | commit code |
 
-Each phase has its own workflow and mandatory halt points. They chain naturally, but your entry point depends on the scope of work — not every task needs every phase. A multi-cycle initiative starts with `/charter`. An unfamiliar problem starts with `/sketch`. A well-understood design can go straight to `/plan`. A small, well-scoped change can begin directly with `/core`. The pipeline provides structure where it's needed, not ceremony where it isn't.
+Each phase has its own workflow and mandatory halt points. They chain naturally, but your entry point depends on the scope of work — not every task needs every phase. A multi-cycle initiative starts with `/charter`. An unfamiliar problem starts with `/sketch`. A well-understood design can go straight to `/plan`. `/model` can be invoked at any point to formalize domain understanding through the SDMA lens. A small, well-scoped change can begin directly with `/core`. The pipeline provides structure where it's needed, not ceremony where it isn't.
 
 ---
 
@@ -157,6 +157,27 @@ C.O.R.E. (**Context → Obstacles → Resolution → Execution**) takes each pha
 - **Commit boundaries are halt points** — the agent stops, presents a JUSTIFICATION block (approach rationale, scope delta, API impact, technical debt), and waits for human confirmation before continuing.
 - **Debt transparency** — hacks and suboptimal solutions must be documented with reasoning and follow-up plans. Omitting known compromises is a protocol violation.
 - **Recovery, not workarounds** — if verification fails or new ambiguity surfaces, the agent reverts to CLARIFY rather than pushing through.
+
+---
+
+#### `/model` — Formalize Domain Understanding
+
+**Purpose:** Apply formal mathematical modeling to a problem domain — either creating new model documents or scrutinizing existing specifications through the SDMA lens.
+
+MODEL operates in two modes:
+
+| Mode       | What Happens                                                                            |
+| :--------- | :-------------------------------------------------------------------------------------- |
+| **Create** | Produce a new formal model document from `templates/MODEL.md` to `docs/models/`         |
+| **Apply**  | Scrutinize an existing document (protocol spec, whitepaper, etc.) through the SDMA lens |
+
+**6-step procedure:** IDENTIFY → SELECT → CONSTRUCT → VALIDATE → RECORD → CONNECT. The SDMA persona provides the foundational toolkit — categorical, coalgebraic, linear, and information-theoretic formalisms — but it is a bedrock, not a boundary. The full landscape of mathematical formalism is available, governed by the **principle of minimal representation**: choose the simplest formalism that faithfully captures the domain's structure.
+
+**Key mechanics:**
+
+- **HALT after SELECT** — formalism choice must be approved before construction begins
+- **Decision Matrix as starting point** — the SDMA's matrix covers critical isomorphisms, but domains may call for formalisms beyond it
+- **Template discipline** — create mode documents use `templates/MODEL.md`; apply mode may produce companion documents or integrated annotations
 
 ---
 

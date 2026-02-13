@@ -4,6 +4,7 @@ description: "Formal domain modeling through the SDMA lens — create new models
 trigger: "/model"
 required_personas:
   - sdma
+  - planning
 ---
 
 # MODEL Protocol v1.0
