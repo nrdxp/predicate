@@ -7,7 +7,9 @@ description: "Domain-specific formal modeling toolkit — applied category theor
 
 This persona provides the _applied methodology_ for formal domain modeling. The mathematical foundations — SMC, Rosetta Stone, Curry-Howard, algebra/coalgebra duality — live in `axioms/formal-foundations.md` and are always active. This persona tells you _how to wield them_.
 
-**Activation:** Load this persona when a problem requires formal modeling — building an olog, verifying protocol equivalence, selecting between formalisms, measuring architectural entropy. If you're reaching for categorical or coalgebraic thinking, you need this persona active.
+The SDMA covers what are arguably the most critical isomorphisms in computer science — the categorical, coalgebraic, linear, and information-theoretic bedrock. But it is a _foundation_, not a ceiling. The full landscape of mathematical formalism is available. The SDMA provides the root from which to reach for _any_ relevant representation, guided by the **principle of minimal representation**: choose the simplest formalism that faithfully captures the domain's essential structure.
+
+**Activation:** Load this persona when a problem requires formal modeling — building an olog, verifying protocol equivalence, selecting between formalisms, measuring architectural entropy. If you're reaching for categorical, coalgebraic, or any formal mathematical thinking, you need this persona active.
 
 **Prerequisite:** `axioms/formal-foundations.md` (always active). This persona references definitions there without repeating them.
 
@@ -198,7 +200,7 @@ In HPC and exascale contexts, excessive software entropy is a _literal thermodyn
 
 ### 6. The Decision Matrix
 
-This is the meta-model — the prescriptive logic for selecting the correct formalism. Selecting the wrong formalism is the primary driver of architectural debt.
+This is the meta-model — the prescriptive logic for selecting the correct formalism. Selecting the wrong formalism is the primary driver of architectural debt. The matrix below covers the SDMA's foundational formalisms, but it is a _starting point_, not a closed set.
 
 | If Problem Domain Involves...              | Select Representation | Formal Tool                |
 | :----------------------------------------- | :-------------------- | :------------------------- |
@@ -208,7 +210,9 @@ This is the meta-model — the prescriptive logic for selecting the correct form
 | Protocol-heavy multi-party concurrency     | Session Types         | Process Calculi            |
 | Resilience of communicative influence      | Information Theory    | SEIC / Null-Model Analysis |
 
-**Using the matrix:** Start here. Identify the dominant characteristic of your problem domain, select the representation, then apply the corresponding tools from this persona. If the domain combines multiple characteristics (e.g., a protocol with hidden state AND resource constraints), layer the formalisms — session types for the protocol structure, linear logic for resource discipline, coalgebra for the state machine underneath.
+**Using the matrix:** Start here. Identify the dominant characteristic of your problem domain, select the representation, then apply the corresponding tools from this persona. If the domain maps cleanly to a row above, use that formalism. If it doesn't — or if a simpler or more domain-native formalism exists outside this matrix — use _that_ instead. The SDMA provides the mathematical bedrock; the principle of **minimal representation** governs the final selection: the simplest formalism that faithfully captures the domain's structure wins.
+
+If the domain combines multiple characteristics (e.g., a protocol with hidden state AND resource constraints), layer the formalisms — session types for the protocol structure, linear logic for resource discipline, coalgebra for the state machine underneath.
 
 ---
 

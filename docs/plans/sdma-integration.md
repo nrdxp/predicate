@@ -104,19 +104,19 @@ Incorporate the Structural Domain Modeling Atlas (SDMA) — a corpus distilled f
      - [x] Verification Gap (Stone duality, coalgebraic modal logic, system dynamics ↔ system specification)
 
 3. **Phase 3: Workflow — `workflows/model.md`** — Create the /model workflow
-   - [ ] Write workflow frontmatter (name, description, trigger, required_personas)
-   - [ ] Section: Scope and pipeline position
-   - [ ] Section: Dual-mode operation
+   - [x] Write workflow frontmatter (name, description, trigger, required_personas)
+   - [x] Section: Scope and pipeline position
+   - [x] Section: Dual-mode operation
      - Create mode: no target document → produce new model from `templates/MODEL.md` to `docs/models/`
      - Apply mode: target document specified → scrutinize/refine existing document (protocol spec, whitepaper, etc.) through SDMA lens
-   - [ ] Section: Grammar (YAML state tracking structure)
-   - [ ] Section: 6-step procedure (IDENTIFY → SELECT → CONSTRUCT → VALIDATE → RECORD → CONNECT)
+   - [x] Section: Grammar (YAML state tracking structure)
+   - [x] Section: 6-step procedure (IDENTIFY → SELECT → CONSTRUCT → VALIDATE → RECORD → CONNECT)
      - Document how each step adapts between create and apply modes
-   - [ ] Section: State transitions and HALT points
-   - [ ] Section: Model document output format and `docs/models/` directory
-   - [ ] Section: Template discipline (MODEL.md canonical format, create mode only)
-   - [ ] Section: Integration with sketch lifecycle journal
-   - [ ] Create `templates/MODEL.md` with shared structural skeleton:
+   - [x] Section: State transitions and HALT points
+   - [x] Section: Model document output format and `docs/models/` directory
+   - [x] Section: Template discipline (MODEL.md canonical format, create mode only)
+   - [x] Section: Integration with sketch lifecycle journal
+   - [x] Create `templates/MODEL.md` with shared structural skeleton:
      - Domain Classification (problem statement, why formal modeling is warranted)
      - Formalism Selection (decision matrix output, rationale, alternatives considered)
      - Model (open-ended, domain-specific: olog, coalgebra, session type, etc. — with guidance notes per domain)
