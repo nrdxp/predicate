@@ -88,15 +88,15 @@ Incorporate the Structural Domain Modeling Atlas (SDMA) — a corpus distilled f
 2. **Phase 2: Persona — `personas/sdma.md`** — Create the comprehensive domain modeling persona
 
    Source: `sdma.txt` (Atlas) + `sdma-extents.txt` (Extensions)
-   - [ ] Write persona frontmatter (name, description)
-   - [ ] Part I — The Atlas (from `sdma.txt`):
-     - [ ] Functorial Data Migration (schemas as categories, Δ/Σ/Π adjoints, typed signatures, categorical normal form)
-     - [ ] Ologs (construction rules, noun phrase labels, functional morphisms, commutative diagram facts)
-     - [ ] Coalgebraic State Machines (bisimulation, observable behavioral equivalence)
-     - [ ] Linear Logic & Session Types (resource linearity, no-cloning, deadlock-freedom)
-     - [ ] Algorithmic Information Theory (SEIC, Kolmogorov complexity, null-model analysis, thermodynamic entropy)
-     - [ ] Decision Matrix (prescriptive formalism selection logic table)
-     - [ ] "Running Between the Boxes" implementation strategy (Translation → Formalization → Validation)
+   - [x] Write persona frontmatter (name, description)
+   - [x] Part I — The Atlas (from `sdma.txt`):
+     - [x] Functorial Data Migration (schemas as categories, Δ/Σ/Π adjoints, typed signatures, categorical normal form)
+     - [x] Ologs (construction rules, noun phrase labels, functional morphisms, commutative diagram facts)
+     - [x] Coalgebraic State Machines (bisimulation, observable behavioral equivalence)
+     - [x] Linear Logic & Session Types (resource linearity, no-cloning, deadlock-freedom)
+     - [x] Algorithmic Information Theory (SEIC, Kolmogorov complexity, null-model analysis, thermodynamic entropy)
+     - [x] Decision Matrix (prescriptive formalism selection logic table)
+     - [x] "Running Between the Boxes" implementation strategy (Translation → Formalization → Validation)
    - [ ] Part II — Advanced Extensions (from `sdma-extents.txt`):
      - [ ] Control Gap (signal flow diagrams, linear relations, Frobenius algebras, LinRel vs. discrete)
      - [ ] Constraint Gap (fibrations, hyperdoctrines, triposes, quantifiers as adjoints, olog→hyperdoctrine→tripos hierarchy)
