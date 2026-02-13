@@ -246,3 +246,190 @@ Deploy metrics to measure resilience against real-world failures:
 - Thermodynamic entropy estimation for HPC/exascale systems
 
 The pipeline is iterative — validation results feed back into translation when the model doesn't match reality.
+
+---
+
+## Part II — Advanced Extensions
+
+These extensions close four gaps in the base Atlas, extending the SDMA from pure digital/discrete modeling into continuous, constrained, uncertain, and verifiable domains.
+
+---
+
+### 8. The Control Gap: Signal Flow and Linear Relations
+
+The base Atlas models computation as _functional_ — unidirectional input-to-output maps. Physical and cyber-physical systems have _bidirectional constraints_: feedback loops, conservation laws, simultaneous equations. This extension closes that gap.
+
+#### From Functions to Relations
+
+The shift is from the category **Set** (functions) to the category **REL** (relations):
+
+- A relation R: I ⊣↦ J is a "multi-function" I → PJ (where P is the powerset monad)
+- **REL** is the Kleisli category of the powerset monad on **Set**
+- In **REL**, the terminal object is ∅ and the Cartesian product is the disjoint union I + J
+
+This deviation from discrete software logic allows modeling of physical interfaces as _subspaces of interaction_ rather than sequential execution steps. Relations naturally handle non-deterministic or partial outputs — a physical sensor may produce a range of values, not a single one.
+
+#### Frobenius Algebras and Unbiased Connectivity
+
+The mathematical basis for unbiased connectivity in signal flow diagrams is the _Frobenius property_:
+
+Σ_m(m\*(n) ∧ k) ≅ n ∧ Σ_m(k)
+
+In engineering terms, this governs the "splitting" and "merging" of signal paths. Treating signal flow as a Frobenius algebra ensures that:
+
+- The diagonal (contraction) and its adjoints preserve logical consistency across junctions
+- Reindexing a signal via u\* does not violate underlying physical conservation laws
+- "Eq-mate" relationships between substituted constraints are maintained
+
+#### Contrast: LinRel vs. Discrete Categories
+
+| Feature        | Discrete Software Systems (Standard Categories) | Continuous Physical Systems (VectRel / LinRel) |
+| :------------- | :---------------------------------------------- | :--------------------------------------------- |
+| Composition    | Functional (g ∘ f)                              | Relational (R ⊆ I × J)                         |
+| State Space    | Sets / Discrete Types                           | Vector Spaces over Field K                     |
+| Fibration Type | Subobject Fibration Sub(B)                      | Vector Space Fibration **Vect** → **Fld**      |
+| Identity/Proj  | Cartesian Products I × J                        | Disjoint Union I + J (Terminal ∅)              |
+| Connectivity   | Sequential / Directed                           | Frobenius (Unbiased / Bidirectional)           |
+
+#### When to Use
+
+Use LinRel when modeling systems with:
+
+- Feedback loops (control systems, PID controllers)
+- Bidirectional physical constraints (electrical circuits, mechanical linkages)
+- Simultaneous equations rather than sequential computation
+- Physical conservation laws that must be preserved across junctions
+
+---
+
+### 9. The Constraint Gap: Fibrations, Hyperdoctrines, and Triposes
+
+Ologs capture simple path equalities — "this path equals that path." Real-world systems require _quantified logic_: "for all employees in department X, there exists a manager who..." This extension layers first-order and higher-order logic over structural data.
+
+#### The Fibration Framework
+
+Logic is viewed as a fibration p: E → B:
+
+- **Base category B** — "Types" or "Contexts" (the structural skeleton)
+- **Fibres E_I** — the "Predicates" or "Logic" applicable to each context I in B
+- **Reindexing functors u\*: E_J → E_I** — handle substitution, ensuring predicates remain consistent when moving between contexts
+
+#### Quantifiers as Adjoints
+
+First-order quantifiers are identified as adjoints to the weakening functors induced by projections w: I × J → I:
+
+| Operation                    | Formal Identity         | Engineering Meaning                    |
+| :--------------------------- | :---------------------- | :------------------------------------- |
+| Substitution                 | Reindexing functor u\*  | Move a predicate into a new context    |
+| Existential quantification ∃ | Left adjoint Σ_w ⊣ w\*  | "There exists" — search, existence     |
+| Universal quantification ∀   | Right adjoint w\* ⊣ Π_w | "For all" — invariant, global property |
+| Equality                     | Left adjoint Σ_δ ⊣ δ\*  | Diagonal contraction — identity check  |
+
+#### The Olog → Hyperdoctrine → Tripos Hierarchy
+
+This is a progression of expressive power:
+
+1. **Ologs** (simple slice categories): Path equalities only (M//I over I). Basic data integrity without quantification. Use for: domain modeling, knowledge representation, simple business rules.
+
+2. **Hyperdoctrines** (full slice categories): Enable first-order logic by providing Σ_w and Π_w across fibres. Complex, nested business rules. Use for: enterprise logic, regulatory compliance, constraint-heavy domains.
+
+3. **Triposes**: Utilize the "realizability fibration" over the Effective Topos (Eff) to reason about the _provability_ of predicates. Higher-order reasoning. Use for: formal verification, provably correct systems, logic programming.
+
+Select the appropriate level based on the complexity of constraints in your domain. Don't use a tripos when an olog suffices — the additional power comes with additional complexity.
+
+---
+
+### 10. The Uncertainty Gap: Probabilistic Categories and Many-Valued Logic
+
+Structure alone is insufficient when the environment is noisy. This extension accommodates _graded belief_ and stochastic transitions.
+
+#### Markov Kernels in Categorical REL
+
+Extend standard relational models into uncertainty using j-separated families and sheaves:
+
+- Standard relation in **REL**: multi-function I → PJ (definite outcomes)
+- Uncertain relation in **PredREL**: "fuzzy" outcomes where truth values are not bits but objects of the power object Ω = PN
+- The Effective Topos (Eff) provides the framework for "computable searches" under uncertainty
+
+#### Markov's Principle
+
+In the Effective Topos, Markov's Principle holds:
+
+∀β: 2^N, ¬¬(∃n: N. β(n)) ⊃ ∃n: N. β(n)
+
+In engineering terms: if the agent knows it is _impossible_ for a decidable predicate β to fail for all n, then it can _computably find a witness_. This justifies the use of search-based heuristics in uncertain environments — if you know a solution exists, you can find it.
+
+#### Many-Valued Logic and Partial Equivalence Relations (PERs)
+
+For incomplete belief states, use lattice-valued logic and Kleene equality (≃):
+
+- In the category of PERs, partiality is modeled via the special PER N_⊥ = {(n, n') | n · 0 ≃ n' · 0}
+- The quotient set N/N_⊥ = {[Kx.⊥]} ∪ {[Kx.n]} — natural numbers with an added "bottom" element for undefined states
+- This allows maintaining consistent belief states even when information is incomplete or contradictory
+
+**Practical applications:**
+
+- Probabilistic programming (Bayesian inference, Monte Carlo methods)
+- Agent reasoning under uncertainty (planning with incomplete information)
+- Fuzzy constraint satisfaction (soft constraints, preference orderings)
+- Fault-tolerant systems (graceful degradation, partial availability)
+
+---
+
+### 11. The Verification Gap: Coalgebraic Dynamics and Modal Duality
+
+The base Atlas provides coalgebra for modeling behavior. This extension provides the _dual_ specification language — what properties a system _must_ satisfy — and the formal bridge between the two.
+
+#### System Behavior (Coalgebra)
+
+From the systems architecture perspective:
+
+- State space and transitions are modeled as a coalgebra X → σ(X)
+- The system is interpreted through its _observations_ — the "object-oriented" view
+- The carrier Ω of the weakly terminal coalgebra represents the maximal possible behavior — the system's total "Ontology"
+- This describes how a system behaves over time _without needing to know its internal construction_
+
+#### System Specification (Modal Logic)
+
+Dual to behavior is the _specification language_:
+
+- Properties observed of a system (Epistemology) are captured in the classifying category Cl(Σ, H) of the specification
+- High-level "Guarantees" are formulated as formulas within the fibres of the fibration
+- A model M _validates_ a theory if it extends to a morphism of Eq-fibrations
+
+#### Stone Duality Isomorphisms
+
+The SDMA uses these isomorphisms to bridge behavior and specification:
+
+| Behavioral Side                | ↔  | Specification Side                     |
+| :----------------------------- | :-- | :------------------------------------- |
+| System dynamics (coalgebra)    | ↔  | Modal operators in the dual logic      |
+| System state                   | ↔  | Set of valid formulas in the fibre E_I |
+| Terminal coalgebra (carrier Ω) | ↔  | Most refined specification possible    |
+
+#### Engineering Applications
+
+- **Change-of-Base operations:** Move between **Set** and **Eff** to translate engineering guarantees into verified behaviors
+- **Specification-driven development:** Write the modal specification (what the system must satisfy), then verify that the coalgebraic model (how it behaves) satisfies it
+- **Refinement checking:** A system refines its specification if the behavioral morphism factors through the specification's classifying category
+- **Compositional verification:** Verify subsystems independently, then verify that composition preserves the global specification
+
+This duality allows the agent to approach verification from _either direction_ — start with behavior and derive what properties hold, or start with desired properties and verify that the behavior satisfies them.
+
+---
+
+## Summary: The Complete SDMA Toolkit
+
+| Atlas Section                   | What It Solves                        | Key Tool                        |
+| :------------------------------ | :------------------------------------ | :------------------------------ |
+| §1 Functorial Data Migration    | Semantic data integration             | Adjoint functors (Δ, Σ, Π)      |
+| §2 Ologs                        | Knowledge representation              | Categorical ontology            |
+| §3 Coalgebraic Modeling         | Behavioral equivalence                | Bisimulation                    |
+| §4 Linear Logic / Session Types | Resource discipline, protocol safety  | Linear types, session types     |
+| §5 SEIC / Entropy               | Architectural resilience              | Information-theoretic metrics   |
+| §6 Decision Matrix              | Formalism selection                   | Prescriptive logic              |
+| §7 Implementation Pipeline      | Theory-to-practice bridge             | Translation → Formal → Validate |
+| §8 Control Gap                  | Continuous / bidirectional systems    | LinRel, Frobenius algebras      |
+| §9 Constraint Gap               | Quantified business logic             | Hyperdoctrines, triposes        |
+| §10 Uncertainty Gap             | Probabilistic / partial reasoning     | Markov kernels, PERs            |
+| §11 Verification Gap            | Behavior-specification correspondence | Stone duality, modal logic      |

@@ -97,11 +97,11 @@ Incorporate the Structural Domain Modeling Atlas (SDMA) — a corpus distilled f
      - [x] Algorithmic Information Theory (SEIC, Kolmogorov complexity, null-model analysis, thermodynamic entropy)
      - [x] Decision Matrix (prescriptive formalism selection logic table)
      - [x] "Running Between the Boxes" implementation strategy (Translation → Formalization → Validation)
-   - [ ] Part II — Advanced Extensions (from `sdma-extents.txt`):
-     - [ ] Control Gap (signal flow diagrams, linear relations, Frobenius algebras, LinRel vs. discrete)
-     - [ ] Constraint Gap (fibrations, hyperdoctrines, triposes, quantifiers as adjoints, olog→hyperdoctrine→tripos hierarchy)
-     - [ ] Uncertainty Gap (Markov kernels, effective topos, Markov's principle, PERs, many-valued logic)
-     - [ ] Verification Gap (Stone duality, coalgebraic modal logic, system dynamics ↔ system specification)
+   - [x] Part II — Advanced Extensions (from `sdma-extents.txt`):
+     - [x] Control Gap (signal flow diagrams, linear relations, Frobenius algebras, LinRel vs. discrete)
+     - [x] Constraint Gap (fibrations, hyperdoctrines, triposes, quantifiers as adjoints, olog→hyperdoctrine→tripos hierarchy)
+     - [x] Uncertainty Gap (Markov kernels, effective topos, Markov's principle, PERs, many-valued logic)
+     - [x] Verification Gap (Stone duality, coalgebraic modal logic, system dynamics ↔ system specification)
 
 3. **Phase 3: Workflow — `workflows/model.md`** — Create the /model workflow
    - [ ] Write workflow frontmatter (name, description, trigger, required_personas)
