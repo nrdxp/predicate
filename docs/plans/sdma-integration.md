@@ -65,22 +65,22 @@ Incorporate the Structural Domain Modeling Atlas (SDMA) — a corpus distilled f
 1. **Phase 1: Axiom — `axioms/formal-foundations.md`** — Create the always-active mathematical foundations axiom
 
    Source: primarily `sdma-foundations.txt`
-   - [ ] Write axiom frontmatter (name, description)
-   - [ ] Section: Categorical Foundations (SMC, closed categories, compact closed)
+   - [x] Write axiom frontmatter (name, description)
+   - [x] Section: Categorical Foundations (SMC, closed categories, compact closed)
      - Pentagon and hexagon identities
      - Currying isomorphism
      - Zig-zag (yanking) identities
-   - [ ] Section: The Rosetta Stone Isomorphisms
+   - [x] Section: The Rosetta Stone Isomorphisms
      - Physics ↔ Topology ↔ Logic ↔ Computation correspondence
      - Full summary reference table
-   - [ ] Section: Algebra vs. Coalgebra
+   - [x] Section: Algebra vs. Coalgebra
      - Induction vs. co-induction
      - Constructors vs. observers
      - Structural identity vs. bisimilarity
-   - [ ] Section: Curry-Howard and Compositional Reasoning
+   - [x] Section: Curry-Howard and Compositional Reasoning
      - Types are propositions, programs are proofs
      - Practical implications for agent reasoning
-   - [ ] Section: Integration with Existing Axioms
+   - [x] Section: Integration with Existing Axioms
      - Relationship to `integral.md` (holonic thinking, Deep Think Protocol)
      - Relationship to `engineering.md` (strong typing, SOLID)
      - Precedence: `engineering.md` > `formal-foundations.md` > `integral.md`
