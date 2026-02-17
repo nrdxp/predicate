@@ -114,7 +114,7 @@ Most workflows follow this structure:
 ```markdown
 # Protocol Name
 
-Philosophy / purpose statement
+Purpose / scope
 
 ## Scope — when to use (and when not to)
 
