@@ -72,15 +72,16 @@ Split work into logical commit boundaries to keep history clean and reviewable.
 
 - Mark steps with `COMMIT: true` to indicate a commit boundary
 - At commit boundaries, pause execution and output in this order, then HALT:
-  1. **Sketch update** — append execution notes to `.sketches/[topic].md`, then `git add` and `git commit` in the `.sketches/` subrepo
-  2. JUSTIFICATION block for the work in this commit
-  3. Conventional commit message
-  4. REMAINING STEPS — re-output remaining PLAN steps
+  1. **Adversarial self-review** — review your diff as a hostile reviewer. Check for: missed edge cases, wrong assumptions, unintended behavioral changes, silent regressions. Fix before proceeding.
+  2. **Sketch update** — append execution notes to `.sketches/[topic].md`, then `git add` and `git commit` in the `.sketches/` subrepo
+  3. JUSTIFICATION block for the work in this commit
+  4. Conventional commit message
+  5. REMAINING STEPS — re-output remaining PLAN steps
 - Await instructions before proceeding to the next commit
 - Each commit should be atomic and independently reviewable
 
 > [!CAUTION]
-> **COMMIT boundaries are HALT points.** After completing the 4-step sequence above, you MUST STOP and WAIT for human confirmation. Do not proceed to the next commit. Do not continue execution. HALT.
+> **COMMIT boundaries are HALT points.** After completing the 5-step sequence above, you MUST STOP and WAIT for human confirmation. Do not proceed to the next commit. Do not continue execution. HALT.
 
 ---
 
@@ -146,6 +147,7 @@ PLAN ──→ EXECUTE  (on "APPROVED")
      └─→ CLARIFY  (if new ambiguity discovered)
 
 EXECUTE ──→ CLARIFY (if verification fails or scope expands)
+        └─→ ABORT   (if core assumption invalidated or approach fundamentally broken)
 ```
 
 ### State Definitions
@@ -164,6 +166,15 @@ EXECUTE ──→ CLARIFY (if verification fails or scope expands)
 4. At each COMMIT boundary, follow the procedure in **Commit Boundaries** above
 5. Never auto-commit (`engineering.md` §11); user commits manually
 
+**ABORT:** A core assumption has been invalidated, or the approach is fundamentally broken. This is not a question (that's CLARIFY) — it's a recommendation to abandon this CORE session. Output:
+
+1. **What was attempted** — completed steps and partial progress
+2. **Why it failed** — the specific assumption or design flaw that invalidated the approach
+3. **Sketch update** — record the failure as a Dead End in `.sketches/[topic].md`
+4. **Recommendation** — re-plan, pivot, or escalate
+
+ABORT is a valuable outcome. A CORE session that discovers "this approach can't work" has prevented wasted implementation downstream.
+
 ### MANDATORY HALT Points
 
 You MUST stop and await human input at these points. Proceeding without human response is a VIOLATION:
@@ -172,6 +183,7 @@ You MUST stop and await human input at these points. Proceeding without human re
 2. **PLAN → EXECUTE transition:** Human must send "APPROVED"
 3. **Each COMMIT boundary:** Human must confirm before next commit
 4. **Unexpected state:** Any divergence from plan triggers CLARIFY, not workaround
+5. **ABORT:** Approach is fundamentally broken — human must decide whether to re-plan, pivot, or abandon
 
 ---
 

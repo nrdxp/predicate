@@ -36,10 +36,11 @@ You must NOT:
 
 Output in this order, then HALT:
 
-1. **Sketch update** — append execution notes to `.sketches/[topic].md`, then `git add` and `git commit` in the `.sketches/` subrepo. Do this *first*, while execution context is freshest.
-2. **JUSTIFICATION block** — approach, scope delta, API impact, debt
-3. **Commit message** — conventional format (header ≤50 chars)
-4. **REMAINING STEPS** — re-output remaining PLAN steps
+1. **Adversarial self-review** — before presenting, review your diff as a hostile reviewer. Check for: missed edge cases, wrong assumptions, unintended behavioral changes, silent regressions. If you find issues, fix them before proceeding.
+2. **Sketch update** — append execution notes to `.sketches/[topic].md`, then `git add` and `git commit` in the `.sketches/` subrepo. Do this while execution context is freshest.
+3. **JUSTIFICATION block** — approach, scope delta, API impact, debt
+4. **Commit message** — conventional format (header ≤50 chars)
+5. **REMAINING STEPS** — re-output remaining PLAN steps
 
 Await explicit approval for the next commit.
 
