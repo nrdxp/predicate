@@ -208,11 +208,13 @@ The documentation axiom (`axioms/documentation.md`) governs writing quality auto
 
 The sketch is not abandoned when planning begins. It remains a **living document** across the full pipeline:
 
-| Phase     | Sketch Role                                             |
-| :-------- | :------------------------------------------------------ |
-| `/sketch` | Ideation, divergence, convergence                       |
-| `/plan`   | Challenge findings and refinements written back         |
-| `/core`   | Execution notes, unexpected discoveries, divergence log |
+| Phase      | Sketch Role                                             |
+| :--------- | :------------------------------------------------------ |
+| `/charter` | Strategic context that frames sketch cycles             |
+| `/sketch`  | Ideation, divergence, convergence                       |
+| `/plan`    | Challenge findings and refinements written back         |
+| `/model`   | Formalization findings written back to active sketch    |
+| `/core`    | Execution notes, unexpected discoveries, divergence log |
 
 Every modification is committed to `.sketches/` immediately — _every touch = a commit_. This creates a linear changelog of all decisions, findings, and pivots. Anyone can reconstruct the full thought chain from the sketch's git history.
 
