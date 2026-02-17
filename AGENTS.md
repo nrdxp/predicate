@@ -11,6 +11,9 @@ This project **is** [predicate](https://github.com/nrdxp/predicate) — a system
 
 This is a documentation-only repository. The language-specific personas (go.md, rust.md, etc.) are provided as templates for other projects, but are not active here. The `integral.md` axiom guides meta-project reasoning.
 
+> [!NOTE]
+> This repository **is** the Predicate source. The `axioms/`, `personas/`, and `workflows/` directories live at the repo root — not under `.agent/` — because this is the upstream that other projects consume via submodule or symlink. When mounted into a consuming project, these directories appear under `.agent/` as described in `PREDICATE.md`.
+
 ---
 
 ## Project Overview
