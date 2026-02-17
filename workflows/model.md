@@ -101,6 +101,7 @@ Understand the problem domain and determine what needs formal modeling.
 - Absorb the domain description from the human
 - Identify the core structural characteristics (state, resources, protocols, constraints, metrics)
 - Frame the modeling question: "What would a formal model of this domain reveal?"
+- **Premise check:** Is the domain as the user describes it, or as the user *believes* it to be? If the user says "this is fundamentally a state machine problem," verify that independently before allowing the framing to constrain formalism selection.
 
 **Apply mode:**
 
@@ -121,6 +122,7 @@ Choose the appropriate formalism(s), starting from the Decision Matrix (SDMA §6
 - Apply the **principle of minimal representation**: choose the simplest formalism that faithfully captures the domain's essential structure
 - If multiple characteristics are present, determine the layering strategy
 - Document the rationale for selection and alternatives considered
+- **Independence check:** Would you have selected this formalism if the user hadn't suggested or implied a direction? If the user said "I think this is categorical," verify that claim against the domain's actual structure rather than accepting it as a constraint.
 
 > [!IMPORTANT]
 > **HALT after SELECT.** Present the formalism selection and rationale to the human before constructing the model. Wrong formalism choice cascades into wasted work.
@@ -143,11 +145,12 @@ Build the formal model.
 
 ### Step 4: VALIDATE
 
-Verify the model's internal consistency and external adequacy.
+Verify the model's internal consistency, external adequacy, and framing assumptions.
 
 - **Internal consistency:** Does the model satisfy its own structural constraints? (Diagram commutativity for ologs, bisimulation closure for coalgebras, session type duality, etc.)
 - **External adequacy:** Does the model capture the domain faithfully? Are there domain properties that the model cannot express?
 - **Minimality:** Is the model unnecessarily complex? Could a simpler formalism capture the same properties?
+- **Assumption independence:** Revisit the framing from IDENTIFY. Now that the model is constructed, does the domain's actual structure confirm the assumptions that guided formalism selection? A model can be internally consistent yet built on an unchallenged framing error — the formalism "works" because the wrong question was asked precisely.
 
 Document all validation checks and their results.
 

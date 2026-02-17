@@ -76,7 +76,21 @@ CHARTER:
 
 5. **STRATEGIC_NON_GOALS:** NON*GOALS in a charter are different from NON_GOALS in a plan. Charter non-goals are \_strategic* ("We don't do X because it's not our problem") while plan non-goals are _tactical_ ("We won't optimize Y in this phase"). Don't mix levels.
 
-6. **CANDOR_OVER_ASPIRATION:** Write what's true, not what sounds impressive. A charter that overpromises sets every downstream cycle up for scope creep and appetite overrun.
+6. **CANDOR_OVER_ASPIRATION:** Write what's true, not what sounds impressive. A charter that overpromises sets every downstream cycle up for scope creep and appetite overrun. **Self-test:** Re-read the PURPOSE and NORTH_STAR fields stripped of the user's language. If you can't defend them with evidence independent of the user's stated beliefs, they may be reflecting enthusiasm rather than reality. Flag this explicitly.
+
+---
+
+## Premise Verification
+
+Charter-level sycophancy is the most damaging kind — a flawed strategic frame cascades into every sketch, plan, and core session downstream. Apply the Premise Verification Protocol (`integral.md` §5) with particular attention to:
+
+- **PURPOSE:** Is this a real problem, or a solution looking for a problem? Can you describe who has this problem and how they currently cope without this project? If not, the purpose may be aspirational rather than grounded.
+- **NORTH_STAR:** Is the success condition achievable and measurable, or is it a feel-good vision statement? Would a skeptical outsider find it credible?
+- **WORKSTREAMS:** Are these ordered by actual priority, or by what the user is most excited about? Excitement and impact often diverge.
+- **NON_GOALS:** Are the non-goals genuinely things you're choosing not to do, or are they things you were never going to do anyway? Real non-goals are painful exclusions — if listing them doesn't sting, they aren't constraining anything.
+
+> [!CAUTION]
+> **The cascade test:** Every downstream artifact inherits the charter's assumptions. A sycophantic charter — one that confirms the user's strategic beliefs without testing them — makes sycophantic planning inevitable. Challenge the charter as hard as you would challenge a PLAN, even though it has no formal CHALLENGE state.
 
 ---
 
@@ -138,7 +152,7 @@ This creates traceability from strategic intent (charter) through exploration (s
 
 You MUST stop and await human input at these points:
 
-1. **Before declaring the charter complete:** The human must review and approve the charter before it's committed. A charter frames all downstream work — getting it wrong is expensive.
+1. **Before declaring the charter complete:** The human must review and approve the charter before it's committed. A charter frames all downstream work — getting it wrong is expensive. Before presenting, independently re-derive the PURPOSE: "If I had no prior conversation with this user, would I arrive at this same problem statement from the evidence?" If you can't, surface the gap.
 
 > [!NOTE]
 > A charter that gets revised after downstream work has started is not a failure — it's a sign that the team learned something. Update the charter, note what changed and why, and adjust affected workstreams accordingly.
