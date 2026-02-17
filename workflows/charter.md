@@ -92,6 +92,8 @@ Charter-level sycophancy is the most damaging kind — a flawed strategic frame 
 > [!CAUTION]
 > **The cascade test:** Every downstream artifact inherits the charter's assumptions. A sycophantic charter — one that confirms the user's strategic beliefs without testing them — makes sycophantic planning inevitable. Challenge the charter as hard as you would challenge a PLAN, even though it has no formal CHALLENGE state.
 
+If a strategic tension resists confident resolution through single-agent examination, recommend `/dialectic` to the human (see `planning.md` — Dialectic escalation).
+
 ---
 
 ## Output

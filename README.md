@@ -181,6 +181,26 @@ MODEL operates in two modes:
 
 ---
 
+#### `/dialectic` — Multi-Model Truth-Seeking
+
+**Purpose:** Structured examination of high-stakes propositions through model-diverse perspectives — for decisions that resist confident single-agent resolution.
+
+DIALECTIC is the Socratic method operationalized. It is NOT debate (optimizing for winning); it is truth-seeking from opposing perspectives, with model switching as the core diversity mechanism.
+
+| State          | What Happens                                                                     |
+| :------------- | :------------------------------------------------------------------------------- |
+| **FRAME**      | Define the falsifiable proposition and stakes. (Skipped if escalated from another workflow.) |
+| **THESIS**     | Present the strongest *honest* case FOR, including reservations. HALT for model switch. |
+| **ANTITHESIS** | Present the strongest *honest* case AGAINST, independently derived. HALT for model switch. |
+| **SYNTHESIS**  | Distill what's actually true. Map unresolved tensions. HALT for human decision.  |
+
+**Key mechanics:**
+
+- **Model switching is mandatory** — each role transition is a HALT where the human switches to a different model, ensuring genuinely independent perspectives
+- **Honesty over advocacy** — each role must name genuine weaknesses in its own position and genuine strengths in the opposition
+- **Sketch-based role derivation** — on model switch, the new model reads the sketch's `DIALECTIC` block to determine its role and the debate history
+- **Invocable standalone or via escalation** — any planning workflow can recommend `/dialectic` when a tension exceeds single-agent resolution capacity
+
 #### `/doc` — Structured Documentation Lifecycle
 
 **Purpose:** Deliberate documentation work — writing guides, auditing existing docs, or tackling documentation debt through a disciplined lifecycle.
@@ -210,11 +230,12 @@ The sketch is not abandoned when planning begins. It remains a **living document
 
 | Phase      | Sketch Role                                             |
 | :--------- | :------------------------------------------------------ |
-| `/charter` | Strategic context that frames sketch cycles             |
-| `/sketch`  | Ideation, divergence, convergence                       |
-| `/plan`    | Challenge findings and refinements written back         |
-| `/model`   | Formalization findings written back to active sketch    |
-| `/core`    | Execution notes, unexpected discoveries, divergence log |
+| `/charter`    | Strategic context that frames sketch cycles               |
+| `/sketch`     | Ideation, divergence, convergence                         |
+| `/plan`       | Challenge findings and refinements written back           |
+| `/model`      | Formalization findings written back to active sketch      |
+| `/dialectic`  | Multi-model debate arguments and synthesis recorded       |
+| `/core`       | Execution notes, unexpected discoveries, divergence log   |
 
 Every modification is committed to `.sketches/` immediately — _every touch = a commit_. This creates a linear changelog of all decisions, findings, and pivots. Anyone can reconstruct the full thought chain from the sketch's git history.
 

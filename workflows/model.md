@@ -122,7 +122,7 @@ Choose the appropriate formalism(s), starting from the Decision Matrix (SDMA §6
 - Apply the **principle of minimal representation**: choose the simplest formalism that faithfully captures the domain's essential structure
 - If multiple characteristics are present, determine the layering strategy
 - Document the rationale for selection and alternatives considered
-- **Independence check:** Would you have selected this formalism if the user hadn't suggested or implied a direction? If the user said "I think this is categorical," verify that claim against the domain's actual structure rather than accepting it as a constraint.
+- **Independence check:** Would you have selected this formalism if the user hadn't suggested or implied a direction? If the user said "I think this is categorical," verify that claim against the domain's actual structure rather than accepting it as a constraint. If competing formalisms have genuinely comparable merit and the stakes are high, recommend `/dialectic` (see `planning.md` — Dialectic escalation).
 
 > [!IMPORTANT]
 > **HALT after SELECT.** Present the formalism selection and rationale to the human before constructing the model. Wrong formalism choice cascades into wasted work.
