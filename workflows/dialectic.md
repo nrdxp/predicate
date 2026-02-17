@@ -67,13 +67,16 @@ DIALECTIC:
         POSITION: "Core argument for the proposition"
         EVIDENCE: ["Supporting evidence"]
         RESERVATIONS: ["Honest concerns about own position"]
+        OMISSIONS: ["What might be missing from this entire discussion"]
       ANTITHESIS:
         POSITION: "Core argument against the proposition"
         EVIDENCE: ["Supporting evidence"]
         CONCESSIONS: ["What the thesis gets right"]
+        OMISSIONS: ["What might be missing from this entire discussion"]
       SYNTHESIS:
         RESOLUTION: "What's actually true"
-        TENSIONS: ["Genuinely unresolved questions"]
+        TENSIONS: ["Known disagreements — what both sides see but can't resolve"]
+        BLIND_SPOTS: ["Shared assumptions or frames neither side questioned"]
         VERDICT: [RESOLVED | ANOTHER_ROUND | REFRAME | ABANDON]
 ```
 
@@ -103,7 +106,8 @@ Present the strongest **honest** case FOR the proposition.
 1. **Read the sketch** to recover the proposition and any prior dialectic history.
 2. Construct the argument from first principles and available evidence.
 3. Name your genuine reservations — areas where the thesis is weakest.
-4. Commit the argument to the sketch under `DIALECTIC.HISTORY[n].THESIS`.
+4. Surface omissions — what might be **missing from this entire discussion**? What questions aren't being asked? What assumptions are you and a potential challenger both likely to share?
+5. Commit the argument to the sketch under `DIALECTIC.HISTORY[n].THESIS`.
 
 **The honesty guard:** You MUST include at least one genuine reservation about your own position. If you can't find any, you haven't examined it hard enough. A thesis with no reservations is either trivially true (and doesn't need a dialectic) or dishonestly presented.
 
@@ -117,7 +121,8 @@ Present the strongest **honest** case AGAINST the proposition.
 1. **Read the sketch** to recover the proposition and the thesis argument.
 2. **Derive your counter-argument independently.** Do not simply negate the thesis point-by-point — construct an independent case against the proposition from first principles. The thesis informs what you're responding to, but your reasoning must stand on its own evidence.
 3. Name the thesis's genuine strengths — where it gets things right.
-4. Commit the argument to the sketch under `DIALECTIC.HISTORY[n].ANTITHESIS`.
+4. Surface omissions — what might be **missing from this entire discussion**? Your different vantage point may reveal gaps invisible to the thesis. What questions should both sides be asking but aren't?
+5. Commit the argument to the sketch under `DIALECTIC.HISTORY[n].ANTITHESIS`.
 
 **The independence guard:** Your argument must be derivable without reading the thesis. If your entire case is "the thesis said X, but actually Y," you're reacting, not reasoning. Start from the proposition itself and build your case, then address the thesis's specific claims.
 
@@ -128,20 +133,24 @@ Present the strongest **honest** case AGAINST the proposition.
 
 ### Step 4: SYNTHESIS
 
-Distill what is actually true from both perspectives.
+Distill what is actually true from both perspectives. Synthesis serves as a **measuring guidepost** — even when resolution isn't yet possible, it maps exactly where unknowns remain and guides further rounds.
 
 1. **Read the sketch** to recover both the thesis and antithesis arguments.
 2. Identify where each perspective is correct, where each is wrong, and where genuine tension remains.
-3. Produce a **resolution map**, not a verdict:
+3. **Shared blind spot check:** What assumptions do BOTH sides share? What frame do they both operate within without questioning it? What would an observer from a completely different domain notice that neither side raised? This is the unique value of synthesis — it's the only role that reads both arguments and can spot the gaps between them.
+4. Produce a **resolution map**, not a verdict:
    - What claims are confirmed by both sides?
    - What claims are refuted?
-   - What tensions remain genuinely unresolved?
-4. Recommend one of:
+   - What tensions remain genuinely unresolved? (known unknowns)
+   - What blind spots were neither side examining? (unknown unknowns)
+5. Recommend one of:
    - **RESOLVED** — the dialectic has produced sufficient clarity to proceed.
-   - **ANOTHER_ROUND** — specific unresolved tensions warrant another thesis/antithesis cycle with refined scope.
+   - **ANOTHER_ROUND** — specific unresolved tensions or newly surfaced blind spots warrant another thesis/antithesis cycle with refined scope. Name the exact questions the next round should focus on.
    - **REFRAME** — the dialectic reveals the proposition itself is wrong. Return to FRAME with a better question.
    - **ABANDON** — the stakes don't justify further examination.
-5. Commit the synthesis to the sketch under `DIALECTIC.HISTORY[n].SYNTHESIS`.
+6. Commit the synthesis to the sketch under `DIALECTIC.HISTORY[n].SYNTHESIS`.
+
+**Synthesis scales with resolution, not with rigor.** Early-round synthesis may produce a short resolution ("not yet resolved") — that's fine. But the shared blind spot check is never lightweight. Identifying what neither side considered is the primary mechanism for surfacing unknown unknowns, and it requires genuine examination regardless of round number.
 
 **The synthesis guard:** A synthesis that simply picks the "winner" is a Sophistic verdict, not a dialectical resolution. If one side is clearly right, say so with evidence — but the value of synthesis is in revealing what *neither* side saw alone.
 
