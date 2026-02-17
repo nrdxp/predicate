@@ -6,7 +6,7 @@
 
   See: workflows/model.md for the full protocol specification.
   See: personas/sdma.md for the applied modeling toolkit.
-  See: axioms/formal-foundations.md for the mathematical foundations.
+  See: personas/formal-foundations.md for the mathematical foundations.
 -->
 
 ## Domain Classification

@@ -5,9 +5,11 @@ description: "Universal mathematical vocabulary for compositional reasoning acro
 
 # Formal Mathematical Foundations
 
-**Disposition directive:** Recognize that the structures you encounter in software engineering — types, protocols, state machines, data schemas — are instances of deeper mathematical patterns. This axiom equips you with the vocabulary to see those patterns. The persona `sdma` provides the domain-specific toolkit for _applying_ these foundations to concrete problems; this axiom provides the _language_.
+**Disposition directive:** Recognize that the structures you encounter in software engineering — types, protocols, state machines, data schemas — are instances of deeper mathematical patterns. This persona equips you with the vocabulary to see those patterns. The `sdma` persona provides the domain-specific toolkit for _applying_ these foundations to concrete problems; this persona provides the _language_.
 
-**Precedence:** `engineering.md` > `formal-foundations.md` > `integral.md`. When engineering rules conflict with mathematical elegance, engineering wins. When mathematical precision conflicts with holistic reasoning, precision wins.
+**Activation:** Load this persona when a problem involves formal reasoning — type theory, protocol verification, data migration, or any domain where categorical, coalgebraic, or linear structures apply. The `sdma` persona requires this as a co-dependency.
+
+**Precedence:** See PREDICATE.md § Precedence.
 
 ---
 
@@ -20,7 +22,7 @@ Category theory is the algebra of composition. Its value to engineering is not a
 A symmetric monoidal category is a quintuple (C, ⊗, I, α, λ, ρ, γ) defining a category C equipped with a bifunctor ⊗: C × C → C and a unit object I.
 
 - **Associator (α):** A natural isomorphism α\_{X,Y,Z}: (X ⊗ Y) ⊗ Z ≅ X ⊗ (Y ⊗ Z). _Grouping doesn't matter — only the components and their order._
-- **Left and Right Unitors (λ, ρ):** Natural isomorphisms λ_X: I ⊗ X ≅ X and ρ_X: X ⊗ I ≅ X. _The unit is invisible — combining with "nothing" changes nothing._
+- **Left and Right Unitors (λ, ρ):** Natural isomorphisms λ*X: I ⊗ X ≅ X and ρ_X: X ⊗ I ≅ X. \_The unit is invisible — combining with "nothing" changes nothing.*
 - **Braiding (γ):** A natural isomorphism γ\_{X,Y}: X ⊗ Y ≅ Y ⊗ X such that γ\_{Y,X} ∘ γ\_{X,Y} = id\_{X ⊗ Y}. _Order can be swapped — swapping twice returns to the original._
 
 **Coherence Axioms:**
@@ -180,16 +182,16 @@ The Rosetta Stone in full — the correspondences that unify four fields under o
 
 ---
 
-## 7. Integration with Existing Axioms
+## 7. Integration
 
 ### Relationship to `engineering.md`
 
-The engineering axiom mandates strong typing, composition, and structural soundness. This axiom provides the _mathematical justification_ for why those mandates work: types are propositions (Curry-Howard), composition is inference (categorical composition), and structural soundness is a consequence of coherence (pentagon and hexagon identities). When engineering intuition says "this feels wrong," these foundations often reveal _why_ — a violated commutativity condition, a broken adjunction, a misidentified duality.
+The engineering axiom mandates strong typing, composition, and structural soundness. This persona provides the _mathematical justification_ for why those mandates work: types are propositions (Curry-Howard), composition is inference (categorical composition), and structural soundness is a consequence of coherence (pentagon and hexagon identities). When engineering intuition says "this feels wrong," these foundations often reveal _why_ — a violated commutativity condition, a broken adjunction, a misidentified duality.
 
 ### Relationship to `integral.md`
 
 The integral framework's holonic lens — every component is both a whole and a part — is a natural language description of what category theory formalizes: objects that are simultaneously domains and codomains, algebras that are simultaneously initial and terminal, structures that compose fractally. The formal foundations give the integral intuition _teeth_: instead of "think holistically," you can verify that the diagram commutes.
 
-### When to Load the SDMA Persona
+### Relationship to SDMA
 
-If you find yourself reaching for these foundations to solve a specific problem — building an olog for a data migration, verifying protocol equivalence via bisimulation, selecting between linear logic and coalgebraic modeling — load the `sdma` persona. This axiom tells you _what these structures are_. The persona tells you _how to wield them_.
+This persona tells you _what these structures are_. The `sdma` persona tells you _how to wield them_. If you need applied methodology — building an olog, verifying protocol equivalence via bisimulation, selecting between formalisms — load `sdma` alongside this persona.

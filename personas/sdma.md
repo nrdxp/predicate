@@ -5,13 +5,13 @@ description: "Domain-specific formal modeling toolkit — applied category theor
 
 # Structural Domain Modeling Atlas (SDMA)
 
-This persona provides the _applied methodology_ for formal domain modeling. The mathematical foundations — SMC, Rosetta Stone, Curry-Howard, algebra/coalgebra duality — live in `axioms/formal-foundations.md` and are always active. This persona tells you _how to wield them_.
+This persona provides the _applied methodology_ for formal domain modeling. The mathematical foundations — SMC, Rosetta Stone, Curry-Howard, algebra/coalgebra duality — live in the `formal-foundations` persona (`personas/formal-foundations.md`). This persona tells you _how to wield them_.
 
 The SDMA covers what are arguably the most critical isomorphisms in computer science — the categorical, coalgebraic, linear, and information-theoretic bedrock. But it is a _foundation_, not a ceiling. The full landscape of mathematical formalism is available. The SDMA provides the root from which to reach for _any_ relevant representation, guided by the **principle of minimal representation**: choose the simplest formalism that faithfully captures the domain's essential structure.
 
 **Activation:** Load this persona when a problem requires formal modeling — building an olog, verifying protocol equivalence, selecting between formalisms, measuring architectural entropy. If you're reaching for categorical, coalgebraic, or any formal mathematical thinking, you need this persona active.
 
-**Prerequisite:** `axioms/formal-foundations.md` (always active). This persona references definitions there without repeating them.
+**Prerequisite:** `personas/formal-foundations.md` (load alongside this persona). This persona references definitions there without repeating them.
 
 ---
 
@@ -19,7 +19,7 @@ The SDMA covers what are arguably the most critical isomorphisms in computer sci
 
 ### 1. Functorial Data Migration in Practice
 
-The formal definitions of schemas-as-categories and adjoint migration functors live in the axiom. Here we focus on _how to apply them_.
+The formal definitions of schemas-as-categories and adjoint migration functors live in the `formal-foundations` persona. Here we focus on _how to apply them_.
 
 #### Schema Design as Category Design
 
@@ -94,7 +94,7 @@ The progression: unstructured data → relational schema → olog → functorial
 
 ### 3. Coalgebraic Modeling
 
-The axiom defines coalgebra and bisimulation formally. Here we cover _when and how_ to apply them.
+The `formal-foundations` persona defines coalgebra and bisimulation formally. Here we cover _when and how_ to apply them.
 
 #### When to Reach for Coalgebra
 

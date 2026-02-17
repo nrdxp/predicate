@@ -3,6 +3,7 @@ name: "model"
 description: "Formal domain modeling through the SDMA lens — create new models or scrutinize existing documents"
 trigger: "/model"
 required_personas:
+  - formal-foundations
   - sdma
   - planning
 ---

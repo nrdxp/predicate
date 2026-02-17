@@ -74,7 +74,7 @@ CHARTER:
 
 4. **WORKSTREAMS_SPAWN_CYCLES:** Each workstream should be independently explorable via `/sketch`. If a workstream is too large to sketch, it's not a workstream — it's a sub-charter. If it's too small, it's a plan item, not a workstream.
 
-5. **STRATEGIC_NON_GOALS:** NON_GOALS in a charter are different from NON_GOALS in a plan. Charter non-goals are _strategic_ ("We don't do X because it's not our problem") while plan non-goals are _tactical_ ("We won't optimize Y in this phase"). Don't mix levels.
+5. **STRATEGIC_NON_GOALS:** NON*GOALS in a charter are different from NON_GOALS in a plan. Charter non-goals are \_strategic* ("We don't do X because it's not our problem") while plan non-goals are _tactical_ ("We won't optimize Y in this phase"). Don't mix levels.
 
 6. **CANDOR_OVER_ASPIRATION:** Write what's true, not what sounds impressive. A charter that overpromises sets every downstream cycle up for scope creep and appetite overrun.
 
