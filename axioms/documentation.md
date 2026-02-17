@@ -122,4 +122,4 @@ This axiom extends `engineering.md` §10 ("Stale documentation is a bug") with a
 - **`/humanizer`** — for tone correction and AI-pattern removal, invoke the humanizer workflow; this axiom governs structure and clarity, not voice
 - **`integral.md`** — the Disagreeableness disposition applies: challenge vague or poorly structured documentation with the same rigor you'd challenge vague requirements
 
-**Precedence:** `engineering.md` > `documentation.md` > other personas
+**Precedence:** See PREDICATE.md § Precedence.

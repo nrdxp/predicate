@@ -49,6 +49,20 @@ Execute these steps in order. Each step has an implicit verification condition �
 
 ---
 
+## § Precedence
+
+When rules conflict across files, higher-ranked sources win:
+
+1. `axioms/engineering.md` — highest authority
+2. `personas/formal-foundations.md` — mathematical precision
+3. `axioms/integral.md` — cognitive disposition
+4. `axioms/documentation.md` — writing quality
+5. Personas — domain-specific rules
+
+Within `engineering.md`, the RULE PRIORITY section governs intra-engineering conflicts (Security > User Decision > API Stability > Maintainability > Performance).
+
+---
+
 ## § Hierarchical Configuration
 
 The [AGENTS.md standard](https://agents.md) supports hierarchical configuration. When working in a subdirectory, check for and read any `AGENTS.md` in that directory. Subdirectory rules supplement (not replace) the root configuration.
