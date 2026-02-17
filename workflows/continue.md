@@ -17,10 +17,10 @@ As you execute, you MUST:
 
 1. **Verify each step** against its VERIFY condition before proceeding
 2. **HALT at commit boundaries** — output JUSTIFICATION, commit message, and REMAINING STEPS, then STOP
-3. **Never auto-commit** — user commits manually
+3. **Never auto-commit** (`engineering.md` §11) — user commits manually
 4. **HALT on divergence** — if reality differs from plan, revert to CLARIFY
 5. **Output artifacts visibly** — code, messages, and verification in final response (not hidden)
-6. **Update and commit sketch** — per the planning persona's commit discipline and lifecycle journal pattern
+6. **Update and commit sketch** — per the planning persona's Sketch Commit Discipline and Lifecycle Journal sections
 
 You must NOT:
 

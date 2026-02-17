@@ -128,7 +128,7 @@ VERIFY ──→ DONE  (on human approval)
 
 5. **HONEST_REVIEW:** The REVIEW phase is self-adversarial. Apply axiom checks mechanically — if active voice fails, it fails. Do not hand-wave compliance.
 
-6. **HUMANIZER_INTEGRATION:** After REVIEW, consider whether the output would benefit from `/humanizer` for tone correction. The documentation axiom governs structure and clarity; the humanizer governs natural voice. They complement, not compete.
+6. **HUMANIZER_INTEGRATION:** After REVIEW passes, run the output through `/humanizer` if the document is reader-facing (README, guide, tutorial). Skip for internal references and specifications. The documentation axiom governs structure and clarity; the humanizer governs natural voice.
 
 ### Protocol Violations (FORBIDDEN)
 

@@ -208,7 +208,7 @@ Use these techniques:
 
 7. **REVERSIBILITY_AWARENESS:** Document which decisions are reversible. Irreversible decisions require higher confidence.
 
-8. **SKETCH_SYNCHRONIZATION:** Challenge findings, discovered risks, and refined assumptions MUST be written back to the sketch AND committed to the `.sketches/` subrepo immediately. The sketch is the living journal; the plan captures the outcome. Every modification to the sketch MUST be followed by a commit — every touch = a commit.
+8. **SKETCH_SYNCHRONIZATION:** Challenge findings, discovered risks, and refined assumptions MUST be written back to the sketch per the planning persona's Sketch Commit Discipline. Every touch = a commit.
 
 9. **CONTEXT_SUFFICIENCY:** See the planning persona's Context Sufficiency section. The same research-first, flag-gaps-explicitly discipline applies. Do not proceed past CHALLENGE with unresolved context gaps.
 

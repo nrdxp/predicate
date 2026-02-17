@@ -120,7 +120,7 @@ Split work into logical commit boundaries to keep history clean and reviewable.
 
 10. **GRANULARITY_CAP:** Each CORE invocation should cover at most **2-3 commit boundaries**. If more work remains after the last commit boundary, HALT and let the user invoke `/continue` or a new `/core` for the next chunk. Do not attempt to cover an entire plan in one session.
 
-11. **SKETCH_AT_BOUNDARY:** At every COMMIT boundary, update the active sketch per the planning persona's commit discipline and lifecycle journal pattern. Do not defer sketch updates to phase completion.
+11. **SKETCH_AT_BOUNDARY:** At every COMMIT boundary, update the active sketch per the planning persona's Sketch Commit Discipline and Lifecycle Journal sections.
 
 ### Protocol Violations (FORBIDDEN)
 
@@ -177,7 +177,7 @@ EXECUTE ──→ CLARIFY (if verification fails or scope expands)
    - Output JUSTIFICATION block for the changes in this commit
    - Output conventional commit message (header ≤50 chars, body wrapped at 72)
    - Await user confirmation before proceeding
-5. Never auto-commit; user commits manually
+5. Never auto-commit (`engineering.md` §11); user commits manually
 
 ### MANDATORY HALT Points
 
