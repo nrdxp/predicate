@@ -195,6 +195,7 @@ When `/core` completes a phase, append to the sketch:
 - Changes: [what was done and why]
 - Discoveries: [unexpected findings, if any]
 - Pivots: [deviations from plan, if any]
+- Dead Ends: [approaches attempted and abandoned, with why they failed — prevents future agents from retrying known failures]
 - Debt: [any technical debt introduced — MEDIUM+ items must also be recorded in the plan's Technical Debt section]
 ```
 

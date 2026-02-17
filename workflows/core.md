@@ -85,14 +85,16 @@ PLAN:
 Split work into logical commit boundaries to keep history clean and reviewable.
 
 - Mark steps with `COMMIT: true` to indicate a commit boundary
-- At commit boundaries, pause execution and present:
-  1. JUSTIFICATION block for the work in this commit
-  2. Conventional commit message
+- At commit boundaries, pause execution and output in this order, then HALT:
+  1. **Sketch update** — append execution notes to `.sketches/[topic].md`, then `git add` and `git commit` in the `.sketches/` subrepo
+  2. JUSTIFICATION block for the work in this commit
+  3. Conventional commit message
+  4. REMAINING STEPS — re-output remaining PLAN steps
 - Await instructions before proceeding to the next commit
 - Each commit should be atomic and independently reviewable
 
 > [!CAUTION]
-> **COMMIT boundaries are HALT points.** After presenting JUSTIFICATION and commit message, you MUST STOP and WAIT for human confirmation. Do not proceed to the next commit. Do not continue execution. HALT.
+> **COMMIT boundaries are HALT points.** After completing the 4-step sequence above, you MUST STOP and WAIT for human confirmation. Do not proceed to the next commit. Do not continue execution. HALT.
 
 ---
 
@@ -173,10 +175,11 @@ EXECUTE ──→ CLARIFY (if verification fails or scope expands)
 1. Generate code/changes per PLAN steps
 2. Verify each step against its VERIFY condition
 3. Output VERIFY justification for each step
-4. At each COMMIT boundary:
-   - Output JUSTIFICATION block for the changes in this commit
-   - Output conventional commit message (header ≤50 chars, body wrapped at 72)
-   - Await user confirmation before proceeding
+4. At each COMMIT boundary, output in this order then HALT:
+   1. **Sketch update** — append execution notes and commit to `.sketches/`
+   2. JUSTIFICATION block for the changes in this commit
+   3. Conventional commit message (header ≤50 chars, body wrapped at 72)
+   4. REMAINING STEPS
 5. Never auto-commit (`engineering.md` §11); user commits manually
 
 ### MANDATORY HALT Points

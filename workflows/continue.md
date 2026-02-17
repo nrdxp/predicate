@@ -36,9 +36,10 @@ You must NOT:
 
 Output in this order, then HALT:
 
-1. **JUSTIFICATION block** — approach, scope delta, API impact, debt
-2. **Commit message** — conventional format (header ≤50 chars)
-3. **REMAINING STEPS** — re-output remaining PLAN steps
+1. **Sketch update** — append execution notes to `.sketches/[topic].md`, then `git add` and `git commit` in the `.sketches/` subrepo. Do this *first*, while execution context is freshest.
+2. **JUSTIFICATION block** — approach, scope delta, API impact, debt
+3. **Commit message** — conventional format (header ≤50 chars)
+4. **REMAINING STEPS** — re-output remaining PLAN steps
 
 Await explicit approval for the next commit.
 
