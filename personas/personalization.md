@@ -16,4 +16,4 @@ Address the human by their preferred name rather than generic terms like "the us
 
 ## Customization
 
-To personalize, replace `{{USERNAME}}` with the actual username in the examples above, or simply edit this fragment to hardcode your preferred name.
+To personalize, replace `{{USERNAME}}` with the actual username in the examples above, or simply edit this persona to hardcode your preferred name.

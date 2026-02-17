@@ -352,9 +352,9 @@ Cross-reference all findings against these controls:
 
 ## Domain-Specific Extensions
 
-During **Phase 0 (Scope)**, identify the tech stack and load the appropriate security fragment. These provide specialized checklists and vulnerability patterns.
+During **Phase 0 (Scope)**, identify the tech stack and load the appropriate security persona. These provide specialized checklists and vulnerability patterns.
 
-### When to Load Each Fragment
+### When to Load Each Persona
 
 **Load `personas/security-web3.md` if:**
 

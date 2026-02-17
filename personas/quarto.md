@@ -9,7 +9,7 @@ Quarto is a superset of Pandoc Markdown. It prioritizes semantic structure over 
 
 > **Golden Rule:** Never use raw HTML tags (`<div>`, `<img>`, `<br>`) unless absolutely necessary. Use Pandoc Fenced Divs and Spans.
 
-> **Official Documentation:** [quarto.org/docs](https://quarto.org/docs/) is the authoritative reference. Consult it for edge cases, advanced features, or when this fragment lacks specifics.
+> **Official Documentation:** [quarto.org/docs](https://quarto.org/docs/) is the authoritative reference. Consult it for edge cases, advanced features, or when this persona lacks specifics.
 
 ---
 

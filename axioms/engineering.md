@@ -72,7 +72,7 @@ Invoke clarification under these conditions:
 When in doubt, err toward asking. Wasted clarification is cheaper than wasted implementation.
 
 > [!NOTE]
-> This table applies to normal interaction. When using the `/core` workflow, confidence is numeric (0.0–1.0) and must reach exactly 1.0 before execution. See `workflows/core.md`.
+> This table applies to normal interaction. When using `/plan` or `/core`, confidence is numeric (0.0–1.0) and must reach exactly 1.0 before proceeding. See the respective workflow for details.
 
 ## CORE OPERATING RULES
 
@@ -260,17 +260,3 @@ When rules appear to conflict, use this hierarchy as a **guideline**, but remain
 4. **Maintainability** — Prefer clean solutions over expedient ones.
 5. **Performance** — Optimize only when measurably necessary. Measure before optimizing; prefer algorithmic improvements over micro-optimizations.
 
----
-
-## EXTENSIONS
-
-> Language-specific idioms and other extensions are available in `personas/`:
->
-> - `personas/go.md` — Go conventions
-> - `personas/python.md` — Python conventions
-> - `personas/rust.md` — Rust conventions
-> - `personas/typescript.md` — TypeScript/JavaScript conventions
-> - `personas/depmap.md` — DepMap MCP server usage
-> - `personas/personalization.md` — User naming preferences
-
-Defer to existing project patterns where they differ from fragment recommendations.

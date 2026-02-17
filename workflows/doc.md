@@ -2,8 +2,6 @@
 name: "doc"
 description: "Documentation lifecycle — audit, plan, draft, review, verify"
 trigger: "/doc"
-required_personas:
-  - documentation
 ---
 
 # DOC Protocol v1.0
