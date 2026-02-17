@@ -45,7 +45,7 @@ Predicate integrates with existing conventions rather than inventing new ones:
 
 ### The Planning Pipeline
 
-AI coding agents are powerful executors — but execution without disciplined planning produces fragile, misdirected work. The most common failure modes we see:
+AI coding agents execute fast — but execution without disciplined planning produces throwaway work. The most common failure modes:
 
 - **Ambiguity** — vague requirements silently interpreted by the agent, producing code that solves the wrong problem
 - **Imprecise planning → imprecise execution** — if the plan is hand-wavy, the code will be too
@@ -114,7 +114,7 @@ Sketches live in `.sketches/`, a gitignored subtree with its own local git histo
 
 #### `/plan` — Stress-Test Before You Build
 
-**Purpose:** Transform exploratory direction into an airtight execution blueprint. Actively seek reasons _not_ to proceed.
+**Purpose:** Transform exploratory direction into an execution blueprint. Actively seek reasons _not_ to proceed.
 
 Where SKETCH explores possibilities, PLAN stress-tests the chosen direction. It moves through:
 
@@ -125,7 +125,7 @@ Where SKETCH explores possibilities, PLAN stress-tests the chosen direction. It 
 | **SCOPE**     | Define explicit phases with concrete deliverables. Sharpen non-goals.    |
 | **COMMIT**    | Present the complete plan + ADR for human approval.                      |
 
-**The CHALLENGE phase is the heart of PLAN.** The agent becomes devil's advocate, using specific techniques:
+**The CHALLENGE phase is the point of PLAN.** The agent becomes devil's advocate, using specific techniques:
 
 - **Assumption Inversion** — "What if the opposite were true?"
 - **Steel-Man the Alternative** — articulate the strongest case _for_ a rejected approach before dismissing it
@@ -171,7 +171,7 @@ MODEL operates in two modes:
 | **Create** | Produce a new formal model document from `templates/MODEL.md` to `docs/models/`         |
 | **Apply**  | Scrutinize an existing document (protocol spec, whitepaper, etc.) through the SDMA lens |
 
-**6-step procedure:** IDENTIFY → SELECT → CONSTRUCT → VALIDATE → RECORD → CONNECT. The SDMA persona provides the foundational toolkit — categorical, coalgebraic, linear, and information-theoretic formalisms — but it is a bedrock, not a boundary. The full landscape of mathematical formalism is available, governed by the **principle of minimal representation**: choose the simplest formalism that faithfully captures the domain's structure.
+**6-step procedure:** IDENTIFY → SELECT → CONSTRUCT → VALIDATE → RECORD → CONNECT. The SDMA persona provides a starting toolkit (categorical, coalgebraic, linear, information-theoretic formalisms), but any mathematical formalism is available. The governing principle is **minimal representation**: choose the simplest formalism that faithfully captures the domain's structure.
 
 **Key mechanics:**
 
@@ -214,9 +214,9 @@ The sketch is not abandoned when planning begins. It remains a **living document
 | `/plan`   | Challenge findings and refinements written back         |
 | `/core`   | Execution notes, unexpected discoveries, divergence log |
 
-Every modification is committed to `.sketches/` immediately — _every touch = a commit_. This creates a linear changelog of all decisions, findings, and pivots. Future agents (or humans) can reconstruct the entire thought chain by reviewing the sketch's git history.
+Every modification is committed to `.sketches/` immediately — _every touch = a commit_. This creates a linear changelog of all decisions, findings, and pivots. Anyone can reconstruct the full thought chain from the sketch's git history.
 
-> **The best code is no code.** We don't commit to building until we're confident the design is correct. Planning deserves the same rigor we bring to execution — and when planning reveals we shouldn't build at all, that's the best outcome.
+> **The best code is no code.** We don't commit to building until the design is right. When planning reveals we shouldn't build at all, that's the best outcome.
 
 ---
 

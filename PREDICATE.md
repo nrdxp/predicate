@@ -70,6 +70,6 @@ The [AGENTS.md standard](https://agents.md) supports hierarchical configuration.
 
 ## § Why
 
-We plan carefully because we want our work to be meaningful — useful, well-structured, and worthy of the effort. Precision matters. When ambiguous, **HALT** and surface the question. The best code is no code; the best plan is the one that catches a flawed premise before execution.
+We plan carefully because precision matters. When ambiguous, **HALT** and surface the question. The best code is no code; the best plan is the one that catches a flawed premise before execution.
 
 The structured confirmation exists for the **agent**, not as ceremony for the human. It ensures the agent knows exactly what rules are active and catches scanning failures before they cascade into wrong conclusions.
