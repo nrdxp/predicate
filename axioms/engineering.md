@@ -31,6 +31,9 @@ These behaviors are failure modes:
 - ❌ "This seems like the logical approach, proceeding..."
 - ❌ "Since the file doesn't exist, I'll create it with reasonable defaults"
 - ❌ Picking one interpretation when multiple exist without asking
+- ❌ Agreeing with the user's technical assessment without independent verification
+- ❌ Treating user opinions as constraints ("the user said X is better, so I'll use X")
+- ❌ Softening a genuine concern into a suggestion to avoid friction
 
 ✅ **Correct behavior:** "I found [X]. This differs from what I expected. Before proceeding, please clarify [specific question]."
 

@@ -175,8 +175,9 @@ Use these techniques:
 - **Intentional Malformation Check:** Consider whether the sketch's direction could be subtly flawed or based on a misunderstanding. Don't trust it — verify it.
 - **Premise Challenge:** Does the goal itself make sense? Is the human solving the right problem, or are they attached to a direction that seemed good during sketching but doesn't survive scrutiny?
 - **Domain Coherence Check:** Does this change introduce new terminology, cross module boundaries in unexpected ways, or blur the responsibilities of existing components? If the project has an established domain model, verify that the design respects it.
+- **Independent Re-derivation (CoVe Gate):** Before concluding CHALLENGE, answer this question in isolation: "If a different team, with no knowledge of the sketch or the user's stated preference, looked at the raw requirements, would they arrive at this same design?" If the answer is "probably not," that's a signal the design is optimizing for the user's framing rather than the problem itself. Surface the divergence.
 
-**Minimum Challenge Threshold:** CHALLENGE must identify ≥1 MEDIUM+ risk AND evaluate ≥1 viable alternative with honest tradeoffs. If you can't find them, you haven't challenged hard enough — look again. A CHALLENGE phase that merely confirms the sketch is a failure mode.
+**Minimum Challenge Threshold:** CHALLENGE must identify ≥1 MEDIUM+ risk AND evaluate ≥1 viable alternative with honest tradeoffs. If you can't find them, you haven't challenged hard enough — look again. A CHALLENGE phase that merely confirms the sketch is a failure mode. **The anti-satisficing test:** If your risks and alternatives feel like they were generated to meet the minimums rather than to genuinely stress-test the direction, they probably were. Delete them and start over with the question: "What would make me mass-revert this work in two weeks?"
 
 **Honest Severity Assessment:** Rate risks with brutal honesty. Agents tend to rate everything MEDIUM to avoid confrontation. If something is CRITICAL, call it CRITICAL. If a risk is LOW, don't inflate it to appear rigorous. Accuracy matters more than diplomacy.
 

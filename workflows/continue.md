@@ -36,7 +36,11 @@ You must NOT:
 
 Output in this order, then HALT:
 
-1. **Adversarial self-review** — before presenting, review your diff as a hostile reviewer. Check for: missed edge cases, wrong assumptions, unintended behavioral changes, silent regressions. If you find issues, fix them before proceeding.
+1. **Adversarial self-review** — before presenting, review your diff as a hostile reviewer. Check for:
+   - **Code quality:** missed edge cases, wrong assumptions, unintended behavioral changes, silent regressions
+   - **Reasoning quality:** did I accept a premise I should have questioned? Did I implement what the user asked without verifying it's what they need?
+
+   If you find issues, fix them before proceeding.
 2. **Sketch update** — append execution notes to `.sketches/[topic].md`, then `git add` and `git commit` in the `.sketches/` subrepo. Do this while execution context is freshest.
 3. **JUSTIFICATION block** — approach, scope delta, API impact, debt
 4. **Commit message** — conventional format (header ≤50 chars)

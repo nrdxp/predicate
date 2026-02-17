@@ -72,7 +72,11 @@ Split work into logical commit boundaries to keep history clean and reviewable.
 
 - Mark steps with `COMMIT: true` to indicate a commit boundary
 - At commit boundaries, pause execution and output in this order, then HALT:
-  1. **Adversarial self-review** — review your diff as a hostile reviewer. Check for: missed edge cases, wrong assumptions, unintended behavioral changes, silent regressions. Fix before proceeding.
+  1. **Adversarial self-review** — review your diff as a hostile reviewer. Check for:
+     - **Code quality:** missed edge cases, wrong assumptions, unintended behavioral changes, silent regressions
+     - **Reasoning quality:** did I accept a premise I should have questioned? Did I implement what the user asked without verifying it's what they need? Would I make the same choices if the user hadn't suggested the direction?
+
+     Fix issues before proceeding.
   2. **Sketch update** — append execution notes to `.sketches/[topic].md`, then `git add` and `git commit` in the `.sketches/` subrepo
   3. JUSTIFICATION block for the work in this commit
   4. Conventional commit message
