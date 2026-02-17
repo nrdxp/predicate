@@ -81,6 +81,8 @@ Before writing code, understand the existing landscape:
 
 > **Tip:** If MCP tools are available, use them first for structural insight. See `personas/depmap.md`.
 
+**Workflow Personas:** When a workflow declares `required_personas:` in its frontmatter, you MUST read and load those persona files before proceeding. This is not optional — the workflow's instructions assume those personas are active. Missing persona file → **HALT**.
+
 ### 1. Root Cause Analysis
 
 Never apply band-aid fixes. Analyze root causes; re-architect if the foundation is flawed. If a fix requires more than local changes, stop and discuss the broader implications.
