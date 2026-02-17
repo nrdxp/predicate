@@ -175,11 +175,7 @@ EXECUTE ──→ CLARIFY (if verification fails or scope expands)
 1. Generate code/changes per PLAN steps
 2. Verify each step against its VERIFY condition
 3. Output VERIFY justification for each step
-4. At each COMMIT boundary, output in this order then HALT:
-   1. **Sketch update** — append execution notes and commit to `.sketches/`
-   2. JUSTIFICATION block for the changes in this commit
-   3. Conventional commit message (header ≤50 chars, body wrapped at 72)
-   4. REMAINING STEPS
+4. At each COMMIT boundary, follow the procedure in **Commit Boundaries** above
 5. Never auto-commit (`engineering.md` §11); user commits manually
 
 ### MANDATORY HALT Points

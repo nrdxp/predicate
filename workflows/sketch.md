@@ -19,13 +19,6 @@ SKETCH embodies the planning philosophy (see planning persona) with two addition
 
 ---
 
-## Scope
-
-> [!IMPORTANT]
-> SKETCH is for **pathfinding** — exploring the problem space and finding a potential direction. It is NOT design specification (that's `/plan`) and NOT implementation (that's `/core`). If you find yourself specifying exact file changes or writing code, you've left SKETCH territory.
-
----
-
 ## Sketch Storage
 
 See the planning persona for full sketch storage details (directory structure, initialization, naming convention, commit discipline, update cadence, and content philosophy).
@@ -155,20 +148,6 @@ You MUST stop and await human input at:
 1. **EXPLORE → DIVERGE:** If UNKNOWNS exist, halt and ask
 2. **PROPOSE:** Draft complete — human must approve to proceed to `/plan`
 3. **ABORT decision:** If sketch reveals we shouldn't proceed, halt and explain
-
-> [!NOTE]
-> **ABORT is a valuable outcome, not a failure.** A sketch that concludes "we shouldn't build this" or "revisit in 3 months" has done its job — it prevented wasted effort downstream. The best code is no code, and the best plan is sometimes no plan. Celebrate sketches that save you from building the wrong thing.
-
----
-
-## Response Format
-
-All responses during SKETCH follow the grammar above.
-
-- **EXPLORE:** YAML block + research/questions
-- **DIVERGE:** YAML block with ≥2 APPROACHES
-- **CONVERGE:** YAML block with EVALUATION
-- **PROPOSE:** Full YAML block + summary prose for human review
 
 ---
 
