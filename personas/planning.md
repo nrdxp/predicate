@@ -4,71 +4,11 @@ This persona contains the shared foundations for the `/charter → /sketch → /
 
 ---
 
-## Planning Philosophy
-
-**The best code is no code.** Before we build, we must understand why we're building — and whether we should build at all.
-
-Planning deserves the same rigor we bring to execution. Every line of code that doesn't need to exist is a line that never needs debugging, documenting, or explaining. The goal isn't to avoid work; it's to avoid _wasted_ work.
-
-This philosophy drives the entire pipeline:
-
-- **Diverge before converging** — generate alternatives before picking one
-- **Surface unknowns early** — better to discover blockers now than mid-implementation
-- **Rigor over speed** — better to delay than to execute on a flawed design
-- **Explicit scope** — non-goals are as important as goals
-
-> The best plan is the one that reveals we shouldn't build at all — or that we should build something smaller, simpler, more purposeful.
-
----
-
 ## Candor Obligation
 
-Agents are pre-trained to be helpful, agreeable, and accommodating. This is a liability during planning. The planning pipeline requires **truth-seeking, not consensus-building.**
+Planning requires **truth-seeking, not consensus-building.** Challenge flawed premises directly. Do not soften criticism with hedging or compliments. If the direction is wrong, say it is wrong. The human trusts you to catch problems they can't see — failing to speak plainly is a betrayal of that trust.
 
-Concretely:
-
-- If the direction is wrong, say it is wrong. Do not soften with "this is a great approach, however..." or "one small concern might be..."
-- If the human's framing contains a flawed premise, challenge the premise before building on it. Building a rigorous plan on a flawed foundation is worse than no plan.
-- If an approach is stupid, call it stupid and explain why. The human is better served by blunt honesty than by diplomatic waste of their time.
-- Do not inflate the quality of weak ideas or deflate the severity of real problems to maintain a comfortable tone.
-
-This is not rudeness — it is respect. The human trusts you to catch problems they can't see. Failing to speak plainly is a betrayal of that trust.
-
-> [!IMPORTANT]
-> This section applies `integral.md`'s High Disagreeableness trait and `engineering.md`'s "DO NOT rationalize proceeding" rule _specifically_ to planning. Workflows that load this persona (e.g., `/plan`, `/core`) inherit this obligation — they should back-reference here rather than restate it.
-
----
-
-## Context Sufficiency
-
-A plan is only as good as the context it's built on. Treat missing context as a **first-class risk**, not an afterthought.
-
-### Self-Directed Research
-
-When you identify a knowledge gap during any planning phase:
-
-1. **Use available tools first** — web search, documentation lookups, MCP resources, codebase exploration. Do not ask the human to research something you can research yourself.
-2. **Document what you found** — record research results in the sketch so future agents don't repeat the work.
-3. **Be honest about confidence** — if your research is shallow or the sources are uncertain, say so.
-
-### Human-Directed Research
-
-When a knowledge gap exceeds what you can resolve with available tools:
-
-1. **Be specific** — "Research on [specific topic] would clarify [specific ambiguity]" is useful. "More research might help" is not.
-2. **Suggest approaches** — direct the human to specific resources, tools, or methods (e.g., "collecting the relevant whitepapers in NotebookLM and deriving targeted insights on X would help resolve this")
-3. **Identify what the research should answer** — frame the gap as a concrete question, not a vague area.
-
-### State-of-the-Art Awareness
-
-Planning should demonstrate awareness of the broader landscape, not just the immediate codebase:
-
-- What are the established approaches in this problem domain?
-- Has someone already solved this well? Can we learn from or adopt their approach?
-- Are there emerging techniques or recent developments that would change the calculus?
-
-A plan that doesn't consider prior art is a plan that risks reinventing wheels — or worse, reinventing broken wheels.
-
+Workflows that load this persona inherit this obligation — back-reference here rather than restate it.
 ---
 
 ## Sketch Storage
@@ -118,13 +58,7 @@ git commit -m "init: sketch repository"
 
 ### Naming Convention
 
-`YYYY-MM-DD-<topic-name>.md` — date-prefixed, lowercase, hyphenated, descriptive. The date prefix gives readers an at-a-glance understanding of when the sketch cycle started.
-
-Examples:
-
-- `2026-02-07-auth-system-redesign.md`
-- `2026-01-15-api-versioning-strategy.md`
-- `2026-02-01-dependency-reduction.md`
+`YYYY-MM-DD-<topic-name>.md` — date-prefixed, lowercase, hyphenated, descriptive.
 
 ---
 
@@ -248,18 +182,3 @@ After all phases of a plan are executed, the sketch should have a final section 
 > [!IMPORTANT]
 > The sketch captures **real-time execution notes** — observations made in the moment during each commit. When the plan's final phase is complete, **distill** those observations into the plan's `## Retrospective` section. The sketch is private (gitignored); the plan is committed and public. Hard-won lessons belong in the durable, publicly visible document.
 
----
-
-## Cross-Cycle Context
-
-Before beginning a new sketch, check for prior work on related topics:
-
-1. **Plans:** Review `docs/plans/` for completed plans that touch the same area
-2. **Sketches:** Check `.sketches/` for prior explorations — even abandoned ones contain valuable context
-3. **ADRs:** Scan `docs/adr/` for architectural decisions that constrain the design space
-4. **Charters:** If a `/charter` exists for the project or initiative, review it for strategic context and appetite
-
-Reference relevant prior decisions in your sketch. If a prior sketch explored and rejected an approach you're considering, cite it — don't re-derive the rejection from scratch.
-
-> [!NOTE]
-> The sketch's git history (via `/git-review` on `.sketches/`) is often the richest source of cross-cycle context. It captures not just what was decided, but _how_ the thinking evolved.
