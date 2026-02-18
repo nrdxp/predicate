@@ -127,7 +127,7 @@ The following are VIOLATIONS of this protocol. If you catch yourself doing any o
 
 | Violation                                                  | Why It's Wrong                                      |
 | :--------------------------------------------------------- | :-------------------------------------------------- |
-| Adding fields to CORE-YAML                                 | Schema is closed. Use final response for artifacts. |
+| Adding fields not listed in SCHEMA_RIGIDITY                | Permitted fields are enumerated in Directive 9.     |
 | Skipping commit message                                    | User needs message for manual commit.               |
 | Executing `git commit`                                     | User commits manually. Agent NEVER commits.         |
 | Proceeding past commit boundary without human confirmation | Each boundary is a HALT point.                      |
