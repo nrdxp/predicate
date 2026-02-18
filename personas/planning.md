@@ -64,6 +64,12 @@ git commit -m "init: sketch repository"
 
 `YYYY-MM-DD-<topic-name>.md` — date-prefixed, lowercase, hyphenated, descriptive.
 
+### Cross-Branch Awareness
+
+When the sketch repository uses per-project branches (a shared repo with one branch per project), check for existing branches that relate to the current domain before creating a new sketch. Prior art from related projects may reveal solved problems, known dead ends, or reusable patterns.
+
+This is **advisory, not blocking** — don't read 50 branches. But report what you found (or didn't find) in the sketch preamble so the decision to skip prior art is explicit, not accidental.
+
 ---
 
 ## Sketch Commit Discipline
@@ -169,6 +175,14 @@ After all phases of a plan are executed, the sketch should have a final section 
 - Did the plan hold up? Where did we diverge and why?
 - Were the estimates realistic?
 - Did CHALLENGE catch the risks that actually materialized?
+
+### Calibration
+
+- Estimated phases: N  |  Actual: M
+- Phases that held: [list]
+- Phases that expanded: [list, with why]
+- Biggest surprise: [what you could not have predicted]
+- Process weight verdict: [was the full pipeline justified for this task?]
 
 ### Outcomes
 

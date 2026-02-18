@@ -34,7 +34,7 @@ The YAML structure (PROBLEM, UNKNOWNS, APPROACHES, EVALUATION) provides the skel
 ```yaml
 # 1. METADATA
 TOPIC: "<descriptive-topic-name>"
-STATUS: [EXPLORE | DIVERGE | CONVERGE | PROPOSE]
+STATUS: [EXPLORE | DIVERGE | SPIKE | CONVERGE | PROPOSE]
 CONFIDENCE: [0.0-1.0] # Confidence in understanding, not solution
 
 # 2. PROBLEM SPACE
@@ -90,9 +90,13 @@ EVALUATION:
 EXPLORE ──→ DIVERGE  (once UNKNOWNS resolved)
         └─→ ABORT    (problem is invalid, or not worth solving)
 
-DIVERGE ──→ CONVERGE (once ≥2 approaches exist)
+DIVERGE ──→ SPIKE    (if an approach needs executable validation)
+        └─→ CONVERGE (once ≥2 approaches exist)
         └─→ EXPLORE  (if new unknowns surface)
         └─→ ABORT    (if all approaches reveal the work isn't worth doing)
+
+SPIKE   ──→ CONVERGE (spike results inform evaluation)
+        └─→ DIVERGE  (if spike reveals the approach is unviable)
 
 CONVERGE ──→ PROPOSE (once RECOMMENDATION formed)
          └─→ DIVERGE (if evaluation reveals gaps)
@@ -108,6 +112,8 @@ PROPOSE ──→ /plan    (on human approval)
 **EXPLORE:** Understand the problem space. Gather context, surface unknowns. Block on UNKNOWNS until resolved.
 
 **DIVERGE:** Generate alternatives. Resist the urge to pick a winner — enumerate at least 2-3 meaningfully different approaches.
+
+**SPIKE:** Write throwaway code to answer a **specific feasibility question**. State the question before writing code. The spike's *results* (not code) are recorded in the sketch as evidence. Spike code is not production quality, not committed to the main repo, and explicitly expected to be discarded. A spike that answers "no, this can't work" is a successful spike.
 
 **CONVERGE:** Evaluate tradeoffs. Apply explicit criteria. Form a recommendation but remain open to being wrong.
 
