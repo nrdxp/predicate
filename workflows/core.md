@@ -85,7 +85,7 @@ Split work into logical commit boundaries to keep history clean and reviewable.
   2. **REVIEW block** — structured output of self-review findings (see format below)
   3. **Sketch update** — append execution notes to `.sketches/[topic].md`, then `git add` and `git commit` in the `.sketches/` subrepo
   4. JUSTIFICATION block for the work in this commit
-  5. Conventional commit message
+  5. [Conventional commit](https://www.conventionalcommits.org) message
   6. REMAINING STEPS — re-output remaining PLAN steps
 - Await instructions before proceeding to the next commit
 - Each commit should be atomic and independently reviewable

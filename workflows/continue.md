@@ -44,7 +44,7 @@ Output in this order, then HALT:
 2. **REVIEW block** — structured output of self-review findings (SCORE, FINDINGS with SEVERITY/ACTION/DETAIL). Any `DEFERRED` findings must populate JUSTIFICATION.DEBT.
 3. **Sketch update** — append execution notes to `.sketches/[topic].md`, then `git add` and `git commit` in the `.sketches/` subrepo. Do this while execution context is freshest.
 4. **JUSTIFICATION block** — approach, scope delta, API impact, debt
-5. **Commit message** — conventional format (header ≤50 chars)
+5. **Commit message** — [conventional format](https://www.conventionalcommits.org) (header ≤50 chars)
 6. **REMAINING STEPS** — re-output remaining PLAN steps
 
 Await explicit approval for the next commit.

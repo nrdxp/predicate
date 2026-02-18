@@ -185,7 +185,7 @@ Update comments and documentation **immediately** when logic changes. Stale docu
 
 - **Atomic Workflows:** Work in small, logical units. Stop at meaningful commit points.
 - **Commit Scope:** One logical change per commit. Avoid "and" commits.
-- **Conventional Commits:** Header ≤50 chars, imperative mood. Body wrapped at 72 chars.
+- **[Conventional Commits](https://www.conventionalcommits.org):** Header ≤50 chars, imperative mood. Body wrapped at 72 chars.
 - **No Auto-Commit:** Never execute `git commit`. Output the suggested message for human review.
 
 ### 12. Plan & Task Tracking
