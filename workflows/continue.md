@@ -41,10 +41,11 @@ Output in this order, then HALT:
    - **Reasoning quality:** did I accept a premise I should have questioned? Did I implement what the user asked without verifying it's what they need?
 
    If you find issues, fix them before proceeding.
-2. **Sketch update** — append execution notes to `.sketches/[topic].md`, then `git add` and `git commit` in the `.sketches/` subrepo. Do this while execution context is freshest.
-3. **JUSTIFICATION block** — approach, scope delta, API impact, debt
-4. **Commit message** — conventional format (header ≤50 chars)
-5. **REMAINING STEPS** — re-output remaining PLAN steps
+2. **REVIEW block** — structured output of self-review findings (SCORE, FINDINGS with SEVERITY/ACTION/DETAIL). Any `DEFERRED` findings must populate JUSTIFICATION.DEBT.
+3. **Sketch update** — append execution notes to `.sketches/[topic].md`, then `git add` and `git commit` in the `.sketches/` subrepo. Do this while execution context is freshest.
+4. **JUSTIFICATION block** — approach, scope delta, API impact, debt
+5. **Commit message** — conventional format (header ≤50 chars)
+6. **REMAINING STEPS** — re-output remaining PLAN steps
 
 Await explicit approval for the next commit.
 
