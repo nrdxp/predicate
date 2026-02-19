@@ -61,7 +61,8 @@ If context has drifted (long execution, many steps), review these in order:
 4. **Axioms** — all `.md` files directly in `.agent/axioms/` (always active)
 5. **Active Personas** — check `AGENTS.md` for which personas in `.agent/personas/` are marked active
 
+> [!IMPORTANT]
+> **Self-diagnose drift proactively.** If you find yourself uncertain about what constraints apply, unable to assess whether your work aligns with project principles, or producing JUSTIFICATION blocks without confident alignment reasoning — that is a signal to re-read axioms and active personas _now_, not after the next commit. The cost of a re-read is negligible; the cost of drifting is cumulative and silent. Invoke `/predicate` for a full refresh, or selectively re-read the specific axioms/personas you've lost context on.
+
 > [!TIP]
 > Sketches contain the full thought chain: ideation, planning, and execution notes. If you're unsure why a decision was made, the sketch is the first place to look. Use `/git-review` on `.sketches/` to see how decisions evolved.
-
-Alternatively, invoke `/predicate` for a full refresh before continuing.

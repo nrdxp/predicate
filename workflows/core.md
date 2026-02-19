@@ -138,12 +138,18 @@ The following are VIOLATIONS of this protocol. If you catch yourself doing any o
 | Discovering divergence without recording in sketch         | Untracked deviation; future agents lose context     |
 | Deferred REVIEW findings not populating JUSTIFICATION.DEBT | Silent debt accumulation; audit trail broken        |
 | ALIGNMENT or CORRECTNESS < 1.0 without REASONING           | Unexplained deviation; human cannot assess trade-off|
+| Drifting from axioms/personas without re-reading           | Silent misalignment; compounds into flawed output   |
+| Plan deviation without Deviation Log entry                 | Invisible drift; plan loses value as a record       |
 
 12. **JUSTIFICATION_AT_COMMIT:** At each COMMIT boundary, output a JUSTIFICATION block for the changes in that commit. This block must honestly assess approach rationale, scope delta, API impact, and any technical debt introduced. The user must see the justification _before_ approving the commit.
 
 13. **DEBT_TRANSPARENCY:** If a hack, band-aid, or suboptimal solution is used, it must be documented in `JUSTIFICATION.DEBT` with explicit reasoning. Omitting known compromises is a failure mode. **All** debt items — regardless of severity — must also be recorded in the plan's `## Technical Debt` section. The JUSTIFICATION block is ephemeral (lives in chat), but the plan is committed to source and visible to anyone with repo access. Low-severity debt accumulates silently; making it visible prevents death by a thousand cuts.
 
 14. **PLAN_PROGRESS:** At each COMMIT boundary, check off (`- [x]`) the completed deliverables in the plan document (`docs/plans/[topic].md`). The plan's phase items use checkboxes specifically so progress is visible to anyone reading the document. If you completed a deliverable, mark it done. The plan is a living document during execution, not a frozen artifact.
+
+15. **CONTEXT_RECOVERY:** If at any point during execution you find that you can no longer confidently recall the active axioms or personas — or you sense your reasoning is drifting from the project's established constraints — **stop and re-read them** before continuing. You may invoke `/predicate` for a full refresh, or selectively re-read `.agent/axioms/` and the active personas listed in `AGENTS.md`. The cost of a re-read is negligible; the cost of drifting from foundational rules compounds silently.
+
+16. **DEVIATION_RECORDING:** At each COMMIT boundary, if execution diverged from the plan, record the deviation in the plan's `## Deviation Log` section. Every `JUSTIFICATION.SCOPE.DELTA` that is not `UNCHANGED` should have a corresponding entry. The deviation log is the canonical, at-a-glance record of how reality differed from the plan — complementary to the sketch's execution notes (which capture real-time observations) and the retrospective (which is post-hoc synthesis).
 
 ---
 

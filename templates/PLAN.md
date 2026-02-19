@@ -100,6 +100,22 @@
 | Item | Severity | Why Introduced | Follow-Up | Resolved |
 | :--- | :------- | :------------- | :-------- | :------: |
 
+## Deviation Log
+
+<!--
+  Populated during CORE execution whenever reality diverges from the plan.
+  Every JUSTIFICATION.SCOPE.DELTA that is not UNCHANGED should have a
+  corresponding entry here. This is the canonical, at-a-glance record of
+  how execution differed from what was planned — complementary to the
+  sketch's real-time execution notes and the retrospective's post-hoc
+  synthesis.
+
+  This section is empty at plan creation and populated during execution.
+-->
+
+| Commit | Planned | Actual | Rationale |
+| :----- | :------ | :----- | :-------- |
+
 ## Retrospective
 
 <!--
