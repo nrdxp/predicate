@@ -163,6 +163,101 @@ Record unexpected discoveries immediately — do not defer to phase end. If you 
 
 ---
 
+## Strategic Escalation
+
+Divergence from a plan is tactical — it's contained within the plan's scope and handled by the Deviation Log. But some deviations are **strategic** — they threaten the assumptions of upstream artifacts (charters, models, ADRs). Strategic drift requires immediate escalation, not silent absorption.
+
+### Tactical vs. Strategic Evaluation
+
+At any workflow boundary where deviation is detected, evaluate:
+
+- **Tactical drift:** The deviation changes *how* the work is done but stays within the plan's goals, the charter's NON_GOALS, and the charter's APPETITE. Record in the Deviation Log and continue.
+- **Strategic drift:** The deviation violates a charter NON_GOAL, pushes past APPETITE, contradicts the NORTH_STAR, invalidates a formal model's assumptions, or renders an ADR's rationale obsolete. This requires ESCALATION.
+
+### ESCALATION Block
+
+When strategic drift is detected, emit an ESCALATION block and **HALT**:
+
+```yaml
+ESCALATION:
+  TYPE: STRATEGIC_DRIFT
+  ARTIFACT: "path/to/threatened/artifact"
+  VIOLATION: "What upstream constraint is threatened"
+  EVIDENCE: "The specific deviation or discovery that triggered this"
+  RECOMMENDATION: [RE_CHARTER | DIALECTIC | DESCOPE]
+```
+
+**This is a HALT point.** The human decides the response path:
+
+- **RE_CHARTER:** The strategic frame needs revision. Open a Reconciliation Sketch (see below).
+- **DIALECTIC:** The tension is genuinely contested — neither the strategy nor the reality is clearly wrong. Escalate to `/dialectic` for multi-model arbitration.
+- **DESCOPE:** The plan must be cut to fit within the existing strategy. Revise the plan's phases and re-enter `/core`.
+
+> [!CAUTION]
+> **Strategic deviation without ESCALATION is a protocol violation.** If `JUSTIFICATION.SCOPE.DELTA != UNCHANGED` and the deviation threatens an upstream artifact, silently absorbing it breaks the coherence of the entire artifact chain. The cost of a false-positive ESCALATION is a brief human review. The cost of silent strategic drift is artifact rot across charters, plans, models, and ADRs.
+
+### Where ESCALATION Applies
+
+ESCALATION is a **framework invariant**, not workflow-specific. Any workflow that interacts with reality closely enough to invalidate an upstream premise must be able to throw ESCALATION:
+
+| Workflow    | Escalation Point                                                  |
+| :---------- | :---------------------------------------------------------------- |
+| `/core`     | Commit boundaries (when `SCOPE.DELTA != UNCHANGED`)              |
+| `/plan`     | CHALLENGE and SCOPE states (when phases violate charter constraints) |
+| `/model`    | VALIDATE state (when domain math contradicts upstream artifacts)  |
+| `/continue` | Commit boundaries (mirrors `/core`)                              |
+
+---
+
+## Reconciliation Sketches
+
+When ESCALATION fires and the human chooses **RE_CHARTER**, the response is a **Reconciliation Sketch** — a sketch with structured context that distinguishes it from normal exploration.
+
+A normal sketch starts from: "What should we do about X?"
+A reconciliation sketch starts from: "We believed X. Reality proved Y. What does this mean for artifacts A, B, C?"
+
+### Reconciliation Context Template
+
+A reconciliation sketch must open with this context block:
+
+```markdown
+## Reconciliation Context
+
+### Trigger
+- ESCALATION from: [commit/conversation reference]
+- Type: STRATEGIC_DRIFT
+- Evidence: [the specific deviation]
+
+### Invalidated Assumption
+- What we believed: [quote from charter/plan/model]
+- What's actually true: [evidence from execution]
+
+### Blast Radius
+- Affected artifacts:
+  - [ ] `docs/charters/X.md` — [what's threatened]
+  - [ ] `docs/plans/Y.md` — [what's threatened]
+  - [ ] `docs/models/Z.md` — [what's threatened]
+  - [ ] `docs/adr/NNN.md` — [what's threatened]
+
+### Direction (human decides)
+- [ ] **AMEND STRATEGY** — bend the charter/model to fit what we learned
+- [ ] **CONSTRAIN TACTICS** — descope the plan to stay within the original strategy
+- [ ] **REFRAME** — the problem itself has changed; start a new charter cycle
+```
+
+### Exit Paths
+
+Once the human approves a direction in PROPOSE:
+
+- **AMEND STRATEGY:** The sketch converges on specific amendments to the affected upstream artifacts. The agent applies these amendments directly through normal commit discipline — no `/plan` required for text-level charter or model updates. After amendments are committed, the interrupted workflow resumes.
+- **CONSTRAIN TACTICS:** The sketch converges on specific plan descoping. Amendments are recorded in the plan's Deviation Log. The interrupted workflow resumes with reduced scope.
+- **REFRAME:** The sketch becomes the input to a new `/charter` cycle, with explicit reference to the old charter and what it got wrong. The interrupted workflow is abandoned.
+
+> [!IMPORTANT]
+> **Reconciliation vs. Dialectic:** Reconciliation sketches handle **empirical invalidation** — "reality proved us wrong, how do we adapt?" Dialectic handles **logical arbitration** — "we have two compelling theories and reality hasn't forced our hand yet." Default to reconciliation for strategic drift; escalate to `/dialectic` only when the tension is genuinely contested rather than empirically resolved.
+
+---
+
 ## Retrospective
 
 After all phases of a plan are executed, the sketch should have a final section that closes the loop on the lifecycle. This is not a separate workflow — it's the last chapter of the sketch's story.

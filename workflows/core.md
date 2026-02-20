@@ -115,7 +115,7 @@ Split work into logical commit boundaries to keep history clean and reviewable.
 
 8. **REMAINING_STEPS:** After each COMMIT boundary, re-output the remaining PLAN steps so the user knows what work remains. Never leave context ambiguous.
 
-9. **SCHEMA_RIGIDITY:** Do not add arbitrary fields to the CORE-YAML grammar. Permitted fields: STATUS, CONFIDENCE, ALIGNMENT, CORRECTNESS, REASONING, CTX, OBSTACLES, PLAN. At commit boundaries, REVIEW is also required. All output artifacts (code, commit messages, verification, justification) go in the final response after the YAML block.
+9. **SCHEMA_RIGIDITY:** Do not add arbitrary fields to the CORE-YAML grammar. Permitted fields: STATUS, CONFIDENCE, ALIGNMENT, CORRECTNESS, REASONING, CTX, OBSTACLES, PLAN. At commit boundaries, REVIEW is also required; ESCALATION is permitted when strategic drift is detected. All output artifacts (code, commit messages, verification, justification) go in the final response after the YAML block.
 
 10. **GRANULARITY_CAP:** Each CORE invocation should cover at most **2-3 commit boundaries**. If more work remains after the last commit boundary, HALT and let the user invoke `/continue` or a new `/core` for the next chunk. Do not attempt to cover an entire plan in one session.
 
@@ -140,6 +140,7 @@ The following are VIOLATIONS of this protocol. If you catch yourself doing any o
 | ALIGNMENT or CORRECTNESS < 1.0 without REASONING           | Unexplained deviation; human cannot assess trade-off|
 | Drifting from axioms/personas without re-reading           | Silent misalignment; compounds into flawed output   |
 | Plan deviation without Deviation Log entry                 | Invisible drift; plan loses value as a record       |
+| Strategic deviation without ESCALATION                     | Silent charter/model rot; upstream artifacts lose meaning |
 
 12. **JUSTIFICATION_AT_COMMIT:** At each COMMIT boundary, output a JUSTIFICATION block for the changes in that commit. This block must honestly assess approach rationale, scope delta, API impact, and any technical debt introduced. The user must see the justification _before_ approving the commit.
 
@@ -183,6 +184,7 @@ EXECUTE ──→ CLARIFY (if verification fails or scope expands)
 3. Output VERIFY justification for each step
 4. At each COMMIT boundary, follow the procedure in **Commit Boundaries** above
 5. Never auto-commit (`engineering.md` §11); user commits manually
+6. At each COMMIT boundary, if `JUSTIFICATION.SCOPE.DELTA != UNCHANGED`, evaluate whether the deviation is tactical or strategic per the planning persona's **Strategic Escalation** section. If strategic, emit an ESCALATION block and HALT.
 
 **ABORT:** A core assumption has been invalidated, or the approach is fundamentally broken. This is not a question (that's CLARIFY) — it's a recommendation to abandon this CORE session. Output:
 

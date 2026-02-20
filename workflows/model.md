@@ -151,6 +151,7 @@ Verify the model's internal consistency, external adequacy, and framing assumpti
 - **External adequacy:** Does the model capture the domain faithfully? Are there domain properties that the model cannot express?
 - **Minimality:** Is the model unnecessarily complex? Could a simpler formalism capture the same properties?
 - **Assumption independence:** Revisit the framing from IDENTIFY. Now that the model is constructed, does the domain's actual structure confirm the assumptions that guided formalism selection? A model can be internally consistent yet built on an unchallenged framing error — the formalism "works" because the wrong question was asked precisely.
+- **Upstream coherence:** Does the validated model contradict any upstream strategic artifact — a charter's NORTH_STAR, a plan's assumptions, or an existing ADR's rationale? If the model reveals that an upstream premise is false, emit an ESCALATION block per the planning persona's **Strategic Escalation** section and HALT. A valid model that contradicts the charter is a discovery, not an error.
 
 Document all validation checks and their results.
 

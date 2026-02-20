@@ -189,6 +189,8 @@ Use these techniques:
 
 **SCOPE:** Define explicit phases with concrete deliverables. Sharpen NON*GOALS. Each phase should be C.O.R.E.-executable. For each phase, explicitly evaluate whether the estimated scope is \_worth the investment* — if a phase is estimated LARGE, articulate what a MEDIUM version looks like. If you can't descope it, flag it as a risk. The question isn't just "how big is this?" but "is it worth this much?"
 
+**Charter Alignment Gate:** If the plan references a charter (`## References`), verify each phase against the charter's NON_GOALS and APPETITE before transitioning to COMMIT. If a phase would violate a NON_GOAL or push past APPETITE, it cannot be scoped without first revising the charter — emit an ESCALATION block per the planning persona's **Strategic Escalation** section and HALT.
+
 **COMMIT:** Present complete plan for human approval. The committed plan artifact **MUST** use `templates/PLAN.md` — see [Response Format](#response-format). Produce ADR when warranted. Human approval triggers transition to execution.
 
 ---

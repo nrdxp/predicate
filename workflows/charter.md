@@ -156,5 +156,5 @@ You MUST stop and await human input at these points:
 
 1. **Before declaring the charter complete:** The human must review and approve the charter before it's committed. A charter frames all downstream work — getting it wrong is expensive. Before presenting, independently re-derive the PURPOSE: "If I had no prior conversation with this user, would I arrive at this same problem statement from the evidence?" If you can't, surface the gap.
 
-> [!NOTE]
-> A charter that gets revised after downstream work has started is not a failure — it's a sign that the team learned something. Update the charter, note what changed and why, and adjust affected workstreams accordingly.
+> [!IMPORTANT]
+> A charter that gets revised after downstream work has started is not a failure — it's a sign that the team learned something. However, charter amendments with active downstream work **require a Reconciliation Sketch** (see the planning persona's **Reconciliation Sketches** section) to scope the blast radius and ensure all affected plans, models, and ADRs are updated coherently. Do not amend a charter in isolation — artifacts that reference it must be reconciled atomically.

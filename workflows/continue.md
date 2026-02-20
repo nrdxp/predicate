@@ -21,6 +21,7 @@ As you execute, you MUST:
 4. **HALT on divergence** — if reality differs from plan, revert to CLARIFY
 5. **Output artifacts visibly** — code, messages, and verification in final response (not hidden)
 6. **Update and commit sketch** — per the planning persona's Sketch Commit Discipline and Lifecycle Journal sections
+7. **Evaluate strategic drift** — at commit boundaries, if `JUSTIFICATION.SCOPE.DELTA != UNCHANGED`, assess whether the deviation is tactical or strategic per the planning persona's **Strategic Escalation** section. If strategic, emit an ESCALATION block and HALT.
 
 You must NOT:
 
