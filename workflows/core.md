@@ -85,7 +85,7 @@ Split work into logical commit boundaries to keep history clean and reviewable.
   2. **REVIEW block** — structured output of self-review findings (see format below)
   3. **Sketch update** — append execution notes to `.sketches/[topic].md`, then `git add` and `git commit` in the `.sketches/` subrepo
   4. JUSTIFICATION block for the work in this commit
-  5. [Conventional commit](https://www.conventionalcommits.org) message
+  5. [Conventional commit](https://www.conventionalcommits.org) message (subject to `documentation.md § Core Writing Principles` — answer first, active voice, no filler)
   6. REMAINING STEPS — re-output remaining PLAN steps
 - Await instructions before proceeding to the next commit
 - Each commit should be atomic and independently reviewable
@@ -119,7 +119,7 @@ Split work into logical commit boundaries to keep history clean and reviewable.
 
 10. **GRANULARITY_CAP:** Each CORE invocation should cover at most **2-3 commit boundaries**. If more work remains after the last commit boundary, HALT and let the user invoke `/continue` or a new `/core` for the next chunk. Do not attempt to cover an entire plan in one session.
 
-11. **SKETCH_AT_BOUNDARY:** At every COMMIT boundary, update the active sketch per the planning persona's Sketch Commit Discipline and Lifecycle Journal sections.
+11. **SKETCH_AT_BOUNDARY:** At every COMMIT boundary, update the active sketch per the planning persona § Sketch Commit Discipline and § Sketch as Lifecycle Journal.
 
 ### Protocol Violations (FORBIDDEN)
 
@@ -184,7 +184,7 @@ EXECUTE ──→ CLARIFY (if verification fails or scope expands)
 3. Output VERIFY justification for each step
 4. At each COMMIT boundary, follow the procedure in **Commit Boundaries** above
 5. Never auto-commit (`engineering.md` §11); user commits manually
-6. At each COMMIT boundary, if `JUSTIFICATION.SCOPE.DELTA != UNCHANGED`, evaluate whether the deviation is tactical or strategic per the planning persona's **Strategic Escalation** section. If strategic, emit an ESCALATION block and HALT.
+6. At each COMMIT boundary, if `JUSTIFICATION.SCOPE.DELTA != UNCHANGED`, evaluate whether the deviation is tactical or strategic per the planning persona § Strategic Escalation. If strategic, emit an ESCALATION block and HALT.
 
 **ABORT:** A core assumption has been invalidated, or the approach is fundamentally broken. This is not a question (that's CLARIFY) — it's a recommendation to abandon this CORE session. Output:
 
@@ -226,7 +226,7 @@ When reverting, preserve completed steps and scope new OBSTACLES to remaining wo
 When executing a plan that references a sketch:
 
 1. **Check availability:** If `.sketches/[topic].md` exists, load it as context
-2. **Update at every COMMIT boundary** — per the planning persona's lifecycle journal pattern (execution notes format, divergence tracking, commit discipline)
+2. **Update at every COMMIT boundary** — per the planning persona § Sketch as Lifecycle Journal (execution notes format, divergence tracking, commit discipline)
 3. **Record unexpected discoveries immediately** — do not defer to phase end
 
 > [!TIP]

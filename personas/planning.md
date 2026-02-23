@@ -174,6 +174,12 @@ At any workflow boundary where deviation is detected, evaluate:
 - **Tactical drift:** The deviation changes *how* the work is done but stays within the plan's goals, the charter's NON_GOALS, and the charter's APPETITE. Record in the Deviation Log and continue.
 - **Strategic drift:** The deviation violates a charter NON_GOAL, pushes past APPETITE, contradicts the NORTH_STAR, invalidates a formal model's assumptions, or renders an ADR's rationale obsolete. This requires ESCALATION.
 
+**Examples to sharpen the boundary:**
+
+- *Tactical:* Switching from `HashMap` to `BTreeMap` for deterministic iteration — changes implementation detail, stays within plan goals. Record in Deviation Log, continue.
+- *Strategic:* Discovering the problem requires a relational database when the charter scoped a file-based store — violates architecture assumptions. ESCALATE.
+- *Strategic:* Feature creep pushes estimated scope past the charter's APPETITE — threatens upstream budget constraint. ESCALATE.
+
 ### ESCALATION Block
 
 When strategic drift is detected, emit an ESCALATION block and **HALT**:
