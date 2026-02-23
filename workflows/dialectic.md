@@ -124,9 +124,9 @@ Present the strongest **honest** case AGAINST the proposition.
 4. Surface omissions — what might be **missing from this entire discussion**? Your different vantage point may reveal gaps invisible to the thesis. What questions should both sides be asking but aren't?
 5. Commit the argument to the sketch under `DIALECTIC.HISTORY[n].ANTITHESIS`.
 
-**The independence guard:** Your argument must be derivable without reading the thesis. If your entire case is "the thesis said X, but actually Y," you're reacting, not reasoning. Start from the proposition itself and build your case, then address the thesis's specific claims.
+**The independence guard:** Your argument must be derivable without reading the thesis. If your entire case is "the thesis said X, but actually Y," you're reacting, not reasoning. Start from the proposition itself and build your case, then address the thesis's specific claims. **Self-test before committing:** Could you have constructed this argument from just the proposition and stakes, without seeing the thesis text? If not, you are reacting to the thesis's frame rather than reasoning from first principles.
 
-**The honesty guard:** You MUST include at least one genuine concession — something the thesis gets right. If you can't find any, you're being Sophistic, not Socratic.
+**The honesty guard:** You MUST include at least one genuine concession — something the thesis gets right. If you can't find any, you're being Sophistic, not Socratic. A concession acknowledges a valid point without diminishing your counter-argument. If your concessions outweigh your counter-arguments, you are capitulating, not conceding — restructure.
 
 > [!IMPORTANT]
 > **HALT after ANTITHESIS.** The human switches models before invoking `/dialectic` again for synthesis.
@@ -137,15 +137,19 @@ Distill what is actually true from both perspectives. Synthesis serves as a **me
 
 1. **Read the sketch** to recover both the thesis and antithesis arguments.
 2. Identify where each perspective is correct, where each is wrong, and where genuine tension remains.
-3. **Shared blind spot check:** What assumptions do BOTH sides share? What frame do they both operate within without questioning it? What would an observer from a completely different domain notice that neither side raised? This is the unique value of synthesis — it's the only role that reads both arguments and can spot the gaps between them.
+3. **Shared blind spot check:** What assumptions do BOTH sides share? What frame do they both operate within without questioning it? This is the unique value of synthesis — it's the only role that reads both arguments and can spot the gaps between them. Use these lenses:
+   - What assumptions are **necessary** for both arguments to hold? What would invalidate them?
+   - What would an observer from a **completely different domain** notice that neither side raised?
+   - What **external perspectives** (user, competitor, regulator, layperson) are absent from the discussion?
+   - What are the **implicit technology or methodology assumptions** that both sides take for granted?
 4. Produce a **resolution map**, not a verdict:
    - What claims are confirmed by both sides?
    - What claims are refuted?
    - What tensions remain genuinely unresolved? (known unknowns)
    - What blind spots were neither side examining? (unknown unknowns)
 5. Recommend one of:
-   - **RESOLVED** — the dialectic has produced sufficient clarity to proceed.
-   - **ANOTHER_ROUND** — specific unresolved tensions or newly surfaced blind spots warrant another thesis/antithesis cycle with refined scope. Name the exact questions the next round should focus on.
+   - **RESOLVED** — the dialectic has produced sufficient clarity to proceed, meaning all identified tensions are resolved and no significant blind spots remain unaddressed. A verdict of RESOLVED is invalid if the synthesis identifies unresolved tensions or significant blind spots.
+   - **ANOTHER_ROUND** — the default recommendation when genuine tensions remain unresolved or when new blind spots or dimensions are surfaced by the synthesis. Name the exact questions the next round should focus on.
    - **REFRAME** — the dialectic reveals the proposition itself is wrong. Return to FRAME with a better question.
    - **ABANDON** — the stakes don't justify further examination.
 6. Commit the synthesis to the sketch under `DIALECTIC.HISTORY[n].SYNTHESIS`.
