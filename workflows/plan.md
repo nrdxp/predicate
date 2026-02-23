@@ -53,6 +53,8 @@ Before entering REFINE, verify:
 2. **Template available** — confirm `templates/PLAN.md` exists in the repository (the COMMIT artifact requires it)
 3. **Charter loaded** — if the work references a charter, load it now; CHALLENGE and SCOPE will need it for alignment gates
 
+**If any check fails, HALT.** Output a CLARIFY block with the missing prerequisites as OBSTACLES. Do not enter REFINE with incomplete context — the cost of discovering a missing charter mid-CHALLENGE is wasted work and broken alignment gates.
+
 ---
 
 ## Plan Storage
