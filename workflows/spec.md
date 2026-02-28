@@ -91,6 +91,26 @@ Use these heuristics:
 
 When in doubt, err toward more formalism. The cost of over-specifying is ceremony; the cost of under-specifying is implementation bugs.
 
+### Domain Conventions
+
+Criticality is not the only axis. Many domains have **established specification traditions** with their own formats, conventions, and tooling. When a domain convention exists, prefer it over a generic notation — it carries decades of community-tested structure and will be more natural for both human reviewers and agents trained on that corpus.
+
+Common domain-specific specification formats:
+
+| Domain                   | Established Format                                       | When to Use                                                |
+| :----------------------- | :------------------------------------------------------- | :--------------------------------------------------------- |
+| Network protocols        | IETF RFC format with ABNF grammars (RFC 5234)            | Specifying wire formats, message sequences, state machines |
+| APIs                     | OpenAPI / AsyncAPI                                       | Specifying REST/event-driven API contracts                 |
+| Data validation          | JSON Schema / XML Schema                                 | Specifying structural constraints on data interchange      |
+| Programming languages    | EBNF grammars + operational/denotational semantics       | Specifying syntax and evaluation rules                     |
+| Requirements engineering | IEEE 830 / ISO/IEC/IEEE 29148                            | Specifying system-level requirements for large projects    |
+| Cryptographic protocols  | Formal security models (UC framework, game-based proofs) | Specifying security properties and adversary models        |
+
+These formats are not alternatives to the SPEC.md template — they complement it. The SPEC.md template captures the **predicate-internal normative layer** (invariants, transitions, forbidden states, verification tags). Domain-specific formats live inside the template's **Formal Specification** section, providing the domain-standard representation alongside the predicate-internal constraints.
+
+> [!TIP]
+> If the domain has an established specification format, use it. The SPEC.md template's "Formal Specification" section is designed to host domain-standard notation. The constraint sections above it provide the pipeline-internal normative layer; the formal specification section provides the domain-standard layer.
+
 ---
 
 ## Procedure
