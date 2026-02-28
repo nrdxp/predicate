@@ -179,7 +179,8 @@ Link the model to the broader context.
 
 - Update the sketch (if one exists for this workstream) with modeling findings
 - Cross-reference related models in `docs/models/`
-- Note implications for downstream work: implementation, testing, architecture decisions
+- Cross-reference related specifications in `docs/specs/` — if a spec constrains this model's domain, flag whether the model's state space satisfies the spec's constraints
+- Note implications for downstream work: specification, planning, implementation, testing
 - If the model reveals design flaws or structural problems, flag them explicitly
 
 ---
@@ -250,9 +251,11 @@ MODEL fits into the pipeline as a domain-specific tool:
          ↓
 /model   →  formalize domain understanding (can be invoked from any phase)
          ↓
-/plan    →  stress-test direction (informed by model)
+/spec    →  declare normative constraints over the model (→ what MUST hold)
          ↓
-/core    →  implement (guided by model)
+/plan    →  stress-test direction (informed by model, constrained by spec)
+         ↓
+/core    →  implement (guided by model, constrained by spec)
 ```
 
 MODEL can be invoked standalone or from within any other phase. A model produced during `/sketch` informs `/plan`. A model produced during `/core` validates implementation decisions. The formal model is a _thinking tool_ available at any point in the pipeline.

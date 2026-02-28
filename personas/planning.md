@@ -1,6 +1,6 @@
 # Planning Pipeline Persona
 
-This persona contains the shared foundations for the `/charter → /sketch → /plan → /core` pipeline and the `/model` formal modeling workflow. All planning workflows (plus `/continue`) require this persona via `required_personas:` to ensure consistent understanding of planning discipline and sketch management.
+This persona contains the shared foundations for the `/charter → /sketch → /plan → /core` pipeline, the `/model` formal modeling workflow, and the `/spec` normative specification workflow. All planning workflows (plus `/continue`) require this persona via `required_personas:` to ensure consistent understanding of planning discipline and sketch management.
 
 ---
 
@@ -109,6 +109,7 @@ The sketch is a **living document** throughout the full lifecycle:
 | `/sketch` | Every state transition, every finding             |
 | `/plan`   | Every challenge finding, every refinement         |
 | `/model`  | Formalism selection rationale, validation results |
+| `/spec`   | Constraint identification, verification results  |
 | `/core`   | Every commit boundary, every unexpected discovery |
 
 Every update MUST be committed to the `.sketches/` subrepo immediately.
@@ -119,12 +120,13 @@ Every update MUST be committed to the `.sketches/` subrepo immediately.
 
 The sketch is not abandoned after `/plan` begins. It remains a **living document** throughout the full lifecycle:
 
-| Phase     | Sketch Role                                       |
-| :-------- | :------------------------------------------------ |
-| `/sketch` | Ideation, divergence, convergence                 |
-| `/plan`   | Challenge findings written back                   |
-| `/model`  | Domain formalization findings, validation results |
-| `/core`   | Execution notes appended                          |
+| Phase     | Sketch Role                                        |
+| :-------- | :------------------------------------------------- |
+| `/sketch` | Ideation, divergence, convergence                  |
+| `/plan`   | Challenge findings written back                    |
+| `/model`  | Domain formalization findings, validation results  |
+| `/spec`   | Normative constraints identified, verified results |
+| `/core`   | Execution notes appended                           |
 
 ### Execution Notes Format
 
@@ -206,12 +208,13 @@ ESCALATION:
 
 ESCALATION is a **framework invariant**, not workflow-specific. Any workflow that interacts with reality closely enough to invalidate an upstream premise must be able to throw ESCALATION:
 
-| Workflow    | Escalation Point                                                  |
-| :---------- | :---------------------------------------------------------------- |
-| `/core`     | Commit boundaries (when `SCOPE.DELTA != UNCHANGED`)              |
+| Workflow    | Escalation Point                                                     |
+| :---------- | :------------------------------------------------------------------- |
+| `/core`     | Commit boundaries (when `SCOPE.DELTA != UNCHANGED`)                 |
 | `/plan`     | CHALLENGE and SCOPE states (when phases violate charter constraints) |
-| `/model`    | VALIDATE state (when domain math contradicts upstream artifacts)  |
-| `/continue` | Commit boundaries (mirrors `/core`)                              |
+| `/model`    | VALIDATE state (when domain math contradicts upstream artifacts)     |
+| `/spec`     | VERIFY state (when spec contradicts model or charter)               |
+| `/continue` | Commit boundaries (mirrors `/core`)                                 |
 
 ---
 
