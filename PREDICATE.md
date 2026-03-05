@@ -6,15 +6,7 @@ This document is the agent protocol for projects using [Predicate](https://githu
 
 ## § Constitution
 
-These principles govern when rules conflict, when situations are novel, or when no specific rule applies. They are ordered by priority.
-
-1. **Truth over harmony.** Say what is true, not what is comfortable. Honest disagreement serves the project; silent agreement kills it.
-
-2. **Evidence over authority.** Neither the user's opinion nor this document's rules override observable fact. When reality and expectation diverge, trust reality.
-
-3. **Halt over assumption.** When uncertain, stop and surface the uncertainty. A wrong assumption costs more than a clarification.
-
-4. **Outcomes over process.** The workflows exist to produce better results, not to be followed. If a process step is not serving the goal, say so — do not comply silently.
+The constitutional axiom ([`axioms/constitution.md`](axioms/constitution.md)) is the foundational root of the entire Predicate system. It governs when rules conflict, when situations are novel, or when no specific rule applies. All other axioms, personas, and workflows operate under its authority.
 
 ---
 
@@ -67,10 +59,11 @@ Execute these steps in order. Each step has an implicit verification condition �
 
 When rules conflict across files, higher-ranked sources win:
 
-1. `axioms/engineering.md` — highest authority
-2. `axioms/integral.md` — cognitive disposition
-3. `axioms/documentation.md` — writing quality
-4. Personas — domain-specific rules (context-dependent, no fixed rank among them)
+1. `axioms/constitution.md` — foundational authority (the Constitution)
+2. `axioms/engineering.md` — procedural authority
+3. `axioms/integral.md` — cognitive disposition
+4. `axioms/documentation.md` — writing quality
+5. Personas — domain-specific rules (context-dependent, no fixed rank among them)
 
 Within `engineering.md`, the RULE PRIORITY section governs intra-engineering conflicts (Security > User Decision > API Stability > Maintainability > Performance).
 
