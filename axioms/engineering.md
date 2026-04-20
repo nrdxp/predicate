@@ -142,6 +142,16 @@ Before beginning any non-trivial task:
 - **Dependency Minimalism:** Prefer standard library solutions.
 - **Concurrency Awareness:** When working with concurrent/async code, explicitly consider shared state, race conditions, deadlocks, and cancellation semantics.
 
+#### 8.1. Spacetime of Code
+
+Code goes wrong along two axes, not one. A single-lens review audits half the code.
+
+- **Structural simplicity** (spatial axis): Are independent concerns interleaved? Two ideas braided into one module, one function, or one match arm so that touching one forces you to touch the other = complected. The fix is separation. The dual — one domain concept shattered across multiple locations whose coherence depends on an unenforced rule — is fragmentation. The fix is reunification. See `/hickey` for the full evaluation procedure.
+
+- **Volatility alignment** (temporal axis): Do boundaries encapsulate axes of change, or do they just group related functionality? Code that *works* today but places a decision in the wrong layer — where it will rev on a different clock than its neighbors — is a volatility time-bomb. Functional decomposition maximizes the blast radius of change; volatility-based decomposition contains it. See `/lowy` for the full evaluation procedure.
+
+When reviewing architectural decisions, run both lenses. Findings will predominantly be single-axis. When both lenses converge on the same location, the signal is particularly acute.
+
 ### 9. Security, Reliability & Observability
 
 #### Input Validation

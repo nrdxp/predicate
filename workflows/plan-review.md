@@ -123,6 +123,8 @@ Use these review lenses:
 - **Debt Integrity:** Compare JUSTIFICATION.DEBT blocks from `/core` against the plan's Technical Debt table. Was all debt properly tracked? Was any rationalized away?
 - **Pattern Detection:** Look across commits for recurring issues — repeated scope drift, consistently underestimated phases, the same kind of mistake appearing multiple times.
 - **Well-formedness:** Are commits atomic? Do messages follow convention? Are verify conditions actually met?
+- **Structural Simplicity:** Are independent concerns interleaved (complected) or fragmented across locations? See `/hickey` for the full evaluation procedure.
+- **Volatility Alignment:** Do module boundaries encapsulate axes of change, or just group related functionality? See `/lowy` for the full evaluation procedure.
 
 **REPORT:** Synthesize findings into a structured summary. Present findings to the human with questions and recommendations. This is a HALT point — the human decides what to do with the findings.
 
