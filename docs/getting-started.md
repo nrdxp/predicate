@@ -8,7 +8,7 @@ Add Predicate to your project, configure active rules, and verify the agent inte
 
 ## 1. Add Predicate to Your Project
 
-We recommend adding Predicate as a Git Submodule under `.agents/` and then running the integration helper script.
+We recommend adding Predicate as a Git Submodule under `.agents/` in your project root.
 
 ### Step 1: Add the Submodule
 
@@ -18,16 +18,7 @@ At the root of your project, run:
 git submodule add https://github.com/nrdxp/predicate.git .agents
 ```
 
-### Step 2: Establish Symlinks for Tool Integration
-
-Predicate comes with a setup script that hooks rules, custom skills, and workflows into your environment (creating `.claude/commands`, `.claude/skills`, and `CLAUDE.md` automatically):
-
-```bash
-# Run the integration helper script
-./.agents/scripts/setup-links.sh
-```
-
-### Step 3: Copy AGENTS.md Template
+### Step 2: Copy AGENTS.md Template
 
 Copy the project-level configuration template to your project root:
 
@@ -65,24 +56,19 @@ Example active rules for a Go project:
 
 ## 3. Verify Integration
 
-Once the integration script has run, your project structure should look like this:
+After adding the submodule and `AGENTS.md`, your project structure should look like this:
 
 ```
 your-project/
 ├── .agents/               # The Predicate submodule
 │   ├── rules/             # Axioms and glob/model rules
 │   ├── skills/            # Custom skills and scripts
-│   ├── workflows/         # Slash command workflow files
-│   └── scripts/           # Setup and utility scripts
-├── .claude/               # Claude Code configuration (created by setup-links.sh)
-│   ├── commands/          # Symlinked workflows (custom slash commands)
-│   └── skills/            # Symlinked skill packages
-├── AGENTS.md              # Project metadata & active rules
-└── CLAUDE.md              # Root-level entry point pointing to constitution.md
+│   └── workflows/         # Slash command workflow files
+└── AGENTS.md              # Project metadata & active rules
 ```
 
 Verify that your agent of choice (e.g., Claude Code or Antigravity CLI) detects the configuration:
-- In Claude Code, type `/` to see the symlinked workflows (like `/core`, `/plan`, `/sketch`) list in the commands menu.
+- In the agent chat, type `/` to see the workflows (like `/core`, `/plan`, `/sketch`) list in the commands menu.
 - Open files to verify glob rules load automatically (e.g., editing a Rust file triggers the rules in `.agents/rules/rust.md`).
 
 ---

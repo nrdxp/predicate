@@ -41,7 +41,7 @@ Predicate integrates with existing conventions rather than inventing new ones:
 
 - **[AGENTS.md](https://agents.md)** — The emerging standard for project-level agent configuration
 - **`.agents/` directory** — Common location recognized by agentic tools (e.g. Antigravity CLI)
-- **Workflow triggers** — Slash commands familiar to most agent interfaces (and bridged to Claude Code)
+- **Workflow triggers** — Slash commands familiar to most agent interfaces
 
 ### The Planning Pipeline
 
