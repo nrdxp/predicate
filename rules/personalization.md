@@ -1,7 +1,7 @@
 ---
 name: personalization
 description: "User personalization preferences and communication style"
-activation: model
+activation: always
 ---
 
 # Personalization

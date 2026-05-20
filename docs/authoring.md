@@ -1,4 +1,4 @@
-# Writing Custom Axioms, Personas, and Workflows
+# Writing Custom Rules and Workflows
 
 How to extend predicate with your own rulesets, context extensions, and task procedures.
 
@@ -6,86 +6,91 @@ How to extend predicate with your own rulesets, context extensions, and task pro
 
 ---
 
-## The Three Tiers
+## The Core Concept: Rules and Workflows
 
-Each tier has a different activation model. This determines what belongs where.
+Predicate is structured around two main categories of configuration:
 
-| Tier         | When Active                                         | Voice                                     |
-| :----------- | :-------------------------------------------------- | :---------------------------------------- |
-| **Axiom**    | Always — loaded unconditionally on every task       | Authoritative. Non-negotiable rules.      |
-| **Persona**  | On demand — required by project or adopted by agent | Advisory. Domain-specific best practices. |
-| **Workflow** | On trigger — user invokes via slash command         | Procedural. Step-by-step protocol.        |
-
-**The activation model is the key design decision.** If a rule must apply to every task regardless of context, it's an axiom. If it applies only to certain languages, domains, or tools, it's a persona. If it's a structured procedure the user triggers deliberately, it's a workflow.
+1. **Rules** (located in `rules/`): General guidelines, constraints, and personas that govern how the agent behaves and reasons. They are activated automatically based on frontmatter configuration.
+2. **Workflows** (located in `workflows/`): Manual procedures and protocols triggered by the user via slash commands (e.g., `/plan`, `/core`, `/doc`).
 
 ---
 
-## Axioms
+## Rules
 
-Axioms live in `axioms/`. The agent reads and obeys every axiom on every task — no opt-out. This means axioms must be:
+Rules live in `rules/` and consolidate the legacy concepts of *axioms* and *personas*. A rule's activation model is defined by its frontmatter.
 
-- **Universal** — applicable to any project, any language, any task type
-- **Concise** — every line costs context on every interaction; earn your bytes
-- **Non-conflicting** — axioms cannot contradict each other
+### The Three Rule Types
 
-### Frontmatter
+| Type | Frontmatter Activation | When Active | Purpose / Voice |
+| :--- | :--- | :--- | :--- |
+| **Axiom** | `activation: always` | Active unconditionally on every task | Universal, non-negotiable standards (e.g., code safety). |
+| **Glob Rule** | `activation: glob` | Active when editing or reading matched files | Language-specific or filetype conventions (e.g., `*.go` patterns). |
+| **Model Rule** | `activation: model` | Activated semantically by the model when relevant | Domain-specific guidance (e.g., domain modeling). |
 
+---
+
+### Axioms (`activation: always`)
+
+Axioms must be universal, concise, and non-conflicting. Because they load on every single interaction, every byte should earn its place in the context window.
+
+#### Frontmatter
 ```yaml
 ---
-name: "Human-Readable Name"
-description: "One-line purpose"
-version: "1.0.0" # optional, but useful for tracking changes
+name: "engineering"
+description: "Technical and maintainability rules for codebase edits"
+activation: always
 ---
 ```
 
-### Writing Guidelines
-
-1. **Use imperative voice.** Axioms are rules, not suggestions. "Validate external inputs at system boundaries" — not "Consider validating inputs."
-2. **Include anti-patterns.** Concrete examples of forbidden behavior are more effective than abstract principles. Use the `❌`/`✅` pattern established in `engineering.md`.
-3. **Define precedence.** If your axiom interacts with existing ones, state the priority explicitly (e.g., `engineering.md > documentation.md > other personas`).
-4. **Keep it under 300 lines.** An axiom longer than `engineering.md` (~277 lines) is likely trying to do too much. Consider splitting domain-specific content into a persona.
-
-### When NOT to Write an Axiom
-
-- If the rule applies only to one language → **persona**
-- If the rule applies only during a specific task type → **workflow** or **persona**
-- If the rule is a procedure with multiple states → **workflow**
+#### Guidelines
+1. **Use imperative voice.** Axioms are rules, not recommendations. "Validate external inputs at system boundaries" — not "Consider validating inputs."
+2. **Include anti-patterns.** Concrete examples of forbidden behavior are highly effective. Use the `❌`/`✅` pattern established in `engineering.md`.
+3. **Keep it under 300 lines.** Axioms should stay high-level and universal. If a rule only applies to Go or Rust, move it to a glob rule.
 
 ---
 
-## Personas
+### Glob Rules (`activation: glob`)
 
-Personas live in `personas/`. They're loaded when a project marks them active in `AGENTS.md`, when a workflow declares them in `required_personas:`, or when the agent discretionarily adopts one based on task relevance.
+Glob rules are automatically injected into the agent's context when working with specific file paths or extensions. This prevents loading irrelevant context (e.g., loading Rust guidelines on a Python codebase).
 
-### Frontmatter
-
+#### Frontmatter
 ```yaml
 ---
-name: "Persona Name"
-description: "One-line purpose"
+name: "rust"
+description: "Idiomatic programming style and practices for Rust"
+activation: glob
+pattern: "**/*.rs"
 ---
 ```
 
-### Writing Guidelines
+#### Guidelines
+1. **Focus on language idioms.** Cover naming conventions, error handling protocols, performance best practices, testing conventions, and common anti-patterns for the matched language or tool.
+2. **Define patterns precisely.** Use standard glob syntax in the `pattern` property (e.g., `**/*.ts` or `**/*.qmd`).
 
-1. **Be specific to a domain.** Language idioms, tool usage patterns, framework conventions — a persona should represent expertise the agent needs only in certain contexts.
-2. **Complement, don't repeat.** Personas extend axioms. Don't restate rules from `engineering.md` — reference them and add domain-specific detail.
-3. **Use the established pattern.** Study `go.md`, `rust.md`, or `typescript.md` for the expected depth and structure: idioms, naming conventions, error handling patterns, testing conventions, and anti-patterns.
-4. **Declare integration.** State how the persona relates to axioms and other personas. Example from `integral.md`: "This predicate augments, not overrides, `engineering.md`."
+---
 
-### Activation Modes
+### Model Rules (`activation: model`)
 
-A persona can be activated three ways:
+Model rules (personas) are loaded semantically. The agent's platform indexes the rule's `description` frontmatter field and injects the rule when the task description matches keywords or concepts.
 
-- **Project-required:** Listed in `AGENTS.md` under `Active Personas:` — loaded for every task in that project
-- **Workflow-required:** Listed in a workflow's `required_personas:` frontmatter — loaded when that workflow triggers
-- **Discretionary:** The agent detects domain relevance and adopts it, announcing the choice
+#### Frontmatter
+```yaml
+---
+name: "sdma"
+description: "Trigger when designing domain models, building ologs, verifying protocol equivalence, selecting schemas, or measuring architectural entropy."
+activation: model
+---
+```
+
+#### Guidelines
+1. **Provide high-density descriptions.** Use explicit, keyword-rich descriptions to facilitate accurate semantic search triggers.
+2. **Complement, don't repeat.** Do not restate rules from global axioms; instead, provide domain-specific context.
 
 ---
 
 ## Workflows
 
-Workflows live in `workflows/`. They're triggered via slash commands (`/plan`, `/core`, `/doc`, etc.) and define structured procedures with explicit states, transitions, and halt points.
+Workflows live in `workflows/`. They are triggered by the user via slash commands (like `/plan` or `/core`) and define structured, step-by-step procedures.
 
 ### Frontmatter
 
@@ -95,53 +100,25 @@ name: "workflow-name"
 description: "One-line purpose"
 trigger: "/slash-command"
 required_personas:
-  - planning # optional: personas loaded when this workflow activates
+  - planning # optional: names of model rules loaded when this workflow activates
 ---
 ```
 
-### Writing Guidelines
+### Guidelines
 
 1. **Define a state machine.** Workflows should have explicit states, valid transitions, and clear definitions of what happens in each state. Use ASCII diagrams for the transition graph.
-2. **Declare halt points.** Every workflow must specify where the agent MUST stop and await human input. Unclear halt semantics lead to runaway execution.
+2. **Declare halt points.** Every workflow must specify where the agent MUST stop and await human input (e.g., at commit boundaries or design approvals).
 3. **Include a YAML grammar.** Define the structured state the agent maintains during execution. This keeps the agent's context explicit and inspectable. See `core.md` or `plan.md` for examples.
-4. **List protocol violations.** A table of forbidden behaviors, with explanations of why they're wrong, prevents the most common failure modes. Every mature workflow should have one.
+4. **List protocol violations.** Include a table of forbidden behaviors to prevent common failure modes.
 5. **Keep the slash command short.** One word, lowercase, memorable. Consistent with existing patterns: `/sketch`, `/plan`, `/core`, `/doc`.
-
-### Anatomy of a Workflow
-
-Most workflows follow this structure:
-
-```markdown
-# Protocol Name
-
-Purpose / scope
-
-## Scope — when to use (and when not to)
-
-## Grammar — YAML state definition
-
-## State Transitions — ASCII diagram + definitions
-
-## Prime Directives — numbered, enforceable rules
-
-## Protocol Violations — forbidden behavior table
-
-## MANDATORY HALT Points — where the agent must stop
-
-## Response Format — what output looks like in each state
-```
-
-### The `required_personas` Field
-
-Workflows can require specific personas to ensure the agent has domain context. When a workflow with `required_personas` is triggered, the agent loads those personas before execution begins. If a required persona file is missing, the agent HALTs and asks the human.
 
 ---
 
 ## General Principles
 
-These apply across all three tiers:
+These apply across all rules and workflows:
 
-1. **Frontmatter is mandatory.** Every file in `axioms/`, `personas/`, and `workflows/` must have YAML frontmatter with at least `name` and `description`.
-2. **Use GitHub Flavored Markdown.** Tables, alert blocks (`> [!IMPORTANT]`, `> [!CAUTION]`), and fenced code blocks.
-3. **Anti-patterns over platitudes.** "Don't do X because Y" teaches more than "strive for quality." Concrete forbidden behaviors, with explanations, are the most effective form of guidance.
-4. **Test with an agent.** The best way to validate a new axiom, persona, or workflow is to use it. If the agent misinterprets a rule, the rule is unclear — fix the rule, not the agent.
+1. **Frontmatter is mandatory.** Every file in `rules/` and `workflows/` must have valid YAML frontmatter with `name`, `description`, and `activation` (for rules) or `trigger` (for workflows).
+2. **Use GitHub Flavored Markdown.** Structure text with tables, bullet lists, alert blocks (`> [!IMPORTANT]`, `> [!CAUTION]`), and syntax-highlighted code blocks.
+3. **Anti-patterns over platitudes.** "Don't do X because Y" is far more effective than vague requests like "strive for quality."
+4. **Link references correctly.** Link between files using GitHub markdown links with relative paths or absolute file scheme links (e.g. `[constitution.md](file:///absolute/path/to/rules/constitution.md)`).

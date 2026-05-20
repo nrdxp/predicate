@@ -1,6 +1,6 @@
 ---
 name: planning
-description: "Structured planning workflow guidelines and sketching steps"
+description: "Trigger during planning phases, sketching, chartering, architecture drafting, dialectic analysis, or structured execution tracking."
 activation: model
 ---
 

@@ -1,7 +1,8 @@
 ---
 name: quarto
 description: "Formatting standards and styling guidelines for Quarto markdown"
-activation: model
+activation: glob
+pattern: "**/*.qmd"
 ---
 
 # Quarto (.qmd) Authoring Rules

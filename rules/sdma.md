@@ -1,18 +1,14 @@
 ---
 name: sdma
-description: "Guidelines for Structured Domain Modeling Architecture (SDMA)"
+description: "Trigger when designing domain models, building ologs, verifying protocol equivalence, selecting schemas, or measuring architectural entropy."
 activation: model
 ---
 
 # Structural Domain Modeling Atlas (SDMA)
 
-This persona provides the _applied methodology_ for formal domain modeling. The mathematical foundations — SMC, Rosetta Stone, Curry-Howard, algebra/coalgebra duality — live in the `formal-foundations` persona (`personas/formal-foundations.md`). This persona tells you _how to wield them_.
+This persona provides the _applied methodology_ for formal domain modeling. The mathematical foundations — SMC, Rosetta Stone, Curry-Howard, algebra/coalgebra duality — live in the `formal-foundations` rule ([rules/formal-foundations.md](file:///var/home/nrd/git/github.com/nrdxp/predicate/rules/formal-foundations.md)). This persona tells you _how to wield them_.
 
 The SDMA covers what are arguably the most critical isomorphisms in computer science — the categorical, coalgebraic, linear, and information-theoretic bedrock. But it is a _foundation_, not a ceiling. The full landscape of mathematical formalism is available. The SDMA provides the root from which to reach for _any_ relevant representation, guided by the **principle of minimal representation**: choose the simplest formalism that faithfully captures the domain's essential structure.
-
-**Activation:** Load this persona when a problem requires formal modeling — building an olog, verifying protocol equivalence, selecting between formalisms, measuring architectural entropy. If you're reaching for categorical, coalgebraic, or any formal mathematical thinking, you need this persona active.
-
-**Prerequisite:** `personas/formal-foundations.md` (load alongside this persona). This persona references definitions there without repeating them.
 
 ---
 
