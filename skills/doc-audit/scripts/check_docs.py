@@ -86,7 +86,7 @@ def main():
     if os.path.isdir(target):
         if target == '.':
             # Audit core files at the root
-            for f in ['README.md', 'PREDICATE.md', 'AGENTS.md', 'LICENSE.md']:
+            for f in ['README.md', 'AGENTS.md', 'LICENSE.md']:
                 if os.path.exists(f):
                     if not audit_file(f):
                         success = False

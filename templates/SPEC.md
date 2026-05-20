@@ -11,8 +11,8 @@
   and only when, they appear in all capitals, as shown here.
 
   See: workflows/spec.md for the full protocol specification.
-  See: personas/formal-foundations.md for the mathematical foundations.
-  See: personas/sdma.md for the applied modeling toolkit.
+  See: rules/formal-foundations.md for the mathematical foundations.
+  See: rules/sdma.md for the applied modeling toolkit.
 -->
 
 ## Domain

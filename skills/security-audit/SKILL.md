@@ -1,6 +1,6 @@
 ---
 name: security-audit
-description: Analyze source code for common security vulnerabilities across Web/API, Embedded/Safety-Critical, and Web3/Smart Contract platforms.
+description: "Trigger when auditing source code for security vulnerabilities, performing injection audits, verifying access controls, or conducting smart contract security reviews."
 ---
 
 # Security Audit Skill
@@ -52,8 +52,16 @@ This skill provides domain-specific security checklists and threat models to gui
 - [ ] **Access Control**: Modifiers check authorization; ensure initialization functions can only be called once.
 - [ ] **MEV / Front-Running**: Implement slippage protection parameters, transaction deadline limits, and commit-reveal schemes where appropriate.
 
----
-
 ## Utility Script Usage
-You can run automated checks using the script located in `scripts/run_audit.py`:
-- Use it to run standard linters (`bandit`, `slither`, etc.) against the codebase.
+
+You can run automated checks using the script located in `scripts/run_audit.py`. It automatically detects project files in the target path and runs the corresponding security audit tools (providing setup commands for missing tools):
+
+* **Python**: Runs static analysis with `bandit`.
+* **Solidity**: Scans contracts with `slither`.
+* **Rust**: Invokes `cargo clippy` (denying warnings) and `cargo audit`.
+* **Go**: Scans for known vulnerabilities using `govulncheck`.
+* **JavaScript/TypeScript**: Audits package dependencies using `npm audit`, `yarn audit`, or `pnpm audit`.
+
+```bash
+python3 skills/security-audit/scripts/run_audit.py <path-to-audit-target>
+```

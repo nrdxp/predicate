@@ -1,6 +1,6 @@
 ---
 name: depmap
-description: Map repository modules, search symbols/identifiers, and resolve dependency API surfaces.
+description: "Trigger when exploring new codebases, analyzing external library API surfaces, finding identifier definitions/usages, or resolving repository dependencies."
 ---
 
 # DepMap Integration Skill

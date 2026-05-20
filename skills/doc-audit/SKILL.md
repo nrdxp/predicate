@@ -1,6 +1,6 @@
 ---
 name: doc-audit
-description: Verify markdown documentation files for syntax, formatting standards, and broken URLs/links.
+description: "Trigger when auditing documentation, checking markdown link integrity, formatting tables, checking headers, or verifying absolute/relative paths."
 ---
 
 # Documentation Audit Skill

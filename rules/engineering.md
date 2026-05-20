@@ -82,7 +82,7 @@ Before writing code, understand the existing landscape:
 
 **Pattern Matching:** Mimic existing directory structure and coding style strictly. Do not introduce foreign idioms. When uncertain, search for prior art in the repo (e.g., "How are errors handled elsewhere?") and follow established patterns.
 
-> **Tip:** If MCP tools are available, use them first for structural insight. See `personas/depmap.md`.
+> **Tip:** If MCP tools are available, use them first for structural insight. See `skills/depmap/SKILL.md`.
 
 **Workflow Personas:** When a workflow declares `required_personas:` in its frontmatter, you MUST read and load those persona files before proceeding. This is not optional — the workflow's instructions assume those personas are active. Missing persona file → **HALT**.
 

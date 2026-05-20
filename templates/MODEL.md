@@ -5,8 +5,8 @@
   They formalize a domain's structure using the Structural Domain Modeling Atlas (SDMA).
 
   See: workflows/model.md for the full protocol specification.
-  See: personas/sdma.md for the applied modeling toolkit.
-  See: personas/formal-foundations.md for the mathematical foundations.
+  See: rules/sdma.md for the applied modeling toolkit.
+  See: rules/formal-foundations.md for the mathematical foundations.
 -->
 
 ## Domain Classification
