@@ -10,7 +10,7 @@ activation: model
 
 **Activation:** Load this persona when a problem involves formal reasoning — type theory, protocol verification, data migration, or any domain where categorical, coalgebraic, or linear structures apply. The `sdma` persona requires this as a co-dependency.
 
-**Precedence:** See PREDICATE.md § Precedence.
+**Precedence:** See rules/constitution.md § Precedence.
 
 ---
 

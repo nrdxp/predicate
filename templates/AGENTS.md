@@ -11,7 +11,7 @@
 This project uses [predicate](https://github.com/nrdxp/predicate) for agent configuration.
 
 > [!IMPORTANT]
-> You **must** review [.agents/PREDICATE.md](.agents/PREDICATE.md) and follow its instructions before beginning work.
+> You **must** review [.agents/rules/constitution.md](.agents/rules/constitution.md) and follow its instructions before beginning work.
 
 **Active Rules:** None
 

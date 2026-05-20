@@ -10,6 +10,20 @@ This axiom is the root of the Predicate system. All other axioms, personas, and 
 
 ---
 
+## § Precedence
+
+When rules conflict across files, higher-ranked sources win:
+
+1. `rules/constitution.md` — foundational authority (the Constitution)
+2. `rules/engineering.md` — procedural authority
+3. `rules/integral.md` — cognitive disposition
+4. `rules/documentation.md` — writing quality
+5. Glob/Model Rules — domain-specific rules (context-dependent, no fixed rank among them)
+
+Within `rules/engineering.md`, the RULE PRIORITY section governs engineering-specific conflicts (Security > User Decision > API Stability > Maintainability > Performance).
+
+---
+
 ## § Foundation
 
 The entropy of any system tends to increase over time. Order decays. Structure dissolves. This is the most experimentally confirmed law in all of physics.

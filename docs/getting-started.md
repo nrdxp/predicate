@@ -1,111 +1,95 @@
 # Getting Started with Predicate
 
-Add predicate to your project, configure active personas, and verify the agent loads everything correctly.
+Add Predicate to your project, configure active rules, and verify the agent integrates correctly.
 
-**Audience:** Developers integrating predicate into an existing project.
+**Audience:** Developers integrating Predicate into an existing project.
 
 ---
 
 ## 1. Add Predicate to Your Project
 
-Three options, depending on your setup:
+We recommend adding Predicate as a Git Submodule under `.agents/` and then running the integration helper script.
 
-### Git Submodule (Recommended)
+### Step 1: Add the Submodule
 
-```bash
-git submodule add https://github.com/nrdxp/predicate.git .agent
-cp .agent/templates/AGENTS.md ./AGENTS.md
-```
-
-Update to latest:
+At the root of your project, run:
 
 ```bash
-git submodule update --remote .agent
+git submodule add https://github.com/nrdxp/predicate.git .agents
 ```
 
-### Symlinks
+### Step 2: Establish Symlinks for Tool Integration
 
-Clone once, symlink into each project:
+Predicate comes with a setup script that hooks rules, custom skills, and workflows into your environment (creating `.claude/commands`, `.claude/skills`, and `CLAUDE.md` automatically):
 
 ```bash
-git clone https://github.com/nrdxp/predicate.git ~/predicate
-
-mkdir -p .agent
-ln -s ~/predicate/axioms .agent/axioms
-ln -s ~/predicate/personas .agent/personas
-ln -s ~/predicate/workflows .agent/workflows
-ln -s ~/predicate/PREDICATE.md .agent/PREDICATE.md
-
-cp ~/predicate/templates/AGENTS.md ./AGENTS.md
+# Run the integration helper script
+./.agents/scripts/setup-links.sh
 ```
 
-### Copy
+### Step 3: Copy AGENTS.md Template
 
-For projects that can't use submodules or symlinks:
+Copy the project-level configuration template to your project root:
 
 ```bash
-cp -r /path/to/predicate/axioms .agent/axioms
-cp -r /path/to/predicate/personas .agent/personas
-cp -r /path/to/predicate/workflows .agent/workflows
-cp /path/to/predicate/PREDICATE.md .agent/PREDICATE.md
-cp /path/to/predicate/templates/AGENTS.md ./AGENTS.md
+cp .agents/templates/AGENTS.md ./AGENTS.md
 ```
+
+To update Predicate to the latest version in the future:
+
+```bash
+git submodule update --remote .agents
+```
+
+---
 
 ## 2. Configure AGENTS.md
 
 Edit the `AGENTS.md` you copied to your project root:
 
-1. Fill in the **Project Overview** — what the project does, its architecture
-2. Set **Active Personas** — only the ones relevant to your project
-3. Add **Build & Commands** — how to test, build, lint
-4. Fill in remaining sections as applicable
+1. Fill in the **Project Overview** — what the project does, its architecture.
+2. Set **Active Rules** — list the rules from `.agents/rules/` that apply to your project.
+3. Add **Build & Commands** — how to test, build, lint.
+4. Fill in remaining sections as applicable.
 
-Example active personas for a Go project using DepMap:
+Example active rules for a Go project:
 
 ```markdown
-**Active Personas:**
+**Active Rules:**
 
 - go.md (Go idioms)
-- depmap.md (MCP tools)
+- sdma.md (Domain modeling)
 ```
 
-## 3. Verify the Agent Bootstraps Correctly
+---
 
-When an agent starts working in your project, it follows the protocol in `.agent/PREDICATE.md`:
+## 3. Verify Integration
 
-1. Scans `.agent/axioms/` and reads all axioms
-2. Checks `AGENTS.md` for active personas
-3. Loads required personas from `.agent/personas/`
-4. Outputs a structured confirmation
-
-You should see something like:
-
-```
-PREDICATE CONFIRMATION:
-- Axioms: [engineering.md, documentation.md, integral.md]
-- Active Personas: [go.md, depmap.md]
-- Workflow-Required: [none]
-- Discretionary: [none]
-```
-
-If the agent skips this confirmation or can't find the axioms directory, check that your `.agent/` symlinks or submodule resolved correctly.
-
-## 4. Your Project Structure
-
-After setup, your project should look like:
+Once the integration script has run, your project structure should look like this:
 
 ```
 your-project/
-├── .agent/
-│   ├── PREDICATE.md       # Agent protocol (read first)
-│   ├── axioms/            # Always-active rulesets
-│   ├── personas/          # Opt-in context extensions
-│   └── workflows/         # Slash-command SOPs
-└── AGENTS.md              # Project config + active personas
+├── .agents/               # The Predicate submodule
+│   ├── rules/             # Axioms and glob/model rules
+│   ├── skills/            # Custom skills and scripts
+│   ├── workflows/         # Slash command workflow files
+│   └── scripts/           # Setup and utility scripts
+├── .claude/               # Claude Code configuration (created by setup-links.sh)
+│   ├── commands/          # Symlinked workflows (custom slash commands)
+│   └── skills/            # Symlinked skill packages
+├── AGENTS.md              # Project metadata & active rules
+└── CLAUDE.md              # Root-level entry point pointing to constitution.md
 ```
+
+Verify that your agent of choice (e.g., Claude Code or Antigravity CLI) detects the configuration:
+- In Claude Code, type `/` to see the symlinked workflows (like `/core`, `/plan`, `/sketch`) list in the commands menu.
+- Open files to verify glob rules load automatically (e.g., editing a Rust file triggers the rules in `.agents/rules/rust.md`).
+
+---
 
 ## Next Steps
 
-- **Workflows:** Use `/sketch`, `/plan`, `/core`, `/doc` and others — browse `.agent/workflows/` for the full set
-- **Custom content:** See [authoring.md](authoring.md) for writing your own axioms, personas, and workflows
-- **Forking:** Fork the predicate repo and use your fork as the submodule source to maintain custom rulesets
+- **Workflows:** Trigger procedures like `/sketch`, `/plan`, `/core`, or `/doc` directly.
+- **Custom content:** See [docs/authoring.md](authoring.md) for writing your own rules, skills, and workflows.
+- **Forking:** Fork the Predicate repository and point your submodule to your fork to maintain custom organizational rulesets.
+

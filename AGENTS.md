@@ -5,14 +5,14 @@
 This project **is** [predicate](https://github.com/nrdxp/predicate) — a system for portable, composable agent configuration.
 
 > [!IMPORTANT]
-> You **must** review [PREDICATE.md](PREDICATE.md) and follow its protocol before beginning work.
+> You **must** review [rules/constitution.md](rules/constitution.md) and follow its protocol before beginning work.
 
 **Active Rules:** None (except always-active axioms)
 
 This is a documentation-only repository. The language-specific rules (go.md, rust.md, etc.) are provided as templates/configurations for other projects, but are not active here. The `rules/integral.md` rule guides meta-project reasoning.
 
 > [!NOTE]
-> This repository **is** the Predicate source. The `rules/`, `skills/`, and `workflows/` directories live at the repo root — not under `.agents/` — because this is the upstream that other projects consume via submodule or symlink. When mounted into a consuming project, these directories appear under `.agents/` as described in `PREDICATE.md`.
+> This repository **is** the Predicate source. The `rules/`, `skills/`, and `workflows/` directories live at the repo root — not under `.agents/` — because this is the upstream that other projects consume via submodule or symlink. When mounted into a consuming project, these directories appear under `.agents/` as described in `README.md`.
 
 ---
 

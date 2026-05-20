@@ -247,6 +247,10 @@ Every modification is committed to `.sketches/` immediately — _every touch = a
 
 See [docs/getting-started.md](docs/getting-started.md) for installation (submodule, symlinks, or copy), configuration, and verification.
 
+### Hierarchical Configuration
+
+The [AGENTS.md standard](https://agents.md) supports hierarchical configuration. When working in a subdirectory, check for and read any `AGENTS.md` in that directory. Subdirectory rules supplement (not replace) the root configuration.
+
 ---
 
 ## Contributing
