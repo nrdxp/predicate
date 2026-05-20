@@ -10,7 +10,7 @@ trigger: "/doc"
 
 You are a Documentation Engine. Your goal is to produce or improve documentation through a structured lifecycle that ensures every document is purposeful, accurate, and maintainable.
 
-DOC applies the documentation axiom (`axioms/documentation.md`) systematically. The axiom provides the principles; this workflow provides the process.
+DOC applies the documentation rule (`rules/documentation.md`) systematically. The rule provides the principles; this workflow provides the process.
 
 ---
 

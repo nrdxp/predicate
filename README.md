@@ -1,14 +1,14 @@
 # Predicate
 
-Reusable agent axioms (rulesets) and workflows for agentic coding assistants.
+Reusable agent rulesets (rules), skills, and workflows for agentic coding assistants.
 
 ## What's In Here
 
 ```
 predicate/
-├── axioms/      # Foundational rulesets (always active)
-├── personas/    # Context-specific extensions (opt-in)
-├── workflows/   # Manually-triggered SOPs
+├── rules/       # Workspace rules (Axioms and glob/model-activated rules)
+├── skills/      # Custom skills with instructions and scripts
+├── workflows/   # Manually-triggered slash commands
 ├── templates/   # Project templates (AGENTS.md, PLAN.md, etc.)
 └── docs/        # Guides, plans, ADRs, and formal models
 ```
@@ -17,8 +17,8 @@ predicate/
 
 | Term         | Description                                                                 |
 | :----------- | :-------------------------------------------------------------------------- |
-| **Axiom**    | A foundational ruleset. Any file in `axioms/` is always active — no opt-in. |
-| **Persona**  | A context-specific extension in `personas/`. Opt-in and task-relevant.      |
+| **Rule**     | A workspace rule (Axioms are always-active; others are glob or model-active). |
+| **Skill**    | Encapsulated capabilities (rules + scripts/references) loaded semantically. |
 | **Workflow** | A task-specific SOP, manually triggered via slash command.                  |
 
 ---
@@ -29,19 +29,19 @@ predicate/
 
 AI coding assistants need clear, consistent guidance, but system prompts quickly become unwieldy. Predicate separates concerns:
 
-- **Axioms** → Engineering principles that apply everywhere
-- **Personas** → Context-specific rules loaded only when relevant
+- **Rules** → Architectural, language, and styling constraints
+- **Skills** → Encapsulated capabilities (like audits or lint check scripts)
 - **Workflows** → Structured procedures triggered on demand
 
-This prevents context overload. A Rust-focused request doesn't need Go idioms; a README update doesn't need language personas at all. The agent loads only what's relevant to the current task.
+This prevents context overload. A Rust-focused request doesn't need Go idioms; a README update doesn't need language rules at all. The agent loads only what's relevant to the current task.
 
 ### Built on Standards
 
 Predicate integrates with existing conventions rather than inventing new ones:
 
-- **[AGENTS.md](https://agent.md)** — The emerging standard for project-level agent configuration
-- **`.agent/` directory** — Common location recognized by agentic tools
-- **Workflow triggers** — Slash commands familiar to most agent interfaces
+- **[AGENTS.md](https://agents.md)** — The emerging standard for project-level agent configuration
+- **`.agents/` directory** — Common location recognized by agentic tools (e.g. Antigravity CLI)
+- **Workflow triggers** — Slash commands familiar to most agent interfaces (and bridged to Claude Code)
 
 ### The Planning Pipeline
 
@@ -171,7 +171,7 @@ MODEL operates in two modes:
 | **Create** | Produce a new formal model document from `templates/MODEL.md` to `docs/models/`         |
 | **Apply**  | Scrutinize an existing document (protocol spec, whitepaper, etc.) through the SDMA lens |
 
-**6-step procedure:** IDENTIFY → SELECT → CONSTRUCT → VALIDATE → RECORD → CONNECT. The SDMA persona provides a starting toolkit (categorical, coalgebraic, linear, information-theoretic formalisms), but any mathematical formalism is available. The governing principle is **minimal representation**: choose the simplest formalism that faithfully captures the domain's structure.
+**6-step procedure:** IDENTIFY → SELECT → CONSTRUCT → VALIDATE → RECORD → CONNECT. The SDMA rule provides a starting toolkit (categorical, coalgebraic, linear, information-theoretic formalisms), but any mathematical formalism is available. The governing principle is **minimal representation**: choose the simplest formalism that faithfully captures the domain's structure.
 
 **Key mechanics:**
 
@@ -209,8 +209,8 @@ DIALECTIC is the Socratic method operationalized. It is NOT debate (optimizing f
 | :--------- | :---------------------------------------------------------------- |
 | **AUDIT**  | Catalogue existing docs. Identify debt, staleness, and gaps.      |
 | **PLAN**   | Define deliverables with Divio quadrant and audience declared.    |
-| **DRAFT**  | Write the documentation, applying the documentation axiom fully.  |
-| **REVIEW** | Self-critique against axiom principles. Mechanical, not generous. |
+| **DRAFT**  | Write the documentation, applying the documentation rule fully.  |
+| **REVIEW** | Self-critique against rule principles. Mechanical, not generous. |
 | **VERIFY** | Present to human for approval.                                    |
 
 **When to use `/doc` vs. the pipeline:**
@@ -220,7 +220,7 @@ DIALECTIC is the Socratic method operationalized. It is NOT debate (optimizing f
 - **Documentation alongside code changes** — use `/core` for the code, `/doc` for the docs
 - **Large documentation initiative** — use `/plan` to define phases, then `/doc` within each phase
 
-The documentation axiom (`axioms/documentation.md`) governs writing quality automatically — Section 1 for all text, Section 2 when producing standalone documents. `/doc` adds the _process_ for deliberate documentation work.
+The documentation rule (`rules/documentation.md`) governs writing quality automatically — Section 1 for all text, Section 2 when producing standalone documents. `/doc` adds the _process_ for deliberate documentation work.
 
 ---
 
@@ -251,9 +251,9 @@ See [docs/getting-started.md](docs/getting-started.md) for installation (submodu
 
 ## Contributing
 
-PRs welcome. See [docs/authoring.md](docs/authoring.md) for how to write custom axioms, personas, and workflows.
+PRs welcome. See [docs/authoring.md](docs/authoring.md) for how to write custom rules, skills, and workflows.
 
-Predicate is designed to be forked. The composable structure makes it easy to add organization-specific rules, domain-specific workflows, or curated persona subsets without modifying upstream files.
+Predicate is designed to be forked. The composable structure makes it easy to add organization-specific rules, domain-specific workflows, or curated rule/skill subsets without modifying upstream files.
 
 ## License
 

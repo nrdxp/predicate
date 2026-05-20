@@ -1,6 +1,7 @@
 ---
-name: "Structural Domain Modeling Atlas"
-description: "Domain-specific formal modeling toolkit — applied category theory, coalgebra, linear logic, and information-theoretic metrics"
+name: sdma
+description: "Guidelines for Structured Domain Modeling Architecture (SDMA)"
+activation: model
 ---
 
 # Structural Domain Modeling Atlas (SDMA)

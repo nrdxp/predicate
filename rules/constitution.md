@@ -1,6 +1,7 @@
 ---
-name: "Constitution"
-description: "Foundational ethic derived from structural constraint — the root authority of the Predicate system"
+name: constitution
+description: "Foundational ethics and structural principles for the Predicate agent"
+activation: always
 ---
 
 # Constitution

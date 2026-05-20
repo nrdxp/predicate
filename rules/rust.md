@@ -1,6 +1,8 @@
 ---
-name: "Rust Idioms"
-description: "Rust-specific language conventions and patterns"
+name: rust
+description: "Idioms, patterns, and conventions for Rust development"
+activation: glob
+pattern: "**/*.rs"
 ---
 
 # Rust Language Idioms

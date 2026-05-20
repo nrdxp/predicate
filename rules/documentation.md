@@ -1,7 +1,7 @@
 ---
-name: "Documentation & Writing Ruleset"
-description: "Tiered principles for clear, purposeful text — from commit messages to standalone documentation"
-version: "1.0.0"
+name: documentation
+description: "Rules and standards for writing and documentation"
+activation: always
 ---
 
 # Documentation Ruleset v1.0

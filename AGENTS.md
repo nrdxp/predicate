@@ -7,18 +7,18 @@ This project **is** [predicate](https://github.com/nrdxp/predicate) — a system
 > [!IMPORTANT]
 > You **must** review [PREDICATE.md](PREDICATE.md) and follow its protocol before beginning work.
 
-**Active Personas:** None
+**Active Rules:** None (except always-active axioms)
 
-This is a documentation-only repository. The language-specific personas (go.md, rust.md, etc.) are provided as templates for other projects, but are not active here. The `integral.md` axiom guides meta-project reasoning.
+This is a documentation-only repository. The language-specific rules (go.md, rust.md, etc.) are provided as templates/configurations for other projects, but are not active here. The `rules/integral.md` rule guides meta-project reasoning.
 
 > [!NOTE]
-> This repository **is** the Predicate source. The `axioms/`, `personas/`, and `workflows/` directories live at the repo root — not under `.agent/` — because this is the upstream that other projects consume via submodule or symlink. When mounted into a consuming project, these directories appear under `.agent/` as described in `PREDICATE.md`.
+> This repository **is** the Predicate source. The `rules/`, `skills/`, and `workflows/` directories live at the repo root — not under `.agents/` — because this is the upstream that other projects consume via submodule or symlink. When mounted into a consuming project, these directories appear under `.agents/` as described in `PREDICATE.md`.
 
 ---
 
 ## Project Overview
 
-Predicate is a framework for configuring AI coding agents with reusable rulesets (axioms), composable extensions (personas), and task-specific procedures (workflows).
+Predicate is a framework for configuring AI coding agents with reusable rulesets, composable skills (actions/capabilities), and task-specific procedures (workflows).
 
 **Purpose:** Replace ad-hoc system prompts with version-controlled, shareable agent configuration.
 
@@ -26,13 +26,13 @@ Predicate is a framework for configuring AI coding agents with reusable rulesets
 
 ## Repository Structure
 
-| Directory    | Purpose                             |
-| :----------- | :---------------------------------- |
-| `axioms/`    | Foundational rulesets (axioms)      |
-| `personas/`  | Context-specific extensions         |
-| `workflows/` | Manually-triggered SOPs             |
-| `templates/` | Project templates (AGENTS.md)       |
-| `docs/`      | Guides, plans, and ADRs, formalisms |
+| Directory     | Purpose                             |
+| :------------ | :---------------------------------- |
+| `rules/`      | Workspace rules (Axioms & Personas) |
+| `skills/`     | Custom skills and execution scripts |
+| `workflows/`  | Manually-triggered slash commands   |
+| `templates/`  | Project templates (AGENTS.md)       |
+| `docs/`       | Guides, plans, and ADRs             |
 
 ---
 
@@ -41,7 +41,7 @@ Predicate is a framework for configuring AI coding agents with reusable rulesets
 This is a documentation-only repository. No build required.
 
 - Validate markdown: `markdownlint .` (if installed)
-- Check links: `markdown-link-check *.md` (if installed)
+- Check links: `python3 skills/doc-audit/scripts/check_docs.py .`
 
 ---
 
@@ -60,8 +60,8 @@ See [README.md](README.md#contributing) for contribution guidelines.
 
 When adding content:
 
-- New axioms → `axioms/`
-- New personas → `personas/`
+- New rules → `rules/`
+- New skills → `skills/`
 - New workflows → `workflows/` with proper front-matter
 
 ---

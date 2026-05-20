@@ -1,6 +1,7 @@
 ---
-name: "Formal Mathematical Foundations"
-description: "Universal mathematical vocabulary for compositional reasoning across all engineering domains"
+name: formal-foundations
+description: "Guidelines for formal modeling, specifications, and contracts"
+activation: model
 ---
 
 # Formal Mathematical Foundations

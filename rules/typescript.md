@@ -1,6 +1,8 @@
 ---
-name: "TypeScript Idioms"
-description: "TypeScript/JavaScript-specific language conventions and patterns"
+name: typescript
+description: "Idioms, patterns, and conventions for TypeScript and JavaScript development"
+activation: glob
+pattern: "**/*.{ts,tsx,js,jsx}"
 ---
 
 # TypeScript / JavaScript Language Idioms

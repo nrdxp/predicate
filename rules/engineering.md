@@ -1,7 +1,7 @@
 ---
-name: "Global Engineering Ruleset"
-description: "Foundational predicate for production-grade software engineering"
-version: "2.2.0"
+name: engineering
+description: "Technical and maintainability rules for codebase edits"
+activation: always
 ---
 
 # Global Ruleset v2.2

@@ -1,3 +1,9 @@
+---
+name: planning
+description: "Structured planning workflow guidelines and sketching steps"
+activation: model
+---
+
 # Planning Pipeline Persona
 
 This persona contains the shared foundations for the `/charter → /sketch → /plan → /core` pipeline, the `/model` formal modeling workflow, and the `/spec` normative specification workflow. All planning workflows (plus `/continue`) require this persona via `required_personas:` to ensure consistent understanding of planning discipline and sketch management.

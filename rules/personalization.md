@@ -1,6 +1,7 @@
 ---
-name: "Personalization"
-description: "User-specific naming and interaction preferences"
+name: personalization
+description: "User personalization preferences and communication style"
+activation: model
 ---
 
 # Personalization

@@ -1,6 +1,8 @@
 ---
-name: "Go Idioms"
-description: "Go-specific language conventions and patterns"
+name: go
+description: "Idioms, patterns, and conventions for Go development"
+activation: glob
+pattern: "**/*.go"
 ---
 
 # Go Language Idioms

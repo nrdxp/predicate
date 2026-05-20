@@ -352,32 +352,29 @@ Cross-reference all findings against these controls:
 
 ## Domain-Specific Extensions
 
-During **Phase 0 (Scope)**, identify the tech stack and load the appropriate security persona. These provide specialized checklists and vulnerability patterns.
+During **Phase 0 (Scope)**, identify the tech stack and leverage the appropriate section of the unified `security-audit` skill (`skills/security-audit/SKILL.md`). These provide specialized checklists and vulnerability patterns.
 
-### When to Load Each Persona
+### Relevant Audit Sections
 
-**Load `personas/security-web3.md` if:**
-
+**Apply Web3 section if:**
 - Auditing Solidity, Vyper, or other smart contract languages
 - Target is a blockchain application, DeFi protocol, or NFT system
 - Code handles tokens, balances, or on-chain state
 - Upgrade patterns (proxy contracts) are in use
 
-**Load `personas/security-embedded.md` if:**
-
+**Apply Embedded section if:**
 - Auditing C/C++ firmware or RTOS applications
 - Target has real-time constraints or safety requirements
 - DO-178C, ISO 26262, or IEC 62443 compliance is required
 - Code runs on microcontrollers, automotive ECUs, or medical devices
 
-**Load `personas/security-web.md` if:**
-
+**Apply Web section if:**
 - Auditing a web application or REST/GraphQL API
 - Using Python, Node.js, Go, Ruby, or similar web frameworks
 - Target handles user authentication, sessions, or file uploads
 - Code is publicly exposed on the internet
 
-> **Note:** Multiple personas may apply. A Web3 project with a backend API might load both `security-web3.md` and `security-web.md`.
+> **Note:** Multiple sections may apply. A Web3 project with a backend API might require auditing against both Web3 and Web sections of the `security-audit` skill.
 
 ---
 

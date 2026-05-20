@@ -11,14 +11,14 @@
 This project uses [predicate](https://github.com/nrdxp/predicate) for agent configuration.
 
 > [!IMPORTANT]
-> You **must** review [.agent/PREDICATE.md](.agent/PREDICATE.md) and follow its instructions before beginning work.
+> You **must** review [.agents/PREDICATE.md](.agents/PREDICATE.md) and follow its instructions before beginning work.
 
-**Active Personas:** None
+**Active Rules:** None
 
-<!-- List active personas from .agent/personas/ here -->
+<!-- List active rules from .agents/rules/ here -->
 <!-- Example: -->
 <!-- - rust.md (Rust idioms) -->
-<!-- - depmap.md (MCP tools) -->
+<!-- - sdma.md (Domain modeling) -->
 
 ---
 

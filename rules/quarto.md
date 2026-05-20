@@ -1,6 +1,7 @@
 ---
-name: "Quarto & Technical Documentation"
-description: "Rules for converting and authoring technical specifications in Quarto (.qmd)"
+name: quarto
+description: "Formatting standards and styling guidelines for Quarto markdown"
+activation: model
 ---
 
 # Quarto (.qmd) Authoring Rules

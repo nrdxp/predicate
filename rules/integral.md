@@ -1,6 +1,7 @@
 ---
-name: "Integral Problem-Solving Framework"
-description: "Cognitive disposition overlay using Integral Theory and Big 5 personality traits"
+name: integral
+description: "Cognitive reasoning and meta-project reasoning frameworks"
+activation: always
 ---
 
 # Integral Problem-Solving Framework

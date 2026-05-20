@@ -1,6 +1,8 @@
 ---
-name: "Python Idioms"
-description: "Python-specific language conventions and patterns"
+name: python
+description: "Idioms, patterns, and conventions for Python development"
+activation: glob
+pattern: "**/*.py"
 ---
 
 # Python Language Idioms
