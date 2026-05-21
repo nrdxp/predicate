@@ -91,25 +91,17 @@ Antigravity CLI natively discovers and mounts Predicate configurations from the 
    - `/plan` — Stress-testing and design specification.
    - `/core` — Micro-level execution and implementation.
    - `/doc` — Structured documentation editing.
-2. **Inspect CLI State**: Execute the `/config` slash command within the prompt session to verify that the active rules and workspace preferences are correctly registered.
-3. **Verify Glob Triggers**: Edit a file corresponding to an active rule (e.g., a `.go` or `.rs` file). The CLI will automatically ingest the relevant ruleset constraints (e.g., `rules/go.md` or `rules/rust.md`) into the active context window.
+2. **Verify Glob Triggers**: Edit a file corresponding to an active rule (e.g., a `.go` or `.rs` file). The CLI will automatically ingest the relevant ruleset constraints (e.g., `rules/go.md` or `rules/rust.md`) into the active context window.
 
 ### For Claude Code
 
-Claude Code resolves agent instructions using standard `CLAUDE.md` or `.claude.md` files at the workspace root. Since it does not natively parse `AGENTS.md` directly, you can bridge the integration:
+Claude Code natively supports the `AGENTS.md` specification and automatically ingests it alongside `CLAUDE.md` at the workspace root to establish persistent context.
 
-1. **Establish the Reference Link**: If using the project-level submodule, establish a symbolic link or copy the instructions to Claude's expected path:
-   ```bash
-   ln -s AGENTS.md CLAUDE.md
-   ```
-2. **Confirm Initialization**: Launch Claude Code from the repository root. Claude will display a startup notification confirming the file was loaded:
-   ```
-   Loaded CLAUDE.md
-   ```
-3. **Test Active Constraints**: Query the agent to verify it respects the loaded ruleset. For example, ask:
+1. **Verify Automatic Ingestion**: Start a Claude Code session from your repository root. The agent will discover and load the rules defined in your root-level `AGENTS.md` automatically.
+2. **Test Active Constraints**: Query the agent to verify it has successfully loaded the configuration. For example, ask:
    > "What coding guidelines are active for this workspace?"
-
-   The agent should respond with details derived directly from your active rulesets (e.g., styling or build requirements defined in your rules).
+   
+   The agent should respond with details derived directly from your active rulesets (e.g., build commands or styling guidelines defined in your active rules).
 
 ---
 
