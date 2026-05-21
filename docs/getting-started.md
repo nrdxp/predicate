@@ -80,27 +80,36 @@ Example active rules for a Go project:
 
 ## 3. Verify Integration
 
-Verify that your project structure conforms to the chosen installation method:
+Verify that your agent runner successfully detects and loads the Predicate configuration.
 
-**If using the Submodule installation:**
-```
-your-project/
-├── .agents/               # The Predicate submodule
-│   ├── rules/             # Axioms and glob/model rules
-│   ├── skills/            # Custom skills and scripts
-│   └── workflows/         # Slash command workflow files
-└── AGENTS.md              # Project metadata & active rules
-```
+### For Antigravity CLI (`agy`)
 
-**If using the Global Plugin installation:**
-```
-your-project/
-└── AGENTS.md              # Project metadata & active rules (plugin loads rules/skills/workflows globally)
-```
+Antigravity CLI natively discovers and mounts Predicate configurations from the standard `.agents/` workspace path or global plugin directories.
 
-Verify that your agent of choice (e.g., Claude Code or Antigravity CLI) detects the configuration:
-- In the agent chat, type `/` to see the workflows (like `/core`, `/plan`, `/sketch`) listed in the commands menu.
-- Open files to verify glob rules load automatically (e.g., editing a Rust file triggers the rules in `rules/rust.md`).
+1. **Verify Slash Commands**: Enter `/` in the CLI prompt. The autocompletion overlay should display the standard Predicate workflows:
+   - `/sketch` — Exploration of design alternatives.
+   - `/plan` — Stress-testing and design specification.
+   - `/core` — Micro-level execution and implementation.
+   - `/doc` — Structured documentation editing.
+2. **Inspect CLI State**: Execute the `/config` slash command within the prompt session to verify that the active rules and workspace preferences are correctly registered.
+3. **Verify Glob Triggers**: Edit a file corresponding to an active rule (e.g., a `.go` or `.rs` file). The CLI will automatically ingest the relevant ruleset constraints (e.g., `rules/go.md` or `rules/rust.md`) into the active context window.
+
+### For Claude Code
+
+Claude Code resolves agent instructions using standard `CLAUDE.md` or `.claude.md` files at the workspace root. Since it does not natively parse `AGENTS.md` directly, you can bridge the integration:
+
+1. **Establish the Reference Link**: If using the project-level submodule, establish a symbolic link or copy the instructions to Claude's expected path:
+   ```bash
+   ln -s AGENTS.md CLAUDE.md
+   ```
+2. **Confirm Initialization**: Launch Claude Code from the repository root. Claude will display a startup notification confirming the file was loaded:
+   ```
+   Loaded CLAUDE.md
+   ```
+3. **Test Active Constraints**: Query the agent to verify it respects the loaded ruleset. For example, ask:
+   > "What coding guidelines are active for this workspace?"
+
+   The agent should respond with details derived directly from your active rulesets (e.g., styling or build requirements defined in your rules).
 
 ---
 
