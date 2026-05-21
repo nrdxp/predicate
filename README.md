@@ -246,7 +246,7 @@ Every modification is committed to `.sketches/` immediately — _every touch = a
 
 ## Getting Started
 
-See [docs/getting-started.md](docs/getting-started.md) for installation (submodule, symlinks, or copy), configuration, and verification.
+Predicate can be deployed either globally as an agent plugin or locally as a project-level Git submodule. See [docs/getting-started.md](docs/getting-started.md) for detailed instructions on installation pathways, `AGENTS.md` configuration, and validation.
 
 ### Hierarchical Configuration
 
