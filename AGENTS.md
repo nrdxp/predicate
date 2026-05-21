@@ -28,7 +28,7 @@ Predicate is a framework for configuring AI coding agents with reusable rulesets
 
 | Directory     | Purpose                             |
 | :------------ | :---------------------------------- |
-| `rules/`      | Workspace rules (Axioms & Personas) |
+| `rules/`      | Workspace rules (Axioms, Glob, or Model-activated) |
 | `skills/`     | Custom skills and execution scripts |
 | `workflows/`  | Manually-triggered slash commands   |
 | `templates/`  | Project templates (AGENTS.md)       |

@@ -37,11 +37,12 @@ This prevents context overload. A Rust-focused request doesn't need Go idioms; a
 
 ### Built on Standards
 
-Predicate integrates with existing conventions rather than inventing new ones:
+Rather than fabricating proprietary configuration formats, Predicate aligns with emerging, industry-wide standards for agentic orchestration. The concepts of **rules**, **skills**, and **workflows** represent the tripartite architectural foundation toward which modern coding agents are converging:
 
-- **[AGENTS.md](https://agents.md)** — The emerging standard for project-level agent configuration
-- **`.agents/` directory** — Common location recognized by agentic tools (e.g. Antigravity CLI)
-- **Workflow triggers** — Slash commands familiar to most agent interfaces
+- **Rules (Declarative Constraints)** — System-level constraints and behavioral guardrails. Predicate implements standard rule activation patterns (global, path-specific globs, and semantic model rules) to prune context windows dynamically, matching the execution paradigms of leading agentic runners.
+- **Skills (Semantic Capabilities)** — Self-contained packages of instructions and executable tools/scripts. These are modeled after standard agent capabilities, designed to be indexed semantically and called dynamically during tool-use phases.
+- **Workflows (SOP Orchestration)** — Explicit, task-specific protocols triggered via slash commands (e.g., `/plan`, `/core`). This conforms to the interactive command interfaces ubiquitous in modern terminal-based agent environments.
+- **[AGENTS.md](https://agents.md) & `.agents/` Directory** — Predicate acts as a concrete, shareable implementation of the `AGENTS.md` specification. It materializes project metadata, active rulesets, and capability catalogs inside the `.agents/` directory—the standard workspace path recognized by compliant agentic platforms.
 
 ### The Planning Pipeline
 

@@ -1,17 +1,18 @@
-# Writing Custom Rules and Workflows
+# Writing Custom Rules, Skills, and Workflows
 
-How to extend predicate with your own rulesets, context extensions, and task procedures.
+How to extend predicate with your own rulesets, custom capabilities, and task procedures.
 
-**Audience:** Contributors to predicate or developers forking it for custom rulesets.
+**Audience:** Contributors to predicate or developers forking it for custom configurations.
 
 ---
 
-## The Core Concept: Rules and Workflows
+## The Core Concepts: Rules, Skills, and Workflows
 
-Predicate is structured around two main categories of configuration:
+Predicate is structured around three primary categories of configuration:
 
-1. **Rules** (located in `rules/`): General guidelines, constraints, and personas that govern how the agent behaves and reasons. They are activated automatically based on frontmatter configuration.
-2. **Workflows** (located in `workflows/`): Manual procedures and protocols triggered by the user via slash commands (e.g., `/plan`, `/core`, `/doc`).
+1. **Rules** (located in `rules/`): General guidelines, constraints, and schemas that govern how the agent behaves and reasons. They are activated automatically based on frontmatter configuration.
+2. **Skills** (located in `skills/`): Composed capabilities (encapsulated guidelines, scripts, or assets) loaded semantically when a specific capability is required.
+3. **Workflows** (located in `workflows/`): Manual procedures and protocols triggered by the user via slash commands (e.g., `/plan`, `/core`, `/doc`).
 
 ---
 
@@ -88,6 +89,40 @@ activation: model
 
 ---
 
+## Skills
+
+Skills live in subdirectories under `skills/` (e.g., `skills/depmap/`). Each skill acts as a modular capability containing instructions, references, and optional execution scripts. Unlike workflows, which prescribe step-by-step procedures, skills act as functional toolkits that the agent invokes dynamically.
+
+### Frontmatter
+
+Every skill must define a `SKILL.md` file at its root containing YAML frontmatter:
+
+```yaml
+---
+name: skill-name
+description: "Detailed semantic description specifying when to trigger this capability."
+---
+```
+
+### Directory Structure
+
+A typical skill directory contains:
+
+```
+skills/my-custom-skill/
+├── SKILL.md            # Required: Skill definition and guidelines
+├── scripts/            # Optional: Execution scripts (Python, Bash, etc.)
+└── resources/          # Optional: Templates, reference files, or static assets
+```
+
+### Guidelines
+
+1. **Semantic Descriptions**: Use high-density, search-optimized keyword phrases in the frontmatter `description` field. The runner indexes this description to match and inject the skill when the user's prompt or the agent's task warrants it.
+2. **Context-Specific Instructions**: Use the `SKILL.md` body to detail precisely *how* the agent should utilize the skill's tools, scripts, or references. Delineate concrete scenarios and edge cases.
+3. **Execution Scripts**: Put helper scripts inside a `scripts/` subdirectory. Document their arguments, expected inputs/outputs, and prerequisite environments clearly within the `SKILL.md`.
+
+---
+
 ## Workflows
 
 Workflows live in `workflows/`. They are triggered by the user via slash commands (like `/plan` or `/core`) and define structured, step-by-step procedures.
@@ -116,9 +151,9 @@ required_personas:
 
 ## General Principles
 
-These apply across all rules and workflows:
+These apply across all rules, skills, and workflows:
 
-1. **Frontmatter is mandatory.** Every file in `rules/` and `workflows/` must have valid YAML frontmatter with `name`, `description`, and `activation` (for rules) or `trigger` (for workflows).
+1. **Frontmatter is mandatory.** Every configuration file in `rules/`, `workflows/`, and `skills/` (specifically `SKILL.md` files) must contain valid YAML frontmatter with `name` and `description`, along with `activation` (for rules) or `trigger` (for workflows).
 2. **Use GitHub Flavored Markdown.** Structure text with tables, bullet lists, alert blocks (`> [!IMPORTANT]`, `> [!CAUTION]`), and syntax-highlighted code blocks.
 3. **Anti-patterns over platitudes.** "Don't do X because Y" is far more effective than vague requests like "strive for quality."
 4. **Link references correctly.** Link between files using GitHub markdown links with relative paths or absolute file scheme links (e.g. `[constitution.md](file:///absolute/path/to/rules/constitution.md)`).
