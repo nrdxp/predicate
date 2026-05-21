@@ -84,33 +84,14 @@ def main():
     success = True
     
     if os.path.isdir(target):
-        if target == '.':
-            # Audit core files at the root
-            for f in ['README.md', 'AGENTS.md', 'LICENSE.md']:
-                if os.path.exists(f):
-                    if not audit_file(f):
+        for root, dirs, files in os.walk(target):
+            # Prune hidden directories in-place to skip walking them
+            dirs[:] = [d for d in dirs if not d.startswith('.')]
+            for file in files:
+                if file.endswith('.md'):
+                    filepath = os.path.join(root, file)
+                    if not audit_file(filepath):
                         success = False
-            # Audit specific subdirectories
-            for subdir in ['rules', 'skills', 'workflows', 'templates', 'docs']:
-                if os.path.exists(subdir):
-                    for root, dirs, files in os.walk(subdir):
-                        if any(part.startswith('.') and part not in ('.', '..') for part in root.split(os.sep)):
-                            continue
-                        for file in files:
-                            if file.endswith('.md'):
-                                filepath = os.path.join(root, file)
-                                if not audit_file(filepath):
-                                    success = False
-        else:
-            for root, dirs, files in os.walk(target):
-                # Skip hidden folders (e.g. .git, .claude) but allow relative paths starting with . or ..
-                if any(part.startswith('.') and part not in ('.', '..') for part in root.split(os.sep)):
-                    continue
-                for file in files:
-                    if file.endswith('.md'):
-                        filepath = os.path.join(root, file)
-                        if not audit_file(filepath):
-                            success = False
     else:
         success = audit_file(target)
         

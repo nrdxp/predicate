@@ -1,0 +1,10 @@
+{
+  "name": "predicate",
+  "version": "0.1.0",
+  "description": "Reusable agent rulesets (rules), skills, and workflows for agentic coding assistants.",
+  "author": {
+    "name": "nrdxp"
+  },
+  "repository": "https://github.com/nrdxp/predicate",
+  "license": "MIT"
+}
