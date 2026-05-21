@@ -2,6 +2,8 @@
 
 Reusable agent rulesets (rules), skills, and workflows for agentic coding assistants.
 
+👉 **[Proceed directly to the Getting Started Guide](docs/getting-started.md)** to integrate Predicate within your workspace.
+
 ## What's In Here
 
 ```
