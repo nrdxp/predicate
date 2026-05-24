@@ -18,7 +18,6 @@ All commit messages MUST satisfy these structural invariants:
 1. **Header Line Limit:** The summary line MUST NOT exceed **50 characters**.
 2. **Body Line Limit:** No line in the body or footer may exceed **72 characters**.
 3. **Blank Line Separation:** A single blank line MUST separate the header from the body.
-4. **No Auto-Commit:** Never run `git commit` directly. Present the proposed commit message to the user for explicit review and manual execution.
 
 ---
 
@@ -27,12 +26,18 @@ All commit messages MUST satisfy these structural invariants:
 Commits must conform to the Conventional Commits v1.0.0 specification:
 
 ```
-<type>(<scope>): <description>
+<type>(<scope>)[!]: <description>
 
 [optional body]
 
 [optional footer(s)]
 ```
+
+### Breaking Changes
+
+A breaking change must be indicated by:
+- An exclamation mark `!` suffixing the type or scope in the summary header (e.g., `feat!: remove deprecated api` or `fix(parser)!: adjust breaking parser logic`).
+- A `BREAKING CHANGE: <description>` footer entry.
 
 ### Allowed Types
 
@@ -83,4 +88,4 @@ Before presenting a commit message, run this audit:
 - [ ] Is the header in the imperative mood?
 - [ ] Does it use a valid Conventional Commit type?
 - [ ] Does the body explain the *why* and *what*, rather than just reproducing the diff?
-- [ ] Are breaking changes explicitly noted in the footer (e.g., `BREAKING CHANGE: <description>`)?
+- [ ] Are breaking changes explicitly denoted using `!` in the header and/or a `BREAKING CHANGE: <description>` footer?
