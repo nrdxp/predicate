@@ -88,7 +88,7 @@ Split work into logical commit boundaries to keep history clean and reviewable.
   2. **REVIEW block** — structured output of self-review findings (see format below)
   3. **Sketch update** — append execution notes to `.sketches/[topic].md`, then `git add` and `git commit` in the `.sketches/` subrepo
   4. JUSTIFICATION block for the work in this commit
-  5. [Conventional commit](https://www.conventionalcommits.org) message (subject to `documentation.md § Core Writing Principles` — answer first, active voice, no filler)
+  5. [Conventional commit](file:///var/home/nrd/git/github.com/nrdxp/predicate/skills/commit-hygiene/SKILL.md) message (conforming to the commit-hygiene skill guidelines)
   6. REMAINING STEPS — re-output remaining PLAN steps
 - Await instructions before proceeding to the next commit
 - Each commit should be atomic and independently reviewable

@@ -7,7 +7,8 @@ This project **is** [predicate](https://github.com/nrdxp/predicate) — a system
 > [!IMPORTANT]
 > You **must** review [skills/constitution/SKILL.md](skills/constitution/SKILL.md) and follow its protocol before beginning work.
 
-**Active Rules:** None (except always-active axioms)
+**Active Skills:**
+- commit-hygiene (Commit message formatting and best practices)
 
 This is a documentation-only repository. The language-specific skills (go, rust, etc.) are provided as templates/configurations for other projects, but are not active here. The `skills/integral/SKILL.md` skill guides meta-project reasoning.
 

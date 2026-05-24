@@ -19,6 +19,7 @@ This project uses [predicate](https://github.com/nrdxp/predicate) for agent conf
 <!-- Example: -->
 <!-- - rust (Rust idioms) -->
 <!-- - sdma (Domain modeling) -->
+<!-- - commit-hygiene (Commit message formatting and best practices) -->
 
 ---
 
