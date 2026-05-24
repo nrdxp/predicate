@@ -1,159 +1,116 @@
-# Writing Custom Rules, Skills, and Workflows
+# Writing Custom Agent Skills
 
-How to extend predicate with your own rulesets, custom capabilities, and task procedures.
+How to extend Predicate with your own modular agent skills (rulesets, procedures, and capabilities).
 
-**Audience:** Contributors to predicate or developers forking it for custom configurations.
-
----
-
-## The Core Concepts: Rules, Skills, and Workflows
-
-Predicate is structured around three primary categories of configuration:
-
-1. **Rules** (located in `rules/`): General guidelines, constraints, and schemas that govern how the agent behaves and reasons. They are activated automatically based on frontmatter configuration.
-2. **Skills** (located in `skills/`): Composed capabilities (encapsulated guidelines, scripts, or assets) loaded semantically when a specific capability is required.
-3. **Workflows** (located in `workflows/`): Manual procedures and protocols triggered by the user via slash commands (e.g., `/plan`, `/core`, `/doc`).
+**Audience:** Contributors to Predicate or developers forking it for custom configurations.
 
 ---
 
-## Rules
+## The Unified Skills Architecture
 
-Rules live in `rules/` and consolidate the legacy concepts of *axioms* and *personas*. A rule's activation model is defined by its frontmatter.
+Predicate consolidates all agent configuration under the **Skills** abstraction. A skill resides in a subdirectory of `skills/` (e.g., `skills/my-skill/`) and must contain a `SKILL.md` entry point. 
 
-### The Three Rule Types
+Skills are categorized by their role, but share the same directory structure and loading model:
 
-| Type | Frontmatter Activation | When Active | Purpose / Voice |
-| :--- | :--- | :--- | :--- |
-| **Axiom** | `activation: always` | Active unconditionally on every task | Universal, non-negotiable standards (e.g., code safety). |
-| **Glob Rule** | `activation: glob` | Active when editing or reading matched files | Language-specific or filetype conventions (e.g., `*.go` patterns). |
-| **Model Rule** | `activation: model` | Activated semantically by the model when relevant | Domain-specific guidance (e.g., domain modeling). |
+1. **Rule Skills:** Declarative constraints, language idioms, and architectural guardrails (e.g., `rust`, `engineering`).
+2. **Workflow Skills:** Procedural SOPs with structured states, state machines, and checkpoints (e.g., `plan`, `core`).
+3. **Tool Skills:** Functional capabilities containing executable scripts or dependency maps (e.g., `depmap`, `security-audit`).
 
 ---
 
-### Axioms (`activation: always`)
+## Directory Structure
 
-Axioms must be universal, concise, and non-conflicting. Because they load on every single interaction, every byte should earn its place in the context window.
-
-#### Frontmatter
-```yaml
----
-name: "engineering"
-description: "Technical and maintainability rules for codebase edits"
-activation: always
----
-```
-
-#### Guidelines
-1. **Use imperative voice.** Axioms are rules, not recommendations. "Validate external inputs at system boundaries" — not "Consider validating inputs."
-2. **Include anti-patterns.** Concrete examples of forbidden behavior are highly effective. Use the `❌`/`✅` pattern established in `engineering.md`.
-3. **Keep it under 300 lines.** Axioms should stay high-level and universal. If a rule only applies to Go or Rust, move it to a glob rule.
-
----
-
-### Glob Rules (`activation: glob`)
-
-Glob rules are automatically injected into the agent's context when working with specific file paths or extensions. This prevents loading irrelevant context (e.g., loading Rust guidelines on a Python codebase).
-
-#### Frontmatter
-```yaml
----
-name: "rust"
-description: "Idiomatic programming style and practices for Rust"
-activation: glob
-pattern: "**/*.rs"
----
-```
-
-#### Guidelines
-1. **Focus on language idioms.** Cover naming conventions, error handling protocols, performance best practices, testing conventions, and common anti-patterns for the matched language or tool.
-2. **Define patterns precisely.** Use standard glob syntax in the `pattern` property (e.g., `**/*.ts` or `**/*.qmd`).
-
----
-
-### Model Rules (`activation: model`)
-
-Model rules (personas) are loaded semantically. The agent's platform indexes the rule's `description` frontmatter field and injects the rule when the task description matches keywords or concepts.
-
-#### Frontmatter
-```yaml
----
-name: "sdma"
-description: "Trigger when designing domain models, building ologs, verifying protocol equivalence, selecting schemas, or measuring architectural entropy."
-activation: model
----
-```
-
-#### Guidelines
-1. **Provide high-density descriptions.** Use explicit, keyword-rich descriptions to facilitate accurate semantic search triggers.
-2. **Complement, don't repeat.** Do not restate rules from global axioms; instead, provide domain-specific context.
-
----
-
-## Skills
-
-Skills live in subdirectories under `skills/` (e.g., `skills/depmap/`). Each skill acts as a modular capability containing instructions, references, and optional execution scripts. Unlike workflows, which prescribe step-by-step procedures, skills act as functional toolkits that the agent invokes dynamically.
-
-### Frontmatter
-
-Every skill must define a `SKILL.md` file at its root containing YAML frontmatter:
-
-```yaml
----
-name: skill-name
-description: "Detailed semantic description specifying when to trigger this capability."
----
-```
-
-### Directory Structure
-
-A typical skill directory contains:
+A skill directory is structured as:
 
 ```
 skills/my-custom-skill/
-├── SKILL.md            # Required: Skill definition and guidelines
-├── scripts/            # Optional: Execution scripts (Python, Bash, etc.)
+├── SKILL.md            # Required: Skill definition, triggering description, and guidelines
+├── scripts/            # Optional: Automation / execution scripts (Python, Bash, etc.)
 └── resources/          # Optional: Templates, reference files, or static assets
 ```
 
-### Guidelines
-
-1. **Semantic Descriptions**: Use high-density, search-optimized keyword phrases in the frontmatter `description` field. The runner indexes this description to match and inject the skill when the user's prompt or the agent's task warrants it.
-2. **Context-Specific Instructions**: Use the `SKILL.md` body to detail precisely *how* the agent should utilize the skill's tools, scripts, or references. Delineate concrete scenarios and edge cases.
-3. **Execution Scripts**: Put helper scripts inside a `scripts/` subdirectory. Document their arguments, expected inputs/outputs, and prerequisite environments clearly within the `SKILL.md`.
-
 ---
 
-## Workflows
+## Frontmatter Triggering Strategy
 
-Workflows live in `workflows/`. They are triggered by the user via slash commands (like `/plan` or `/core`) and define structured, step-by-step procedures.
+Because skills are loaded semantically by agent runners (such as `agy` and Claude Code) based on the user's prompt or task description, the YAML frontmatter `description` of `SKILL.md` is critical. 
 
-### Frontmatter
+Always use YAML multi-line block scalars (`|`) to define highly descriptive semantic keyword triggers, specifying relevant tasks, file suffixes, and command triggers.
 
+### 1. Authoring Rule Skills
+
+Rule skills provide passive constraints. Delineate clear style requirements, error handling guidelines, and anti-patterns.
+
+#### Example Frontmatter:
 ```yaml
 ---
-name: "workflow-name"
-description: "One-line purpose"
-trigger: "/slash-command"
-required_personas:
-  - planning # optional: names of model rules loaded when this workflow activates
+name: rust
+description: |
+  Idiomatic programming style, patterns, and conventions for Rust development.
+  Trigger when:
+  - Writing, refactoring, reviewing, or debugging Rust code.
+  - Files matching the pattern **/*.rs (including Cargo.toml, Cargo.lock) are in the workspace or referenced.
+  - Tasks involve: cargo build, cargo clippy, cargo test, cargo check, rustc.
+  - Prompt contains keywords: rust, cargo, clippy, borrow checker, lifetime, struct, enum, impl, Option, Result, match, unwrap, unsafe.
 ---
 ```
 
-### Guidelines
+#### Guidelines:
+1. **Focus on idioms and constraints:** Define language-specific conventions, error handling protocols, and safety practices.
+2. **Use imperative voice:** Rules must be clear and direct. "Validate input at borders" rather than "Consider input validation."
+3. **Include anti-patterns:** Use the `❌`/`✅` code pattern to illustrate correct vs. incorrect practices clearly.
 
-1. **Define a state machine.** Workflows should have explicit states, valid transitions, and clear definitions of what happens in each state. Use ASCII diagrams for the transition graph.
-2. **Declare halt points.** Every workflow must specify where the agent MUST stop and await human input (e.g., at commit boundaries or design approvals).
-3. **Include a YAML grammar.** Define the structured state the agent maintains during execution. This keeps the agent's context explicit and inspectable. See `core.md` or `plan.md` for examples.
-4. **List protocol violations.** Include a table of forbidden behaviors to prevent common failure modes.
-5. **Keep the slash command short.** One word, lowercase, memorable. Consistent with existing patterns: `/sketch`, `/plan`, `/core`, `/doc`.
+---
+
+### 2. Authoring Workflow Skills
+
+Workflow skills define active SOP procedures. They guide the agent through structured phases.
+
+#### Example Frontmatter:
+```yaml
+---
+name: plan
+description: |
+  SOP for the rigorous planning phase.
+  Trigger when:
+  - Creating a detailed technical design, blueprint, or implementation plan.
+  - Running the /plan command, steel-manning alternatives, or performing pre-mortems.
+  - Prompt contains: /plan, plan workflow, design specification, refine, challenge, scope, commit.
+---
+```
+
+#### Guidelines:
+1. **Define a state machine:** Workflows must detail explicit states, valid transitions, and what happens in each state. Provide an ASCII transition diagram.
+2. **Declare halt points:** Specify where the agent MUST stop execution to await human approval.
+3. **Include a YAML grammar:** Define a structured state object that the agent must maintain to keep its context explicit and inspectable.
+4. **List protocol violations:** Provide a table of forbidden behaviors to keep the agent aligned with the workflow.
+
+---
+
+### 3. Authoring Tool Skills
+
+Tool skills package custom utilities or external integration instructions with executable helper scripts.
+
+#### Example Frontmatter:
+```yaml
+---
+name: depmap
+description: |
+  Repository and dependency analysis tools.
+  Trigger when:
+  - Exploring new/large codebases, mapping API surfaces, or finding type/function definitions.
+  - Prompt contains keywords: repo_map, search_identifiers, resolve_dependencies, dep_map.
+---
+```
+
+#### Guidelines:
+1. **Document script arguments:** Clearly document how to run any scripts inside the `scripts/` directory, including their inputs, outputs, and requirements.
+2. **Handle errors gracefully:** Provide instructions on what the agent should do if an external tool or script execution fails.
 
 ---
 
 ## General Principles
 
-These apply across all rules, skills, and workflows:
-
-1. **Frontmatter is mandatory.** Every configuration file in `rules/`, `workflows/`, and `skills/` (specifically `SKILL.md` files) must contain valid YAML frontmatter with `name` and `description`, along with `activation` (for rules) or `trigger` (for workflows).
-2. **Use GitHub Flavored Markdown.** Structure text with tables, bullet lists, alert blocks (`> [!IMPORTANT]`, `> [!CAUTION]`), and syntax-highlighted code blocks.
-3. **Anti-patterns over platitudes.** "Don't do X because Y" is far more effective than vague requests like "strive for quality."
-4. **Link references correctly.** Link between files using GitHub markdown links with relative paths or absolute file scheme links (e.g. `[constitution.md](file:///absolute/path/to/rules/constitution.md)`).
+1. **Frontmatter is mandatory:** Every `SKILL.md` must have valid YAML frontmatter containing the `name` and a rich, multi-line `description` trigger block.
+2. **Use GitHub Flavored Markdown:** Format with tables, bullet lists, alert blocks (`> [!IMPORTANT]`, `> [!CAUTION]`), and syntax-highlighted code blocks.
+3. **Link references correctly:** Link between files using GitHub markdown links with absolute file scheme links (e.g. `[constitution.md](file:///absolute/path/to/skills/constitution/SKILL.md)`). Avoid relative links since skills are often copied or mounted into different directories.

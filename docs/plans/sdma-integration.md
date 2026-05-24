@@ -47,7 +47,7 @@ Incorporate the Structural Domain Modeling Atlas (SDMA) — a corpus distilled f
 
 - Create `axioms/formal-foundations.md` from `sdma-foundations.txt` with agent-directed framing
 - Create `personas/sdma.md` from `sdma.txt` + `sdma-extents.txt` with full depth preserved
-- Create `workflows/model.md` with 6-step procedure and dual-mode operation (create/apply)
+- Create `skills/model/SKILL.md` with 6-step procedure and dual-mode operation (create/apply)
 - Create `templates/MODEL.md` with shared structural skeleton for model documents
 - Update `planning.md` persona to reference `/model` in the pipeline
 - Update repository structure table in `AGENTS.md` and `README.md` to reference `docs/models/`
@@ -103,7 +103,7 @@ Incorporate the Structural Domain Modeling Atlas (SDMA) — a corpus distilled f
      - [x] Uncertainty Gap (Markov kernels, effective topos, Markov's principle, PERs, many-valued logic)
      - [x] Verification Gap (Stone duality, coalgebraic modal logic, system dynamics ↔ system specification)
 
-3. **Phase 3: Workflow — `workflows/model.md`** — Create the /model workflow
+3. **Phase 3: Workflow — `skills/model/SKILL.md`** — Create the /model workflow
    - [x] Write workflow frontmatter (name, description, trigger, required_personas)
    - [x] Section: Scope and pipeline position
    - [x] Section: Dual-mode operation
@@ -133,7 +133,7 @@ Incorporate the Structural Domain Modeling Atlas (SDMA) — a corpus distilled f
 
 - [ ] `axioms/formal-foundations.md` exists, has valid frontmatter, and covers all sections from `sdma-foundations.txt` without dilution
 - [ ] `personas/sdma.md` exists, has valid frontmatter, and covers all content from `sdma.txt` and `sdma-extents.txt` without dilution
-- [ ] `workflows/model.md` exists, has valid frontmatter with `required_personas: [sdma]`, and follows existing workflow structure conventions
+- [ ] `skills/model/SKILL.md` exists, has valid frontmatter with `required_personas: [sdma]`, and follows existing workflow structure conventions
 - [ ] `templates/MODEL.md` exists with Domain Classification, Formalism Selection, Model, Validation, and Implications sections
 - [ ] `planning.md` references `/model` in the pipeline
 - [ ] `AGENTS.md` and `README.md` structure tables updated

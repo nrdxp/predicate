@@ -8,20 +8,20 @@ Reusable agent rulesets (rules), skills, and workflows for agentic coding assist
 
 ```
 predicate/
-├── rules/       # Workspace rules (Axioms and glob/model-activated rules)
-├── skills/      # Custom skills with instructions and scripts
-├── workflows/   # Manually-triggered slash commands
+├── skills/      # Encapsulated agent skills (rules, workflows, tools)
 ├── templates/   # Project templates (AGENTS.md, PLAN.md, etc.)
 └── docs/        # Guides, plans, ADRs, and formal models
 ```
 
 ### Terminology
 
-| Term         | Description                                                                 |
-| :----------- | :-------------------------------------------------------------------------- |
-| **Rule**     | A workspace rule (Axioms are always-active; others are glob or model-active). |
-| **Skill**    | Encapsulated capabilities (rules + scripts/references) loaded semantically. |
-| **Workflow** | A task-specific SOP, manually triggered via slash command.                  |
+Under Predicate's unified architecture, all agent assets are packaged as **Skills**:
+
+| Term | Category | Description |
+| :--- | :--- | :--- |
+| **Rule Skill** | Constraint | Declarative guidelines and guardrails (e.g. `rust`, `engineering`). |
+| **Workflow Skill** | Procedure | Structured state-machine SOPs (e.g. `plan`, `core`, `dialectic`). |
+| **Tool Skill** | Capability | Executable scripts or API maps (e.g. `depmap`, `security-audit`). |
 
 ---
 
@@ -29,22 +29,17 @@ predicate/
 
 ### Why Predicate?
 
-AI coding assistants need clear, consistent guidance, but system prompts quickly become unwieldy. Predicate separates concerns:
+AI coding assistants need clear, consistent guidance, but system prompts quickly become unwieldy. Predicate consolidates these into modular, semantically loaded **Skills**:
 
-- **Rules** → Architectural, language, and styling constraints
-- **Skills** → Encapsulated capabilities (like audits or lint check scripts)
-- **Workflows** → Structured procedures triggered on demand
-
-This prevents context overload. A Rust-focused request doesn't need Go idioms; a README update doesn't need language rules at all. The agent loads only what's relevant to the current task.
+- **Context Pruning:** Rather than loading a massive ruleset, the runner semantically indexes each skill's frontmatter description. The agent only retrieves the skills relevant to the active task (e.g., Rust skills are not loaded for a Python task).
+- **Process Orchestration:** Workflow skills load detailed SOP instructions into the agent's context when a specific engineering phase (like `/plan` or `/core`) is initiated, guiding the agent step-by-step.
+- **Tool Execution:** Tool skills package execution scripts alongside instructions to let the agent perform complex validation or audit tasks natively.
 
 ### Built on Standards
 
-Rather than fabricating proprietary configuration formats, Predicate aligns with emerging, industry-wide standards for agentic orchestration. The concepts of **rules**, **skills**, and **workflows** represent the tripartite architectural foundation toward which modern coding agents are converging:
+Rather than fabricating proprietary configuration formats, Predicate aligns with emerging, industry-wide standards for agentic orchestration. The concepts of rules, workflows, and tools represent the tripartite architectural foundation toward which modern coding agents are converging. Predicate unifies these under the **Skills (Semantic Capabilities)** abstraction—self-contained packages of instructions and executable tools/scripts. These are modeled after standard agent capabilities, designed to be indexed semantically and called dynamically during tool-use phases.
 
-- **Rules (Declarative Constraints)** — System-level constraints and behavioral guardrails. Predicate implements standard rule activation patterns (global, path-specific globs, and semantic model rules) to prune context windows dynamically, matching the execution paradigms of leading agentic runners.
-- **Skills (Semantic Capabilities)** — Self-contained packages of instructions and executable tools/scripts. These are modeled after standard agent capabilities, designed to be indexed semantically and called dynamically during tool-use phases.
-- **Workflows (SOP Orchestration)** — Explicit, task-specific protocols triggered via slash commands (e.g., `/plan`, `/core`). This conforms to the interactive command interfaces ubiquitous in modern terminal-based agent environments.
-- **[AGENTS.md](https://agents.md) & `.agents/` Directory** — Predicate acts as a concrete, shareable implementation of the `AGENTS.md` specification. It materializes project metadata, active rulesets, and capability catalogs inside the `.agents/` directory—the standard workspace path recognized by compliant agentic platforms.
+- **[AGENTS.md](https://agents.md) & `.agents/` Directory** — Predicate acts as a concrete, shareable implementation of the `AGENTS.md` specification. It materializes active skills catalogs inside the `.agents/` directory—the standard workspace path recognized by compliant agentic platforms.
 
 ### The Planning Pipeline
 
@@ -223,7 +218,7 @@ DIALECTIC is the Socratic method operationalized. It is NOT debate (optimizing f
 - **Documentation alongside code changes** — use `/core` for the code, `/doc` for the docs
 - **Large documentation initiative** — use `/plan` to define phases, then `/doc` within each phase
 
-The documentation rule (`rules/documentation.md`) governs writing quality automatically — Section 1 for all text, Section 2 when producing standalone documents. `/doc` adds the _process_ for deliberate documentation work.
+The documentation rule (`skills/documentation/SKILL.md`) governs writing quality automatically — Section 1 for all text, Section 2 when producing standalone documents. `/doc` adds the _process_ for deliberate documentation work.
 
 ---
 

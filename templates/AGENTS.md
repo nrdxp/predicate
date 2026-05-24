@@ -11,14 +11,14 @@
 This project uses [predicate](https://github.com/nrdxp/predicate) for agent configuration.
 
 > [!IMPORTANT]
-> You **must** review [.agents/rules/constitution.md](.agents/rules/constitution.md) and follow its instructions before beginning work.
+> You **must** review [.agents/skills/constitution/SKILL.md](.agents/skills/constitution/SKILL.md) and follow its instructions before beginning work.
 
-**Active Rules:** None
+**Active Skills:** None
 
-<!-- List active rules from .agents/rules/ here -->
+<!-- List active skills from .agents/skills/ here -->
 <!-- Example: -->
-<!-- - rust.md (Rust idioms) -->
-<!-- - sdma.md (Domain modeling) -->
+<!-- - rust (Rust idioms) -->
+<!-- - sdma (Domain modeling) -->
 
 ---
 

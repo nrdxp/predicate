@@ -10,9 +10,9 @@
   document are to be interpreted as described in BCP 14 (RFC 2119, RFC 8174) when,
   and only when, they appear in all capitals, as shown here.
 
-  See: workflows/spec.md for the full protocol specification.
-  See: rules/formal-foundations.md for the mathematical foundations.
-  See: rules/sdma.md for the applied modeling toolkit.
+  See: skills/spec/SKILL.md for the full protocol specification.
+  See: skills/formal-foundations/SKILL.md for the mathematical foundations.
+  See: skills/sdma/SKILL.md for the applied modeling toolkit.
 -->
 
 ## Domain
@@ -28,7 +28,7 @@
 **Model Reference:** <!-- Link to docs/models/<domain>.md if available. Remove if none. -->
 
 **Criticality Tier:** <!-- Low | Medium | High — determines formalism and verification level.
-     See workflows/spec.md § Formalism Selection for tier definitions. -->
+     See skills/spec/SKILL.md § Formalism Selection for tier definitions. -->
 
 ## Constraints
 

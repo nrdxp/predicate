@@ -6,7 +6,7 @@
 
   Explore in sketches; frame in the charter.
 
-  See: workflows/charter.md for the full protocol specification.
+  See: skills/charter/SKILL.md for the full protocol specification.
 -->
 
 ## Purpose

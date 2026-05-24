@@ -6,7 +6,7 @@
 
   Iterate in your sketch; commit in the plan.
 
-  See: workflows/plan.md for the full protocol specification.
+  See: skills/plan/SKILL.md for the full protocol specification.
 -->
 
 ## Goal

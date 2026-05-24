@@ -84,17 +84,17 @@ Augment the `/charter → /sketch → /plan → /core` pipeline with research-ba
 
 ## Verification
 
-- [x] `rg "OUTCOME" workflows/sketch.md` returns the new block
-- [x] `rg "worth the investment" workflows/plan.md` returns the scope guidance
-- [x] `rg "Domain Coherence" workflows/plan.md` returns the technique bullet
-- [x] `rg "ALTERNATIVES_REJECTED" workflows/plan.md` returns the ADR traceability mandate
+- [x] `rg "OUTCOME" skills/sketch/SKILL.md` returns the new block
+- [x] `rg "worth the investment" skills/plan/SKILL.md` returns the scope guidance
+- [x] `rg "Domain Coherence" skills/plan/SKILL.md` returns the technique bullet
+- [x] `rg "ALTERNATIVES_REJECTED" skills/plan/SKILL.md` returns the ADR traceability mandate
 - [x] `rg "Debt:" personas/planning.md` returns the execution notes field
 - [x] `rg "RETROSPECTIVE" personas/planning.md` returns the lifecycle section
 - [x] `rg "prior work" personas/planning.md` returns the cross-cycle guidance
-- [x] `rg "ABORT" workflows/sketch.md` returns the reframing language
+- [x] `rg "ABORT" skills/sketch/SKILL.md` returns the reframing language
 - [x] `rg -i "debt" templates/PLAN.md` returns the verification checkpoint
-- [x] `rg -i "debt" workflows/core.md` finds the new guidance
-- [x] `workflows/charter.md` exists with complete grammar and documentation
+- [x] `rg -i "debt" skills/core/SKILL.md` finds the new guidance
+- [x] `skills/charter/SKILL.md` exists with complete grammar and documentation
 - [x] README.md workflow table includes `/charter`
 - [x] No stale or contradictory references introduced: `rg "customer|product.engineering|PR.FAQ|betting|cool.down" workflows/ personas/` returns zero results
 

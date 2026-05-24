@@ -1,8 +1,8 @@
 # Getting Started with Predicate
 
-Configure Predicate in your environment, activate rulesets, and verify correct agent integration.
+Configure Predicate in your environment, activate skills, and verify correct agent integration.
 
-**Audience:** Developers integrating Predicate rules, skills, and workflows.
+**Audience:** Developers integrating Predicate skills.
 
 ---
 
@@ -12,7 +12,7 @@ Depending on your agent runner's capabilities, choose between a centralized plug
 
 ### Option A: Global Plugin Installation (Recommended)
 
-For agent runners supporting standardized plugin manifests (e.g., Antigravity CLI, Claude Code, and other compliant agentic environments utilizing `plugin.json`), you can install Predicate globally. This exposes all rules, skills, and workflows across your workspaces without manual repository nesting.
+For agent runners supporting standardized plugin manifests (e.g., Antigravity CLI, Claude Code, and other compliant agentic environments utilizing `plugin.json`), you can install Predicate globally. This exposes all skills across your workspaces without manual repository nesting.
 
 Clone the repository directly into your runner's global plugin directory:
 
@@ -44,7 +44,7 @@ git submodule update --remote .agents
 
 ## 2. Configure AGENTS.md (Recommended)
 
-While modern agent runners can discover and execute rules, skills, and workflows directly from a globally loaded plugin without local files, placing an `AGENTS.md` configuration file in your project's root directory is highly recommended. It provides project-specific context (e.g., build commands and architectural overviews) and explicit ruleset routing.
+While modern agent runners can discover and execute skills directly from a globally loaded plugin without local files, placing an `AGENTS.md` configuration file in your project's root directory is highly recommended. It provides project-specific context (e.g., build commands and architectural overviews) and explicit skill routing.
 
 ### Step 1: Initialize AGENTS.md
 
@@ -63,17 +63,16 @@ cp .agents/templates/AGENTS.md ./AGENTS.md
 Edit the `AGENTS.md` file in your project root:
 
 1. Fill in the **Project Overview** — what the project does and its high-level architecture.
-2. Set **Active Rules** — list the rules that apply to your project.
+2. Set **Active Skills** — list the skills that apply to your project.
 3. Add **Build & Commands** — how to test, build, and lint your project.
-4. Fill in remaining sections as applicable.
 
-Example active rules for a Go project:
+Example active skills for a Go project:
 
 ```markdown
-**Active Rules:**
+**Active Skills:**
 
-- go.md (Go idioms)
-- sdma.md (Domain modeling)
+- go (Go idioms)
+- sdma (Domain modeling)
 ```
 
 ---
@@ -84,30 +83,19 @@ Verify that your agent runner successfully detects and loads the Predicate confi
 
 ### For Antigravity CLI (`agy`)
 
-Antigravity CLI natively discovers and mounts Predicate configurations from the standard `.agents/` workspace path or global plugin directories.
+Antigravity CLI natively discovers and mounts Predicate skills from the global plugin directory or the local `.agents/` workspace path.
 
-1. **Verify Slash Commands**: Enter `/` in the CLI prompt. The autocompletion overlay should display the standard Predicate workflows:
-   - `/sketch` — Exploration of design alternatives.
-   - `/plan` — Stress-testing and design specification.
-   - `/core` — Micro-level execution and implementation.
-   - `/doc` — Structured documentation editing.
-2. **Verify Glob Triggers**: Edit a file corresponding to an active rule (e.g., a `.go` or `.rs` file). The CLI will automatically ingest the relevant ruleset constraints (e.g., `rules/go.md` or `rules/rust.md`) into the active context window.
-
-### For Claude Code
-
-Claude Code natively supports the `AGENTS.md` specification and automatically ingests it alongside `CLAUDE.md` at the workspace root to establish persistent context.
-
-1. **Verify Automatic Ingestion**: Start a Claude Code session from your repository root. The agent will discover and load the rules defined in your root-level `AGENTS.md` automatically.
-2. **Test Active Constraints**: Query the agent to verify it has successfully loaded the configuration. For example, ask:
-   > "What coding guidelines are active for this workspace?"
-   
-   The agent should respond with details derived directly from your active rulesets (e.g., build commands or styling guidelines defined in your active rules).
+1. **Verify Startup Skills List**: When you launch the CLI, check the startup metadata block. Under the **Available skills** header, you should see the loaded Predicate skills:
+   - `constitution` — Foundational ethics and structural principles.
+   - `engineering` — Technical guidelines and safety rules.
+   - `rust` or `go` — Language-specific idioms and conventions.
+   - `plan` or `core` — Workflow SOPs.
+2. **Verify Semantic Triggering**: To start a workflow, simply direct the agent using natural language (e.g., *"Let's run the plan workflow"* or *"Help me sketch out this design"*). The runner will match your request against the skill descriptions and load the required skill context.
 
 ---
 
 ## Next Steps
 
-- **Workflows:** Trigger procedures like `/sketch`, `/plan`, `/core`, or `/doc` directly.
-- **Custom content:** See [docs/authoring.md](authoring.md) for writing your own rules, skills, and workflows.
-- **Forking:** Fork the Predicate repository and point your submodule to your fork to maintain custom organizational rulesets.
+- **Custom content:** See [docs/authoring.md](authoring.md) for writing your own custom skills.
+- **Forking:** Fork the Predicate repository and point your submodule to your fork to maintain custom organizational skills.
 
