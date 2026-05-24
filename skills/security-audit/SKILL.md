@@ -390,9 +390,9 @@ The goal is not a comprehensive bug list, but **accurate risk assessment** that 
 
 ---
 
-# Security Audit Skill
+## Platform Checklists
 
-This skill provides domain-specific security checklists and threat models to guide code audits across different platforms.
+This section provides domain-specific security checklists and threat models to guide code audits across different platforms, referencing the target stack identified in Phase 0.
 
 ---
 
