@@ -20,7 +20,7 @@ Under Predicate's unified architecture, all agent assets are packaged as **Skill
 | Term | Category | Description |
 | :--- | :--- | :--- |
 | **Rule Skill** | Constraint | Declarative guidelines and guardrails (e.g. `rust`, `engineering`). |
-| **Workflow Skill** | Procedure | Structured state-machine SOPs (e.g. `plan`, `core`, `dialectic`). |
+| **Workflow Skill** | Procedure | Structured state-machine SOPs (e.g. `plan`, `core`, `dialectic` [MDCS]). |
 | **Tool Skill** | Capability | Executable scripts or API maps (e.g. `depmap`, `security-audit`). |
 
 ---
@@ -190,25 +190,23 @@ MODEL operates in two modes:
 
 ---
 
-#### `/dialectic` — Multi-Model Truth-Seeking
+#### `/dialectic` — Multi-Distribution Cross-Sampling (MDCS)
 
-**Purpose:** Structured examination of high-stakes propositions through model-diverse perspectives — for decisions whose uncertainty cannot be minimized by a single sequence walk.
+Multi-Distribution Cross-Sampling (MDCS) maps protocol boundaries by sampling a proposition under opposing parameter biases to identify structural constraints.
 
-DIALECTIC is the Socratic method operationalized. It is NOT debate (optimizing for winning); it is truth-seeking from opposing perspectives, with model switching as the core diversity mechanism.
-
-| State          | What Happens                                                                     |
-| :------------- | :------------------------------------------------------------------------------- |
-| **FRAME**      | Define the falsifiable proposition and stakes. (Skipped if escalated from another workflow.) |
-| **THESIS**     | Present the strongest *honest* case FOR, including reservations. HALT for model switch. |
-| **ANTITHESIS** | Present the strongest *honest* case AGAINST, independently derived. HALT for model switch. |
-| **SYNTHESIS**  | Distill what's actually true. Map unresolved tensions. HALT for human decision.  |
+| State           | What Happens                                                                     |
+| :-------------- | :------------------------------------------------------------------------------- |
+| **FRAME**       | Define the falsifiable proposition and stakes. (Skipped if escalated from another workflow.) |
+| **D_ALPHA**     | Sample the token space under a positive parameter bias ($D_\alpha$). HALT for model switch. |
+| **D_BETA**      | Sample the token space under an adversarial negative parameter bias ($D_\beta$). HALT for model switch. |
+| **BARYCENTRIC** | Compute the intersection topology of both distributions to isolate unverified state dimensions (unknown unknowns). HALT for human decision. |
 
 **Key mechanics:**
 
-- **Model switching is mandatory** — each role transition is a HALT where the human switches to a different model, ensuring genuinely independent perspectives
-- **Honesty over advocacy** — each role must name genuine weaknesses in its own position and genuine strengths in the opposition
-- **Sketch-based role derivation** — on model switch, the new model reads the sketch's `DIALECTIC` block to determine its role and the debate history
-- **Invocable standalone or via escalation** — any planning workflow can recommend `/dialectic` when a tension exceeds single-agent resolution capacity
+- **Model switching is mandatory** — each distribution transition is a HALT where the human switches to a different model, ensuring zero variance contamination.
+- **Orthogonal parameter bias** — each distribution optimizes for variance coverage relative to its positive or negative bias.
+- **Sketch-based distribution recovery** — on model switch, the new model reads the sketch's `CROSS_SAMPLING` block to recover the context and prior history.
+- **Invocable standalone or via escalation** — any planning workflow can recommend `/dialectic` when a boundary tension exceeds single-agent resolution capacity.
 
 #### `/doc` — Structured Documentation Lifecycle
 
@@ -243,12 +241,20 @@ The sketch is not abandoned when planning begins. It remains a **living document
 | `/sketch`     | Ideation, divergence, convergence                         |
 | `/plan`       | Challenge findings and refinements written back           |
 | `/model`      | Formalization findings written back to active sketch      |
-| `/dialectic`  | Multi-model debate arguments and synthesis recorded       |
+| `/dialectic`  | Multi-distribution cross-sampling and barycentric maps recorded |
 | `/core`       | Execution notes, unexpected discoveries, divergence log   |
 
 Every modification is committed to `.sketches/` immediately — _every touch = a commit_. This creates a linear changelog of all decisions, findings, and pivots. Anyone can reconstruct the full thought chain from the sketch's git history.
 
 > **The best code is no code.** We don't commit to building until the design is right. When planning reveals we shouldn't build at all, that's the best outcome.
+
+### Key Trajectory Control Mechanisms
+
+To prevent trajectory drift and fake pass declarations, Predicate implements the following core verification invariants:
+
+* **Context-Specific Rubrics:** Every active sketch tracks a dynamic qualitative success ledger (`RUBRIC`) in its sketchpad. This ensures that the high-level purpose and architectural constraints are evaluated at every commit boundary, preventing Purpose Drift.
+* **Iteration Transparency:** All manual-gate execution logs must output the exact iteration count, baseline verification failures ($\Delta E_0 \neq 0$), and intermediate corrections inside their `REVIEW` block to provide verifiable proof of closed-loop execution.
+* **One-Shot Skepticism:** If verification passes on the first try (`LOOPS: 1`), the agent is required to execute and record a skeptical self-audit (`SKEPTICAL_AUDIT`) checking for hidden assumptions, spatial complecting (Hickey check), or temporal volatility leaks (Lowy check).
 
 ---
 

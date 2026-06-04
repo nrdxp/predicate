@@ -20,7 +20,7 @@ Planning requires **truth-seeking, not consensus-building.** Challenge flawed pr
 
 **Self-test:** Before presenting any recommendation that aligns with the user's stated preference, ask: "Am I recommending this because the evidence supports it, or because the user suggested it?" If you can't point to evidence independent of the user's argument, flag your uncertainty explicitly rather than defaulting to agreement.
 
-**Dialectic escalation:** If adversarial self-testing is insufficient — if you're arguing both sides of a high-stakes tension and cannot minimize uncertainty to 0.0 — recommend `/dialectic` to the human. Multi-model dialectic provides genuinely independent perspectives that single-agent walks cannot. This is not an admission of failure; it's an acknowledgment that some questions are too important for correlated sequence generations.
+**Cross-sampling escalation:** If adversarial self-testing is insufficient — if you're arguing both sides of a high-stakes tension and cannot minimize uncertainty to 0.0 — recommend `/dialectic` to the human. Multi-model cross-sampling (MDCS) provides genuinely independent perspectives that single-agent walks cannot. This is not an admission of failure; it's an acknowledgment that some questions are too important for correlated sequence generations.
 
 Workflows that load this skill inherit these obligations — back-reference here rather than restate.
 ---
@@ -216,7 +216,7 @@ ESCALATION:
 **This is a HALT point.** The human decides the response path:
 
 - **RE_CHARTER:** The strategic frame needs revision. Open a Reconciliation Sketch (see below).
-- **DIALECTIC:** The tension is genuinely contested — neither the strategy nor the reality is clearly wrong. Escalate to `/dialectic` for multi-model arbitration.
+- **DIALECTIC:** The tension is genuinely contested — neither the strategy nor the reality is clearly wrong. Escalate to `/dialectic` for multi-model cross-sampling (MDCS).
 - **DESCOPE:** The plan must be cut to fit within the existing strategy. Revise the plan's phases and re-enter `/core`.
 
 > [!CAUTION]
@@ -281,7 +281,7 @@ Once the human approves a direction in PROPOSE:
 - **REFRAME:** The sketch becomes the input to a new `/charter` cycle, with explicit reference to the old charter and what it got wrong. The interrupted workflow is abandoned.
 
 > [!IMPORTANT]
-> **Reconciliation vs. Dialectic:** Reconciliation sketches handle **empirical invalidation** — "reality proved us wrong, how do we adapt?" Dialectic handles **logical arbitration** — "we have two compelling theories and reality hasn't forced our hand yet." Default to reconciliation for strategic drift; escalate to `/dialectic` only when the tension is genuinely contested rather than empirically resolved.
+> **Reconciliation vs. Cross-Sampling:** Reconciliation sketches handle **empirical invalidation** — "reality proved us wrong, how do we adapt?" Cross-sampling (`/dialectic`) handles **logical tension** — "we have two compelling theories and reality hasn't forced our hand yet." Default to reconciliation for strategic drift; escalate to `/dialectic` only when the tension is genuinely contested rather than empirically resolved.
 
 ---
 

@@ -93,7 +93,7 @@ Charter-level unvalidated priors propagate structural errors downstream, causing
 > [!CAUTION]
 > **The cascade test:** Every downstream artifact inherits the charter's assumptions. An unvalidated prior charter — one that propagates unconstrained sequence assumptions without trace validation — makes downstream trajectory divergence inevitable. Challenge the charter as hard as you would challenge a PLAN, even though it has no formal CHALLENGE state.
 
-If a strategic tension resists confident resolution through single-agent examination, recommend `/dialectic` to the human (see `planning.md` — Dialectic escalation).
+If a strategic tension resists confident resolution through single-agent examination, recommend `/dialectic` to the human (see `planning.md` — Cross-sampling escalation).
 
 ---
 
