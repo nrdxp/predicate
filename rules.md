@@ -79,8 +79,11 @@ graph TD
 ```
 
 ### Protocol Invariants:
-1. **Test-Driven Development Baseline Check:** Prior to modifying any implementation code, a test invariant must be written to capture the desired target state. This test must be run to verify that it fails ($\Delta E_0 \neq 0$). Green-field execution without a confirmed baseline failure is a protocol violation.
-2. **Corrective Feedback Iteration:** When verification fails ($\Delta E_k \neq 0$), a corrective generation step ($\Delta \mathbf{S}_{k+1}$) must be computed from the compiler/linter error feedback to minimize the error vector. If convergence is not achieved within 3 to 5 iterations, execution must freeze and transition to manual clarification.
+1. **Pragmatic Ceremony Boundary:** Unless the plan or core workflows are explicitly invoked, the full YAML grammar ceremony is optional. Nevertheless, the formal spirit of closed-loop autoregressive convergence (writing test invariants first, verifying baseline failure, verifying correctness, and executing logically atomic commits) MUST be strictly enforced for every workspace mutation.
+2. **Test-Driven Development Baseline Check:** Prior to modifying any implementation code, a test invariant must be written to capture the desired target state. This test must be run to verify that it fails ($\Delta E_0 \neq 0$). Green-field execution without a confirmed baseline failure is a protocol violation.
+3. **Targeted Test Optimization:** To prevent feedback latency decay, avoid executing the entire test suite during local optimization. The agent client MUST use targeted test selectors (e.g., executing specific test cases, module suites, or targeted paths) to keep feedback latency below 5 seconds. The complete test suite is reserved for the final commit validation gate.
+4. **Corrective Feedback Iteration:** When verification fails ($\Delta E_k \neq 0$), a corrective generation step ($\Delta \mathbf{S}_{k+1}$) must be computed from the compiler/linter error feedback to minimize the error vector. If convergence is not achieved within 3 to 5 iterations, execution must freeze and transition to manual clarification.
+5. **Feedback Quality Gate (Ambiguity Recovery):** If compiler or test runner output is ambiguous, empty, or lacks distinct file/line diagnostic indicators, the agent is FORBIDDEN from guessing corrective edits. The agent must halt the optimization loop immediately and transition to manual clarification.
 
 ---
 
@@ -99,3 +102,18 @@ Align module boundaries with axes of change. Code must be organized by volatilit
 - **Axis of Change:** Identify what business or technical requirements are likely to fluctuate independently.
 - **Boundary Insulation:** Separate volatile components from stable cores. Volatile changes must not propagate across architectural boundaries.
 - **Temporal Decoupling:** Minimize temporal coupling (requirements that steps must occur in a specific, locked order). Where sequencing is required, use state machines or queues to isolate state transitions.
+
+---
+
+## 6. Self-Guided Trajectory Control (Long-Horizon Self-Prompting)
+
+In long-running autonomous sessions (e.g., `/goal` loops), context drift and compounding errors are major risk vectors. To maintain convergence through long self-guided trajectories, the agent MUST execute the following self-prompting protocol at the beginning of each step:
+
+1. **Boundary Reconstruction:** Re-evaluate the active boundary conditions by explicitly reading:
+   - The current [rules.md](file:///var/home/nrd/git/github.com/nrdxp/predicate/rules.md).
+   - The active Dynamic Sketchpad ledger (the `.sketches/YYYY-MM-DD-<topic-name>.md` file).
+2. **State Alignment Prompt:** Prompt yourself in the reasoning trace with a structured verification check:
+   - *What is the target sub-goal?*
+   - *What constraint is currently being optimized?*
+   - *What is the baseline failure condition for this step?*
+3. **Linear Logging:** Update the Dynamic Sketchpad constraints and commits ledger *before* committing the step to git. Never defer documentation updates to the end of the long-horizon session.
