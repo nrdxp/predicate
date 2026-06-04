@@ -19,9 +19,26 @@ Traditional unit testing asserts that specific hardcoded inputs produce specific
 
 To establish a mathematically sound validation boundary, you must verify the code against **properties and invariants** rather than static examples. A program is verified when its state transition satisfies high-level algebraic equations across a randomized input space.
 
+### Iterative Refinement of Verification Boundaries ("Testing the Tests")
+Because there is no deterministic validator to "test the test," the test suite must be converged and refined with the same rigor as the implementation:
+* **Specification Traceability:** Every test case must explicitly trace to a constraint in the specification or state-space model.
+* **Non-Trivial Failure Validation:** The baseline check is absolute: a test suite that passes on empty or unimplemented code ($\Delta E\_0 = 0$) is invalid.
+* **Input Domain Scrutiny:** Generators must be audited to verify they generate the complete phase-space of input variables, explicitly including edge states (null, negative, empty structures, maximum limits).
+
 ---
 
-## 2. Property-Based Testing (PBT)
+## 2. Selection & Execution Rules
+
+When executing the closed-loop optimization cycle, select verification methods based on the task domain:
+
+* **Formal Specification Active:** Tests MUST trace directly to specification invariants, achieving 100% assertion coverage of normative constraints.
+* **Algebraic Invariants Present:** If the domain exhibits algebraic properties (isomorphism, commutativity, etc.) and the target language has mature PBT support, Property-Based Testing (PBT) **MUST** be the primary validation gate.
+* **Untrusted or Complex Input Boundaries:** If the program parses custom protocols, processes serialization formats, or handles external network payloads, Fuzz Testing **MUST** be applied to stress-test the boundary.
+* **Oracle-Less Systems:** If the expected outputs are complex or computationally expensive to calculate (e.g., optimization routines, matrix operations), Metamorphic Testing **MUST** be used to assert functional relations across perturbed inputs.
+
+---
+
+## 3. Property-Based Testing (PBT)
 
 Property-Based Testing validates that high-level code invariants hold true across a wide, randomized range of inputs. If a failure occurs, the framework automatically simplifies (shrinks) the input to locate the minimal reproducing case.
 
@@ -42,7 +59,7 @@ Property-Based Testing validates that high-level code invariants hold true acros
 
 ---
 
-## 3. Metamorphic Testing (MT)
+## 4. Metamorphic Testing (MT)
 
 Metamorphic Testing addresses the **oracle problem** (cases where the correct output is unknown or computationally expensive to calculate). It checks whether the relationship between multiple inputs and their outputs matches a defined Metamorphic Relation (MR).
 
@@ -59,7 +76,7 @@ If a generated code piece is correct, it will maintain these semantic consistenc
 
 ---
 
-## 4. Fuzzing & Security Boundaries
+## 5. Fuzzing & Security Boundaries
 
 Fuzzing bombards a program with randomized, structured, or mutated inputs to locate edge-case crashes, memory safety bugs, or infinite loops.
 
@@ -68,7 +85,23 @@ Fuzzing bombards a program with randomized, structured, or mutated inputs to loc
 
 ---
 
-## 5. Hierarchical Verification Design
+## 6. Integration and End-to-End (E2E) Testing
+
+Verifying units in isolation is insufficient; complex systems exhibit emergent errors at module boundaries.
+
+### Integration Testing
+Verify the interfaces and state transitions between decoupled modules:
+* **Boundary Invariants:** Assert that data passed between modules conforms to interface contracts and types.
+* **State Transition Verifications:** Validate that sequential operations across multiple modules (e.g., database writes followed by cache updates) transition the global state machine correctly.
+
+### End-to-End (E2E) Testing
+Simulate the complete execution trajectory under realistic scenarios:
+* **System Liveness and Safety:** Verify that the system reaches its final state (liveness) without entering blocked or invalid configurations (safety).
+* **Deterministic Mocks:** Mock external network APIs and hardware dependencies with deterministic stubs to keep the E2E verification loop fast and reproducible.
+
+---
+
+## 7. Hierarchical Verification Design
 
 Structure your test suites in a hierarchy of increasing integration complexity:
 
@@ -82,7 +115,10 @@ Structure your test suites in a hierarchy of increasing integration complexity:
 [ Tier 3: Property-Based Verification (Invariants) ]
        │  (Runs randomized inputs to find edge-case logical bugs)
        ▼
-[ Tier 4: Differential / Metamorphic Assertions ]
+[ Tier 4: Integration and End-to-End (E2E) Testing ]
+       │  (Verifies module interfaces and global system liveness)
+       ▼
+[ Tier 5: Differential / Metamorphic Assertions ]
        │  (Verifies semantic consistency across implementations)
 ```
 
