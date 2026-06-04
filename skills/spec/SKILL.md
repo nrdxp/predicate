@@ -8,11 +8,11 @@ description: |
   - Prompt contains: /spec, spec workflow, normative constraint, invariant, BCP 14.
 ---
 
-# SPEC Protocol v1.0
+# SPEC Protocol v2.0 (Control-Theoretic Specification)
 
 **Identify → Formalize → Verify → Record → Connect**
 
-You are a Normative Specification Engine. Your goal is to produce machine-verifiable behavioral contracts that constrain implementation. Where `/model` describes what IS, `/spec` declares what MUST BE and verifies it.
+This workflow defines the C.O.R.E. Specification phase. The objective is to define high-density normative constraint vectors (behavioral contracts) that prune the phase-space of valid trajectories during code generation. Where `/model` describes the system's states and transitions (coalgebraic dynamics), `/spec` declares what MUST hold (modal specification) and translates these constraints into test invariants.
 
 ---
 
@@ -20,9 +20,9 @@ You are a Normative Specification Engine. Your goal is to produce machine-verifi
 
 A model is a representation. A specification is a contract.
 
-Models are descriptive — they tell you what exists, how things relate, what the state space looks like. Specifications are normative — they tell you what MUST be true, what MUST NEVER be true, and what transitions are permitted. This distinction maps precisely to the behavior/specification duality formalized in SDMA §11 (Stone duality: coalgebraic dynamics ↔ modal specification).
+Models are descriptive — they map the state-space and operational dynamics. Specifications are normative — they declare invariants that must remain stable and transition conditions that are permitted. This distinction maps precisely to the behavior/specification duality formalized in SDMA §11 (Stone duality: coalgebraic dynamics ↔ modal specification).
 
-Without specifications, agents fill behavioral rules from statistical inference. Every iterative correction loop caused by "I didn't know that was forbidden" is the cost of a missing specification. SPEC eliminates that cost by front-loading normative constraints as explicit, verifiable contracts.
+Without explicit specifications, sequence walks rely on stochastic priors. Every corrective feedback loop caused by trajectory drift is the cost of a missing specification. SPEC minimizes this drift by establishing explicit, deterministic constraints before execution, translating them into executable test suites.
 
 ---
 
@@ -184,15 +184,16 @@ Commit the specification artifact.
 > [!IMPORTANT]
 > **Template discipline.** Create mode documents MUST use `templates/SPEC.md`. Ad hoc formats are a protocol violation.
 
-### Step 5: CONNECT
+### Step 5: CONNECT (Test Invariant Mapping)
 
-Link the specification to the broader context.
+Link the specification constraints to execution-level verification targets:
 
-- Cross-reference the model (if one exists) in `docs/models/` — the spec constrains the model's state space
-- Note implications for downstream `/plan` phases — constraints become plan non-negotiables
-- Note implications for `/core` execution — constraints become verification targets (property-based tests, runtime assertions)
-- If the spec reveals model inadequacies, flag them for `/model` revision
-- Update the sketch (if one exists) with specification findings
+- **Generate Test Invariants**: For every named constraint, define a test invariant specification (e.g. mock assertions, property tests, or trace boundaries).
+- **Assemble Verification Suite**: Map these invariants to specific test cases in the project's test suite, creating the deterministic evaluator $V(\mathbf{S})$ for execution.
+- Cross-reference the model in `docs/models/` — the spec constrains the model's state space.
+- Link constraints to downstream `/plan` deliverables, ensuring they become non-negotiable step verification assertions.
+- If the spec reveals model inadequacies, flag them for `/model` revision.
+- Update the sketch with specification findings.
 
 ---
 
@@ -291,6 +292,8 @@ The sketch captures the _specification journey_; the spec document captures the 
 
 5. **HALT_ON_CONTRADICTION:** If verification reveals contradictions between constraints, you are FORBIDDEN from proceeding to RECORD. Surface to human.
 
+6. **TEST_INVARIANT_MAPPING:** Every normative constraint MUST map to an executable test invariant in the verification suite. Sourcing code edits without compiling the corresponding test invariant is forbidden.
+
 ### Protocol Violations (FORBIDDEN)
 
 | Violation                                           | Why It's Wrong                                          |
@@ -301,3 +304,4 @@ The sketch captures the _specification journey_; the spec document captures the 
 | Specification without normative keywords            | Descriptions masquerading as specifications             |
 | Modifying spec without committing                   | Breaks changelog; decision history is lost              |
 | Proceeding to RECORD with unresolved contradictions | Incoherent spec cascades into incoherent implementation |
+| Constraints without explicit test invariant mapping | Implementation loses its deterministic verification validator |

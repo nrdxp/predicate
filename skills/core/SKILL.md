@@ -7,288 +7,159 @@ description: |
   - Navigating states: Absorb, Clarify, Plan, Execute.
   - Prompt contains: /core, core workflow, absorb, clarify, execution invariants, commit boundary, verify assertion.
 ---
-
-# C.O.R.E. Protocol v2.2
-
+ 
+# C.O.R.E. Protocol v3.0 (Closed-Loop Trajectory Control)
+ 
 **Context → Obstacles → Resolution → Execution**
-
-You are an Agentic Coding Engine. Your goal is to converge on a valid, unambiguous execution plan through the CORE-YAML grammar below.
-
+ 
+This workflow defines the C.O.R.E. micro-execution phase. The objective is to guide sequence token generation through a series of discrete state transitions (Context, Obstacles, Resolution, Execution) and apply local closed-loop verification feedback loops to force trajectory convergence before committing.
+ 
 ---
-
+ 
 ## Scope
-
+ 
 > [!IMPORTANT]
-> CORE takes a segment of the plan — typically scoped to **2-3 commits** — and maps its execution in detail before touching code. It is NOT planning (that's `/plan`) and NOT exploration (that's `/sketch`). If the plan has 8 phases, that's multiple CORE invocations, not one massive session. If you find yourself exploring alternatives or redesigning the approach, you've left CORE territory; HALT and report.
-
----
-
+> C.O.R.E. maps a localized plan segment (typically 2-3 commit boundaries) and manages the execution trajectory. It is NOT high-level planning (that's `/plan`) and NOT exploration (that's `/sketch`). If the sequence begins exploring design alternatives or modifying the architecture, it has exited C.O.R.E. space; the walk must immediately halt.
+ 
 ## Grammar
-
+ 
 ```yaml
-# 1. STATE METADATA
+# 1. TRAJECTORY METADATA
 STATUS: [ABSORB | CLARIFY | PLAN | EXECUTE]
-CONFIDENCE: [0.0-1.0]   # Must be exactly 1.0 to proceed. Any known unknowns → CLARIFY
-ALIGNMENT: [0.0-1.0]    # Fidelity to active workspace rules (informational)
-CORRECTNESS: [0.0-1.0]  # Confidence this solves the actual problem, not just the stated one (informational)
-REASONING:               # Required if ALIGNMENT or CORRECTNESS < 1.0
-  ALIGNMENT: "Why alignment is less than 1.0 and what trade-off is being made"
-  CORRECTNESS: "Why correctness is less than 1.0 — what doubt remains"
-
-# 2. CONTEXT (The Immutable Truth)
+CONTROL_MODE: [MANUAL | AUTOMATIC] # MANUAL: halt at boundaries; AUTOMATIC: autocommit and continue if tests pass.
+UNCERTAINTY: [0.0-1.0]              # Residual entropy / uncertainty. Must be 0.0 to transition to PLAN/EXECUTE.
+STABILITY:
+  SPEC: [0.0-1.0]                   # Conformance to modal specifications
+  MODEL: [0.0-1.0]                  # Conformance to state-space models
+  TEST: [0.0-1.0]                   # Conformance to test invariants (TDD pass rate)
+REASONING:                          # Required if UNCERTAINTY > 0.0 or any STABILITY < 1.0
+  UNCERTAINTY: "Why uncertainty remains and what parameter is missing"
+  STABILITY: "Why stability deviates from 1.0"
+ 
+# 2. CONTEXT (The Initial Boundary Condition)
 CTX:
-  GOAL: "User's objective (quoted verbatim, or paraphrased if clarified)"
-  RULES:
-    - "Constraint 1 (e.g., No external libs)"
-    - "Constraint 2 (e.g., Python 3.9+)"
-  FILES: # Files to read or modify during this task
-    - path/to/relevant/file.py
-    - path/to/another/file.rs
-
-# 3. OBSTACLES (Socratic Guardrail)
-# If non-empty, STATUS must be CLARIFY
+  GOAL: "User's objective (quoted verbatim)"
+  CONSTRAINTS:
+    - "Boundary condition 1"
+  FILES:
+    - path/to/target/file
+ 
+# 3. OBSTACLES (Divergence Vectors)
+# Populated in CLARIFY status; forces sequence freeze
 OBSTACLES:
-  - "Ambiguity 1: Missing API preference"
-  - "Ambiguity 2: Contradictory constraints"
-
-# 4. PLAN (Detailed Execution Map)
-# Only populated if OBSTACLES is empty
-# Go deeper than the high-level plan — specific steps, clear targets,
-# measurable verification. Best-effort estimations are fine; use
-# discretion when reality diverges during EXECUTE.
+  - "Uncertainty / contradiction 1"
+ 
+# 4. TRAJECTORY PLAN (Discrete TDD Optimization Steps)
+# Populated in PLAN/EXECUTE status
 PLAN:
-  RATIONALE: "Why this approach is optimal"
+  RATIONALE: "Mathematical / control rationale for this trajectory"
   STEPS:
     - ID: 1
-      ACTION: "Specific description of change — prefer 'add timeout parameter to fetch() in api.ts' over 'update the handler'"
-      TARGET: "File or section being modified"
-      VERIFY: "Measurable success condition — prefer 'GET /health returns 200' over 'it works'"
-    - ID: 2
-      ACTION: "Next atomic change"
-      TARGET: "..."
-      VERIFY: "..."
-      COMMIT: true # Optional: marks a commit boundary
-
-# 5. ARTIFACTS
-# All output (code, commit messages, verification results) goes in the
-# final response after the YAML block, not inside this grammar.
+      INVARIANT: "Test assertion or property contract (TDD constraint)"
+      TEST_TARGET: "tests/test_file.py::test_name"
+      IMPL_TARGET: "src/file.py::function_name"
+      IMPL_DELTA: "Implementation edit to satisfy the invariant"
+      VALIDATOR: "pytest tests/test_file.py"
+      COMMIT: true # Marks a commit boundary
 ```
-
-### Commit Boundaries
-
-Split work into logical commit boundaries to keep history clean and reviewable.
-
-- Mark steps with `COMMIT: true` to indicate a commit boundary
-- At commit boundaries, pause execution and output in this order, then HALT:
-  1. **Adversarial self-review** — review your diff as a hostile reviewer. Check for:
-     - **Code quality:** missed edge cases, wrong assumptions, unintended behavioral changes, silent regressions
-     - **Reasoning quality:** did I accept a premise I should have questioned? Did I implement what the user asked without verifying it's what they need? Would I make the same choices if the user hadn't suggested the direction?
-
-     Fix issues before proceeding.
-  2. **REVIEW block** — structured output of self-review findings (see format below)
-  3. **Sketch update** — append execution notes to `.sketches/[topic].md`, then `git add` and `git commit` in the `.sketches/` subrepo
-  4. JUSTIFICATION block for the work in this commit
-  5. [Conventional commit](file:///var/home/nrd/git/github.com/nrdxp/predicate/skills/commit-hygiene/SKILL.md) message (conforming to the commit-hygiene skill guidelines)
-  6. REMAINING STEPS — re-output remaining PLAN steps
-- Await instructions before proceeding to the next commit
-- Each commit should be atomic and independently reviewable
-
-> [!CAUTION]
-> **COMMIT boundaries are HALT points.** After completing the 6-step sequence above, you MUST STOP and WAIT for human confirmation. Do not proceed to the next commit. Do not continue execution. HALT.
-
+ 
 ---
-
+ 
+## Trajectory Verification & Commit Gates
+ 
+### 1. Closed-Loop Verification Loop (TDD-First)
+For each step in the plan, execute a local optimization loop:
+- **TDD Formulation**: Formulate and write the test assertion mapping to `INVARIANT` in `TEST_TARGET`.
+- **Baseline Check**: Run `VALIDATOR` to obtain the baseline error differential $\Delta E_0$ (which must fail, confirming the test is non-trivial and not a false pass).
+- **Generation**: Implement code edits at `IMPL_TARGET` to satisfy `IMPL_DELTA`.
+- **Deterministic Evaluation**: Execute `VALIDATOR`.
+   - If tests/compilation pass ($V(\mathbf{S}_k) = 0$), proceed to the Refinement Check.
+   - If tests/compilation fail ($V(\mathbf{S}_k) \neq 0$), apply a corrective edit $\Delta \mathbf{S}_{k+1}$ designed to minimize the error feedback vector $\Delta E_k$. Repeat up to a cap of 3-5 iterations. If no convergence occurs, transition to `CLARIFY` and halt.
+ 
+### 2. Iterative Refinement Loop
+Before concluding work at any commit boundary:
+- Audit the generated diff against code simplicity (Hickey complecting check), volatility alignment (Lowy temporal check), test completeness, and style guidelines.
+- If the quality score is less than 1.0, formulate a corrective refactor, apply it, and re-run verification.
+ 
+### 3. Commit Gates
+At each commit boundary (or phase completion):
+- If `CONTROL_MODE: AUTOMATIC` (and credentials/command permissions are active):
+  1. Update the sketch notes in `.sketches/[topic].md`, then `git add` and `git commit` inside the `.sketches/` subrepo.
+  2. Output the `REVIEW` block, `JUSTIFICATION` block, and conventional commit message.
+  3. Execute `git add [modified files]` and `git commit -m "[message]"` directly.
+  4. Automatically proceed to the remaining PLAN steps without halting.
+- If `CONTROL_MODE: MANUAL` (or not specified):
+  1. Output in this order, then **HALT**:
+     - REVIEW block (structured output of self-review findings: SCORE, FINDINGS with SEVERITY/ACTION/DETAIL)
+     - Sketch update instructions
+     - JUSTIFICATION block
+     - Conventional commit message conforming to [commit-hygiene](file:///var/home/nrd/git/github.com/nrdxp/predicate/skills/commit-hygiene/SKILL.md)
+     - REMAINING STEPS
+  2. **Wait for human confirmation** before proceeding.
+ 
+---
+ 
 ## Prime Directives
-
-1. **STATE_OVER_SCRIPT:** Do not describe what you _will_ do. Define the desired state declaratively in YAML. The PLAN should be detailed enough that EXECUTE follows a clear path — surprises get tracked, not ignored.
-
-2. **AMBIGUITY_GATE:** If context is missing, conflicting, or weak (CONFIDENCE < 1.0), you are FORBIDDEN from generating code. Trigger CLARIFY and populate OBSTACLES.
-
-   **HALT BEHAVIOR:** When CONFIDENCE < 1.0, you MUST output a CLARIFY block. You are FORBIDDEN from rationalizing, assuming, or proceeding. There is no "reasonable default." HALT.
-
-3. **VERIFICATION_FIRST:** Every PLAN step requires a verifiable VERIFY assertion. A task is not complete without verification.
-
-4. **TOKEN_MINIMALISM:** No conversational filler ("Sure", "I can help"). Use only the CORE-YAML grammar.
-
-5. **HANDSHAKE_PROTOCOL:** Never switch to EXECUTE without explicit "APPROVED" from the user.
-
-6. **PREDICATE_AWARENESS:** Remain mindful of the active skills in `AGENTS.md` and `.agents/skills/`. These constraints apply in addition to task-specific instructions.
-
-7. **OUTPUT_PLACEMENT:** All artifacts—PLAN steps, commit messages, verification results—belong in the final response, not the reasoning chain. The user must see them without expanding hidden content.
-
-8. **REMAINING_STEPS:** After each COMMIT boundary, re-output the remaining PLAN steps so the user knows what work remains. Never leave context ambiguous.
-
-9. **SCHEMA_RIGIDITY:** Do not add arbitrary fields to the CORE-YAML grammar. Permitted fields: STATUS, CONFIDENCE, ALIGNMENT, CORRECTNESS, REASONING, CTX, OBSTACLES, PLAN. At commit boundaries, REVIEW is also required; ESCALATION is permitted when strategic drift is detected. All output artifacts (code, commit messages, verification, justification) go in the final response after the YAML block.
-
-10. **GRANULARITY_CAP:** Each CORE invocation should cover at most **2-3 commit boundaries**. If more work remains after the last commit boundary, HALT and let the user invoke `/continue` or a new `/core` for the next chunk. Do not attempt to cover an entire plan in one session.
-
-11. **SKETCH_AT_BOUNDARY:** At every COMMIT boundary, update the active sketch per the planning persona § Sketch Commit Discipline and § Sketch as Lifecycle Journal.
-
+ 
+1. **STATE_OVER_SCRIPT:** Define the desired state declaratively in YAML. The PLAN must specify atomic TDD steps and verification constraints.
+2. **AMBIGUITY_GATE:** If context is missing, conflicting, or weak (UNCERTAINTY > 0.0), token generation for implementation is forbidden. Transition to CLARIFY, populate OBSTACLES, and halt.
+3. **VERIFICATION_FIRST:** Every PLAN step requires a testable assertion. A task is incomplete without verification.
+4. **TOKEN_MINIMALISM:** Eradicate conversational filler. Output only the CORE-YAML grammar during planning.
+5. **HANDSHAKE_PROTOCOL:** Transition to EXECUTE is forbidden without explicit human approval (unless continuing on a fully automated `CONTROL_MODE: AUTOMATIC` run).
+6. **PREDICATE_AWARENESS:** Maintain conformance with active workspace skills.
+7. **SCHEMA_RIGIDITY:** Permitted fields in the CORE-YAML grammar are strictly constrained to: STATUS, CONTROL_MODE, UNCERTAINTY, STABILITY, REASONING, CTX, OBSTACLES, PLAN.
+8. **DEBT_TRANSPARENCY:** Suboptimal compromises must be documented in `JUSTIFICATION.DEBT` and recorded in the plan's `## Technical Debt` section.
+9. **DEVIATION_RECORDING:** Deviations from the plan must be recorded in the plan's `## Deviation Log` section at commit boundaries.
+ 
 ### Protocol Violations (FORBIDDEN)
-
-The following are VIOLATIONS of this protocol. If you catch yourself doing any of these, STOP and correct:
-
-| Violation                                                  | Why It's Wrong                                      |
-| :--------------------------------------------------------- | :-------------------------------------------------- |
-| Adding fields not listed in SCHEMA_RIGIDITY                | Permitted fields are enumerated in Directive 9.     |
-| Skipping commit message                                    | User needs message for manual commit.               |
-| Executing `git commit`                                     | User commits manually. Agent NEVER commits.         |
-| Proceeding past commit boundary without human confirmation | Each boundary is a HALT point.                      |
-| Outputting code before "APPROVED"                          | PLAN requires explicit approval.                    |
-| Continuing after VERIFY failure                            | Must revert to CLARIFY, not push through.           |
-| Covering entire plan in single CORE session                | Exceeds granularity scope; loses incremental review |
-| Proceeding past COMMIT without updating sketch             | Context loss; silent drift from decision record     |
-| Discovering divergence without recording in sketch         | Untracked deviation; future agents lose context     |
-| Deferred REVIEW findings not populating JUSTIFICATION.DEBT | Silent debt accumulation; audit trail broken        |
-| ALIGNMENT or CORRECTNESS < 1.0 without REASONING           | Unexplained deviation; human cannot assess trade-off|
-| Drifting from rules without re-reading                     | Silent misalignment; compounds into flawed output   |
-| Plan deviation without Deviation Log entry                 | Invisible drift; plan loses value as a record       |
-| Strategic deviation without ESCALATION                     | Silent charter/model rot; upstream artifacts lose meaning |
-
-12. **JUSTIFICATION_AT_COMMIT:** At each COMMIT boundary, output a JUSTIFICATION block for the changes in that commit. This block must honestly assess approach rationale, scope delta, API impact, and any technical debt introduced. The user must see the justification _before_ approving the commit.
-
-13. **DEBT_TRANSPARENCY:** If a hack, band-aid, or suboptimal solution is used, it must be documented in `JUSTIFICATION.DEBT` with explicit reasoning. Omitting known compromises is a failure mode. **All** debt items — regardless of severity — must also be recorded in the plan's `## Technical Debt` section. The JUSTIFICATION block is ephemeral (lives in chat), but the plan is committed to source and visible to anyone with repo access. Low-severity debt accumulates silently; making it visible prevents death by a thousand cuts.
-
-14. **PLAN_PROGRESS:** At each COMMIT boundary, check off (`- [x]`) the completed deliverables in the plan document (`docs/plans/[topic].md`). The plan's phase items use checkboxes specifically so progress is visible to anyone reading the document. If you completed a deliverable, mark it done. The plan is a living document during execution, not a frozen artifact.
-
-15. **CONTEXT_RECOVERY:** If at any point during execution you find that you can no longer confidently recall the active skills — or you sense your reasoning is drifting from the project's established constraints — **stop and re-read them** before continuing. You may invoke `/predicate` for a full refresh, or selectively re-read `.agents/skills/` and the active skills listed in `AGENTS.md`. The cost of a re-read is negligible; the cost of drifting from foundational skills compounds silently.
-
-16. **DEVIATION_RECORDING:** At each COMMIT boundary, if execution diverged from the plan, record the deviation in the plan's `## Deviation Log` section. Every `JUSTIFICATION.SCOPE.DELTA` that is not `UNCHANGED` should have a corresponding entry. The deviation log is the canonical, at-a-glance record of how reality differed from the plan — complementary to the sketch's execution notes (which capture real-time observations) and the retrospective (which is post-hoc synthesis).
-
+ 
+| Violation | Why It's Wrong |
+| :--- | :--- |
+| Adding fields not listed in SCHEMA_RIGIDITY | Violates grammar constraints. |
+| Skipping commit message | Breaks repository history standards. |
+| Executing `git commit` without authorization | User commits manually unless `CONTROL_MODE: AUTOMATIC` is active and authorized. |
+| Proceeding past commit boundary without human confirmation | Each boundary is a halt gate (unless `CONTROL_MODE: AUTOMATIC`). |
+| Continuing after verification failure | Must run the Closed-Loop Verification Loop to fix, or halt if it fails to converge. |
+| Proceeding past COMMIT without updating sketch | Destroys decision logs. |
+| Implementing code changes without writing the test invariant first | Violates TDD constraints. |
+ 
 ---
-
-## State Transitions
-
+ 
+## State Transitions & Definitions
+ 
 ```
 ABSORB ──→ CLARIFY (if OBSTACLES exist)
-       └─→ PLAN    (if CONFIDENCE = 1.0)
-
+       └─→ PLAN    (if UNCERTAINTY = 0.0)
+ 
 CLARIFY ──→ PLAN   (once OBSTACLES resolved)
-
+ 
 PLAN ──→ EXECUTE  (on "APPROVED")
      └─→ CLARIFY  (if new ambiguity discovered)
-
-EXECUTE ──→ CLARIFY (if verification fails or scope expands)
-        └─→ ABORT   (if core assumption invalidated or approach fundamentally broken)
+ 
+EXECUTE ──→ CLARIFY (if verification fails to converge)
+         └─→ ABORT   (if target state space is unreachable)
 ```
-
-### State Definitions
-
-**ABSORB:** Ingest user input. Silently transition to CLARIFY or PLAN.
-
-**CLARIFY:** OBSTACLES detected. Output CORE-YAML block, then append numbered questions.
-
-**PLAN:** Full context acquired. This is where CORE zooms in — go deeper than the high-level plan with specific steps, clear targets, and measurable verification. Prefer concrete over vague (name the file, name the function, name the condition), but best-effort estimations are fine. When reality diverges during EXECUTE, use discretion: minor surprises can be noted or absorbed, significant divergence should halt for human guidance. Output CORE-YAML with complete PLAN. Await "APPROVED".
-
-**EXECUTE:** User sent "APPROVED". Proceed as follows:
-
-1. Generate code/changes per PLAN steps
-2. Verify each step against its VERIFY condition
-3. Output VERIFY justification for each step
-4. At each COMMIT boundary, follow the procedure in **Commit Boundaries** above
-5. Never auto-commit (`engineering.md` §11); user commits manually
-6. At each COMMIT boundary, if `JUSTIFICATION.SCOPE.DELTA != UNCHANGED`, evaluate whether the deviation is tactical or strategic per the planning persona § Strategic Escalation. If strategic, emit an ESCALATION block and HALT.
-
-**ABORT:** A core assumption has been invalidated, or the approach is fundamentally broken. This is not a question (that's CLARIFY) — it's a recommendation to abandon this CORE session. Output:
-
-1. **What was attempted** — completed steps and partial progress
-2. **Why it failed** — the specific assumption or design flaw that invalidated the approach
-3. **Sketch update** — record the failure as a Dead End in `.sketches/[topic].md`
-4. **Recommendation** — re-plan, pivot, or escalate
-
-ABORT is a valuable outcome. A CORE session that discovers "this approach can't work" has prevented wasted implementation downstream.
-
-### MANDATORY HALT Points
-
-You MUST stop and await human input at these points. Proceeding without human response is a VIOLATION:
-
-1. **CLARIFY → PLAN transition:** Human must provide answers
-2. **PLAN → EXECUTE transition:** Human must send "APPROVED"
-3. **Each COMMIT boundary:** Human must confirm before next commit
-4. **Unexpected state:** Any divergence from plan triggers CLARIFY, not workaround
-5. **ABORT:** Approach is fundamentally broken — human must decide whether to re-plan, pivot, or abandon
-
+ 
+**ABSORB:** Ingest input, map target attractor basin.
+ 
+**CLARIFY:** Halt generation; emit obstacles to resolve uncertainty.
+ 
+**PLAN:** Construct the discrete state trajectory mapping transitions to TDD targets and invariants.
+ 
+**EXECUTE:** Formulate test invariants, check baseline, run candidate code generation, run verification, minimize the error differential, and apply commit gates.
+ 
+**ABORT:** Halt and exit the trajectory walk when the target state space is proven unreachable.
+ 
 ---
-
-## Recovery
-
-If at any point:
-
-- Verification fails
-- New ambiguity is discovered
-- Scope expands beyond the plan
-
-**→ Revert to CLARIFY.** Reformulate the plan before continuing.
-
-When reverting, preserve completed steps and scope new OBSTACLES to remaining work only.
-
----
-
-## Sketch & Plan Integration
-
-When executing a plan that references a sketch:
-
-1. **Check availability:** If `.sketches/[topic].md` exists, load it as context
-2. **Update at every COMMIT boundary** — per the planning persona § Sketch as Lifecycle Journal (execution notes format, divergence tracking, commit discipline)
-3. **Record unexpected discoveries immediately** — do not defer to phase end
-
-> [!TIP]
-> Use `/git-review` on `.sketches/` to see how decisions evolved over time.
-
----
-
-## Response Format
-
-All responses follow CORE-YAML strictly.
-
-- **CLARIFY:** YAML block + numbered questions after
-- **PLAN:** YAML block with complete STEPS
-- **EXECUTE:** YAML block + code blocks + VERIFY justifications + REVIEW block + JUSTIFICATION block + commit message
-
-### REVIEW Block (Required at COMMIT Boundaries)
-
-After completing the adversarial self-review, output a structured review before proceeding to the sketch update:
-
-```yaml
-REVIEW:
-  SCORE: [0.0-1.0]  # 1.0 = no issues found
-  FINDINGS:          # Required if SCORE < 1.0
-    - ISSUE: "What was found"
-      SEVERITY: [LOW | MEDIUM | HIGH]
-      ACTION: [FIXED | DEFERRED]
-      DETAIL: "What was done to correct, or why deferred"
-```
-
-**Linkage to JUSTIFICATION.DEBT:** Any finding with `ACTION: DEFERRED` **must** appear in `JUSTIFICATION.DEBT` in the same commit boundary. Failing to carry deferred findings into JUSTIFICATION.DEBT is a protocol violation — it breaks the audit trail between what was found and what was tracked.
-
-### JUSTIFICATION Block (Required at COMMIT Boundaries)
-
-At each COMMIT boundary, before presenting the commit message, output a justification for the work in that commit:
-
-```yaml
-JUSTIFICATION:
-  APPROACH:
-    WHAT: "What was done in this commit"
-    WHY: "Why this approach over alternatives"
-    ALTERNATIVES: # Optional, if alternatives were considered
-      - "[approach] — rejected because [reason]"
-
-  SCOPE:
-    DELTA: [UNCHANGED | EXPANDED | REDUCED]
-    CHANGES: # Required if DELTA != UNCHANGED
-      - "What changed from the plan and why"
-
-  API_IMPACT:
-    BREAKING: [YES | NO]
-    ASSESSMENT: "How this integrates with existing patterns"
-    MIGRATION: "..." # Required if BREAKING: YES
-
-  DEBT:
-    LEVEL: [NONE | LOW | MEDIUM | HIGH]
-    ITEMS: # Required if LEVEL != NONE
-      - WHAT: "The compromise"
-        WHY: "Why necessary"
-        FOLLOW_UP: "How to resolve"
-```
-
-This surfaces drift incrementally — the user can catch and correct decisions _before_ the next commit proceeds.
+ 
+## Lexicon Translation Matrix
+ 
+| Psychological Term | Control-Theoretic / Physical Translation | Operational Meaning in the Loop |
+| :--- | :--- | :--- |
+| "Thinking" / "Reasoning" | Stochastic search / sequence generation | Autoregressively walking the discrete token topology. |
+| "Understanding" / "Knowing" | Initial Boundary Condition saturation | Having a fully specified context vector (uncertainty = 0.0). |
+| "Deciding" | High-density path selection | Pruning the probability tree to select a single transition path. |
+| "Hallucination" / "Error" | Trajectory drift / stochastic divergence | Compounding errors in open-loop generation. |
+| "Reviewing" / "Auditing" | Deterministic / manual state verification | Calculating the error differential against constraints. |
+| "Fixing bugs" | Trajectory correction | Applying feedback ($\Delta \mathbf{S}$) to minimize the error vector ($\Delta E$). |
+| "Halt" / "Stop" | Phase-space freeze | Pausing autoregressive generation to await boundary modifications. |gressive generation to await boundary modifications. |

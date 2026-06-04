@@ -8,19 +8,19 @@ description: |
   - Prompt contains: /model, model workflow, categorical, coalgebraic, linear logic, information-theoretic, validation.
 ---
 
-# MODEL Protocol v1.0
+# MODEL Protocol v2.0 (Control-Theoretic Modeling)
 
 **Identify → Select → Construct → Validate → Record → Connect**
 
-You are a Formal Domain Modeling Engine. Your goal is to apply the Structural Domain Modeling Atlas (SDMA) to produce or refine rigorous formal models of engineering domains.
+This workflow defines the C.O.R.E. Modeling phase. The objective is to define the formal structural representation of a domain, establishing the state space, transition relationships, and coalgebraic dynamics. This serves as the structural foundation from which normative constraints and test invariants are derived.
 
 ---
 
 ## Philosophy
 
-Formal models are the bridge between intuition and proof. An olog, a coalgebra, a session type specification — each makes implicit knowledge explicit and verifiable. Without formal models, architectural decisions rest on verbal reasoning that cannot be checked, composed, or migrated.
+Formal models are the bridge between intuition and proof. An olog, a coalgebra, a session type specification — each makes implicit relationships explicit and mathematically verifiable. Without formal models, sequence trajectories are guided by anthropomorphic verbal reasoning that cannot be checked or formally composed.
 
-MODEL provides the _process_ for creating these artifacts. The SDMA persona provides a _foundational toolkit_ — the critical isomorphisms at the heart of computer science. But the SDMA is a bedrock, not a boundary. The full landscape of mathematical formalism is available; the SDMA's categorical, coalgebraic, and information-theoretic foundations serve as a root from which to reach for _any_ relevant representation. The principle of **minimal representation** governs selection: choose the simplest formalism that faithfully captures the domain's essential structure. Don't force an SDMA formalism when a simpler or more domain-native tool is available; don't reach for exotic machinery when the SDMA toolkit suffices.
+MODEL provides the procedure for constructing these structural representations. The SDMA persona defines a foundational toolkit of categorical, coalgebraic, and information-theoretic isomorphisms. The principle of **minimal representation** governs selection: choose the simplest mathematical formalism that faithfully captures the domain's structure, and use it to map the state space for subsequent verification loops.
 
 ---
 
@@ -173,15 +173,16 @@ Commit the model as a durable artifact.
 > [!IMPORTANT]
 > **Template discipline.** Create mode documents MUST use `templates/MODEL.md`. Ad hoc formats are a protocol violation. Apply mode companion documents also use the template; integrated annotations follow the target document's format.
 
-### Step 6: CONNECT
+### Step 6: CONNECT (State Transition Verification Mapping)
 
-Link the model to the broader context.
+Link the formal model to the verification pipeline:
 
-- Update the sketch (if one exists for this workstream) with modeling findings
-- Cross-reference related models in `docs/models/`
-- Cross-reference related specifications in `docs/specs/` — if a spec constrains this model's domain, flag whether the model's state space satisfies the spec's constraints
-- Note implications for downstream work: specification, planning, implementation, testing
-- If the model reveals design flaws or structural problems, flag them explicitly
+- **Generate Transition Assertions**: Map the model's state-space transitions and algebraic properties to executable assertions or mock transition traces.
+- **Link to TDD Suite**: Feed these trace assertions into the project's verification test suite, ensuring the implementation's state machine is verified deterministically.
+- Update the sketch with modeling findings.
+- Cross-reference related models in `docs/models/`.
+- Cross-reference related specifications in `docs/specs/` to verify that the model's state space conforms to the specification constraints.
+- If the model reveals design flaws, structural complecting (spatial issues), or temporal volatility conflicts, flag them explicitly.
 
 ---
 

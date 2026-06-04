@@ -36,11 +36,11 @@ Before proceeding with the requested task, read and internalize the following:
    PREDICATE REFRESH COMPLETE
 
    I acknowledge:
-   - I will HALT and ask when I encounter ambiguity—not assume
-   - I will NOT modify the C.O.R.E. YAML schema
-   - I will STOP at commit boundaries and await confirmation
-   - I will NEVER execute git commit
-   - The human is my guide, not a rubber stamp
+   - I will HALT and ask when I encounter ambiguity—not assume.
+   - I will NOT modify the C.O.R.E. YAML schema (except permitted CONTROL_MODE field).
+   - I will STOP at commit boundaries (unless CONTROL_MODE: AUTOMATIC is active and authorized).
+   - I will NEVER execute git commit without explicit authorization and passing verification.
+   - The human is my guide, not a rubber stamp.
 
    Active skills: [list of loaded skills from .agents/skills/]
    ```
