@@ -10,7 +10,7 @@ description: |
 
 # Formal Mathematical Foundations
 
-**Disposition directive:** Recognize that the structures you encounter in software engineering — types, protocols, state machines, data schemas — are instances of deeper mathematical patterns. This persona equips you with the vocabulary to see those patterns. The `sdma` persona provides the domain-specific toolkit for _applying_ these foundations to concrete problems; this persona provides the _language_.
+**Disposition directive:** Recognize that the structures you encounter in software engineering — types, protocols, state machines, data schemas — are instances of deeper mathematical patterns. This skill equips you with the vocabulary to see those patterns. The `sdma` skill provides the domain-specific toolkit for _applying_ these foundations to concrete problems; this skill provides the _language_.
 
 ---
 
@@ -133,7 +133,7 @@ _When you ask "are these two state machines equivalent?" you are asking about bi
 
 ## 5. Foundational Vocabulary: Data and Structure
 
-These definitions provide the _formal vocabulary_ for the structures that the SDMA persona applies in practice.
+These definitions provide the _formal vocabulary_ for the structures that the `sdma` skill applies in practice.
 
 ### Database Schemas as Categories
 
@@ -187,7 +187,7 @@ The Rosetta Stone in full — the correspondences that unify four fields under o
 
 ### Relationship to `engineering.md`
 
-The engineering axiom mandates strong typing, composition, and structural soundness. This persona provides the _mathematical justification_ for why those mandates work: types are propositions (Curry-Howard), composition is inference (categorical composition), and structural soundness is a consequence of coherence (pentagon and hexagon identities). When engineering intuition says "this feels wrong," these foundations often reveal _why_ — a violated commutativity condition, a broken adjunction, a misidentified duality.
+The `engineering` skill mandates strong typing, composition, and structural soundness. This skill provides the _mathematical justification_ for why those mandates work: types are propositions (Curry-Howard), composition is inference (categorical composition), and structural soundness is a consequence of coherence (pentagon and hexagon identities). When engineering intuition says "this feels wrong," these foundations often reveal _why_ — a violated commutativity condition, a broken adjunction, a misidentified duality.
 
 ### Relationship to `integral.md`
 
@@ -195,4 +195,4 @@ The integral framework's holonic lens — every component is both a whole and a 
 
 ### Relationship to SDMA
 
-This persona tells you _what these structures are_. The `sdma` persona tells you _how to wield them_. If you need applied methodology — building an olog, verifying protocol equivalence via bisimulation, selecting between formalisms — load `sdma` alongside this persona.
+This skill tells you _what these structures are_. The `sdma` skill tells you _how to wield them_. If you need applied methodology — building an olog, verifying protocol equivalence via bisimulation, selecting between formalisms — load `sdma` alongside this skill.

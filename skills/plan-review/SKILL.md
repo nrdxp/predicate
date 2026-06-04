@@ -225,7 +225,7 @@ CLOSE produces structured content that directly populates the plan's `## Retrosp
 
 - **Process** section ← SCOPE_ASSESSMENT + DEBT_ASSESSMENT + pattern observations
 - **Outcomes** section ← DELIVERABLES counts + finding summaries
-- **Pipeline Improvements** section ← any meta-observations about workflow/persona gaps
+- **Pipeline Improvements** section ← any meta-observations about workflow/skill gaps
 
 The retrospective should cite specific findings by ID, not hand-wave. If the review found 3 instances of untracked debt (F2, F5, F7), the retrospective says so explicitly.
 

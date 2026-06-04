@@ -222,7 +222,7 @@ You MUST stop and await human input at:
 
 1. **After FORMALIZE:** Constraints must be human-approved before verification begins
 2. **After VERIFY (if failures):** Human decides whether to revise or accept partial verification
-3. **ESCALATION:** If the spec contradicts the model or charter, emit ESCALATION per the planning persona § Strategic Escalation and HALT
+3. **ESCALATION:** If the spec contradicts the model or charter, emit ESCALATION per the `planning` skill § Strategic Escalation and HALT
 
 ---
 
@@ -244,7 +244,7 @@ Specifications are living artifacts. Rot prevention uses existing pipeline infra
 
 - **Model changes** → spec re-verification required (surfaced by `/model`'s CONNECT step)
 - **Plan deviates from spec** → ESCALATION fires (same mechanism as charter deviation)
-- **`/core` discovers spec is wrong** → reconciliation sketch (see planning persona § Reconciliation Sketches)
+- **`/core` discovers spec is wrong** → reconciliation sketch (see `planning` skill § Reconciliation Sketches)
 
 ---
 

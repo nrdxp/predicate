@@ -20,7 +20,7 @@ This workflow defines the C.O.R.E. Modeling phase. The objective is to define th
 
 Formal models are the bridge between empirical observations and proof. An olog, a coalgebra, a session type specification — each makes implicit relationships explicit and mathematically verifiable. Without formal models, sequence trajectories are guided by anthropomorphic verbal descriptions that cannot be checked or formally composed.
 
-MODEL provides the procedure for constructing these structural representations. The SDMA persona defines a foundational toolkit of categorical, coalgebraic, and information-theoretic isomorphisms. The principle of **minimal representation** governs selection: choose the simplest mathematical formalism that faithfully captures the domain's structure, and use it to map the state space for subsequent verification loops.
+MODEL provides the procedure for constructing these structural representations. The `sdma` skill defines a foundational toolkit of categorical, coalgebraic, and information-theoretic isomorphisms. The principle of **minimal representation** governs selection: choose the simplest mathematical formalism that faithfully captures the domain's structure, and use it to map the state space for subsequent verification loops.
 
 ---
 
@@ -151,7 +151,7 @@ Verify the model's internal consistency, external adequacy, and framing assumpti
 - **External adequacy:** Does the model capture the domain faithfully? Are there domain properties that the model cannot express?
 - **Minimality:** Is the model unnecessarily complex? Could a simpler formalism capture the same properties?
 - **Assumption independence:** Revisit the framing from IDENTIFY. Now that the model is constructed, does the domain's actual structure confirm the assumptions that guided formalism selection? A model can be internally consistent yet built on an unchallenged framing error — the formalism "works" because the wrong question was asked precisely.
-- **Upstream coherence:** Does the validated model contradict any upstream strategic artifact — a charter's NORTH_STAR, a plan's assumptions, or an existing ADR's rationale? If the model reveals that an upstream premise is false, emit an ESCALATION block per the planning persona's **Strategic Escalation** section and HALT. A valid model that contradicts the charter is a discovery, not an error.
+- **Upstream coherence:** Does the validated model contradict any upstream strategic artifact — a charter's NORTH_STAR, a plan's assumptions, or an existing ADR's rationale? If the model reveals that an upstream premise is false, emit an ESCALATION block per the `planning` skill's **Strategic Escalation** section and HALT. A valid model that contradicts the charter is a discovery, not an error.
 
 Document all validation checks and their results.
 

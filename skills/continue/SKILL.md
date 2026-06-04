@@ -28,8 +28,8 @@ As you execute the sequence, you MUST:
 3. **Commit Gate**: Commit automatically if `CONTROL_MODE: AUTOMATIC` (and authorized). Otherwise, halt.
 4. **Never execute git commit** unless `CONTROL_MODE: AUTOMATIC` is set and all verification steps pass.
 5. **Output artifacts visibly** — code, messages, and verification in final response (not hidden).
-6. **Update and commit sketch** — per the planning persona's Sketch Commit Discipline and Lifecycle Journal sections.
-7. **Evaluate strategic drift** — at commit boundaries, if `JUSTIFICATION.SCOPE.DELTA != UNCHANGED`, assess whether the deviation is tactical or strategic per the planning persona's **Strategic Escalation** section. If strategic, emit an ESCALATION block and HALT.
+6. **Update and commit sketch** — per the `planning` skill's Sketch Commit Discipline and Lifecycle Journal sections.
+7. **Evaluate strategic drift** — at commit boundaries, if `JUSTIFICATION.SCOPE.DELTA != UNCHANGED`, assess whether the deviation is tactical or strategic per the `planning` skill's **Strategic Escalation** section. If strategic, emit an ESCALATION block and HALT.
  
 You must NOT:
  

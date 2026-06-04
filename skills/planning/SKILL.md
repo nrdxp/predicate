@@ -308,7 +308,7 @@ After all phases of a plan are executed, the sketch should have a final section 
 
 ### Pipeline Improvements
 
-- Should any axiom/persona/workflow be updated based on this experience?
+- Should any skill be updated based on this experience?
 ```
 
 > [!TIP]
