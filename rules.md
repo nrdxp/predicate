@@ -23,15 +23,41 @@ To maintain structural correctness, all interactive and generative operations mu
 
 ---
 
-## 2. Theoretical Axioms of Sequence Walk
+## 2. Core Active Skills Reference
 
-1. **Initial Boundary Condition (The Prompt):** A prompt is an Initial Boundary Condition (IBC)—a high-density informational constraint vector that warps the probability landscape. It is formulated to construct a deep Attractor Basin, restricting the token state-space and preventing trajectory divergence.
-2. **Phase-Space Constriction (The Inner Loop):** Generation is an irreversible walk. Each sampled token acts as a historical constraint, pruning the phase-space volume of remaining valid trajectories.
-3. **Closed-Loop Stochastic Control (The Outer Loop):** Open-loop autoregressive walks diverge exponentially. Coherence requires multi-pass feedback control. A deterministic evaluator (compiler, test runner, syntax validator) computes the error differential ($\Delta E$), which updates the boundary condition ($\Delta P$) for subsequent optimization steps.
+All code changes and sequence trajectories are governed by a set of modular, version-controlled skills. The agent MUST maintain constant awareness of these skills and conform to their documented invariants:
+
+### A. The Planning Pipeline Persona (`skills/planning/SKILL.md`)
+Governs the shared structural foundations for the entire workflow pipeline (`/charter → /sketch → /plan → /core → /plan-review`), as well as modeling (`/model`) and specification (`/spec`) phases.
+- **Dynamic Sketchpad Ledger:** Every active workstream MUST track its state in a Dynamic Sketchpad located at `.sketches/YYYY-MM-DD-<topic-name>.md`. This ledger maintains real-time records of:
+  - *Constraints:* Tracked as `[PENDING | SATISFIED | VIOLATED]` with explicit verification evidence.
+  - *Unknowns:* Context gaps tracked as `[OPEN | RESOLVED]`. No planning or implementation may occur while unknowns remain open.
+  - *Standards Compliance:* Checking alignment against `commit-hygiene`, `hickey`, and `lowy` skills.
+  - *Commits:* Logging every git transaction and its format status.
+- **Sketch Storage & Context Unity:** Sketches live in the independent `.sketches/` sub-repository. A single sketch file must capture the *entire lifecycle* of a workstream. Fragmenting a workstream's context across multiple files is forbidden.
+- **Commit Discipline:** In the sketches sub-repository, commit immediately after *every* state transition, significant finding, and ledger update ("every touch = a commit").
+
+### B. Commit Hygiene Skill (`skills/commit-hygiene/SKILL.md`)
+Imposes strict conventional formatting and quality gates on all git commit messages.
+- **Header Line Limit:** The summary line MUST NOT exceed **50 characters**.
+- **Body Line Limit:** No line in the body or footer may exceed **72 characters**.
+- **Blank Line Separation:** A single blank line MUST separate the header from the body.
+- **Imperative Mood:** Use active, imperative verbs ("add", "fix", "refactor", "remove") in lowercase without a trailing period.
+- **Conventional Structure:** Conform to the Conventional Commits v1.0.0 specification (using valid types like `feat`, `fix`, `refactor`, `docs`, `test`, `style`, `chore`).
 
 ---
 
-## 3. Closed-Loop Execution Loop (TDD-First)
+## 3. General Commit and Git Hygiene Invariants
+
+Regardless of the specific active skill or workflow phase, all modifications to the codebase repository must conform to these self-contained git invariants:
+
+1. **Logical Atomicity:** Each commit must represent a single, cohesive, logically self-contained change. Mixing unrelated concerns (e.g., merging a functional feature addition with style formatting or unrelated test repairs) is strictly prohibited.
+2. **Design-Centric Communication:** Commit messages must be structured for human review. Prioritize detailing the *why* (architectural motivation, constraints, design tradeoffs) and *what* (conceptual state transitions of the system), rather than replicating the raw file diff.
+3. **Commit Boundaries:** Execution trajectories must freeze at designated commit boundaries to evaluate stability metrics before committing.
+
+---
+
+## 4. Closed-Loop Execution Loop (TDD-First)
 
 Every execution block must run under a Closed-Loop Feedback Controller. Open-loop generation without verification feedback is strictly prohibited.
 
@@ -55,59 +81,17 @@ graph TD
 
 ---
 
-## 4. Dynamic Sketchpad Ledger
-
-Every active workstream is bound to a single Dynamic Sketchpad ledger located at `.sketches/YYYY-MM-DD-<topic-name>.md`. The sketch is a live document updated at every state transition, finding, and commit boundary.
-
-The ledger must track four core metadata arrays:
-
-1. **Constraints Ledger:**
-   - **ID:** e.g., `C1`
-   - **Statement:** The literal constraint specification (e.g., TDD tests, performance metrics).
-   - **Source:** Origin of constraint (Human, skills, specification, compiler).
-   - **Status:** `[PENDING | SATISFIED | VIOLATED]`.
-   - **Evidence:** Clickable path or symbol reference verifying the status.
-2. **Unknowns Ledger:**
-   - **ID:** e.g., `U1`
-   - **Statement:** Open parameters or context gaps.
-   - **Status:** `[OPEN | RESOLVED]`.
-   - **Resolution:** Trace mapping the resolution data or human feedback. Transitioning to planning or execution is forbidden while `OPEN` unknowns remain.
-3. **Standards Compliance Checklist:**
-   - **commit-hygiene:** Must be validated as `[COMPLIANT | NON_COMPLIANT]` for every git commit.
-   - **hickey:** Decoupling and structural simplicity audit log.
-   - **lowy:** Volatility boundary and axis-of-change alignment log.
-4. **Commits Ledger:**
-   - **ID:** Git commit hash or temporary ID.
-   - **Description:** A concise imperative description of the step.
-   - **Hygiene Check:** `[PASS | FAIL]`.
-
----
-
-## 5. Commit Hygiene Invariants
-
-All git commits (within both the main repository and the `.sketches/` sub-repository) must conform strictly to Conventional Commits v1.0.0. A single non-conforming commit represents a failure of the trajectory constraints.
-
-### Commit Invariants:
-1. **Header Line Limit:** The summary line MUST NOT exceed **50 characters**.
-2. **Body Line Limit:** No line in the body or footer may exceed **72 characters**.
-3. **Blank Line Separation:** A single blank line MUST separate the header from the body.
-4. **Imperative Mood:** Use active, imperative verbs ("add", "fix", "refactor", "remove") in lowercase. No trailing period.
-5. **Human-Centric Body:** The body must explain the *why* (motivation, trade-offs, constraints resolved) and *what* (conceptual state transitions), rather than repeating the visible code diff.
-6. **Every Touch = A Commit:** Commit immediately at every state transition, significant finding, or plan boundary. In the sketches sub-repo, commit after every ledger update.
-
----
-
-## 6. Spacetime Code Auditing (Structural Design Invariants)
+## 5. Spacetime Code Auditing (Structural Design Invariants)
 
 Before executing a commit, the generated changes must be audited against spatial and temporal complexity guidelines to prevent complected concerns and boundary leakage.
 
-### Spatial Simplicity (The Hickey Audit)
+### Spatial Simplicity (The Hickey Audit - `skills/hickey/SKILL.md`)
 Identify and decouple complected concerns. Complexity is the complecting (weaving together) of separate threads of logic.
 - **State and Identity:** Separate state values from identity references. Avoid mutable object pools.
 - **Composition over Coupling:** Ensure modules compose cleanly via explicit, unidirectional pipelines rather than relying on bidirectional dependency structures.
 - **Trace Complexity Check:** If a change requires explaining a function using logical conditionals (e.g., "and then", "but only if"), the concerns are complected. Decompose the logic.
 
-### Temporal Volatility (The Lowy Audit)
+### Temporal Volatility (The Lowy Audit - `skills/lowy/SKILL.md`)
 Align module boundaries with axes of change. Code must be organized by volatility, not similarity.
 - **Axis of Change:** Identify what business or technical requirements are likely to fluctuate independently.
 - **Boundary Insulation:** Separate volatile components from stable cores. Volatile changes must not propagate across architectural boundaries.
