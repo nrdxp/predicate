@@ -147,7 +147,7 @@ The output is a committed plan artifact with phased deliverables, each designed 
 
 ---
 
-#### `/core` — Zoom In and Execute
+#### `/core` — Closed-Loop Stochastic Trajectory Control (C-LTC)
 
 **Purpose:** Focus on a plan segment (2–3 commits), map the execution in detail, then implement — tracking divergence as it surfaces.
 

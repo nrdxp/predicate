@@ -1,4 +1,4 @@
-# Closed-Loop Trajectory Control Ruleset (C-LTC v1.0)
+# Closed-Loop Stochastic Trajectory Control Ruleset (C-LTC v1.0)
 
 This document defines the master global constraints and trajectory control mechanisms for all autoregressive sequence generations within this workspace.
 
@@ -45,7 +45,7 @@ Imposes strict conventional formatting and quality gates on all git commit messa
 - **Imperative Mood:** Use active, imperative verbs ("add", "fix", "refactor", "remove") in lowercase without a trailing period.
 - **Conventional Structure:** Conform to the Conventional Commits v1.0.0 specification (using valid types like `feat`, `fix`, `refactor`, `docs`, `test`, `style`, `chore`).
 
-### C. Core Execution Skill (`skills/core/SKILL.md`)
+### C. Core Execution Skill: Closed-Loop Stochastic Trajectory Control (C-LTC) (`skills/core/SKILL.md`)
 Outlines the baseline target trajectory for implementing codebase modifications. Even when the `/core` workflow is not explicitly triggered, all system modifications MUST structurally align with and enforce its underlying constraints (TDD-first execution, baseline failure verification, local loop convergence, and iterative refinement auditing) as constant invariants of the workspace.
 
 ---

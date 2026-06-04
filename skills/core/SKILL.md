@@ -8,7 +8,7 @@ description: |
   - Prompt contains: /core, core workflow, absorb, clarify, execution invariants, commit boundary, verify assertion.
 ---
  
-# C.O.R.E. Protocol v3.0 (Closed-Loop Trajectory Control)
+# C.O.R.E. Protocol v3.0: Closed-Loop Stochastic Trajectory Control (C-LTC)
  
 **Context → Obstacles → Resolution → Execution**
  
