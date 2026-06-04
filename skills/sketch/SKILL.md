@@ -151,7 +151,7 @@ PROPOSE ──→ /plan    (on human approval)
 | Silently overwriting sketch content                   | Destroys ideation archaeology                           |
 | Fragmenting a workstream across multiple sketch files | Breaks context unity; forces readers to hunt for pieces |
 | Restricting content to only the YAML formula          | Loses context needed for 0-to-full-context recovery     |
-| Skipping freeform context in favor of terse YAML      | Future agents can't reconstruct the reasoning journey   |
+| Skipping freeform context in favor of terse YAML      | Future agents can't reconstruct the trajectory history   |
 | Transitioning to CONVERGE with PENDING constraints or OPEN unknowns | Violates convergence boundaries. |
 | Logging commits that fail commit-hygiene check | Violates the constant commit hygiene constraint. |
 

@@ -85,4 +85,4 @@ If sequence context has drifted (long execution, many steps), reload boundary co
 | "Hallucination" / "Error" | Trajectory drift / stochastic divergence | Compounding errors in open-loop generation. |
 | "Reviewing" / "Auditing" | Deterministic / manual state verification | Calculating the error differential against constraints. |
 | "Fixing bugs" | Trajectory correction | Applying feedback ($\Delta \mathbf{S}$) to minimize the error vector ($\Delta E$). |
-| "Halt" / "Stop" | Phase-space freeze | Pausing autoregressive generation to await boundary modifications. | boundary modifications. |
+| "Halt" / "Stop" | Phase-space freeze | Pausing autoregressive generation to await boundary modifications. |

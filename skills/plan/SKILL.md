@@ -89,7 +89,7 @@ PLAN-<topic-name>.md
 # 1. METADATA
 PLAN: "<topic-name>"
 STATUS: [REFINE | CHALLENGE | SCOPE | COMMIT]
-CONFIDENCE: [0.0-1.0] # Must be 1.0 to proceed. Any doubts → CHALLENGE
+UNCERTAINTY: [0.0-1.0] # Must be 0.0 to proceed. Any uncertainty → CHALLENGE
 
 # 2. CONTEXT (Inherited/refined from SKETCH)
 CTX:
@@ -221,7 +221,7 @@ Use these techniques:
 
 6. **HALT_ON_RISK:** If CHALLENGE.RISKS contains unmitigated HIGH or CRITICAL items, you are FORBIDDEN from transitioning to SCOPE. Surface to human.
 
-7. **REVERSIBILITY_AWARENESS:** Document which decisions are reversible. Irreversible decisions require higher confidence.
+7. **REVERSIBILITY_AWARENESS:** Document which decisions are reversible. Irreversible decisions require minimized uncertainty.
 
 8. **SKETCH_SYNCHRONIZATION:** Challenge findings, discovered risks, and refined assumptions MUST be written back to the sketch per the planning persona § Sketch Commit Discipline. Every touch = a commit.
 

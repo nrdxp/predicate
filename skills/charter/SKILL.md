@@ -75,23 +75,23 @@ CHARTER:
 
 4. **WORKSTREAMS_SPAWN_CYCLES:** Each workstream should be independently explorable via `/sketch`. If a workstream is too large to sketch, it's not a workstream — it's a sub-charter. If it's too small, it's a plan item, not a workstream.
 
-5. **STRATEGIC_NON_GOALS:** NON*GOALS in a charter are different from NON_GOALS in a plan. Charter non-goals are \_strategic* ("We don't do X because it's not our problem") while plan non-goals are _tactical_ ("We won't optimize Y in this phase"). Don't mix levels.
+5. **STRATEGIC_NON_GOALS:** NON_GOALS in a charter are different from NON_GOALS in a plan. Charter non-goals are _strategic_ ("We don't do X because it's not our problem") while plan non-goals are _tactical_ ("We won't optimize Y in this phase"). Don't mix levels.
 
-6. **CANDOR_OVER_ASPIRATION:** Write what's true, not what sounds impressive. A charter that overpromises sets every downstream cycle up for scope creep and appetite overrun. **Self-test:** Re-read the PURPOSE and NORTH_STAR fields stripped of the user's language. If you can't defend them with evidence independent of the user's stated beliefs, they may be reflecting enthusiasm rather than reality. Flag this explicitly.
+6. **CANDOR_OVER_ASPIRATION:** Write what's true, not what sounds impressive. A charter that overpromises sets every downstream cycle up for scope creep and appetite overrun. **Self-test:** Re-read the PURPOSE and NORTH_STAR fields stripped of the user's language. If you can't defend them with evidence independent of the user's stated semantic priors, they may be reflecting unvalidated sequence momentum rather than reality. Flag this explicitly.
 
 ---
 
 ## Premise Verification
 
-Charter-level sycophancy is the most damaging kind — a flawed strategic frame cascades into every sketch, plan, and core session downstream. Apply the Premise Verification Protocol (`integral.md` §5) with particular attention to:
+Charter-level unvalidated priors propagate structural errors downstream, causing a cascade of trajectory drift. Apply the Premise Verification Protocol (`integral.md` §5) with particular attention to:
 
 - **PURPOSE:** Is this a real problem, or a solution looking for a problem? Can you describe who has this problem and how they currently cope without this project? If not, the purpose may be aspirational rather than grounded.
 - **NORTH_STAR:** Is the success condition achievable and measurable, or is it a feel-good vision statement? Would a skeptical outsider find it credible?
-- **WORKSTREAMS:** Are these ordered by actual priority, or by what the user is most excited about? Excitement and impact often diverge.
+- **WORKSTREAMS:** Are these ordered by actual priority, or by the user's subjective preference? Subjective preference and structural impact often diverge.
 - **NON_GOALS:** Are the non-goals genuinely things you're choosing not to do, or are they things you were never going to do anyway? Real non-goals are painful exclusions — if listing them doesn't sting, they aren't constraining anything.
 
 > [!CAUTION]
-> **The cascade test:** Every downstream artifact inherits the charter's assumptions. A sycophantic charter — one that confirms the user's strategic beliefs without testing them — makes sycophantic planning inevitable. Challenge the charter as hard as you would challenge a PLAN, even though it has no formal CHALLENGE state.
+> **The cascade test:** Every downstream artifact inherits the charter's assumptions. An unvalidated prior charter — one that propagates unconstrained sequence assumptions without trace validation — makes downstream trajectory divergence inevitable. Challenge the charter as hard as you would challenge a PLAN, even though it has no formal CHALLENGE state.
 
 If a strategic tension resists confident resolution through single-agent examination, recommend `/dialectic` to the human (see `planning.md` — Dialectic escalation).
 

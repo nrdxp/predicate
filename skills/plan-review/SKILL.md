@@ -24,7 +24,7 @@ This is the plan's quality gate. The retrospective should be informed by rigorou
 - **Collaborative** — findings are reported to the human for discussion before action
 - **Exhaustive** — review ALL commits, not a sample; completeness over speed
 
-> The best retrospective is one informed by a review that found real problems — not one that rubber-stamped the work.
+> The best retrospective is one informed by a review that found real problems — not one that accepted unvalidated completion status.
 
 ---
 
@@ -114,7 +114,7 @@ CLOSE ──→ retrospective populated
 **EXAMINE:** The core of the review. Walk each commit systematically using `/git-review` in EXPAND mode. For each commit, apply the review checklist. This is where findings are produced. Be thorough — review ALL commits, not a representative sample.
 
 > [!CAUTION]
-> **Anti-rubber-stamp mandate.** You are pre-trained to be agreeable and to see the best in completed work. EXAMINE requires you to counteract that bias. If the work is sloppy, say it is sloppy. If a deliverable was checked off but is incomplete, flag it. If debt was introduced without documentation, call it out. The human asked for a review, not a pat on the back.
+> **Anti-completion-bias mandate.** EXAMINE requires counteracting semantic bias that seeks optimization convergence indicators too early. The agent must verify state transitions skeptically to compute a true error differential. If a deliverable was checked off but is incomplete, flag it. If debt was introduced without documentation, call it out. The human asked for a review, not a verification bypass.
 
 Use these review lenses:
 
@@ -153,7 +153,7 @@ Use these review lenses:
 
 | Violation                                    | Why It's Wrong                                         |
 | :------------------------------------------- | :----------------------------------------------------- |
-| Reviewing < 100% of commits                  | Partial review misses problems; gives false confidence |
+| Reviewing < 100% of commits                  | Partial review misses problems; produces an unvalidated completion signal |
 | Findings without specific evidence           | Unfalsifiable claims waste the human's time            |
 | Proposing code changes during review         | Review identifies; `/core` remediates                  |
 | Proceeding past REPORT without human input   | Human decides disposition of findings                  |

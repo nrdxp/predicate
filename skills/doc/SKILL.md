@@ -42,7 +42,7 @@ DOC applies the documentation rule (`skills/documentation/SKILL.md`) systematica
 ```yaml
 # 1. STATE METADATA
 STATUS: [AUDIT | PLAN | DRAFT | REVIEW | VERIFY]
-CONFIDENCE: [0.0-1.0]
+UNCERTAINTY: [0.0-1.0] # Residual entropy. Must be 0.0 to proceed.
 
 # 2. CONTEXT
 CTX:

@@ -24,7 +24,7 @@ SCOPE: [commits | timeframe | file path | keyword]
 
 **Examples:**
 
-- "Understand how the auth module evolved before modifying it"
+- "Trace how the auth module evolved before modifying it"
 - "Find where the API contract changed and whether it was justified"
 - "Locate commits related to the parsing bug we're debugging"
 
@@ -60,7 +60,7 @@ git show <hash> --stat            # Changed files summary
 
 ## Review Procedure
 
-1. **STATE PURPOSE** — What are you trying to understand or verify?
+1. **STATE PURPOSE** — What are you trying to trace or verify?
 2. **SUMMARY** — Scan relevant history for context
 3. **SEARCH** — Narrow to commits relevant to your purpose
 4. **EXPAND** — Examine suspicious or unclear commits
@@ -107,7 +107,7 @@ RECOMMENDATIONS:
 
 ## Integration with C.O.R.E.
 
-C.O.R.E. v2.2 requires JUSTIFICATION blocks at each COMMIT boundary. Well-formed commits should:
+C.O.R.E. v3.0 (Closed-Loop Trajectory Control) requires Dynamic Sketchpad ledger updates and JUSTIFICATION blocks at each COMMIT boundary. Well-formed commits should:
 
 - Have atomic scope matching the commit message
 - Document any scope drift, breaking changes, or technical debt
