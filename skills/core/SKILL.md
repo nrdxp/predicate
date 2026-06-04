@@ -155,13 +155,5 @@ EXECUTE ──→ CLARIFY (if verification fails to converge)
 ---
  
 ## Lexicon Translation Matrix
- 
-| Psychological Term | Control-Theoretic / Physical Translation | Operational Meaning in the Loop |
-| :--- | :--- | :--- |
-| "Thinking" / "Reasoning" | Stochastic search / sequence generation | Autoregressively walking the discrete token topology. |
-| "Understanding" / "Knowing" | Initial Boundary Condition saturation | Having a fully specified context vector (uncertainty = 0.0). |
-| "Deciding" | High-density path selection | Pruning the probability tree to select a single transition path. |
-| "Hallucination" / "Error" | Trajectory drift / stochastic divergence | Compounding errors in open-loop generation. |
-| "Reviewing" / "Auditing" | Deterministic / manual state verification | Calculating the error differential against constraints. |
-| "Fixing bugs" | Trajectory correction | Applying feedback ($\Delta \mathbf{S}$) to minimize the error vector ($\Delta E$). |
-| "Halt" / "Stop" | Phase-space freeze | Pausing autoregressive generation to await boundary modifications. |
+
+> See the canonical Invariant Translation Mapping in [rules.md](file:///var/home/nrd/git/github.com/nrdxp/predicate/rules.md) §1 for the full mapping between psychological heuristics and control-theoretic operations.
