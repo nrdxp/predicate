@@ -39,7 +39,7 @@ Specifications use normative keywords as defined in [BCP 14](https://www.rfc-edi
 
 > The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and "OPTIONAL" in specification documents produced by this workflow are to be interpreted as described in BCP 14 when, and only when, they appear in all capitals.
 
-This convention is not ceremonial — it is the single most effective mechanism for eliminating behavioral ambiguity. An agent reading "the system must validate input" will treat it as a recommendation. An agent reading "the system MUST validate input" knows it is a non-negotiable requirement.
+This convention is not ceremonial — it is the single most effective mechanism for eliminating behavioral ambiguity. An agent client interpreting "the system must validate input" will treat it as a recommendation. An agent client interpreting "the system MUST validate input" treats it as a non-negotiable requirement.
 
 ---
 
@@ -117,7 +117,7 @@ These formats are not alternatives to the SPEC.md template — they complement i
 
 ### Step 1: IDENTIFY
 
-Understand what needs constraining. Sources of normative constraints:
+Determine what needs constraining. Sources of normative constraints:
 
 - **The model** (if one exists): What states, transitions, and observers does it define? What structural properties must hold?
 - **The charter** (if one exists): What strategic NON_GOALS impose behavioral bounds?

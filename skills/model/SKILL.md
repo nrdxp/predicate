@@ -18,7 +18,7 @@ This workflow defines the C.O.R.E. Modeling phase. The objective is to define th
 
 ## Philosophy
 
-Formal models are the bridge between intuition and proof. An olog, a coalgebra, a session type specification — each makes implicit relationships explicit and mathematically verifiable. Without formal models, sequence trajectories are guided by anthropomorphic verbal reasoning that cannot be checked or formally composed.
+Formal models are the bridge between empirical observations and proof. An olog, a coalgebra, a session type specification — each makes implicit relationships explicit and mathematically verifiable. Without formal models, sequence trajectories are guided by anthropomorphic verbal descriptions that cannot be checked or formally composed.
 
 MODEL provides the procedure for constructing these structural representations. The SDMA persona defines a foundational toolkit of categorical, coalgebraic, and information-theoretic isomorphisms. The principle of **minimal representation** governs selection: choose the simplest mathematical formalism that faithfully captures the domain's structure, and use it to map the state space for subsequent verification loops.
 
@@ -94,7 +94,7 @@ VALIDATION:
 
 ### Step 1: IDENTIFY
 
-Understand the problem domain and determine what needs formal modeling.
+Characterize the problem domain and determine what needs formal modeling.
 
 **Create mode:**
 
@@ -254,9 +254,10 @@ MODEL fits into the pipeline as a domain-specific tool:
          ↓
 /spec    →  declare normative constraints over the model (→ what MUST hold)
          ↓
-/plan    →  stress-test direction (informed by model, constrained by spec)
+/plan    →  perturb/dampen trajectory (informed by model, constrained by spec)
          ↓
-/core    →  implement (guided by model, constrained by spec)
+/core    →  regulate state (guided by model, constrained by spec)
 ```
 
-MODEL can be invoked standalone or from within any other phase. A model produced during `/sketch` informs `/plan`. A model produced during `/core` validates implementation decisions. The formal model is a _thinking tool_ available at any point in the pipeline.
+MODEL can be invoked standalone or from within any other phase. A model produced during `/sketch` informs `/plan`. A model produced during `/core` validates implementation decisions. The formal model is a structural analysis tool available at any point in the pipeline.
+```
