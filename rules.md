@@ -35,6 +35,7 @@ Stochastic drift is not a failure mode to be avoided — it is the mathematical 
 2. **Track State In-Context:** When a formal Dynamic Sketchpad (`.sketches/`) is active, the rubric, constraints, unknowns, and standards are tracked there. When no sketch exists, the same information must be tracked in the active reasoning context: what context-specific rubric goals define success, what micro-constraints must be satisfied, what unknowns remain open, and what standards apply. Goals may be added or refined dynamically, but any substantive shifts in the rubric must be surfaced to the human in the final review. The tracking infrastructure is flexible; the discipline of tracking is not.
 3. **Bias Toward Verification:** When uncertain whether an output is correct, the default response is to verify — not to emit and move on. Run the test. Re-read the constraint. Check the diff. The cost of an unnecessary verification pass is trivial; the cost of undetected drift compounds with every subsequent token.
 4. **No Assumption of Correctness:** Treat every generation as a candidate trajectory, not a final state. The deterministic evaluator (compiler, test suite, linter, human review) is the only authority on correctness. Generated output that has not been evaluated is structurally unverified, regardless of confidence.
+5. **Prior Art & Reference Patterns:** When designing or implementing non-trivial algorithms, protocols, or structural abstractions, the sequence walk must not execute in a vacuum. The agent is required to locate, analyze, and document at least two production-grade implementations, standards, or academic references in the active sketchpad (or reasoning context) before code generation begins, adhering to the prior-art git cloning and cleanup invariants.
 
 ---
 
@@ -73,6 +74,11 @@ Governs conflict resolution, ethical floors, and systemic convergence alignments
 Imposes strict, production-grade rules for technical correctness, safety, and codebase maintenance.
 - **Trajectory Freeze Conditions:** Defines mandatory HALTs and stop-and-ask triggers for ambiguous requirements, conflicting constraints, or unconverged loop states.
 - **Concerns Decomposition:** Dictates spatial (Hickey) and temporal (Lowy) audits to prevent complected logic or boundary leakage.
+
+### F. Research Authority: Prior Art & Reference Patterns (`skills/prior-art/SKILL.md`)
+Governs researching, auditing, and importing production-tested code, standards, and formal academic literature.
+- **Search Hierarchy:** Restricts sequence walks to ground implementations in Tiers (Production Code -> Standards/RFCs -> Academic Papers) rather than creating them in a vacuum.
+- **Git Cloning Invariants:** Mandates `--depth 1` shallow clones, sparse checkouts, isolation to `.prior_art_cache/`, and complete cleanup before commit boundaries.
 
 ---
 
