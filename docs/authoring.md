@@ -113,4 +113,4 @@ description: |
 
 1. **Frontmatter is mandatory:** Every `SKILL.md` must have valid YAML frontmatter containing the `name` and a rich, multi-line `description` trigger block.
 2. **Use GitHub Flavored Markdown:** Format with tables, bullet lists, alert blocks (`> [!IMPORTANT]`, `> [!CAUTION]`), and syntax-highlighted code blocks.
-3. **Link references correctly:** Link between files using GitHub markdown links with absolute file scheme links (e.g. `[constitution.md](file:///absolute/path/to/skills/constitution/SKILL.md)`). Avoid relative links since skills are often copied or mounted into different directories.
+3. **Link references correctly:** Link between files using relative markdown links (e.g., `[constitution.md](../constitution/SKILL.md)`). Never use machine-specific or hardcoded absolute file scheme paths (e.g., `file:///var/home/...` or `file:///absolute/path/...`), as these will fail to resolve on other host environments and other developers' machines. Relative paths ensure that references remain portable and resolvable regardless of where the skill is copied, mounted, or checked out.

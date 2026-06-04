@@ -200,6 +200,7 @@ Update comments and documentation **immediately** when logic changes. Stale docu
 - **Commit Scope:** One logical change per commit. Avoid "and" commits.
 - **Commit Hygiene:** Commit messages must strictly follow the rules in [commit-hygiene](../commit-hygiene/SKILL.md).
 - **Conditional Auto-Commit:** Never execute `git commit` unless `CONTROL_MODE: AUTOMATIC` is explicitly authorized in the active workflow, and all automated closed-loop verification steps have successfully passed. If unauthorized or if tests are failing, you are strictly forbidden from committing; output the suggested commit message for human review and let the user commit manually.
+- **Forbid Git Push:** Under no circumstances is the agent permitted to execute `git push` to any remote repository. Push operations must be left entirely to the human developer to preserve manual trajectory control and security boundaries.
  
 ### 12. Plan & Task Tracking
  

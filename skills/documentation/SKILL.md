@@ -115,3 +115,10 @@ Documentation debt is a first-class concept, parallel to technical debt:
 - **Orphaned docs** — documentation references concepts, files, or APIs that no longer exist
 
 When you encounter documentation debt, flag it explicitly. Do not silently work around it.
+
+### 13. Link Portability and Relative Paths
+
+All markdown file cross-references must remain portable across different host environments and mounting contexts:
+- **Use Relative Paths:** Link between files using relative markdown paths (e.g. `[constitution](../constitution/SKILL.md)`).
+- **Forbid Machine-Specific Absolute Paths:** Never use absolute file URIs (e.g., `file:///var/home/...` or `file:///absolute/path/...`) in any documentation, comments, or plans. They are host-specific and fail to resolve when skills or projects are copied, symlinked, or cloned.
+- **Verification:** Proactively audit link targets to confirm that the relative references resolve correctly from the directory of the file containing the link.

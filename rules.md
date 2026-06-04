@@ -89,6 +89,7 @@ Regardless of the specific active skill or workflow phase, all modifications to 
 1. **Logical Atomicity:** Each commit must represent a single, cohesive, logically self-contained change. Mixing unrelated concerns (e.g., merging a functional feature addition with style formatting or unrelated test repairs) is strictly prohibited.
 2. **Design-Centric Communication:** Commit messages must be structured for human review. Prioritize detailing the *why* (architectural motivation, constraints, design tradeoffs) and *what* (conceptual state transitions of the system), rather than replicating the raw file diff.
 3. **Commit Boundaries:** Execution trajectories must freeze at designated commit boundaries to evaluate stability metrics before committing.
+4. **Forbid Git Push:** Under no circumstances is the sequence walk permitted to execute a `git push` to any remote repository. Remote updates must be left entirely to the manual control of the human developer.
 
 ---
 

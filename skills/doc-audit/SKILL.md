@@ -11,7 +11,7 @@ This skill provides constraints and verification scripts to validate markdown fi
 
 ## Guidelines for Markdown Auditing
 
-- **Link Integrity**: All links must follow standard Markdown format `[text](url)`. Absolute file paths must use the `file://` scheme where applicable.
+- **Link Integrity & Portability**: All links must follow standard Markdown format `[text](url)`. Cross-references between files MUST be relative paths (e.g. `[core](../core/SKILL.md)`). Hardcoded, machine-specific absolute file URIs (e.g., `file:///var/home/...` or `file:///absolute/path/...`) are strictly forbidden as they will fail to resolve in other environments.
 - **Header Hierarchy**: Ensure a single `<h1>` tag per page with sequential header levels (`##`, `###`, etc.).
 - **Linting Standards**:
   - Column alignment in tables.
