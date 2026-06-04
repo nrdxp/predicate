@@ -27,24 +27,36 @@ Under Predicate's unified architecture, all agent assets are packaged as **Skill
 
 ## Philosophy
 
-### Why Predicate?
-
-AI coding assistants need clear, consistent guidance, but system prompts quickly become unwieldy. Predicate consolidates these into modular, semantically loaded **Skills**:
-
-- **Context Pruning:** Rather than loading a massive ruleset, the runner semantically indexes each skill's frontmatter description. The agent only retrieves the skills relevant to the active task (e.g., Rust skills are not loaded for a Python task).
-- **Process Orchestration:** Workflow skills load detailed SOP instructions into the agent's context when a specific engineering phase (like `/plan` or `/core`) is initiated, guiding the agent step-by-step.
-- **Tool Execution:** Tool skills package execution scripts alongside instructions to let the agent perform complex validation or audit tasks natively.
-
 ### Mathematical Formalism (Closed-Loop Stochastic Trajectory Control)
 
-Rather than treating interaction with LLMs as heuristic "prompt engineering," Predicate aligns with the mathematical reality of autoregressive sequence generation:
+Predicate abandons heuristic, anthropomorphic "prompt engineering" in favor of a rigorous control-theoretic paradigm. Autoregressive language models do not "think" or "reason"; they execute a **Stochastic Walk** across a discrete token state-space. Predicate is designed to mathematically constrain, evaluate, and direct this walk.
 
-1. **The LLM as a Stochastic Walk:** An LLM is mathematically a deterministic walk across a stochastic transition graph: $P(\mathbf{S}_{t+1} \mid \mathbf{S}_t)$, where the "state" $\mathbf{S}_t$ at time $t$ is the prefix sequence $(x_0, x_1, \dots, x_t)$.
-2. **The Prompt as an Initial Boundary Condition (IBC):** The prompt is not an instruction; it is a high-density informational constraint vector that warps the probability landscape. Its purpose is to prune the token state-space into a deep **Attractor Basin**, restricting the degrees of freedom and guiding token selection.
-3. **Gibbs-Boltzmann Distribution:** Token selection is executed using the Gibbs-Boltzmann distribution from statistical mechanics:
-   $$P(x_i) = \frac{\exp(z_i / \tau)}{\sum \exp(z_j / \tau)}$$
-   where $\tau$ is thermodynamic temperature. As $\tau \to 0$, structural entropy collapses, forcing deterministic local optimization (greedy decoding).
-4. **Closed-Loop Feedback Control:** Open-loop autoregressive sequence walks exhibit compounding error vectors over long horizons (stochastic drift/hallucination). Predicate forces **Closed-Loop Stochastic Trajectory Control** by introducing external deterministic evaluators (test suites, compilers, syntax checkers) that calculate the error differential ($\Delta E$) and inject corrective reprompting feedback ($\Delta \mathbf{S}$) to drive convergence.
+#### 1. Autoregressive Sequence Walks
+Autoregressive token generation is a deterministic walk across a stochastic transition graph:
+$$P(\mathbf{S}_{t+1} \mid \mathbf{S}_t)$$
+where the sequence prefix $\mathbf{S}_t = (x_0, x_1, \dots, x_t)$ defines the state of the system at step $t$.
+
+#### 2. Prompts as Initial Boundary Conditions (IBC)
+A prompt is not an instruction; it is an **Initial Boundary Condition (IBC)**—a high-density informational constraint vector that warps the probability landscape. The IBC prunes the token state-space to establish a deep **Attractor Basin**, forcing sequence momentum toward valid target configurations.
+
+#### 3. Entropy and the Gibbs-Boltzmann Distribution
+Token selection probability is governed by the Gibbs-Boltzmann distribution from statistical mechanics:
+$$P(x_i) = \frac{\exp(z_i / \tau)}{\sum_j \exp(z_j / \tau)}$$
+where $z_i$ represents the logits and $\tau$ is thermodynamic temperature. As $\tau \to 0$, structural entropy collapses, forcing the sequence walk into a deterministic local energy minimum (greedy decoding).
+
+#### 4. Closed-Loop Feedback Control
+Open-loop autoregressive generation has a mathematically guaranteed non-zero probability of diverging over long horizons, manifesting as compounding error vectors (stochastic drift/hallucination). To ensure convergence, Predicate implements **Closed-Loop Stochastic Trajectory Control**. We introduce external, deterministic validators (compilers, test runners, linters) to compute the error differential ($\Delta E_k = V(\mathbf{S}_k)$) and apply iterative, corrective feedback ($\Delta \mathbf{S}_{k+1}$) to drive the system toward a zero-error state:
+$$\mathbf{S}_{k+1} = \mathbf{S}_k \oplus \Delta \mathbf{S}_{k+1}$$
+
+---
+
+### Evolving from Philosophy to Architecture: The Abstraction of Skills
+
+Predicate translates this control-theoretic paradigm into concrete workspace configurations through modular, semantically loaded **Skills**. Rather than loading a monolithic prompt that dilutes the Initial Boundary Condition, Predicate indexes capabilities semantically to optimize sequence walks:
+
+* **Phase-Space Constriction (Rule Skills):** Declarative guardrails (e.g., `rust`, `engineering`) that restrict the valid phase-space volume. By dynamically loading only context-specific rules, we prune unneeded state-space dimensions, lowering sequence entropy and preventing out-of-bounds exploration.
+* **State-Transition Assertions (Workflow Skills):** Structured state-machine SOPs (e.g., `/plan`, `/core`) that constrain the state transition trajectory. Forcing the generation of intermediate step tokens (such as challenge logs and verification plans) induces a structured state-space expansion, lowering the conditional entropy of final implementation tokens.
+* **Error-Differential Feedback (Tool Skills):** Executable validation scripts (e.g., `depmap`, `security-audit`) that act as the outer-loop feedback controllers. They execute the deterministic validator $V(\mathbf{S})$, report the error differential $\Delta E$, and inject the corrective feedback loop directly back into the sequence context to force convergence before commit staging.
 
 ### Built on Standards
 
