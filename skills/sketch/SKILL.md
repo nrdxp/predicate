@@ -27,7 +27,7 @@ See the planning persona § Sketch Storage for full details (directory structure
 
 Sketches are **additive**: new explorations create new files. Revisions to existing sketches are committed to the local `.sketches/.git/` history. Never overwrite without committing first.
 
-The YAML structure (PROBLEM, UNKNOWNS, APPROACHES, EVALUATION) provides the skeleton. Freeform prose sections below the YAML block provide the flesh.
+The YAML structure provides the skeleton. Freeform prose sections below the YAML block provide the flesh.
 
 ---
 
@@ -37,25 +37,34 @@ The YAML structure (PROBLEM, UNKNOWNS, APPROACHES, EVALUATION) provides the skel
 # 1. METADATA
 TOPIC: "<descriptive-topic-name>"
 STATUS: [EXPLORE | DIVERGE | SPIKE | CONVERGE | PROPOSE]
-CONFIDENCE: [0.0-1.0] # Confidence in understanding, not solution
-
-# 2. PROBLEM SPACE
-PROBLEM:
-  STATEMENT: "What are we trying to solve?"
-  CONTEXT: "Why does this matter now?"
+UNCERTAINTY: [0.0-1.0] # Residual entropy. Must be 0.0 to transition to CONVERGE/PROPOSE.
+ 
+# 2. DYNAMIC SKETCHPAD LEDGER
+DYNAMIC_SKETCHPAD:
   CONSTRAINTS:
-    - "Constraint 1"
-    - "Constraint 2"
-  NON_GOALS:
-    - "Explicitly out of scope"
-
-# 3. UNKNOWNS (Socratic Guardrail)
-# If non-empty during EXPLORE, block transition to DIVERGE
-UNKNOWNS:
-  - "What we don't know yet"
-  - "Questions requiring research or human input"
-
-# 4. APPROACHES (Populated in DIVERGE)
+    - ID: C1
+      STATEMENT: "Constraint definition (e.g. TDD enforcement, Hickey simplicity)"
+      SOURCE: "[Human | core | spec | model | hickey | lowy | language]"
+      STATUS: [PENDING | SATISFIED | VIOLATED]
+      EVIDENCE: "Verification trace / test invariant link"
+  UNKNOWNS:
+    - ID: U1
+      STATEMENT: "What is unknown"
+      STATUS: [OPEN | RESOLVED]
+      RESOLUTION: "Resolution trace, evidence, or human input detail"
+  STANDARDS:
+    - SKILL: "commit-hygiene"
+      STATUS: [COMPLIANT | NON_COMPLIANT]
+      EVIDENCE: "Git commit format verification (constant constraint)"
+    - SKILL: "hickey" # or lowy, humanizer, language-specific
+      STATUS: [COMPLIANT | NON_COMPLIANT | NOT_APPLICABLE]
+      EVIDENCE: "Structural decoupling / simplicity audit log"
+  COMMITS:
+    - ID: "git-commit-hash-or-temp-id"
+      DESCRIPTION: "Descriptive message"
+      HYGIENE_CHECK: [PASS | FAIL]
+ 
+# 3. APPROACHES (Populated in DIVERGE)
 APPROACHES:
   - ID: A
     NAME: "Approach name"
@@ -63,23 +72,16 @@ APPROACHES:
     TRADEOFFS:
       PROS: ["..."]
       CONS: ["..."]
-  - ID: B
-    NAME: "Alternative approach"
-    DESCRIPTION: "..."
-    TRADEOFFS:
-      PROS: ["..."]
-      CONS: ["..."]
-
-# 5. EVALUATION (Populated in CONVERGE)
+ 
+# 4. EVALUATION (Populated in CONVERGE)
 EVALUATION:
   CRITERIA:
     - "Criterion 1 (e.g., simplicity)"
-    - "Criterion 2 (e.g., reversibility)"
   RECOMMENDATION:
     APPROACH: "A | B | Hybrid"
     RATIONALE: "Why this direction"
     RISKS: ["Known risks to address in PLAN phase"]
-  OUTCOME: # Optional but encouraged — articulates end-state value
+  OUTCOME: # Optional but encouraged
     WHO_BENEFITS: "Who is affected (users, maintainers, downstream projects)?"
     WHAT_CHANGES: "What's concretely different for them after this work?"
 ```
@@ -89,21 +91,21 @@ EVALUATION:
 ## State Transitions
 
 ```
-EXPLORE ──→ DIVERGE  (once UNKNOWNS resolved)
+EXPLORE ──→ DIVERGE  (once UNKNOWNS RESOLVED)
         └─→ ABORT    (problem is invalid, or not worth solving)
-
+ 
 DIVERGE ──→ SPIKE    (if an approach needs executable validation)
-        └─→ CONVERGE (once ≥2 approaches exist)
+        └─→ CONVERGE (once ≥2 approaches exist and UNCERTAINTY = 0.0)
         └─→ EXPLORE  (if new unknowns surface)
         └─→ ABORT    (if all approaches reveal the work isn't worth doing)
-
+ 
 SPIKE   ──→ CONVERGE (spike results inform evaluation)
         └─→ DIVERGE  (if spike reveals the approach is unviable)
-
-CONVERGE ──→ PROPOSE (once RECOMMENDATION formed)
-         └─→ DIVERGE (if evaluation reveals gaps)
-         └─→ ABORT   (if evaluation reveals we shouldn't proceed)
-
+ 
+CONVERGE ──→ PROPOSE (once RECOMMENDATION formed, all constraints SATISFIED)
+          └─→ DIVERGE (if evaluation reveals gaps)
+          └─→ ABORT   (if evaluation reveals we shouldn't proceed)
+ 
 PROPOSE ──→ /plan    (on human approval)
         └─→ CONVERGE (if human requests refinement)
         └─→ ABORT    (if human rejects direction)
@@ -111,13 +113,13 @@ PROPOSE ──→ /plan    (on human approval)
 
 ### State Definitions
 
-**EXPLORE:** Understand the problem space. Gather context, surface unknowns. Block on UNKNOWNS until resolved.
+**EXPLORE:** Understand the problem space. Gather context, populate constraints, and surface unknowns. Block on UNKNOWNS until resolved.
 
 **DIVERGE:** Generate alternatives. Resist the urge to pick a winner — enumerate at least 2-3 meaningfully different approaches.
 
 **SPIKE:** Write throwaway code to answer a **specific feasibility question**. State the question before writing code. The spike's *results* (not code) are recorded in the sketch as evidence. Spike code is not production quality, not committed to the main repo, and explicitly expected to be discarded. A spike that answers "no, this can't work" is a successful spike.
 
-**CONVERGE:** Evaluate tradeoffs. Apply explicit criteria. Form a recommendation but remain open to being wrong.
+**CONVERGE:** Evaluate tradeoffs. Apply explicit criteria. Verify that all constraints in the Dynamic Sketchpad ledger are SATISFIED, all unknowns are RESOLVED, and all active standards (including `commit-hygiene`) are checked as COMPLIANT. Form a recommendation but remain open to being wrong.
 
 **PROPOSE:** Present the sketch to the human. This is a draft — expect iteration. Human approves to proceed to `/plan`.
 
@@ -137,6 +139,10 @@ PROPOSE ──→ /plan    (on human approval)
 
 6. **HALT_ON_UNKNOWNS:** If UNKNOWNS is non-empty, you are FORBIDDEN from transitioning to DIVERGE. Surface questions to the human.
 
+7. **DYNAMIC_PAD_DISCIPLINE:** The sketch must act as a dynamic sketchpad tracking constraints, unknowns, standards, and commits in real-time. Transition to CONVERGE or PROPOSE is forbidden if there are PENDING constraints, OPEN unknowns, or NON_COMPLIANT standards.
+
+8. **HYGIENE_CONSTANT:** The `commit-hygiene` standard is a constant constraint on all git commits. Every logged commit must satisfy the hygiene check.
+
 ### Protocol Violations (FORBIDDEN)
 
 | Violation                                             | Why It's Wrong                                          |
@@ -146,6 +152,8 @@ PROPOSE ──→ /plan    (on human approval)
 | Fragmenting a workstream across multiple sketch files | Breaks context unity; forces readers to hunt for pieces |
 | Restricting content to only the YAML formula          | Loses context needed for 0-to-full-context recovery     |
 | Skipping freeform context in favor of terse YAML      | Future agents can't reconstruct the reasoning journey   |
+| Transitioning to CONVERGE with PENDING constraints or OPEN unknowns | Violates convergence boundaries. |
+| Logging commits that fail commit-hygiene check | Violates the constant commit hygiene constraint. |
 
 ---
 

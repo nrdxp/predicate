@@ -45,17 +45,18 @@ You must NOT:
 ## At Commit Boundaries
  
 - **Closed-Loop Verification Loop**: Before concluding the work at any commit boundary, the agent MUST run the verification suite (compilers, test runners, linters, etc.).
-- **Iterative Refinement Loop**: Run a manual self-audit (TDD completeness, Hickey complecting checks, Lowy temporal volatility alignment, code styling). If checks fail or code quality score is less than 1.0, apply corrective edits and re-run verification.
+- **Iterative Refinement Loop**: Run a manual self-audit (TDD completeness, Hickey complecting checks, Lowy temporal volatility alignment, code styling). Update the **Dynamic Sketchpad** constraint ledger, unknowns ledger, and standards checklists in `.sketches/[topic].md` to track compliance states in real-time. If checks fail or code quality score is less than 1.0, apply corrective edits and re-run verification.
+- **Commit Hygiene Invariant:** Ensure the conventional commit message is validated and satisfies the constant `commit-hygiene` constraint before executing any commit in either repository.
 - **Auto-Commit Execution**:
   - If `CONTROL_MODE: AUTOMATIC` (and credentials/command permissions are active):
-    1. Update the sketch notes in `.sketches/[topic].md`, then `git add` and `git commit` inside the `.sketches/` subrepo.
+    1. Record the updated Dynamic Sketchpad ledger (constraints, unknowns, standards, commit ID) in `.sketches/[topic].md`, and commit it within the `.sketches/` subrepo.
     2. Output the `REVIEW` block, `JUSTIFICATION` block, and conventional commit message.
     3. Execute `git add [modified files]` and `git commit -m "[message]"` directly.
     4. Automatically proceed to the remaining PLAN steps without halting.
   - If `CONTROL_MODE: MANUAL` (or not specified):
     1. Output in this order, then **HALT**:
        - REVIEW block (structured output of self-review findings: SCORE, FINDINGS with SEVERITY/ACTION/DETAIL)
-       - Sketch update — append execution notes to `.sketches/[topic].md`, then `git add` and `git commit` in the `.sketches/` subrepo
+       - Sketch update — append Dynamic Sketchpad ledger updates to `.sketches/[topic].md`, then `git add` and `git commit` in the `.sketches/` subrepo
        - JUSTIFICATION block — approach, scope delta, API impact, debt
        - Commit message — [conventional format](file:///var/home/nrd/git/github.com/nrdxp/predicate/skills/commit-hygiene/SKILL.md) (conforming to the commit-hygiene skill guidelines)
        - REMAINING STEPS — re-output remaining PLAN steps
