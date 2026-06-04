@@ -45,7 +45,9 @@ You must NOT:
 ## At Commit Boundaries
  
 - **Closed-Loop Verification Loop**: Before concluding the work at any commit boundary, the agent MUST run the verification suite (compilers, test runners, linters, etc.).
-- **Iterative Refinement Loop**: Run a manual self-audit (TDD completeness, Hickey complecting checks, Lowy temporal volatility alignment, code styling). Update the **Dynamic Sketchpad** constraint ledger, unknowns ledger, and standards checklists in `.sketches/[topic].md` to track compliance states in real-time. If checks fail or code quality score is less than 1.0, apply corrective edits and re-run verification.
+- **Iterative Refinement Loop**: Run a manual self-audit (TDD completeness, Hickey complecting checks, Lowy temporal volatility alignment, code styling).
+- **One-Shot Skeptical Audit**: If a plan step converges in exactly 1 iteration (`LOOPS: 1`), you must perform an explicit adversarial audit of the diff. Validate that the baseline failure check was genuine, analyze whether any hidden assumptions were left unverified, and run spatial/temporal checks to ensure no structural complexity was introduced. Document this audit in the `REVIEW` block under `SKEPTICAL_AUDIT`.
+- Update the **Dynamic Sketchpad** constraint ledger, unknowns ledger, and standards checklists in `.sketches/[topic].md` to track compliance states in real-time. If checks fail or code quality score is less than 1.0, apply corrective edits and re-run verification.
 - **Commit Hygiene Invariant:** Ensure the conventional commit message is validated and satisfies the constant `commit-hygiene` constraint before executing any commit in either repository.
 - **Auto-Commit Execution**:
   - If `CONTROL_MODE: AUTOMATIC` (and credentials/command permissions are active):
@@ -76,6 +78,7 @@ REVIEW:
           ERROR: "Error output details"
           CORRECTION: "Applied changes to fix"
       VERIFICATION: "Pass evidence / test execution summary"
+      SKEPTICAL_AUDIT: "Adversarial audit detail (Mandatory if LOOPS: 1)"
   FINDINGS:
     - ID: F1
       SEVERITY: [LOW | MEDIUM | HIGH | CRITICAL]

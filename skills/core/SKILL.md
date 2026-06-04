@@ -79,6 +79,7 @@ For each step in the plan, execute a local optimization loop:
 ### 2. Iterative Refinement Loop
 Before concluding work at any commit boundary:
 - Audit the generated diff against code simplicity (Hickey complecting check), volatility alignment (Lowy temporal check), test completeness, and style guidelines.
+- **One-Shot Skeptical Audit**: If a plan step converges in exactly 1 iteration (`LOOPS: 1`), you must perform an explicit adversarial audit of the diff. Validate that the baseline failure check was genuine, analyze whether any hidden assumptions were left unverified, and run spatial/temporal checks to ensure no structural complexity was introduced. Document this audit in the `REVIEW` block under `SKEPTICAL_AUDIT`.
 - Update the **Dynamic Sketchpad** rubric ledger (including goals/evaluators), constraint ledger, unknowns ledger, and standards checklists in `.sketches/[topic].md` to track compliance states in real-time. Log any dynamic shifts or refinements to the rubric goals for human reporting.
 - If the quality score is less than 1.0 or any standard/constraint is violated, formulate a corrective refactor, apply it, and re-run verification.
  
@@ -113,6 +114,7 @@ REVIEW:
           ERROR: "Error output details"
           CORRECTION: "Applied changes to fix"
       VERIFICATION: "Pass evidence / test execution summary"
+      SKEPTICAL_AUDIT: "Adversarial audit detail (Mandatory if LOOPS: 1)"
   FINDINGS:
     - ID: F1
       SEVERITY: [LOW | MEDIUM | HIGH | CRITICAL]

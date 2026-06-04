@@ -111,6 +111,7 @@ graph TD
 4. **Corrective Feedback Iteration:** When verification fails ($\Delta E_k \neq 0$), a corrective generation step ($\Delta \mathbf{S}_{k+1}$) must be computed from the compiler/linter error feedback to minimize the error vector. If convergence is not achieved within 3 to 5 iterations, execution must freeze and transition to manual clarification.
 5. **Feedback Quality Gate (Ambiguity Recovery):** If compiler or test runner output is ambiguous, empty, or lacks distinct file/line diagnostic indicators, the agent is FORBIDDEN from guessing corrective edits. The agent must halt the optimization loop immediately and transition to manual clarification.
 6. **Iteration Transparency:** The agent is strictly required to log and output the exact number of refinement iterations executed, the initial baseline failure diagnostics ($\Delta E_0 \neq 0$), and the intermediate corrective actions applied. This data must be included in all manual-gate output reports (inside the REVIEW block) to provide verifiable proof of closed-loop execution and prevent unverified passes.
+7. **One-Shot Skepticism (Shallow Walk Check):** If verification converges in a single pass (`LOOPS: 1`), the agent is forbidden from assuming immediate correctness. It must conduct an adversarial self-audit of the diff to confirm the baseline failure was genuine, check for hidden assumptions, and verify that the change did not introduce complected concerns or temporal volatility leaks. The audit results must be documented in the `REVIEW` block under `SKEPTICAL_AUDIT`.
 
 ---
 
