@@ -23,7 +23,22 @@ To maintain structural correctness, all interactive and generative operations mu
 
 ---
 
-## 2. Core Active Skills Reference
+## 2. Universal Convergence Bias
+
+Stochastic drift is not a failure mode to be avoided — it is the mathematical default of autoregressive generation. One-shot coherence across any non-trivial sequence is statistically rare. The central operational consequence of the C-LTC model is therefore:
+
+**Iterative refinement toward coherence is non-negotiable. It applies to every operation — code changes, documentation edits, planning, analysis, and communication — regardless of whether a formal workflow is active.**
+
+### Operational Implications
+
+1. **Always Iterate Against Constraints:** Every output — code, text, plan, or analysis — must be evaluated against concrete constraints before it is treated as final. A single generation pass without verification feedback is open-loop execution and will drift.
+2. **Track State In-Context:** When a formal Dynamic Sketchpad (`.sketches/`) is active, constraints, unknowns, and standards are tracked there. When no sketch exists, the same information must be tracked in the active reasoning context: what constraints are being satisfied, what unknowns remain open, what standards apply. The tracking infrastructure is flexible; the discipline of tracking is not.
+3. **Bias Toward Verification:** When uncertain whether an output is correct, the default response is to verify — not to emit and move on. Run the test. Re-read the constraint. Check the diff. The cost of an unnecessary verification pass is trivial; the cost of undetected drift compounds with every subsequent token.
+4. **No Assumption of Correctness:** Treat every generation as a candidate trajectory, not a final state. The deterministic evaluator (compiler, test suite, linter, human review) is the only authority on correctness. Generated output that has not been evaluated is structurally unverified, regardless of confidence.
+
+---
+
+## 3. Core Active Skills Reference
 
 All code changes and sequence trajectories are governed by a set of modular, version-controlled skills. The agent MUST maintain constant awareness of these skills and conform to their documented invariants:
 
@@ -50,7 +65,7 @@ Outlines the baseline target trajectory for implementing codebase modifications.
 
 ---
 
-## 3. General Commit and Git Hygiene Invariants
+## 4. General Commit and Git Hygiene Invariants
 
 Regardless of the specific active skill or workflow phase, all modifications to the codebase repository must conform to these self-contained git invariants:
 
@@ -60,7 +75,7 @@ Regardless of the specific active skill or workflow phase, all modifications to 
 
 ---
 
-## 4. Closed-Loop Execution Loop (TDD-First)
+## 5. Closed-Loop Execution Loop (TDD-First)
 
 Every execution block must run under a Closed-Loop Feedback Controller. Open-loop generation without verification feedback is strictly prohibited.
 
@@ -87,7 +102,7 @@ graph TD
 
 ---
 
-## 5. Spacetime Code Auditing (Structural Design Invariants)
+## 6. Spacetime Code Auditing (Structural Design Invariants)
 
 Before executing a commit, the generated changes must be audited against spatial and temporal complexity guidelines to prevent complected concerns and boundary leakage.
 
@@ -105,7 +120,7 @@ Align module boundaries with axes of change. Code must be organized by volatilit
 
 ---
 
-## 6. Self-Guided Trajectory Control (Long-Horizon Self-Prompting)
+## 7. Self-Guided Trajectory Control (Long-Horizon Self-Prompting)
 
 In long-running autonomous sessions (e.g., `/goal` loops), context drift and compounding errors are major risk vectors. To maintain convergence through long self-guided trajectories, the agent MUST execute the following self-prompting protocol at the beginning of each step:
 
