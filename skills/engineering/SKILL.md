@@ -129,9 +129,12 @@ Before beginning any non-trivial task:
 ### 7. Testing Strategy
 
 - **Concurrent Testing:** Tests are written with implementation, not after.
+- **Robust-Testing Guidelines:** Concurrently design tests adhering to [robust-testing](file:///var/home/nrd/git/github.com/nrdxp/predicate/skills/robust-testing/SKILL.md). Do not rely solely on simple, example-based happy-path unit tests, as they lead to self-deception in AI-generated code.
 - **Test Integrity:** Never modify a valid test to force a passing result. Similarly, don't revert a valid bug-fix to satisfy a malformed test. Tests should represent semantic correctness, not just a check-mark.
+- **Specification Traceability & Refinement:** If a specification or model exists, tests MUST trace directly to its constraints. The test suite itself must be iteratively refined toward coherence (assuring proper baseline failure and complete input domain coverage).
+- **Domain-Specific Verification:** Select appropriate testing methods (Property-Based Testing for algebraic domains, Fuzzing for security/parsing boundaries, Metamorphic Testing for oracle-less systems, and Integration/E2E testing for multi-module integration) to ensure high-fidelity verification gates.
 - **Descriptive Naming:** Test names describe the scenario and expected outcome (e.g., `test_login_fails_with_invalid_credentials`).
-- **Meaningful Coverage:** Focus on business logic, edge cases, error handling.
+- **Meaningful Coverage:** Focus on business logic, edge cases, error handling, and multi-component E2E integration paths rather than isolated mocks.
 - **Cross-Implementation Sanity:** For protocols with multiple implementations, maintain language-agnostic test vectors.
 
 ### 8. Maintainability & Clean Code

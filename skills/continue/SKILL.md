@@ -18,8 +18,14 @@ The execution plan has been approved. Resume the sequence walk and implement cha
 As you execute the sequence, you MUST:
  
 1. **Closed-Loop Verification Loop (TDD-First)**: For each planned transition, execute code edits and run the verification suite (compilers, test runners, linters):
-    - **TDD Formulation**: Formulate and write the test assertion mapping to `INVARIANT` in `TEST_TARGET`.
-    - **Baseline Check**: Run `VALIDATOR` to obtain the baseline error differential $\Delta E_0$ (which must fail, confirming the test is non-trivial).
+    - **TDD Formulation**: Formulate and write the test assertion mapping to `INVARIANT` in `TEST_TARGET` conforming to [robust-testing](file:///var/home/nrd/git/github.com/nrdxp/predicate/skills/robust-testing/SKILL.md) instructions:
+        - *Specification Mapping:* If a specification or model exists, the tests MUST directly verify its constraints and state transitions to ensure meaningful surface coverage.
+        - *Verification Method Selection:* Select the verification method based on domain complexity:
+          - Use **Property-Based Testing (PBT)** if the domain has non-trivial algebraic properties (e.g., round-trip, commutativity, idempotency) and target language support is mature.
+          - Use **Fuzz Testing** to validate security and serialization boundaries for untrusted inputs.
+          - Use **Metamorphic Testing** if the expected output is complex/expensive to calculate or lacks a simple oracle.
+          - Use **Integration/E2E Testing** for multi-module boundaries, asserting global liveness/safety while isolating external APIs via deterministic mocks.
+    - **Baseline Check**: Run `VALIDATOR` to obtain the baseline error differential $\Delta E_0$. The baseline check MUST verify test failure ($\Delta E_0 \neq 0$) to confirm the test is non-trivial and does not pass on empty/unimplemented code.
     - **Generation**: Implement code edits at `IMPL_TARGET` to satisfy `IMPL_DELTA`.
     - **Deterministic Evaluation**: Execute `VALIDATOR` to get $\Delta E_k$.
     - Formulate and apply corrective edits ($\Delta \mathbf{S}_{k+1}$) to minimize the error vector $\Delta E_k$. Repeat up to a cap of 3-5 iterations.
