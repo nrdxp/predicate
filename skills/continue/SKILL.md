@@ -18,7 +18,7 @@ The execution plan has been approved. Resume the sequence walk and implement cha
 As you execute the sequence, you MUST:
  
 1. **Closed-Loop Verification Loop (TDD-First)**: For each planned transition, execute code edits and run the verification suite (compilers, test runners, linters):
-    - **TDD Formulation**: Formulate and write the test assertion mapping to `INVARIANT` in `TEST_TARGET` conforming to [robust-testing](file:///var/home/nrd/git/github.com/nrdxp/predicate/skills/robust-testing/SKILL.md) instructions:
+    - **TDD Formulation**: Formulate and write the test assertion mapping to `INVARIANT` in `TEST_TARGET` conforming to [robust-testing](../robust-testing/SKILL.md) instructions:
         - *Specification Mapping:* If a specification or model exists, the tests MUST directly verify its constraints and state transitions to ensure meaningful surface coverage.
         - *Verification Method Selection:* Select the verification method based on domain complexity:
           - Use **Property-Based Testing (PBT)** if the domain has non-trivial algebraic properties (e.g., round-trip, commutativity, idempotency) and target language support is mature.
@@ -66,7 +66,7 @@ You must NOT:
        - REVIEW block (structured output of self-review findings: SCORE, ITERATIONS, and FINDINGS per the REVIEW Block Format)
        - Sketch update — append Dynamic Sketchpad ledger updates to `.sketches/[topic].md`, then `git add` and `git commit` in the `.sketches/` subrepo
        - JUSTIFICATION block — approach, scope delta, API impact, debt
-       - Commit message — [conventional format](file:///var/home/nrd/git/github.com/nrdxp/predicate/skills/commit-hygiene/SKILL.md) (conforming to the commit-hygiene skill guidelines)
+       - Commit message — [conventional format](../commit-hygiene/SKILL.md) (conforming to the commit-hygiene skill guidelines)
        - REMAINING STEPS — re-output remaining PLAN steps
     2. **Await explicit approval** before proceeding.
  
@@ -107,4 +107,4 @@ If sequence context has drifted (long execution, many steps), reload boundary co
  
 ## Lexicon Translation Matrix
 
-> See the canonical Invariant Translation Mapping in [rules.md](file:///var/home/nrd/git/github.com/nrdxp/predicate/rules.md) §1 for the full mapping between psychological heuristics and control-theoretic operations.
+> See the canonical Invariant Translation Mapping in [rules.md](../../rules.md) §1 for the full mapping between psychological heuristics and control-theoretic operations.

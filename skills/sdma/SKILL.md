@@ -10,7 +10,7 @@ description: |
 
 # Structural Domain Modeling Atlas (SDMA)
 
-This skill provides the _applied methodology_ for formal domain modeling. The mathematical foundations — SMC, Rosetta Stone, Curry-Howard, algebra/coalgebra duality — live in the `formal-foundations` skill ([skills/formal-foundations/SKILL.md](file:///var/home/nrd/git/github.com/nrdxp/predicate/skills/formal-foundations/SKILL.md)). This skill tells you _how to wield them_.
+This skill provides the _applied methodology_ for formal domain modeling. The mathematical foundations — SMC, Rosetta Stone, Curry-Howard, algebra/coalgebra duality — live in the `formal-foundations` skill ([skills/formal-foundations/SKILL.md](../formal-foundations/SKILL.md)). This skill tells you _how to wield them_.
 
 The SDMA covers what are arguably the most critical isomorphisms in computer science — the categorical, coalgebraic, linear, and information-theoretic bedrock. But it is a _foundation_, not a ceiling. The full landscape of mathematical formalism is available. The SDMA provides the root from which to reach for _any_ relevant representation, guided by the **principle of minimal representation**: choose the simplest formalism that faithfully captures the domain's essential structure.
 

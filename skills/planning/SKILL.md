@@ -92,7 +92,7 @@ Every modification to a sketch file MUST be immediately followed by a `git commi
 - Commit messages should be descriptive: `"sketch: added approach C (hybrid)"`, not `"update sketch"`
 
 > [!CAUTION]
-> **Commit Hygiene is a constant constraint.** All git commits (in both the main repository and the sketches sub-repository) must strictly follow the conventional format specified in [commit-hygiene](file:///var/home/nrd/git/github.com/nrdxp/predicate/skills/commit-hygiene/SKILL.md). Any commit message that violates conventional guidelines represents a failure of this constant constraint.
+> **Commit Hygiene is a constant constraint.** All git commits (in both the main repository and the sketches sub-repository) must strictly follow the conventional format specified in [commit-hygiene](../commit-hygiene/SKILL.md). Any commit message that violates conventional guidelines represents a failure of this constant constraint.
 
 ### Content Philosophy
 

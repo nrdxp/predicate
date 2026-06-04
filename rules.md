@@ -112,7 +112,7 @@ graph TD
 
 ### Protocol Invariants:
 1. **Pragmatic Ceremony Boundary:** Unless the plan or core workflows are explicitly invoked, the full YAML grammar ceremony is optional. Nevertheless, the formal spirit of closed-loop autoregressive convergence (tracking context-specific success rubrics in the active reasoning context, writing test invariants first, verifying baseline failure, verifying correctness, and executing logically atomic commits) MUST be strictly enforced for every workspace mutation.
-2. **Test-Driven Development Baseline Check:** Prior to modifying any implementation code, a test invariant must be written to capture the desired target state. The test suite and method MUST align with the guidelines in [robust-testing](file:///var/home/nrd/git/github.com/nrdxp/predicate/skills/robust-testing/SKILL.md):
+2. **Test-Driven Development Baseline Check:** Prior to modifying any implementation code, a test invariant must be written to capture the desired target state. The test suite and method MUST align with the guidelines in [robust-testing](skills/robust-testing/SKILL.md):
    - **Specification Traceability:** If a specification or model exists, tests MUST trace to and verify its constraints and state transitions to ensure meaningful surface coverage.
    - **Method Selection:** Select the verification method based on the domain (e.g., Property-Based Testing for algebraic properties, Fuzzing for untrusted boundaries, Metamorphic Testing for oracle-less computations, and Integration/E2E Testing for multi-module boundaries).
    - **Baseline Failure Verification:** The test must be run to verify that it fails ($\Delta E\_0 \neq 0$), confirming the test is non-trivial and does not pass on unimplemented code.
@@ -148,7 +148,7 @@ Align module boundaries with axes of change. Code must be organized by volatilit
 In long-running autonomous sessions (e.g., `/goal` loops), context drift and compounding errors are major risk vectors. To maintain convergence through long self-guided trajectories, the agent MUST execute the following self-prompting protocol at the beginning of each step:
 
 1. **Boundary Reconstruction:** Re-evaluate the active boundary conditions by explicitly reading:
-   - The current [rules.md](file:///var/home/nrd/git/github.com/nrdxp/predicate/rules.md).
+   - The current [rules.md](rules.md).
    - The active Dynamic Sketchpad ledger (the `.sketches/YYYY-MM-DD-<topic-name>.md` file).
 2. **State Alignment Prompt:** Prompt yourself in the reasoning trace with a structured verification check:
    - *What is the target sub-goal?*

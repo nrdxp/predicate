@@ -69,7 +69,7 @@ PLAN:
  
 ### 1. Closed-Loop Verification Loop (TDD-First)
 For each step in the plan, execute a local optimization loop:
-- **TDD Formulation**: Formulate and write the test assertion mapping to `INVARIANT` in `TEST_TARGET` conforming to [robust-testing](file:///var/home/nrd/git/github.com/nrdxp/predicate/skills/robust-testing/SKILL.md) instructions:
+- **TDD Formulation**: Formulate and write the test assertion mapping to `INVARIANT` in `TEST_TARGET` conforming to [robust-testing](../robust-testing/SKILL.md) instructions:
    - **Specification Mapping:** If a specification or model exists, the tests MUST directly verify its constraints and state transitions to ensure meaningful surface coverage.
    - **Verification Method Selection:** Select the verification method based on domain complexity:
      - Use **Property-Based Testing (PBT)** if the domain has non-trivial algebraic properties (e.g., round-trip, commutativity, idempotency) and target language support is mature.
@@ -102,7 +102,7 @@ At each commit boundary (or phase completion):
      - REVIEW block (structured output of self-review findings: SCORE, ITERATIONS, and FINDINGS per the REVIEW Block Format)
      - Sketch update instructions (re-stating the Dynamic Sketchpad ledger updates, compiling any rubric adjustments or goal additions)
      - JUSTIFICATION block
-     - Conventional commit message conforming to [commit-hygiene](file:///var/home/nrd/git/github.com/nrdxp/predicate/skills/commit-hygiene/SKILL.md)
+     - Conventional commit message conforming to [commit-hygiene](../commit-hygiene/SKILL.md)
      - REMAINING STEPS
   2. **Wait for human confirmation** before proceeding.
  
@@ -185,4 +185,4 @@ EXECUTE ──→ CLARIFY (if verification fails to converge)
  
 ## Lexicon Translation Matrix
 
-> See the canonical Invariant Translation Mapping in [rules.md](file:///var/home/nrd/git/github.com/nrdxp/predicate/rules.md) §1 for the full mapping between psychological heuristics and control-theoretic operations.
+> See the canonical Invariant Translation Mapping in [rules.md](../../rules.md) §1 for the full mapping between psychological heuristics and control-theoretic operations.
