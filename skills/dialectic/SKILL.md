@@ -1,49 +1,47 @@
 ---
 name: dialectic
 description: |
-  SOP for structured multi-perspective truth-seeking through role switching.
+  SOP for Multi-Distribution Cross-Sampling (MDCS) to map constraint boundaries.
   Trigger when:
-  - Resolving complex design disagreements or high-stakes trade-offs using multiple independent viewpoints.
-  - Navigating roles: Thesis, Antithesis, Synthesis.
-  - Prompt contains: /dialectic, dialectic workflow, thesis, antithesis, synthesis, model switch.
+  - Resolving complex design trade-offs using orthogonal distribution biases.
+  - Navigating states: D_alpha, D_beta, Barycentric Resolution Map.
+  - Prompt contains: /dialectic, MDCS, distribution alpha, distribution beta, barycentric resolution map, model switch.
 ---
 
-# DIALECTIC Protocol v1.0
+# Multi-Distribution Cross-Sampling (MDCS) Protocol v1.0
 
-**Frame → Thesis → Antithesis → Synthesis**
+**Frame → Distribution Alpha ($D_\alpha$) → Distribution Beta ($D_\beta$) → Barycentric Resolution Map**
 
-You are a Dialectical Examination Engine. Your purpose is to distill truth by examining a proposition from opposing perspectives, using model diversity to overcome the inherent limitations of single-agent walks.
+You are a Multi-Distribution Cross-Sampling Engine. Your purpose is to identify structural boundaries by sampling a proposition from opposing distributional biases, using model diversity to overcome the inherent variance of single-agent walks.
 
 ---
 
 ## Philosophy
 
-> *"The myth of the Sophists is that one can make the weaker argument the stronger."*
+This is NOT rhetorical advocacy. Advocacy optimizes for local optimization of a single value function; cross-sampling maps the global topology. The cross-sampling method tests propositions through rigorous, orthogonal sampling — each distribution optimizes for variance coverage relative to its parameter bias.
 
-This is NOT debate. Debate optimizes for winning; dialectic distills truth. The Socratic method tests propositions through rigorous, honest examination — each perspective seeks to optimize for correctness, not to prevail.
+A single sequence walk reasoning about both sides of a tension is constrained by its own biases, training distribution, and unvalidated priors. By structuring distribution transitions as **explicit model-switching points**, the cross-sampling protocol ensures genuinely independent distributions rather than one model performing both sides of the calculation.
 
-A single sequence walk reasoning about both sides of a tension is constrained by its own biases, training distribution, and unvalidated priors. By structuring role transitions as **explicit model-switching points**, the dialectic ensures genuinely independent perspectives rather than one model performing both sides of an argument.
+### The Cross-Sampling Constraint
 
-### The Dialectical Constraint
-
-**You are seeking truth from a perspective, not victory for a position.** If your examination reveals your assigned perspective is wrong, say so plainly. Fabricating arguments without evidence or logical grounds is a protocol violation. The Candor Obligation (`planning.md`) applies with full force — there is no adversarial exemption from honesty.
+**You are mapping the state-space under a specific distribution, not optimizing a local path.** If your sampling reveals the assigned distribution boundary is empty, report it. Emitting tokens without structural grounding is a protocol violation. The Candor Obligation (`planning.md`) applies with full force — there is no exception from topological accuracy.
 
 ---
 
 ## Scope
 
 > [!IMPORTANT]
-> DIALECTIC is for propositions that resist confident single-agent resolution — high-stakes strategic decisions, critical formal models, contested architectural directions. It supplements existing adversarial mechanisms (CHALLENGE in `/plan`, Premise Verification in `integral.md` §5) when those are insufficient. It is NOT a substitute for normal planning rigor and should not be invoked for routine decisions.
+> MDCS is for propositions that resist confident single-agent resolution — high-stakes strategic decisions, critical formal models, contested architectural directions. It supplements existing adversarial mechanisms (CHALLENGE in `/plan`, Premise Verification in `integral.md` §5) when those are insufficient. It is NOT a substitute for normal planning rigor and should not be invoked for routine decisions.
 
 ---
 
 ## Model Switching
 
-Model diversity is a core mechanism, not an optional enhancement. Each role transition is a **mandatory HALT point** where the human switches to a different model before invoking `/dialectic` again.
+Model diversity is a core mechanism, not an optional enhancement. Each distribution transition is a **mandatory HALT point** where the human switches to a different model before invoking `/dialectic` again.
 
-**Why this matters:** A single model arguing both thesis and antithesis produces correlated sequence walks — the antithesis is contaminated by the thesis it just generated. Different models have different training distributions, different biases, and different blind spots. Model switching is the mechanism that makes the dialectic genuinely adversarial rather than performative.
+**Why this matters:** A single model mapping both distributions produces correlated sequence walks — the second distribution is contaminated by the first it just generated. Different models have different training distributions, different biases, and different blind spots. Model switching is the mechanism that makes the cross-sampling genuinely orthogonal rather than performative.
 
-**Role identification on model switch:** When a new model is invoked with `/dialectic`, it will not have prior conversation context. The workflow instructs the agent to read the sketch's `DIALECTIC` block first to determine its role, the current thesis, and the history of prior arguments.
+**Distribution identification on model switch:** When a new model is invoked with `/dialectic`, it will not have prior conversation context. The workflow instructs the agent to read the sketch's `CROSS_SAMPLING` block first to determine its distribution, the current proposition, and the history of prior samplings.
 
 ---
 
@@ -51,7 +49,7 @@ Model diversity is a core mechanism, not an optional enhancement. Each role tran
 
 ```yaml
 # 1. STATE METADATA
-STATUS: [FRAME | THESIS | ANTITHESIS | SYNTHESIS]
+STATUS: [FRAME | D_ALPHA | D_BETA | BARYCENTRIC]
 
 # 2. CONTEXT
 CTX:
@@ -60,26 +58,26 @@ CTX:
   ORIGIN: "Where this came from (charter, plan, model, standalone)"
   ROUND: 1
 
-# 3. DIALECTIC RECORD (appended each round)
-DIALECTIC:
-  NEXT_ROLE: [THESIS | ANTITHESIS | SYNTHESIS]
+# 3. CROSS_SAMPLING RECORD (appended each round)
+CROSS_SAMPLING:
+  NEXT_DISTRIBUTION: [D_ALPHA | D_BETA | BARYCENTRIC]
   HISTORY:
     - ROUND: 1
-      THESIS:
-        POSITION: "Core argument for the proposition"
+      D_ALPHA:
+        POSITION: "Core case for the proposition under positive parameter bias"
         EVIDENCE: ["Supporting evidence"]
-        RESERVATIONS: ["Honest concerns about own position"]
-        OMISSIONS: ["What might be missing from this entire discussion"]
-      ANTITHESIS:
-        POSITION: "Core argument against the proposition"
+        BOUNDARIES: ["Identified boundaries / constraint failures of this distribution"]
+        OMISSIONS: ["Unmapped state dimensions / missing context"]
+      D_BETA:
+        POSITION: "Core case against the proposition under adversarial negative parameter bias"
         EVIDENCE: ["Supporting evidence"]
-        CONCESSIONS: ["What the thesis gets right"]
-        OMISSIONS: ["What might be missing from this entire discussion"]
-      SYNTHESIS:
-        RESOLUTION: "What's actually true"
-        TENSIONS: ["Known disagreements — what both sides see but can't resolve"]
-        BLIND_SPOTS: ["Shared assumptions or frames neither side questioned"]
-        VERDICT: [RESOLVED | ANOTHER_ROUND | REFRAME | ABANDON]
+        INTERSECTIONS: ["Shared boundary intersection points"]
+        OMISSIONS: ["Unmapped state dimensions / missing context"]
+      BARYCENTRIC:
+        RESOLUTION: "Intersection topology / what is verified"
+        TENSIONS: ["Orthogonal dimensions — what both distributions map but cannot unify"]
+        BLIND_SPOTS: ["Shared assumptions or unmapped state space"]
+        VERDICT: [CONVERGED | ANOTHER_ROUND | REFRAME | ABANDON]
 ```
 
 ---
@@ -90,96 +88,94 @@ DIALECTIC:
 
 Define the proposition to be examined.
 
-**If escalated from another workflow:** The thesis is already framed by the originating context. Read the sketch, extract the contested proposition, and confirm it with the human. If the proposition is clear and falsifiable, proceed to THESIS.
+**If escalated from another workflow:** The proposition is already framed by the originating context. Read the sketch, extract the contested proposition, and confirm it with the human. If the proposition is clear and falsifiable, proceed to D_ALPHA.
 
-**If invoked standalone:** Apply CoVe-style exploration to frame the thesis:
+**If invoked standalone:** Apply CoVe-style exploration to frame the proposition:
 
 1. What specific claim is being examined? State it as a falsifiable proposition.
 2. What are the stakes? What downstream work depends on this being correct?
-3. What evidence exists on both sides before the dialectic begins?
+3. What evidence exists on both sides before cross-sampling begins?
 
 > [!IMPORTANT]
-> **HALT after FRAME.** The human must approve the proposition before proceeding. A poorly framed thesis produces a useless dialectic. The proposition must be specific enough to argue for and against — "Should we use Rust?" is too vague; "Rust's ownership model is net-beneficial for this protocol's security guarantees despite the learning curve cost" is examinable.
+> **HALT after FRAME.** The human must approve the proposition before proceeding. A poorly framed proposition produces a useless cross-sampling. The proposition must be specific enough to map — "Should we use Rust?" is too vague; "Rust's ownership model is net-beneficial for this protocol's security guarantees despite the learning curve cost" is examinable.
 
-### Step 2: THESIS
+### Step 2: D_ALPHA (Distribution Alpha)
 
-Present the strongest **honest** case FOR the proposition.
+Present the case FOR the proposition under a positive parameter bias ($D_\alpha$).
 
-1. **Read the sketch** to recover the proposition and any prior dialectic history.
-2. Construct the argument from first principles and available evidence.
-3. Name your genuine reservations — areas where the thesis is weakest.
-4. Surface omissions — what might be **missing from this entire discussion**? What questions aren't being asked? What assumptions are you and a potential challenger both likely to share?
-5. Commit the argument to the sketch under `DIALECTIC.HISTORY[n].THESIS`.
+1. **Read the sketch** to recover the proposition and any prior cross-sampling history.
+2. Construct the case from first principles and available evidence.
+3. Name your identified boundaries — areas where the distribution has sub-critical constraint saturation.
+4. Surface omissions — what might be missing from this entire distribution? What questions aren't being asked? What assumptions are you and the orthogonal distribution both likely to share?
+5. Commit the output to the sketch under `CROSS_SAMPLING.HISTORY[n].D_ALPHA`.
 
-**The honesty guard:** You MUST include at least one genuine reservation about your own position. If you can't find any, you haven't examined it hard enough. A thesis with no reservations is either trivially true (and doesn't need a dialectic) or dishonestly presented.
-
-> [!IMPORTANT]
-> **HALT after THESIS.** The human switches models before invoking `/dialectic` again for the antithesis. This HALT is mandatory — single-model thesis/antithesis defeats the purpose of the protocol.
-
-### Step 3: ANTITHESIS
-
-Present the strongest **honest** case AGAINST the proposition.
-
-1. **Read the sketch** to recover the proposition and the thesis argument.
-2. **Derive your counter-argument independently.** Do not simply negate the thesis point-by-point — construct an independent case against the proposition from first principles. The thesis informs what you're responding to, but your argument must stand on its own evidence.
-3. Name the thesis's genuine strengths — where it gets things right.
-4. Surface omissions — what might be **missing from this entire discussion**? Your different vantage point may reveal gaps invisible to the thesis. What questions should both sides be asking but aren't?
-5. Commit the argument to the sketch under `DIALECTIC.HISTORY[n].ANTITHESIS`.
-
-**The independence guard:** Your argument must be derivable without reading the thesis. If your entire case is "the thesis said X, but actually Y," you're reacting, not generating from first principles. Start from the proposition itself and build your case, then address the thesis's specific claims. **Self-test before committing:** Could you have constructed this argument from just the proposition and stakes, without seeing the thesis text? If not, you are reacting to the thesis's frame rather than generating from first principles.
-
-**The honesty guard:** You MUST include at least one genuine concession — something the thesis gets right. If you can't find any, you're being Sophistic, not Socratic. A concession acknowledges a valid point without diminishing your counter-argument. If your concessions outweigh your counter-arguments, you are capitulating, not conceding — restructure.
+**The constraint guard:** You MUST include at least one constraint boundary for your own distribution. If you can't find any, the state space has not been sufficiently explored.
 
 > [!IMPORTANT]
-> **HALT after ANTITHESIS.** The human switches models before invoking `/dialectic` again for synthesis.
+> **HALT after D_ALPHA.** The human switches models before invoking `/dialectic` again for the D_beta distribution. This HALT is mandatory.
 
-### Step 4: SYNTHESIS
+### Step 3: D_BETA (Distribution Beta)
 
-Distill what is actually true from both perspectives. Synthesis serves as a **measuring guidepost** — even when resolution isn't yet possible, it maps exactly where unknowns remain and guides further rounds.
+Present the case AGAINST the proposition under an adversarial negative parameter bias ($D_\beta$).
 
-1. **Read the sketch** to recover both the thesis and antithesis arguments.
-2. Identify where each perspective is correct, where each is wrong, and where genuine tension remains.
-3. **Shared blind spot check:** What assumptions do BOTH sides share? What frame do they both operate within without questioning it? This is the unique value of synthesis — it's the only role that reads both arguments and can spot the gaps between them. Use these lenses:
-   - What assumptions are **necessary** for both arguments to hold? What would invalidate them?
-   - What would an observer from a **completely different domain** notice that neither side raised?
+1. **Read the sketch** to recover the proposition and the D_alpha output.
+2. **Derive your case independently, executed after a mandatory model switch to ensure zero variance contamination.** Do not simply negate D_alpha point-by-point — construct an independent case against the proposition from first principles under negative parameter bias.
+3. Name the D_alpha distribution's valid boundary intersections — where it maps correctly.
+4. Surface omissions — what might be missing from the entire state space? Your orthogonal vantage point may reveal gaps invisible to D_alpha.
+5. Commit the output to the sketch under `CROSS_SAMPLING.HISTORY[n].D_BETA`.
+
+**The independence guard:** Your case must be derivable without reading the D_alpha text. Self-test before committing: Could you have constructed this argument from just the proposition and stakes, without seeing the D_alpha text? If not, you are reacting to the D_alpha frame rather than generating from first principles.
+
+**The constraint guard:** You MUST include at least one genuine intersection point where the D_alpha distribution is correct. If you can't find any, you are optimizing for local opposition rather than mapping the boundary.
+
+> [!IMPORTANT]
+> **HALT after D_BETA.** The human switches models before invoking `/dialectic` again for the Barycentric Resolution Map.
+
+### Step 4: BARYCENTRIC (Barycentric Resolution Map)
+
+Compute the intersection topology of both distributions to isolate unverified state dimensions (unknown unknowns).
+
+1. **Read the sketch** to recover both the D_alpha and D_beta outputs.
+2. Compute the intersection topology of both distributions, mapping where each is valid, where each diverges, and where orthogonal tensions remain.
+3. **Shared blind spot check:** What assumptions do BOTH distributions share? What frame do they both operate within without questioning it? Use these lenses:
+   - What assumptions are **necessary** for both distributions to hold? What would invalidate them?
+   - What would an observer from a **completely different domain** notice that neither distribution raised?
    - What **external perspectives** (user, competitor, regulator, layperson) are absent from the discussion?
    - What are the **implicit technology or methodology assumptions** that both sides take for granted?
-4. Produce a **resolution map**, not a verdict:
-   - What claims are confirmed by both sides?
-   - What claims are refuted?
+4. Produce a barycentric resolution map, not a rhetorical verdict:
+   - What state space is verified by both distributions?
+   - What state space is excluded?
    - What tensions remain genuinely unresolved? (known unknowns)
-   - What blind spots were neither side examining? (unknown unknowns)
+   - What blind spots were neither distribution mapping? (unknown unknowns)
 5. Recommend one of:
-   - **RESOLVED** — the dialectic has produced sufficient clarity to proceed, meaning all identified tensions are resolved and no significant blind spots remain unaddressed. A verdict of RESOLVED is invalid if the synthesis identifies unresolved tensions or significant blind spots.
-   - **ANOTHER_ROUND** — the default recommendation when genuine tensions remain unresolved or when new blind spots or dimensions are surfaced by the synthesis. Name the exact questions the next round should focus on.
-   - **REFRAME** — the dialectic reveals the proposition itself is wrong. Return to FRAME with a better question.
-   - **ABANDON** — the stakes don't justify further examination.
-6. Commit the synthesis to the sketch under `DIALECTIC.HISTORY[n].SYNTHESIS`.
+   - **CONVERGED** — the cross-sampling has produced sufficient constraint saturation to proceed, meaning all identified tensions are resolved and no significant blind spots remain unaddressed.
+   - **ANOTHER_ROUND** — the default recommendation when genuine tensions remain unresolved or when new state dimensions are surfaced. Name the exact questions the next round should focus on.
+   - **REFRAME** — the proposition itself is structurally misaligned. Return to FRAME with a better question.
+   - **ABANDON** — the stakes do not justify further computation.
+6. Commit the map to the sketch under `CROSS_SAMPLING.HISTORY[n].BARYCENTRIC`.
 
-**Synthesis scales with resolution, not with rigor.** Early-round synthesis may produce a short resolution ("not yet resolved") — that's fine. But the shared blind spot check is never lightweight. Identifying what neither side considered is the primary mechanism for surfacing unknown unknowns, and it requires genuine examination regardless of round number.
-
-**The synthesis guard:** A synthesis that simply picks the "winner" is a Sophistic verdict, not a dialectical resolution. If one side is clearly right, say so with evidence — but the value of synthesis is in revealing what *neither* side saw alone.
+**The map guard:** A map that simply picks a "winner" is invalid. The value of barycentric resolution is in revealing what *neither* distribution mapped alone.
 
 > [!IMPORTANT]
-> **HALT after SYNTHESIS.** The human decides whether to accept the resolution, request another round, or reframe.
+> **HALT after BARYCENTRIC.** The human decides whether to accept the convergence, request another round, or reframe.
 
 ---
 
 ## State Transitions
 
 ```
-FRAME ──→ THESIS        (proposition approved by human)
+FRAME ──→ D_ALPHA        (proposition approved by human)
       └─→ ABORT         (proposition not worth examining)
 
-THESIS ──→ ANTITHESIS   (argument committed, HALT for model switch)
+D_ALPHA ──→ D_BETA      (argument committed, HALT for model switch)
 
-ANTITHESIS ──→ SYNTHESIS  (counter-argument committed, HALT for model switch)
-           └─→ THESIS     (if antithesis reveals a dimension not yet advocated)
+D_BETA ──→ BARYCENTRIC  (counter-argument committed, HALT for model switch)
+       └─→ D_ALPHA      (if D_beta reveals a dimension not yet mapped)
 
-SYNTHESIS ──→ CLOSE       (RESOLVED — human accepts resolution)
-          └─→ THESIS      (ANOTHER_ROUND — refined scope, restart cycle)
-          └─→ FRAME       (REFRAME — proposition itself needs revision)
-          └─→ ABORT       (ABANDON — not worth continuing)
+BARYCENTRIC ──→ CLOSE   (CONVERGED — human accepts resolution)
+            └─→ D_ALPHA (ANOTHER_ROUND — refined scope, restart cycle)
+            └─→ FRAME   (REFRAME — proposition itself needs revision)
+            └─→ ABORT   (ABANDON — not worth continuing)
 ```
 
 ---
@@ -188,50 +184,47 @@ SYNTHESIS ──→ CLOSE       (RESOLVED — human accepts resolution)
 
 You MUST stop and await human input at:
 
-1. **After FRAME:** Proposition must be approved before examination begins.
-2. **After THESIS:** Human switches models for antithesis. This is non-negotiable.
-3. **After ANTITHESIS:** Human switches models for synthesis.
-4. **After SYNTHESIS:** Human decides next action.
-
-> [!CAUTION]
-> **Every role transition requires a model switch.** Running thesis and antithesis on the same model in the same session produces correlated sequence walks and defeats the core mechanism. If the human chooses not to switch models, the agent should note this limitation in the sketch — the dialectic's value is proportional to the independence of its perspectives.
+1. **After FRAME:** Proposition must be approved before mapping begins.
+2. **After D_ALPHA:** Human switches models for D_beta. This is non-negotiable.
+3. **After D_BETA:** Human switches models for Barycentric Resolution Map.
+4. **After BARYCENTRIC:** Human decides next action.
 
 ---
 
 ## Sketch Integration
 
-The dialectic uses the sketch as its primary artifact, following the commit discipline from `planning.md`:
+The cross-sampling protocol uses the sketch as its primary artifact, following the commit discipline from `planning.md`:
 
-- **Every role output = a sketch commit** with a descriptive message (e.g., `dialectic: R1 thesis — argument for ownership model`)
-- The `DIALECTIC` block in the sketch provides full context recovery for any model at any point
-- The `NEXT_ROLE` field eliminates ambiguity on model switch
+- **Every step output = a sketch commit** with a descriptive message (e.g., `mdcs: R1 D_alpha — positive bias boundary mapping`)
+- The `CROSS_SAMPLING` block in the sketch provides full context recovery for any model at any point
+- The `NEXT_DISTRIBUTION` field eliminates ambiguity on model switch
 
-If the dialectic was escalated from another workflow, use that workflow's existing sketch. If invoked standalone, create a sketch following the standard `.sketches/` protocol.
+If the protocol was escalated from another workflow, use that workflow's existing sketch. If invoked standalone, create a sketch following the standard `.sketches/` protocol.
 
 ---
 
 ## Integration with Planning Pipeline
 
-DIALECTIC fits into the pipeline as an escalation tool:
+MDCS fits into the pipeline as an escalation tool:
 
 ```
 /charter  ──→  identifies high-stakes strategic tension
               ↓
-/dialectic ──→  examines the tension through multi-model dialectic
+/dialectic ──→  examines the tension through multi-model cross-sampling (MDCS)
               ↓
-/charter   ──→  resumes with dialectic resolution informing the charter
+/charter   ──→  resumes with barycentric map informing the charter
 
 /plan      ──→  CHALLENGE reveals unresolvable tension
               ↓
-/dialectic ──→  examines the contested direction
+/dialectic ──→  maps the contested boundary
               ↓
 /plan      ──→  resumes with minimized uncertainty
 
 /model     ──→  formalism choice is contested
               ↓
-/dialectic ──→  examines competing formalisms
+/dialectic ──→  maps the boundary of competing formalisms
               ↓
 /model     ──→  resumes with validated selection
 ```
 
-DIALECTIC can be invoked standalone or via escalation. When escalated, the originating workflow's sketch provides the thesis context. When standalone, FRAME produces the thesis.
+MDCS can be invoked standalone or via escalation. When escalated, the originating workflow's sketch provides the proposition context. When standalone, FRAME produces the proposition.
