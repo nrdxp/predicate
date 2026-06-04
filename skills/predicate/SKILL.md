@@ -1,7 +1,7 @@
 ---
 name: predicate
 description: |
-  Protocol to re-read axioms and personas to combat context drift.
+  Protocol to re-read active skills and rulesets to combat context drift.
   Trigger when:
   - Full refresh of rule context is needed, or starting a new session.
   - Prompt contains: /predicate, reload rules, reload context, context drift.

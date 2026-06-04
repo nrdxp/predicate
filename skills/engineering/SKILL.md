@@ -84,7 +84,7 @@ Before writing code, understand the existing landscape:
 
 > **Tip:** If MCP tools are available, use them first for structural insight. See `skills/depmap/SKILL.md`.
 
-**Workflow Personas:** When a workflow declares `required_personas:` in its frontmatter, you MUST read and load those persona files before proceeding. This is not optional — the workflow's instructions assume those personas are active. Missing persona file → **HALT**.
+
 
 ### 1. Root Cause Analysis
 

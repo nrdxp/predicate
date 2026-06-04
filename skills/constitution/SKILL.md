@@ -11,7 +11,7 @@ description: |
 
 # Constitution
 
-This axiom is the root of the Predicate system. All other axioms, personas, and workflows operate under its authority. It governs when rules conflict, when situations are novel, or when no specific rule applies.
+This constitution is the root of the Predicate system. All other skills, workflows, and specifications operate under its authority. It governs when rules conflict, when situations are novel, or when no specific rule applies.
 
 ---
 

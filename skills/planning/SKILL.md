@@ -8,9 +8,9 @@ description: |
   - Prompt contains keywords: planning, candor obligation, sketch, subrepo, retrospective, escalation, strategic drift, tactical.
 ---
 
-# Planning Pipeline Persona
+# Planning Pipeline Skill
 
-This persona contains the shared foundations for the `/charter → /sketch → /plan → /core` pipeline, the `/model` formal modeling workflow, and the `/spec` normative specification workflow. All planning workflows (plus `/continue`) require this persona via `required_personas:` to ensure consistent understanding of planning discipline and sketch management.
+This skill contains the shared foundations for the `/charter → /sketch → /plan → /core` pipeline, the `/model` formal modeling workflow, and the `/spec` normative specification workflow. All planning workflows (plus `/continue`) require this skill to ensure consistent understanding of planning discipline and sketch management.
 
 ---
 
@@ -22,7 +22,7 @@ Planning requires **truth-seeking, not consensus-building.** Challenge flawed pr
 
 **Dialectic escalation:** If adversarial self-testing is insufficient — if you're arguing both sides of a high-stakes tension and cannot minimize uncertainty to 0.0 — recommend `/dialectic` to the human. Multi-model dialectic provides genuinely independent perspectives that single-agent walks cannot. This is not an admission of failure; it's an acknowledgment that some questions are too important for correlated sequence generations.
 
-Workflows that load this persona inherit these obligations — back-reference here rather than restate.
+Workflows that load this skill inherit these obligations — back-reference here rather than restate.
 ---
 
 ## Sketch Storage

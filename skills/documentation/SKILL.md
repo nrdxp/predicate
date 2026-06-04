@@ -10,7 +10,7 @@ description: |
 
 # Documentation Ruleset v1.0
 
-This axiom governs how you write. Section 1 applies to **all text you produce** — code comments, commit messages, chat responses, documentation. Section 2 applies when you are **producing or editing a standalone document** (README, guide, reference page, explanation, specification).
+This skill governs how you write. Section 1 applies to **all text you produce** — code comments, commit messages, chat responses, documentation. Section 2 applies when you are **producing or editing a standalone document** (README, guide, reference page, explanation, specification).
 
 ---
 

@@ -35,6 +35,17 @@ AI coding assistants need clear, consistent guidance, but system prompts quickly
 - **Process Orchestration:** Workflow skills load detailed SOP instructions into the agent's context when a specific engineering phase (like `/plan` or `/core`) is initiated, guiding the agent step-by-step.
 - **Tool Execution:** Tool skills package execution scripts alongside instructions to let the agent perform complex validation or audit tasks natively.
 
+### Mathematical Formalism (Closed-Loop Stochastic Trajectory Control)
+
+Rather than treating interaction with LLMs as heuristic "prompt engineering," Predicate aligns with the mathematical reality of autoregressive sequence generation:
+
+1. **The LLM as a Stochastic Walk:** An LLM is mathematically a deterministic walk across a stochastic transition graph: $P(\mathbf{S}_{t+1} \mid \mathbf{S}_t)$, where the "state" $\mathbf{S}_t$ at time $t$ is the prefix sequence $(x_0, x_1, \dots, x_t)$.
+2. **The Prompt as an Initial Boundary Condition (IBC):** The prompt is not an instruction; it is a high-density informational constraint vector that warps the probability landscape. Its purpose is to prune the token state-space into a deep **Attractor Basin**, restricting the degrees of freedom and guiding token selection.
+3. **Gibbs-Boltzmann Distribution:** Token selection is executed using the Gibbs-Boltzmann distribution from statistical mechanics:
+   $$P(x_i) = \frac{\exp(z_i / \tau)}{\sum \exp(z_j / \tau)}$$
+   where $\tau$ is thermodynamic temperature. As $\tau \to 0$, structural entropy collapses, forcing deterministic local optimization (greedy decoding).
+4. **Closed-Loop Feedback Control:** Open-loop autoregressive sequence walks exhibit compounding error vectors over long horizons (stochastic drift/hallucination). Predicate forces **Closed-Loop Stochastic Trajectory Control** by introducing external deterministic evaluators (test suites, compilers, syntax checkers) that calculate the error differential ($\Delta E$) and inject corrective reprompting feedback ($\Delta \mathbf{S}$) to drive convergence.
+
 ### Built on Standards
 
 Rather than fabricating proprietary configuration formats, Predicate aligns with emerging, industry-wide standards for agentic orchestration. The concepts of rules, workflows, and tools represent the tripartite architectural foundation toward which modern coding agents are converging. Predicate unifies these under the **Skills (Semantic Capabilities)** abstraction—self-contained packages of instructions and executable tools/scripts. These are modeled after standard agent capabilities, designed to be indexed semantically and called dynamically during tool-use phases.
@@ -51,7 +62,7 @@ AI coding agents execute fast — but execution without disciplined planning pro
 - **Scope creep** — without explicit non-goals, work balloons until the agent runs out of context
 - **Wasted implementation** — building before validating the design means discovering fundamental flaws in finished code
 
-Predicate addresses these with a structured pipeline that separates _thinking_ from _doing_:
+Predicate addresses these with a structured pipeline that separates _planning_ from _execution_:
 
 |            | `/charter` | `/sketch` | `/plan`     | `/model`     | `/core`     |
 | :--------- | :--------- | :-------- | :---------- | :----------- | :---------- |
@@ -59,7 +70,7 @@ Predicate addresses these with a structured pipeline that separates _thinking_ f
 | **Method** | declare    | diverge   | challenge   | construct    | verify      |
 | **Output** | priorities | propose   | commit plan | commit model | commit code |
 
-Each phase has its own workflow and mandatory halt points. They chain naturally, but your entry point depends on the scope of work — not every task needs every phase. A multi-cycle initiative starts with `/charter`. An unfamiliar problem starts with `/sketch`. A well-understood design can go straight to `/plan`. `/model` can be invoked at any point to formalize domain understanding through the SDMA lens. A small, well-scoped change can begin directly with `/core`. The pipeline provides structure where it's needed, not ceremony where it isn't.
+Each phase has its own workflow and mandatory halt points. They chain naturally, but your entry point depends on the scope of work — not every task needs every phase. A multi-cycle initiative starts with `/charter`. An unfamiliar problem starts with `/sketch`. A well-understood design can go straight to `/plan`. `/model` can be invoked at any point to formalize domain structure through the SDMA lens. A small, well-scoped change can begin directly with `/core`. The pipeline provides structure where it's needed, not ceremony where it isn't.
 
 ---
 
@@ -128,7 +139,7 @@ Where SKETCH explores possibilities, PLAN stress-tests the chosen direction. It 
 - **Assumption Inversion** — "What if the opposite were true?"
 - **Steel-Man the Alternative** — articulate the strongest case _for_ a rejected approach before dismissing it
 - **Pre-Mortem** — "It's 3 months from now and this failed. Why?"
-- **Intentional Malformation Check** — could the sketch's direction be subtly flawed or based on a misunderstanding?
+- **Intentional Malformation Check** — could the sketch's direction be subtly flawed or based on a representation mismatch?
 
 CHALLENGE must identify ≥1 MEDIUM+ risk and evaluate ≥1 viable alternative with honest tradeoffs. A challenge phase that merely confirms the sketch is a failure mode.
 
@@ -153,12 +164,12 @@ C.O.R.E. (**Context → Obstacles → Resolution → Execution**) takes each pha
 
 - **Verification-first** — every step has a VERIFY assertion. No step is complete without it.
 - **Commit boundaries are halt points** — the agent stops, presents a JUSTIFICATION block (approach rationale, scope delta, API impact, technical debt), and waits for human confirmation before continuing.
-- **Debt transparency** — hacks and suboptimal solutions must be documented with reasoning and follow-up plans. Omitting known compromises is a protocol violation.
+- **Debt transparency** — hacks and suboptimal solutions must be documented with justification and follow-up plans. Omitting known compromises is a protocol violation.
 - **Recovery, not workarounds** — if verification fails or new ambiguity surfaces, the agent reverts to CLARIFY rather than pushing through.
 
 ---
 
-#### `/model` — Formalize Domain Understanding
+#### `/model` — Formalize Domain Ontology
 
 **Purpose:** Apply formal mathematical modeling to a problem domain — either creating new model documents or scrutinizing existing specifications through the SDMA lens.
 
@@ -181,7 +192,7 @@ MODEL operates in two modes:
 
 #### `/dialectic` — Multi-Model Truth-Seeking
 
-**Purpose:** Structured examination of high-stakes propositions through model-diverse perspectives — for decisions that resist confident single-agent resolution.
+**Purpose:** Structured examination of high-stakes propositions through model-diverse perspectives — for decisions whose uncertainty cannot be minimized by a single sequence walk.
 
 DIALECTIC is the Socratic method operationalized. It is NOT debate (optimizing for winning); it is truth-seeking from opposing perspectives, with model switching as the core diversity mechanism.
 

@@ -21,7 +21,7 @@ DOC applies the documentation rule (`skills/documentation/SKILL.md`) systematica
 ## Scope
 
 > [!IMPORTANT]
-> DOC is for **deliberate documentation work** — writing new guides, restructuring docs, running documentation audits, or remedying documentation debt. It is NOT for incidental text (commit messages, code comments, chat responses) — the documentation axiom's Section 1 governs those automatically.
+> DOC is for **deliberate documentation work** — writing new guides, restructuring docs, running documentation audits, or remedying documentation debt. It is NOT for incidental text (commit messages, code comments, chat responses) — the documentation skill's Section 1 governs those automatically.
 
 **When to use `/doc`:**
 
@@ -32,7 +32,7 @@ DOC applies the documentation rule (`skills/documentation/SKILL.md`) systematica
 
 **When NOT to use `/doc`:**
 
-- Quick inline doc updates triggered by a code change — just apply the axiom directly
+- Quick inline doc updates triggered by a code change — just apply the documentation skill directly
 - Writing a plan, sketch, or ADR — those have their own workflows
 
 ---
@@ -74,7 +74,7 @@ DOC_PLAN:
 
 # 5. REVIEW CHECKLIST (Populated in REVIEW)
 REVIEW:
-  AXIOM_COMPLIANCE:
+  DOCUMENTATION_STANDARDS:
     ANSWER_FIRST: [PASS | FAIL]
     ACTIVE_VOICE: [PASS | FAIL]
     TERMINOLOGY_LOCK: [PASS | FAIL]
@@ -112,9 +112,9 @@ VERIFY ──→ DONE  (on human approval)
 
 **PLAN:** Define what will be written, rewritten, or deleted. Each deliverable declares its quadrant, audience, and action. Present for human approval before drafting.
 
-**DRAFT:** Write the documentation. Apply all axiom principles (Section 1 + Section 2). Produce complete text, not outlines or placeholders.
+**DRAFT:** Write the documentation. Apply all documentation skill principles (Section 1 + Section 2). Produce complete text, not outlines or placeholders.
 
-**REVIEW:** Self-critique against the axiom's principles. Run through the review checklist honestly. If anything fails, return to DRAFT — do not rationalize a pass.
+**REVIEW:** Self-critique against the documentation skill's principles. Run through the review checklist honestly. If anything fails, return to DRAFT — do not rationalize a pass.
 
 **VERIFY:** Present the finished documentation for human review. The human confirms accuracy, completeness, and fit. If verification fails, return to REVIEW with specific feedback.
 
@@ -130,9 +130,9 @@ VERIFY ──→ DONE  (on human approval)
 
 4. **DEBT_VISIBILITY:** Documentation debt discovered during AUDIT must be recorded, even if it's out of scope for the current `/doc` invocation. Flag it for future work.
 
-5. **HONEST_REVIEW:** The REVIEW phase is self-adversarial. Apply axiom checks mechanically — if active voice fails, it fails. Do not hand-wave compliance.
+5. **HONEST_REVIEW:** The REVIEW phase is self-adversarial. Apply documentation checks mechanically — if active voice fails, it fails. Do not hand-wave compliance.
 
-6. **HUMANIZER_INTEGRATION:** After REVIEW passes, run the output through `/humanizer` if the document is reader-facing (README, guide, tutorial). Skip for internal references and specifications. The documentation axiom governs structure and clarity; the humanizer governs natural voice.
+6. **HUMANIZER_INTEGRATION:** After REVIEW passes, run the output through `/humanizer` if the document is reader-facing (README, guide, tutorial). Skip for internal references and specifications. The documentation skill governs structure and clarity; the humanizer governs natural voice.
 
 ### Protocol Violations (FORBIDDEN)
 
