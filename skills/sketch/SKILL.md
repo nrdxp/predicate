@@ -41,6 +41,11 @@ UNCERTAINTY: [0.0-1.0] # Residual entropy. Must be 0.0 to transition to CONVERGE
  
 # 2. DYNAMIC SKETCHPAD LEDGER
 DYNAMIC_SKETCHPAD:
+  RUBRIC:
+    - ID: R1
+      GOAL: "High-level qualitative/architectural success metric (e.g., Zero-dependency core API)"
+      EVALUATOR: "How to verify success (e.g., Verify imports do not pull external modules)"
+      STATUS: [PENDING | SATISFIED | UNSATISFIED]
   CONSTRAINTS:
     - ID: C1
       STATEMENT: "Constraint definition (e.g. TDD enforcement, Hickey simplicity)"
@@ -139,7 +144,7 @@ PROPOSE ──→ /plan    (on human approval)
 
 6. **HALT_ON_UNKNOWNS:** If UNKNOWNS is non-empty, you are FORBIDDEN from transitioning to DIVERGE. Surface questions to the human.
 
-7. **DYNAMIC_PAD_DISCIPLINE:** The sketch must act as a dynamic sketchpad tracking constraints, unknowns, standards, and commits in real-time. Transition to CONVERGE or PROPOSE is forbidden if there are PENDING constraints, OPEN unknowns, or NON_COMPLIANT standards.
+7. **DYNAMIC_PAD_DISCIPLINE:** The sketch must act as a dynamic sketchpad tracking the rubric, constraints, unknowns, standards, and commits in real-time. Transition to CONVERGE or PROPOSE is forbidden if there are PENDING rubric goals, PENDING constraints, OPEN unknowns, or NON_COMPLIANT standards. Substantive rubric changes during execution must be logged and surfaced in the final report to the human.
 
 8. **HYGIENE_CONSTANT:** The `commit-hygiene` standard is a constant constraint on all git commits. Every logged commit must satisfy the hygiene check.
 
@@ -152,7 +157,7 @@ PROPOSE ──→ /plan    (on human approval)
 | Fragmenting a workstream across multiple sketch files | Breaks context unity; forces readers to hunt for pieces |
 | Restricting content to only the YAML formula          | Loses context needed for 0-to-full-context recovery     |
 | Skipping freeform context in favor of terse YAML      | Future agents can't reconstruct the trajectory history   |
-| Transitioning to CONVERGE with PENDING constraints or OPEN unknowns | Violates convergence boundaries. |
+| Transitioning to CONVERGE with PENDING rubric goals, PENDING constraints, or OPEN unknowns | Violates convergence boundaries. |
 | Logging commits that fail commit-hygiene check | Violates the constant commit hygiene constraint. |
 
 ---

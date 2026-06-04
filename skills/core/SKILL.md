@@ -79,21 +79,21 @@ For each step in the plan, execute a local optimization loop:
 ### 2. Iterative Refinement Loop
 Before concluding work at any commit boundary:
 - Audit the generated diff against code simplicity (Hickey complecting check), volatility alignment (Lowy temporal check), test completeness, and style guidelines.
-- Update the **Dynamic Sketchpad** constraint ledger, unknowns ledger, and standards checklists in `.sketches/[topic].md` to track compliance states in real-time.
+- Update the **Dynamic Sketchpad** rubric ledger (including goals/evaluators), constraint ledger, unknowns ledger, and standards checklists in `.sketches/[topic].md` to track compliance states in real-time. Log any dynamic shifts or refinements to the rubric goals for human reporting.
 - If the quality score is less than 1.0 or any standard/constraint is violated, formulate a corrective refactor, apply it, and re-run verification.
  
 ### 3. Commit Gates
 At each commit boundary (or phase completion):
 - **Commit Hygiene Invariant:** Ensure the conventional commit message is validated and satisfies the constant `commit-hygiene` constraint before executing any commit in either repository.
 - If `CONTROL_MODE: AUTOMATIC` (and credentials/command permissions are active):
-  1. Record the updated Dynamic Sketchpad ledger (constraints, unknowns, standards, commit ID) in `.sketches/[topic].md`, and commit it within the `.sketches/` subrepo.
+  1. Record the updated Dynamic Sketchpad ledger (rubric, constraints, unknowns, standards, commit ID) in `.sketches/[topic].md`, and commit it within the `.sketches/` subrepo.
   2. Output the `REVIEW` block, `JUSTIFICATION` block, and conventional commit message.
   3. Execute `git add [modified files]` and `git commit -m "[message]"` directly.
   4. Automatically proceed to the remaining PLAN steps without halting.
 - If `CONTROL_MODE: MANUAL` (or not specified):
   1. Output in this order, then **HALT**:
      - REVIEW block (structured output of self-review findings: SCORE, FINDINGS with SEVERITY/ACTION/DETAIL)
-     - Sketch update instructions (re-stating the Dynamic Sketchpad ledger updates)
+     - Sketch update instructions (re-stating the Dynamic Sketchpad ledger updates, compiling any rubric adjustments or goal additions)
      - JUSTIFICATION block
      - Conventional commit message conforming to [commit-hygiene](file:///var/home/nrd/git/github.com/nrdxp/predicate/skills/commit-hygiene/SKILL.md)
      - REMAINING STEPS

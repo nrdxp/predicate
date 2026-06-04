@@ -96,14 +96,19 @@ Every modification to a sketch file MUST be immediately followed by a `git commi
 
 ### Content Philosophy
 
-The YAML grammar in each workflow is a **scaffold, not a cage**. The sketch acts as a **Dynamic Sketchpad** to track the constraint ledger (sourced from human prompts, specific design skills like `hickey`/`lowy`, and programming guidelines), the unknowns ledger (surfaced as work occurs), standards compliance checklists, and git commit details in real-time.
+The YAML grammar in each workflow is a **scaffold, not a cage**. The sketch acts as a **Dynamic Sketchpad** to track:
+- **The Rubric ledger:** Context-specific qualitative and architectural goals mapping the target attractor basin. Rubric goals, metrics, and satisfiability conditions can be dynamically added, refined, or modified as details unfold. Any substantive goal shifts or rubric modifications that occur during execution must be compiled and explicitly highlighted in the final review or report presented to the human.
+- **The Constraint ledger:** Micro-constraints sourced from human prompts, specific design skills (`hickey`/`lowy`), and programming guidelines.
+- **The Unknowns ledger:** Gaps in context surfaced as work occurs.
+- **Standards compliance checklists:** Invariant design and style standards checks.
+- **Git commit details:** Metadata tracing work in real-time.
 
 Sketches should capture anything a future agent would need to go from **zero to full context** at any point in the project:
 
 > [!IMPORTANT]
 > **The YAML grammar belongs in chat and sketches — not in committed plan documents.** The grammar is valuable for tracking state during conversation (REFINE, CHALLENGE, SCOPE) and for capturing context in sketches. But the committed plan artifact — the file that gets checked into the repository — MUST use `templates/PLAN.md`. A plan document that reproduces the YAML grammar instead of the template structure is malformed.
 
-- Problem framing, constraint states (PENDING, SATISFIED, VIOLATED), and evidence
+- Rubric goal states (PENDING, SATISFIED, UNSATISFIED), constraint states (PENDING, SATISFIED, VIOLATED), and evidence
 - Unknowns tracker (OPEN, RESOLVED) and resolution traces
 - Standards compliance checks (Hickey simplicity, Lowy volatility, language conventions)
 - Rejected paths and why they were rejected
