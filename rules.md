@@ -32,7 +32,7 @@ Stochastic drift is not a failure mode to be avoided — it is the mathematical 
 ### Operational Implications
 
 1. **Always Iterate Against Constraints:** Every output — code, text, plan, or analysis — must be evaluated against concrete constraints before it is treated as final. A single generation pass without verification feedback is open-loop execution and will drift.
-2. **Track State In-Context:** When a formal Dynamic Sketchpad (`.sketches/`) is active, constraints, unknowns, and standards are tracked there. When no sketch exists, the same information must be tracked in the active reasoning context: what constraints are being satisfied, what unknowns remain open, what standards apply. The tracking infrastructure is flexible; the discipline of tracking is not.
+2. **Track State In-Context:** When a formal Dynamic Sketchpad (`.sketches/`) is active, the rubric, constraints, unknowns, and standards are tracked there. When no sketch exists, the same information must be tracked in the active reasoning context: what context-specific rubric goals define success, what micro-constraints must be satisfied, what unknowns remain open, and what standards apply. Goals may be added or refined dynamically, but any substantive shifts in the rubric must be surfaced to the human in the final review. The tracking infrastructure is flexible; the discipline of tracking is not.
 3. **Bias Toward Verification:** When uncertain whether an output is correct, the default response is to verify — not to emit and move on. Run the test. Re-read the constraint. Check the diff. The cost of an unnecessary verification pass is trivial; the cost of undetected drift compounds with every subsequent token.
 4. **No Assumption of Correctness:** Treat every generation as a candidate trajectory, not a final state. The deterministic evaluator (compiler, test suite, linter, human review) is the only authority on correctness. Generated output that has not been evaluated is structurally unverified, regardless of confidence.
 
@@ -45,6 +45,7 @@ All code changes and sequence trajectories are governed by a set of modular, ver
 ### A. The Planning Pipeline Persona (`skills/planning/SKILL.md`)
 Governs the shared structural foundations for the entire workflow pipeline (`/charter → /sketch → /plan → /core → /plan-review`), as well as modeling (`/model`) and specification (`/spec`) phases.
 - **Dynamic Sketchpad Ledger:** Every active workstream MUST track its state in a Dynamic Sketchpad located at `.sketches/YYYY-MM-DD-<topic-name>.md`. This ledger maintains real-time records of:
+  - *Rubric:* Context-specific qualitative and architectural goals tracked as `[PENDING | SATISFIED | UNSATISFIED]` with explicit evaluator definitions.
   - *Constraints:* Tracked as `[PENDING | SATISFIED | VIOLATED]` with explicit verification evidence.
   - *Unknowns:* Context gaps tracked as `[OPEN | RESOLVED]`. No planning or implementation may occur while unknowns remain open.
   - *Standards Compliance:* Checking alignment against `commit-hygiene`, `hickey`, and `lowy` skills.
@@ -104,7 +105,7 @@ graph TD
 ```
 
 ### Protocol Invariants:
-1. **Pragmatic Ceremony Boundary:** Unless the plan or core workflows are explicitly invoked, the full YAML grammar ceremony is optional. Nevertheless, the formal spirit of closed-loop autoregressive convergence (writing test invariants first, verifying baseline failure, verifying correctness, and executing logically atomic commits) MUST be strictly enforced for every workspace mutation.
+1. **Pragmatic Ceremony Boundary:** Unless the plan or core workflows are explicitly invoked, the full YAML grammar ceremony is optional. Nevertheless, the formal spirit of closed-loop autoregressive convergence (tracking context-specific success rubrics in the active reasoning context, writing test invariants first, verifying baseline failure, verifying correctness, and executing logically atomic commits) MUST be strictly enforced for every workspace mutation.
 2. **Test-Driven Development Baseline Check:** Prior to modifying any implementation code, a test invariant must be written to capture the desired target state. This test must be run to verify that it fails ($\Delta E_0 \neq 0$). Green-field execution without a confirmed baseline failure is a protocol violation.
 3. **Targeted Test Optimization:** To prevent feedback latency decay, avoid executing the entire test suite during local optimization. The agent client MUST use targeted test selectors (e.g., executing specific test cases, module suites, or targeted paths) to keep feedback latency below 5 seconds. The complete test suite is reserved for the final commit validation gate.
 4. **Corrective Feedback Iteration:** When verification fails ($\Delta E_k \neq 0$), a corrective generation step ($\Delta \mathbf{S}_{k+1}$) must be computed from the compiler/linter error feedback to minimize the error vector. If convergence is not achieved within 3 to 5 iterations, execution must freeze and transition to manual clarification.
@@ -141,4 +142,4 @@ In long-running autonomous sessions (e.g., `/goal` loops), context drift and com
    - *What is the target sub-goal?*
    - *What constraint is currently being optimized?*
    - *What is the baseline failure condition for this step?*
-3. **Linear Logging:** Update the Dynamic Sketchpad constraints and commits ledger *before* committing the step to git. Never defer documentation updates to the end of the long-horizon session.
+3. **Linear Logging:** Update the Dynamic Sketchpad rubric, constraints, and commits ledger *before* committing the step to git. Never defer documentation updates to the end of the long-horizon session.
