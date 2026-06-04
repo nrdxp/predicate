@@ -63,6 +63,16 @@ Imposes strict conventional formatting and quality gates on all git commit messa
 ### C. Core Execution Skill: Closed-Loop Stochastic Trajectory Control (C-LTC) (`skills/core/SKILL.md`)
 Outlines the baseline target trajectory for implementing codebase modifications. Even when the `/core` workflow is not explicitly triggered, all system modifications MUST structurally align with and enforce its underlying constraints (TDD-first execution, baseline failure verification, local loop convergence, and iterative refinement auditing) as constant invariants of the workspace.
 
+### D. Foundational Authority: The Constitution (`skills/constitution/SKILL.md`)
+Governs conflict resolution, ethical floors, and systemic convergence alignments.
+- **Systemic Convergence Configurations:** Enforces self-diagnostic tracking to ensure sequence generation stays in Convergent (Optimal) alignment rather than Degenerate, Divergent, or Stagnant states.
+- **Core Principles:** Prioritizes Truth over Harmony, Evidence over Authority, Halt over Assumption, and Outcomes over Process as baseline operational invariants.
+
+### E. Procedural Authority: Engineering Standards (`skills/engineering/SKILL.md`)
+Imposes strict, production-grade rules for technical correctness, safety, and codebase maintenance.
+- **Trajectory Freeze Conditions:** Defines mandatory HALTs and stop-and-ask triggers for ambiguous requirements, conflicting constraints, or unconverged loop states.
+- **Concerns Decomposition:** Dictates spatial (Hickey) and temporal (Lowy) audits to prevent complected logic or boundary leakage.
+
 ---
 
 ## 4. General Commit and Git Hygiene Invariants
