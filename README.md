@@ -48,6 +48,16 @@ where $z_i$ represents the logits and $\tau$ is thermodynamic temperature. As $\
 Open-loop autoregressive generation has a mathematically guaranteed non-zero probability of diverging over long horizons, manifesting as compounding error vectors (stochastic drift/hallucination). To ensure convergence, Predicate implements **Closed-Loop Stochastic Trajectory Control**. We introduce external, deterministic validators (compilers, test runners, linters) to compute the error differential ($\Delta E_k = V(\mathbf{S}_k)$) and apply iterative, corrective feedback ($\Delta \mathbf{S}_{k+1}$) to drive the system toward a zero-error state:
 $$\mathbf{S}_{k+1} = \mathbf{S}_k \oplus \Delta \mathbf{S}_{k+1}$$
 
+#### How Predicate Accomplishes Closed-Loop Control in Practice
+
+In standard AI configurations, agents operate in an **open loop**: they receive a prompt and output code in a single generation step. If the output fails to compile or run, the agent must guess at fixes in an unconstrained manner, leading to stochastic drift.
+
+Predicate operationalizes **Closed-Loop Stochastic Trajectory Control** through three concrete, automated mechanisms:
+
+* **Test-Driven Invariants (TDD-First):** Before any implementation code is modified, the agent is forced to translate design-level model invariants into an executable test suite. Running this test suite must yield a non-trivial baseline failure ($\Delta E_0 \neq 0$). This ensures the validation boundary is active and capable of catching regressions.
+* **The Local Optimization Loop:** During execution, the agent enters an automated, multi-pass relaxation loop. It applies a code modification, runs the validator (compiler, test suite, or linter), captures the stdout/stderr as a structured error differential ($\Delta E_k$), and appends this differential directly to the context. The agent computes the next token trajectory based on the updated boundary conditions, repeating this cycle (typically capped at 3–5 iterations) until the error vector reaches zero.
+* **The Trajectory Commit Gate:** To eliminate manual gatekeeping overhead without sacrificing safety, Predicate introduces a dual control mode. Under `CONTROL_MODE: AUTOMATIC`, once the validation error converges to zero ($V(\mathbf{S}) = 0$), the runner automatically commits the change and transitions to the next step. If the loop fails to converge, the runner automatically halts, rolls back the unverified changes, and transitions to manual mode, presenting the human with a diagnostic review log.
+
 ---
 
 ### Evolving from Philosophy to Architecture: The Abstraction of Skills
