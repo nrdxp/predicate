@@ -31,12 +31,12 @@ Prompt engineering is a fragile way to program. Autoregressive language models d
 
 Predicate models the agent's prompt as an **Initial Boundary Condition (IBC)** that warps the probability landscape, carving a deep attractor basin to guide token selection. To keep the agent within this basin, we use **closed-loop feedback control**:
 
-1. **Stochastic walks:** Token generation is a walk across a transition graph: $P(\mathbf{S}_{t+1} \mid \mathbf{S}_t)$, where the prefix sequence $\mathbf{S}_t$ defines the state at step $t$.
+1. **Stochastic walks:** Token generation is a walk across a transition graph: $P(\mathbf{S}\_{t+1} \mid \mathbf{S}\_t)$, where the prefix sequence $\mathbf{S}\_t$ defines the state at step $t$.
 2. **Entropy control:** Token selection uses the Gibbs-Boltzmann distribution:
-   $$P(x_i) = \frac{\exp(z_i / \tau)}{\sum_j \exp(z_j / \tau)}$$
-   where $z_i$ represents the logits and $\tau$ is thermodynamic temperature. Lowering temperature collapses entropy, forcing deterministic local optimization.
-3. **Closed-loop feedback:** An open-loop agent will eventually drift. Predicate closes the loop by running external, deterministic validators (compilers, linters, test runners). We capture the validator's output as an error differential ($\Delta E$) and inject corrective prompt feedback ($\Delta \mathbf{S}_{k+1}$) to drive the system to a zero-error state:
-   $$\mathbf{S}_{k+1} = \mathbf{S}_k \oplus \Delta \mathbf{S}_{k+1}$$
+   $$P(x\_i) = \frac{\exp(z\_i / \tau)}{\sum\_j \exp(z\_j / \tau)}$$
+   where $z\_i$ represents the logits and $\tau$ is thermodynamic temperature. Lowering temperature collapses entropy, forcing deterministic local optimization.
+3. **Closed-loop feedback:** An open-loop agent will eventually drift. Predicate closes the loop by running external, deterministic validators (compilers, linters, test runners). We capture the validator's output as an error differential ($\Delta E$) and inject corrective prompt feedback ($\Delta \mathbf{S}\_{k+1}$) to drive the system to a zero-error state:
+   $$\mathbf{S}\_{k+1} = \mathbf{S}\_k \oplus \Delta \mathbf{S}\_{k+1}$$
 
 ---
 
@@ -54,8 +54,8 @@ Predicate translates this control-theoretic paradigm into concrete workspace con
 
 Predicate implements this feedback loop through three concrete mechanisms:
 
-* **Test-driven invariants (TDD-first):** Before modifying any codebase files, the agent must translate spec invariants into a test. The test must produce a baseline failure ($\Delta E_0 \neq 0$) to verify that the validation boundary is active.
-* **The local optimization loop:** During execution, the agent runs a local loop: edit the code, run the validator, capture the error differential ($\Delta E_k$), and adjust. This loop repeats (up to 3–5 times) until the error converges to zero.
+* **Test-driven invariants (TDD-first):** Before modifying any codebase files, the agent must translate spec invariants into a test. The test must produce a baseline failure ($\Delta E\_0 \neq 0$) to verify that the validation boundary is active.
+* **The local optimization loop:** During execution, the agent runs a local loop: edit the code, run the validator, capture the error differential ($\Delta E\_k$), and adjust. This loop repeats (up to 3–5 times) until the error converges to zero.
 * **The trajectory commit gate:** When the local loop converges, the agent checks the diff against architectural guidelines (Hickey simplicity, Lowy volatility) and the active sketch's rubric. If it passes (quality score = 1.0), the changes are staged. Under `CONTROL_MODE: AUTOMATIC`, the runner commits the change and moves to the next step. If it fails or times out, the runner halts, preserves the unverified draft changes for inspection, and hands control back to manual mode.
 
 ---
@@ -147,8 +147,8 @@ The agent must halt after selecting a mathematical formalism (linear logic, coal
 Arbitrates high-stakes logical tensions by sampling a proposition under opposing parameter biases:
 
 1. **FRAME:** Define the falsifiable proposition.
-2. **D_ALPHA:** Sample the sequence space under a positive parameter bias ($D_\alpha$). Halt for model switch.
-3. **D_BETA:** Sample the sequence space under an adversarial parameter bias ($D_\beta$). Halt for model switch.
+2. **D_ALPHA:** Sample the sequence space under a positive parameter bias ($D\_\alpha$). Halt for model switch.
+3. **D_BETA:** Sample the sequence space under an adversarial parameter bias ($D\_\beta$). Halt for model switch.
 4. **BARYCENTRIC:** Intersect the two distributions to isolate unresolved unknowns.
 
 Each transition is a mandatory halt point where the human switches to a different LLM. This prevents token-variance contamination between distributions.
@@ -189,7 +189,7 @@ Every modification is committed to `.sketches/` immediately. This creates a line
 Predicate uses three constraints to prevent agents from declaring fake passes or drifting:
 
 * **Rubrics:** Active sketches track a live `RUBRIC` ledger. High-level project goals and constraints are evaluated at every commit boundary to prevent purpose drift.
-* **Iteration transparency:** Execution logs in `REVIEW` blocks must output the exact loop iteration count, the baseline verification failure details ($\Delta E_0 \neq 0$), and any corrections applied.
+* **Iteration transparency:** Execution logs in `REVIEW` blocks must output the exact loop iteration count, the baseline verification failure details ($\Delta E\_0 \neq 0$), and any corrections applied.
 * **One-shot skepticism:** If a code change passes verification on the first try (`LOOPS: 1`), the agent must run an adversarial audit (`SKEPTICAL_AUDIT`) to check for hidden assumptions, spatial complecting (Hickey check), or volatility leaks (Lowy check).
 
 ---
