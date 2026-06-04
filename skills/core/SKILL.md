@@ -92,13 +92,34 @@ At each commit boundary (or phase completion):
   4. Automatically proceed to the remaining PLAN steps without halting.
 - If `CONTROL_MODE: MANUAL` (or not specified):
   1. Output in this order, then **HALT**:
-     - REVIEW block (structured output of self-review findings: SCORE, FINDINGS with SEVERITY/ACTION/DETAIL)
+     - REVIEW block (structured output of self-review findings: SCORE, ITERATIONS, and FINDINGS per the REVIEW Block Format)
      - Sketch update instructions (re-stating the Dynamic Sketchpad ledger updates, compiling any rubric adjustments or goal additions)
      - JUSTIFICATION block
      - Conventional commit message conforming to [commit-hygiene](file:///var/home/nrd/git/github.com/nrdxp/predicate/skills/commit-hygiene/SKILL.md)
      - REMAINING STEPS
   2. **Wait for human confirmation** before proceeding.
  
+### 4. REVIEW Block Format
+The `REVIEW` block must be output as a structured YAML block containing:
+```yaml
+REVIEW:
+  SCORE: 1.0                              # Qualitative self-audit score [0.0 - 1.0]
+  ITERATIONS:
+    - STEP_ID: 1                          # Links to the trajectory plan step ID
+      BASELINE_FAIL: "Verified diagnostic baseline error / test fail output"
+      LOOPS: 3                            # Exact number of verification loops executed (1-5)
+      CORRECTIONS:
+        - LOOP: 1
+          ERROR: "Error output details"
+          CORRECTION: "Applied changes to fix"
+      VERIFICATION: "Pass evidence / test execution summary"
+  FINDINGS:
+    - ID: F1
+      SEVERITY: [LOW | MEDIUM | HIGH | CRITICAL]
+      ACTION: "Simplicity / volatility alignment correction applied"
+      DETAIL: "Trace audit context"
+```
+
 ---
  
 ## Prime Directives

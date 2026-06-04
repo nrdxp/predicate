@@ -110,6 +110,7 @@ graph TD
 3. **Targeted Test Optimization:** To prevent feedback latency decay, avoid executing the entire test suite during local optimization. The agent client MUST use targeted test selectors (e.g., executing specific test cases, module suites, or targeted paths) to keep feedback latency below 5 seconds. The complete test suite is reserved for the final commit validation gate.
 4. **Corrective Feedback Iteration:** When verification fails ($\Delta E_k \neq 0$), a corrective generation step ($\Delta \mathbf{S}_{k+1}$) must be computed from the compiler/linter error feedback to minimize the error vector. If convergence is not achieved within 3 to 5 iterations, execution must freeze and transition to manual clarification.
 5. **Feedback Quality Gate (Ambiguity Recovery):** If compiler or test runner output is ambiguous, empty, or lacks distinct file/line diagnostic indicators, the agent is FORBIDDEN from guessing corrective edits. The agent must halt the optimization loop immediately and transition to manual clarification.
+6. **Iteration Transparency:** The agent is strictly required to log and output the exact number of refinement iterations executed, the initial baseline failure diagnostics ($\Delta E_0 \neq 0$), and the intermediate corrective actions applied. This data must be included in all manual-gate output reports (inside the REVIEW block) to provide verifiable proof of closed-loop execution and prevent unverified passes.
 
 ---
 
