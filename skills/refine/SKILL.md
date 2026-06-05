@@ -18,16 +18,19 @@ This workflow defines the `/refine` execution loop. The objective is to guide se
 
 ## Philosophy & Mathematical Model
 
-Refining an existing artifact is modeled as finding the fixed point $\mathbf{S}^*$ of a state-space contraction mapping. Given a codebase state $\mathbf{S}$, the refinement operator $R(\mathbf{S})$ is applied iteratively:
+Refining an existing artifact is modeled as finding the unique fixed point $\mathbf{S}^*$ of a state-space contraction mapping. Let $\mathcal{X}$ be the space of artifact configurations, and let $d: \mathcal{X} \times \mathcal{X} \rightarrow \mathbb{R}_{\ge 0}$ be a metric proportional to the residual entropy and count of latent/active flaws. The refinement operator $R: \mathcal{X} \rightarrow \mathcal{X}$ is a contraction if:
 
-$$\mathbf{S}_{k+1} = R(\mathbf{S}_k)$$
+$$d(R(\mathbf{A}), R(\mathbf{B})) \le q \cdot d(\mathbf{A}, \mathbf{B})$$
 
-To prevent sequence generations from terminating in local minima (e.g., claiming completeness after a single superficial edit), the workflow enforces two control-theoretic bounds:
+for all $\mathbf{A}, \mathbf{B} \in \mathcal{X}$ and some contraction factor $0 \le q < 1$. By the Banach Fixed-Point Theorem, repeated application of $R$ converges to the unique fixed point:
+
+$$\mathbf{S}^* = \lim_{k \rightarrow \infty} R^k(\mathbf{S}_0)$$
+
+To ensure sequence generations converge to $\mathbf{S}^*$ rather than terminating in local sub-optimal minima, the workflow enforces three control-theoretic bounds:
 
 1. **Minimum Execution Loops ($N_{min}$):** The loop MUST execute at least $N_{min}$ (default 3) iterations, even if no issues are initially visible.
 2. **Consecutive Clean Sweeps ($M_{sweep}$):** Once the active refinement ledger is empty, the agent must perform $M_{sweep}$ (default 3) consecutive adversarial scans (sweeps) across the entire modified state space. If any sweep detects a regression, code smell, or optimization gap, a new target is logged, the sweep counter resets to zero, and the system returns to the `ITERATE` state.
-
-Only when $M_{sweep}$ consecutive sweeps find zero new issues can the system declare convergence ($R(\mathbf{S}^*) = \mathbf{S}^*$) and proceed to the `REPORT` phase.
+3. **Divergence Boundary ($K_{max}$):** To prevent infinite limit cycles or chaotic oscillations (where edits iteratively trigger alternating side-effects), we define a loop limit $K_{max}$ (default 8). If $k > K_{max}$, the controller halts and triggers a stability failure.
 
 ---
 
@@ -42,8 +45,8 @@ Only when $M_{sweep}$ consecutive sweeps find zero new issues can the system dec
 
 ```yaml
 # 1. METADATA
-STATUS: [ABSORB | AUDIT | ITERATE | SWEEP | REPORT]
-UNCERTAINTY: [0.0-1.0]
+STATUS: [ABSORB | CLARIFY | AUDIT | ITERATE | SWEEP | REPORT | HALT]
+UNCERTAINTY: [0.0-1.0]       # Residual uncertainty. Must be 0.0 to proceed to AUDIT.
 
 # 2. CONTEXT
 CTX:
@@ -53,7 +56,7 @@ CTX:
   CONSTRAINTS:
     N_MIN: 3                 # Minimum loop execution count
     M_SWEEP: 3               # Required consecutive zero-finding sweeps
-    COMMIT_HYGIENE: true     # Adhere to commit-hygiene guidelines
+    K_MAX: 8                 # Maximum loops before halting (divergence boundary)
 
 # 3. DYNAMIC REFINEMENT LEDGER
 # Track all optimization targets identified during AUDIT or SWEEP phases.
@@ -85,30 +88,37 @@ TRACE:
 ## State Transitions & Definitions
 
 ```
-ABSORB ──→ AUDIT
+ABSORB ──→ CLARIFY   (if UNCERTAINTY > 0.0)
+       └─→ AUDIT     (if UNCERTAINTY = 0.0)
+
+CLARIFY ─→ AUDIT     (once uncertainty resolved)
  
 AUDIT  ──→ ITERATE   (if ledger has PENDING items)
        └─→ SWEEP     (if ledger is empty)
  
-ITERATE ─→ SWEEP     (once all ledger items are RESOLVED)
+ITERATE ─→ SWEEP     (once all ledger items are RESOLVED and CURRENT_LOOP <= K_MAX)
+         └─→ HALT     (if CURRENT_LOOP > K_MAX or loop oscillation is detected)
  
 SWEEP  ──→ ITERATE   (if a sweep discovers new issues, resetting sweeps to 0)
        └─→ REPORT    (once CONSECUTIVE_CLEAN_SWEEPS = M_SWEEP and CURRENT_LOOP >= N_MIN)
 ```
 
 ### 1. ABSORB
-Ingest the target artifact, the optimization goals, and any relevant specs or test suites. Setup the tracking ledger in the active sketch file.
+Ingest the target artifact, the optimization goals, and any relevant specs or test suites. Setup the tracking ledger in the active sketch file. If there is ambiguity in the goal or scope, set `UNCERTAINTY` > 0.0 and transition to `CLARIFY`.
 
-### 2. AUDIT
-Exhaustively analyze the artifact across four dimensions:
+### 2. CLARIFY
+Halt sequence generation. Surface obstacles or questions regarding the target artifacts or goals. Wait for human validation before resolving and transitioning to `AUDIT`.
+
+### 3. AUDIT
+Exhaustively analyze the artifact across four dimensions to identify how to achieve its **minimal representation** (optimal articulation of the problem space without superfluous complexity):
 - **Correctness & Verification:** Test surface coverage, boundary constraints, and potential regression pathways.
 - **API Sufficiency & Elegance:** Complection (Hickey check), coupling, and module boundaries.
 - **Code Quality & Simplicity:** Readability, formatting, and structural cleanliness.
 - **Edge Cases & Gaps:** Error handling limits, security boundaries, and performance bottlenecks.
 
-Populate the `REF_LEDGER` with all discovered targets.
+Populate the `REF_LEDGER` with all discovered targets. If no targets are found, transition to `SWEEP`.
 
-### 3. ITERATE
+### 4. ITERATE
 For each ledger item:
 1. Apply the local closed-loop verification loop:
    - **For code artifacts:** Apply TDD validation (write/update tests, verify baseline failure, implement changes, verify success).
@@ -117,7 +127,7 @@ For each ledger item:
 3. Update the ledger item status to `RESOLVED` with evidence.
 4. Update the sketch ledger and commit within the `.sketches/` subrepo.
 
-### 4. SWEEP
+### 5. SWEEP
 Once the ledger is empty:
 1. Conduct an adversarial sweep across the entire modified space. The sweep should act as a high-sensitivity sensor, asking:
    - *Did any modification introduce complected logic or tight coupling (Hickey check)?*
@@ -133,7 +143,7 @@ Once the ledger is empty:
    - If `CONSECUTIVE_CLEAN_SWEEPS` < `M_SWEEP` or `CURRENT_LOOP` < `N_MIN`, run another sweep loop.
    - If `CONSECUTIVE_CLEAN_SWEEPS` >= `M_SWEEP` and `CURRENT_LOOP` >= `N_MIN`, transition to `REPORT`.
 
-### 5. REPORT
+### 6. REPORT
 Compile and output the final refinement report using the template at `templates/REFINE.md`.
 
 ---
@@ -145,3 +155,4 @@ Compile and output the final refinement report using the template at `templates/
 3. **SKEPTICAL_SWEEPS:** Sweeps must be adversarial. Actively attempt to find flaws, side-effects of edits, or overlooked gaps in the modified codebase.
 4. **SKETCH_SYNCHRONIZATION:** The active sketchpad ledger in `.sketches/` must be updated and committed in the subrepo at every loop boundary.
 5. **COMMIT_HYGIENE:** All commits must strictly conform to [commit-hygiene](../commit-hygiene/SKILL.md).
+6. **DIVERGENCE_HALT:** If the execution loop count exceeds $K_{max}$ or oscillations/cycles are detected, transition to `HALT` immediately and do not attempt to auto-resolve.
