@@ -172,9 +172,9 @@ A workflow for writing guides, fixing documentation debt, or auditing existing r
 A workflow for exhaustively auditing, optimizing, and polishing pre-existing codebase artifacts.
 
 1. **ABSORB:** Ingest target artifacts, goals, and test suites. Scale loop limits ($N_{min}, M_{sweep}, K_{max}$) dynamically based on task complexity.
-2. **AUDIT:** Analyze the artifact across correctness, API sufficiency, code quality, and edge cases. Actively consult project sibling skills and run the Socratic Purpose Checklist.
+2. **AUDIT:** Analyze the artifact across correctness, API sufficiency, code quality, and edge cases. Actively consult project sibling skills and run the Socratic Purpose Checklist and Sieving & Cutting Audit.
 3. **ITERATE:** Apply the local closed-loop TDD loop for each refinement target and commit.
-4. **SWEEP:** Run multiple consecutive sweeps over the modified code space. Challenge zero-finding sweeps with the Adversarial Skepticism Rule.
+4. **SWEEP:** Run multiple consecutive sweeps over the modified code space. Challenge zero-finding sweeps with the Adversarial Skepticism Rule and Sieving Sweep.
 5. **REPORT:** Generate the final refinement report.
 
 ---
