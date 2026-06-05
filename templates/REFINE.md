@@ -21,6 +21,7 @@
 
 - **Total Refinement Loops ($k$):** [Count]
 - **Consecutive Clean Sweeps ($M$):** [Count]
+- **Sibling Skills Consulted:** [e.g., robust-testing, engineering, prior-art]
 - **Initial Baseline State:** [Describe initial flaws, gaps, or complexity metrics before refinement]
 - **Final Convergence State:** [Describe final optimized state, verified bounds, and evidence]
 
@@ -73,3 +74,4 @@
 - **Simplicity Audit (Hickey check):** [Explain why concerns are uncomplected and state is cleanly managed]
 - **Volatility Audit (Lowy check):** [Explain why axes of change are cleanly isolated]
 - **Test Invariants Compliance:** [Verify all test invariants remain fully satisfied]
+- **Socratic Purpose Checklist Trace:** [Detail how the implementation moves past a superficial prop to a production-grade art, and how it represents the minimal representation of the goal]

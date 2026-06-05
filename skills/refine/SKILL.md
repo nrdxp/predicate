@@ -26,11 +26,21 @@ for all $\mathbf{A}, \mathbf{B} \in \mathcal{X}$ and some contraction factor $0 
 
 $$\mathbf{S}^* = \lim_{k \rightarrow \infty} R^k(\mathbf{S}_0)$$
 
-To ensure sequence generations converge to $\mathbf{S}^*$ rather than terminating in local sub-optimal minima, the workflow enforces three control-theoretic bounds:
+To ensure sequence generations converge to $\mathbf{S}^*$ rather than terminating in local sub-optimal minima, the workflow enforces three control-theoretic bounds that scale dynamically based on the complexity of the task (assessed during `ABSORB`):
 
-1. **Minimum Execution Loops ($N_{min}$):** The loop MUST execute at least $N_{min}$ (default 3) iterations, even if no issues are initially visible.
-2. **Consecutive Clean Sweeps ($M_{sweep}$):** Once the active refinement ledger is empty, the agent must perform $M_{sweep}$ (default 3) consecutive adversarial scans (sweeps) across the entire modified state space. If any sweep detects a regression, code smell, or optimization gap, a new target is logged, the sweep counter resets to zero, and the system returns to the `ITERATE` state.
-3. **Divergence Boundary ($K_{max}$):** To prevent infinite limit cycles or chaotic oscillations (where edits iteratively trigger alternating side-effects), we define a loop limit $K_{max}$ (default 8). If $k > K_{max}$, the controller halts and triggers a stability failure.
+1. **Minimum Execution Loops ($N_{min}$):** The loop MUST execute at least $N_{min}$ iterations, even if no issues are initially visible. This scales adaptively:
+   - *Simple (minor edits/docs):* $N_{min} = 3$
+   - *Medium (single-module refactors, testing sweeps):* $N_{min} = 4$
+   - *Complex (protocol updates, state-machine changes):* $N_{min} \ge 4$
+2. **Consecutive Clean Sweeps ($M_{sweep}$):** Once the active refinement ledger is empty, the agent must perform $M_{sweep}$ consecutive adversarial sweeps. This scales adaptively:
+   - *Simple/Medium tasks:* $M_{sweep} = 3$
+   - *Complex/Critical tasks:* $M_{sweep} \ge 4$
+3. **Divergence Boundary ($K_{max}$):** To prevent infinite limit cycles or chaotic oscillations (where edits iteratively trigger alternating side-effects), we define a loop limit $K_{max}$:
+   - *Simple tasks:* $K_{max} = 8$
+   - *Medium tasks:* $K_{max} = 10$
+   - *Complex tasks:* $K_{max} \ge 12$
+
+Only when $M_{sweep}$ consecutive sweeps find zero new issues can the system declare convergence ($R(\mathbf{S}^*) = \mathbf{S}^*$) and proceed to the `REPORT` phase.
 
 ---
 
@@ -54,9 +64,13 @@ CTX:
     - "path/to/target/file"
   GOAL: "Verbatim objective statement"
   CONSTRAINTS:
-    N_MIN: 3                 # Minimum loop execution count
-    M_SWEEP: 3               # Required consecutive zero-finding sweeps
-    K_MAX: 8                 # Maximum loops before halting (divergence boundary)
+    N_MIN: 4                 # Adaptive loop limit scaled to task complexity
+    M_SWEEP: 4               # Adaptive sweep limit scaled to task complexity
+    K_MAX: 12                # Adaptive divergence boundary
+    COGNIZANCE:              # Sibling skills loaded and consulted during audit
+      - robust-testing
+      - engineering
+      - prior-art
 
 # 3. DYNAMIC REFINEMENT LEDGER
 # Track all optimization targets identified during AUDIT or SWEEP phases.
@@ -106,15 +120,32 @@ SWEEP  ──→ ITERATE   (if a sweep discovers new issues, resetting sweeps to
 ### 1. ABSORB
 Ingest the target artifact, the optimization goals, and any relevant specs or test suites. Setup the tracking ledger in the active sketch file. If there is ambiguity in the goal or scope, set `UNCERTAINTY` > 0.0 and transition to `CLARIFY`.
 
+**Adaptive Parameter Bounds Initialization:**
+Evaluate the complexity of the target artifact and goal. Scale the limits dynamically:
+- *Simple (local edits, docs):* Set $N_{min}=3$, $M_{sweep}=3$, $K_{max}=8$.
+- *Medium (single-module refactoring, test suite updates):* Set $N_{min}=4$, $M_{sweep}=3$, $K_{max}=10$.
+- *Complex (core logic changes, protocol designs, multi-file refinements):* Set $N_{min} \ge 4$, $M_{sweep} \ge 4$, $K_{max} \ge 12$.
+
+Log these parameters and their complexity rationale in the sketch.
+
 ### 2. CLARIFY
 Halt sequence generation. Surface obstacles or questions regarding the target artifacts or goals. Wait for human validation before resolving and transitioning to `AUDIT`.
 
 ### 3. AUDIT
-Exhaustively analyze the artifact across four dimensions to identify how to achieve its **minimal representation** (optimal articulation of the problem space without superfluous complexity):
-- **Correctness & Verification:** Test surface coverage, boundary constraints, and potential regression pathways.
-- **API Sufficiency & Elegance:** Complection (Hickey check), coupling, and module boundaries.
-- **Code Quality & Simplicity:** Readability, formatting, and structural cleanliness.
-- **Edge Cases & Gaps:** Error handling limits, security boundaries, and performance bottlenecks.
+Exhaustively analyze the artifact across four dimensions to identify how to achieve its **minimal representation** (optimal articulation of the problem space without superfluous complexity). 
+
+**Sibling Skills Consultation:**
+You are required to actively consult the workspace's sibling skills to think more broadly:
+- Mapped tests MUST be checked against the guidelines in [robust-testing](../robust-testing/SKILL.md) (verifying that PBT, fuzzing, and boundary sweeps are fully utilized rather than simple positive test cases).
+- Code safety and type boundaries MUST conform to the procedural directives in [engineering](../engineering/SKILL.md).
+- Architectural designs and abstractions MUST be compared against patterns in [prior-art](../prior-art/SKILL.md) to ground decisions in proven implementations.
+- API surface designs must be evaluated against complection and decoupling rules in [api-audit](../api-audit/SKILL.md), [hickey](../hickey/SKILL.md), and [lowy](../lowy/SKILL.md).
+
+**Socratic Purpose Checklist:**
+Evaluate the implementation by asking:
+- *Is this solution a toy, a superficial prop, or genuine production-grade art?*
+- *What is the higher-level goal, and what is truly necessary to achieve it to the optimal degree?*
+- *Are we ignoring or glossing over hidden complexities to finish quickly?*
 
 Populate the `REF_LEDGER` with all discovered targets. If no targets are found, transition to `SWEEP`.
 
@@ -129,16 +160,17 @@ For each ledger item:
 
 ### 5. SWEEP
 Once the ledger is empty:
-1. Conduct an adversarial sweep across the entire modified space. The sweep should act as a high-sensitivity sensor, asking:
-   - *Did any modification introduce complected logic or tight coupling (Hickey check)?*
-   - *Did any change break architectural boundaries or axis of change isolation (Lowy check)?*
-   - *Are there edge cases, bad inputs, or security vulnerabilities introduced or unhandled?*
-   - *Does the documentation or type signature deviate from the implementation?*
-2. If any new issue, regression, or code smell is found:
+1. Conduct an adversarial sweep across the entire modified space. The sweep should act as a high-sensitivity sensor, auditing code safety, type ergonomics, test coverage, and documentation.
+2. **Adversarial Skepticism Rule:** If the sweep returns zero new findings, you MUST actively challenge this result rather than accepting it superficially. Ask:
+   - *Am I being lazy or superficial? Have I actually read and evaluated every line of the modified code and its test coverage?*
+   - *If a future reviewer wanted to break this code or find a loophole, where would they look?*
+   - *What edge case in our consulted sibling skills (e.g. robust-testing, engineering guidelines) did I not verify?*
+   - *Does this representation genuinely satisfy the minimal representation principle, or is it under-specified?*
+3. If any new issue, regression, or code smell is found:
    - Add a new item to `REF_LEDGER` with status `PENDING`.
    - Reset `CONSECUTIVE_CLEAN_SWEEPS` to 0.
    - Transition to `ITERATE`.
-3. If the sweep is clean (zero new findings):
+4. If the sweep is clean (zero new findings):
    - Increment `CONSECUTIVE_CLEAN_SWEEPS` by 1.
    - If `CONSECUTIVE_CLEAN_SWEEPS` < `M_SWEEP` or `CURRENT_LOOP` < `N_MIN`, run another sweep loop.
    - If `CONSECUTIVE_CLEAN_SWEEPS` >= `M_SWEEP` and `CURRENT_LOOP` >= `N_MIN`, transition to `REPORT`.
