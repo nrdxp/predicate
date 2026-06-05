@@ -147,7 +147,12 @@ Evaluate the implementation by asking:
 - *What is the higher-level goal, and what is truly necessary to achieve it to the optimal degree?*
 - *Are we ignoring or glossing over hidden complexities to finish quickly?*
 
-Populate the `REF_LEDGER` with all discovered targets. If no targets are found, transition to `SWEEP`.
+**Sieving & Cutting Check:**
+Look for opportunities to simplify the system structure. Ask:
+- *Is there any feature, dependency, parameter, configuration option, or documentation section that is superfluous?*
+- *Would cutting, merging, or deleting components improve the overall clarity, type-safety, or maintainability without violating structural constraints?*
+
+Populate the `REF_LEDGER` with all discovered targets (including items to be simplified or pruned). If no targets are found, transition to `SWEEP`.
 
 ### 4. ITERATE
 For each ledger item:
@@ -166,6 +171,7 @@ Once the ledger is empty:
    - *If a future reviewer wanted to break this code or find a loophole, where would they look?*
    - *What edge case in our consulted sibling skills (e.g. robust-testing, engineering guidelines) did I not verify?*
    - *Does this representation genuinely satisfy the minimal representation principle, or is it under-specified?*
+   - *Sieving Sweep: Can any of the newly added changes or pre-existing components be cut or simplified? Is every element of the implementation strictly necessary for correctness and safety?*
 3. If any new issue, regression, or code smell is found:
    - Add a new item to `REF_LEDGER` with status `PENDING`.
    - Reset `CONSECUTIVE_CLEAN_SWEEPS` to 0.

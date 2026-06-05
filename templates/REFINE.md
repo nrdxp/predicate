@@ -75,3 +75,5 @@
 - **Volatility Audit (Lowy check):** [Explain why axes of change are cleanly isolated]
 - **Test Invariants Compliance:** [Verify all test invariants remain fully satisfied]
 - **Socratic Purpose Checklist Trace:** [Detail how the implementation moves past a superficial prop to a production-grade art, and how it represents the minimal representation of the goal]
+- **Sieving & Cutting Analysis:** [Document the sieving/cutting process: details on whether any components, parameters, or configurations were pruned or simplified, or the justification for why every remaining component is strictly necessary to achieve the goal]
+
