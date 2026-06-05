@@ -1,0 +1,75 @@
+# REFINEMENT REPORT: [Topic]
+
+<!--
+  REFINEMENT REPORT documents compile the outcomes of a /refine execution.
+  They present the trace of iterative modifications, verification loops,
+  and multi-pass fixed-point sweeps to demonstrate convergence.
+
+  See: skills/refine/SKILL.md for the full protocol specification.
+-->
+
+## Goal
+
+<!-- Verbatim objective and scope of the target artifacts being refined -->
+
+- **Target Artifacts:**
+  - `[path/to/artifact/1]`
+  - `[path/to/artifact/2]`
+- **Goal Statement:** [Describe the target outcome of this refinement run]
+
+## Execution Summary
+
+- **Total Refinement Loops ($k$):** [Count]
+- **Consecutive Clean Sweeps ($M$):** [Count]
+- **Initial Baseline State:** [Describe initial flaws, gaps, or complexity metrics before refinement]
+- **Final Convergence State:** [Describe final optimized state, verified bounds, and evidence]
+
+---
+
+## Refinement Ledger
+
+<!--
+  List all optimization targets identified during AUDIT or SWEEP loops,
+  along with their resolution status and verification evidence.
+-->
+
+| ID | Axis | Target | Improvement Description | Status | Evidence |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| R1 | [Axis] | [Target] | [Description] | RESOLVED | [Test pass link/log] |
+| ... | ... | ... | ... | ... | ... |
+
+---
+
+## Iteration History
+
+<!-- Detailed log of changes made per loop, matching commit hygiene -->
+
+### Loop [N]
+
+- **Targets Addressed:** [e.g. R1, R2]
+- **Applied Modifications:**
+  - [Describe edits made to code/docs]
+- **Verification Trace:**
+  - [Validator run outputs / test status]
+- **Commits:**
+  - `[commit-hash]` [Conventional commit message]
+
+---
+
+## Verification Sweep Log
+
+<!-- Log of the adversarial sweeps performed after all ledger items were resolved -->
+
+### Sweep [N]
+
+- **Result:** [CLEAN | FINDINGS_FOUND]
+- **Audits Performed:** [e.g., compile checks, unit tests, Hickey spatial complexity checks, Lowy temporal volatility checks]
+- **Findings:** [Describe any issues found, or state "No residual entropy detected."]
+
+---
+
+## Final Quality Audit
+
+- **Simplicity Audit (Hickey check):** [Explain why concerns are uncomplected and state is cleanly managed]
+- **Volatility Audit (Lowy check):** [Explain why axes of change are cleanly isolated]
+- **Test Invariants Compliance:** [Verify all test invariants remain fully satisfied]
