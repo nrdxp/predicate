@@ -70,13 +70,13 @@ Left unchecked, coding agents optimize for speed over design coherence. They int
 
 Predicate prevents this by separating planning from execution:
 
-| Phase | `/charter` | `/sketch` | `/plan` | `/model` | `/core` |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **Focus** | Frame | Explore | Stress-test | Formalize | Execute |
-| **Method** | Declare | Diverge | Challenge | Construct | Verify |
-| **Output** | Priorities | Propose | Commit plan | Commit model | Commit code |
+| Phase | `/charter` | `/sketch` | `/plan` | `/model` | `/core` | `/refine` |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **Focus** | Frame | Explore | Stress-test | Formalize | Execute | Optimize |
+| **Method** | Declare | Diverge | Challenge | Construct | Verify | Polish |
+| **Output** | Priorities | Propose | Commit plan | Commit model | Commit code | Commit refinement |
 
-Each phase has its own workflow and halt points. You only use what you need: a large initiative starts with `/charter`, an unfamiliar problem starts with `/sketch`, a well-scoped change goes straight to `/core`, and `/model` can be invoked anywhere to formalize domain boundaries.
+Each phase has its own workflow and halt points. You only use what you need: a large initiative starts with `/charter`, an unfamiliar problem starts with `/sketch`, a well-scoped change goes straight to `/core`, `/model` can be invoked anywhere to formalize domain boundaries, and `/refine` optimizes existing artifacts.
 
 ---
 
@@ -167,6 +167,18 @@ A workflow for writing guides, fixing documentation debt, or auditing existing r
 
 ---
 
+#### `/refine` — Automated refinement loop
+
+A workflow for exhaustively auditing, optimizing, and polishing pre-existing codebase artifacts.
+
+1. **ABSORB:** Ingest target artifacts, goals, and test suites.
+2. **AUDIT:** Analyze the artifact across correctness, API sufficiency, code quality, and edge cases.
+3. **ITERATE:** Apply the local closed-loop TDD loop for each refinement target and commit.
+4. **SWEEP:** Run multiple consecutive sweeps over the modified code space to verify zero findings.
+5. **REPORT:** Generate the final refinement report.
+
+---
+
 ### The sketch as a lifecycle journal
 
 The sketch is not discarded when implementation begins; it serves as a living record across all workflows:
@@ -179,6 +191,7 @@ The sketch is not discarded when implementation begins; it serves as a living re
 | `/model` | Domain formalizations and mathematical maps |
 | `/dialectic` | Cross-sampling traces and barycentric intersections |
 | `/core` | Live execution notes, discoveries, and divergence logs |
+| `/refine` | Refinement ledgers, sweep traces, and convergence history |
 
 Every modification is committed to `.sketches/` immediately. This creates a linear git history of all architectural decisions, discoveries, and pivots.
 

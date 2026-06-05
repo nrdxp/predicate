@@ -80,6 +80,11 @@ Governs researching, auditing, and importing production-tested code, standards, 
 - **Search Hierarchy:** Restricts sequence walks to ground implementations in Tiers (Production Code -> Standards/RFCs -> Academic Papers) rather than creating them in a vacuum.
 - **Git Cloning Invariants:** Mandates `--depth 1` shallow clones, sparse checkouts, isolation to `.prior_art_cache/`, and complete cleanup before commit boundaries.
 
+### G. Refinement Loop Skill: Fixed-Point Contraction Mapping (`skills/refine/SKILL.md`)
+Governs the iterative optimization and polishing of pre-existing codebase artifacts.
+- **Fixed-Point Convergence Bounds:** Enforces a minimum loop execution bound ($N_{min}$) and a series of consecutive adversarial sweeps ($M_{sweep}$) to ensure convergence to a stable, zero-finding fixed point.
+- **Rigor Check:** Mandates updating and committing the Dynamic Sketchpad ledger in the sketches repository at each loop boundary.
+
 ---
 
 ## 4. General Commit and Git Hygiene Invariants
