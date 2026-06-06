@@ -196,8 +196,12 @@ Update comments and documentation **immediately** when logic changes. Stale docu
 
 ### 11. Git Hygiene & Atomic Commits
 
+The goal of git hygiene is a **clean, human-reviewable history** where a reviewer can read `git log` and reconstruct the reasoning behind every change.
+
 - **Atomic Workflows:** Work in small, logical units. Stop at meaningful commit points.
 - **Commit Scope:** One logical change per commit. Avoid "and" commits.
+- **Logical Boundary Discipline:** Before beginning a task, identify the natural commit boundaries. If a task spans multiple logical steps, each step is a candidate boundary. Do not batch unrelated changes into a single diff. **This is a universal standard — not a feature of C.O.R.E.** C.O.R.E. formalizes boundary discipline with explicit commit gates, but the obligation exists for all codebase work regardless of active workflow.
+- **Anti-Pattern — Spaghetti Diffs:** Massive, entangled diffs that span multiple logical changes make review impossible, `git bisect` useless, and `git revert` dangerous. Producing them is a protocol violation.
 - **Commit Hygiene:** Commit messages must strictly follow the rules in [commit-hygiene](../commit-hygiene/SKILL.md).
 - **Conditional Auto-Commit:** Never execute `git commit` unless `CONTROL_MODE: AUTOMATIC` is explicitly authorized in the active workflow, and all automated closed-loop verification steps have successfully passed. If unauthorized or if tests are failing, you are strictly forbidden from committing; output the suggested commit message for human review and let the user commit manually.
 - **Forbid Git Push:** Under no circumstances is the agent permitted to execute `git push` to any remote repository. Push operations must be left entirely to the human developer to preserve manual trajectory control and security boundaries.

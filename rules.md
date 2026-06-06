@@ -55,7 +55,7 @@ Governs the shared structural foundations for the entire workflow pipeline (`/ch
 - **Commit Discipline:** In the sketches sub-repository, commit immediately after *every* state transition, significant finding, and ledger update ("every touch = a commit").
 
 ### B. Commit Hygiene Skill (`skills/commit-hygiene/SKILL.md`)
-Imposes strict conventional formatting and quality gates on all git commit messages.
+Imposes strict conventional formatting, quality gates, and logical boundary discipline on all git commits. The overarching goal is a clean, human-reviewable git history — not formatting for its own sake.
 - **Header Line Limit:** The summary line MUST NOT exceed **50 characters**.
 - **Body Line Limit:** No line in the body or footer may exceed **72 characters**.
 - **Blank Line Separation:** A single blank line MUST separate the header from the body.
@@ -89,12 +89,13 @@ Governs the iterative optimization and polishing of pre-existing codebase artifa
 
 ## 4. General Commit and Git Hygiene Invariants
 
-Regardless of the specific active skill or workflow phase, all modifications to the codebase repository must conform to these self-contained git invariants:
+The overarching goal of git hygiene is a **clean, human-reviewable history**. A reviewer should be able to read `git log`, understand the reasoning behind every change, and navigate the project's evolution without deciphering entangled diffs. All modifications to the codebase repository must conform to these invariants, regardless of which workflow is active:
 
 1. **Logical Atomicity:** Each commit must represent a single, cohesive, logically self-contained change. Mixing unrelated concerns (e.g., merging a functional feature addition with style formatting or unrelated test repairs) is strictly prohibited.
-2. **Design-Centric Communication:** Commit messages must be structured for human review. Prioritize detailing the *why* (architectural motivation, constraints, design tradeoffs) and *what* (conceptual state transitions of the system), rather than replicating the raw file diff.
-3. **Commit Boundaries:** Execution trajectories must freeze at designated commit boundaries to evaluate stability metrics before committing.
-4. **Forbid Git Push:** Under no circumstances is the sequence walk permitted to execute a `git push` to any remote repository. Remote updates must be left entirely to the manual control of the human developer.
+2. **Logical Boundary Discipline:** Execution trajectories must commit at natural logical boundaries to produce reviewable diffs. Before beginning a task, identify candidate commit boundaries (e.g., "add the type," "update callers," "add tests"). A commit whose diff spans multiple unrelated concerns or touches many files across orthogonal subsystems has crossed a boundary that should have been split. **This is a universal obligation — not a feature of C.O.R.E.** The C.O.R.E. workflow formalizes boundary discipline with explicit commit gates, but the underlying requirement applies to all codebase work whether or not a formal workflow is active.
+3. **Design-Centric Communication:** Commit messages must be structured for human review. Prioritize detailing the *why* (architectural motivation, constraints, design tradeoffs) and *what* (conceptual state transitions of the system), rather than replicating the raw file diff.
+4. **Anti-Pattern — Spaghetti Diffs:** Massive, entangled diffs that span multiple logical changes are the primary failure mode of git history. They make review impossible, `git bisect` useless, and `git revert` dangerous. Producing them is a protocol violation.
+5. **Forbid Git Push:** Under no circumstances is the sequence walk permitted to execute a `git push` to any remote repository. Remote updates must be left entirely to the manual control of the human developer.
 
 ---
 

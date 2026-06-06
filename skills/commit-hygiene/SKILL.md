@@ -1,16 +1,30 @@
 ---
 name: commit-hygiene
 description: |
-  Rules, conventions, and constraints for formatting git commit messages.
+  Rules, conventions, and constraints for formatting git commit messages and committing at logical boundaries.
   Trigger when:
   - Drafting, revising, or validating git commit messages.
   - Pausing at commit boundaries under the CORE or CONTINUE workflows.
-  - Prompt contains keywords: commit message, git commit, conventional commits, commit hygiene, commit guidelines.
+  - Evaluating whether a changeset should be split into multiple commits.
+  - Prompt contains keywords: commit message, git commit, conventional commits, commit hygiene, commit guidelines, logical boundary, spaghetti diff, atomic commit, commit boundary.
 ---
 
 # Commit Hygiene
 
 Guidelines and constraints for writing clear, structured, and reviewer-centric git commit messages. Every commit is a unit of structured information designed to optimize human comprehension and git history utility.
+
+## Purpose
+
+The goal of commit hygiene is not formatting for its own sake. The goal is a **clean, human-reviewable git history**.
+
+A well-maintained history lets a human reviewer reconstruct the reasoning behind a codebase by reading `git log`. Every commit should answer: *what changed, why it changed, and where the logical boundary of that change is.* When history achieves this, it becomes a durable decision record — not just a log of file mutations.
+
+This requires two things working together:
+
+1. **Good commit messages** — clear, structured, motivated (covered by the formatting and communication rules below).
+2. **Commits at logical boundaries** — each commit captures one coherent unit of change with a reviewable diff (covered by the Atomicity and Boundary Discipline section below).
+
+Neither is sufficient alone. A perfectly formatted message attached to a 40-file spaghetti diff is useless. A clean single-file diff with a message that says "update stuff" is nearly as bad. Both disciplines are required, always — not only when a formal workflow like C.O.R.E. is active.
 
 ## Hard Constraints
 
@@ -71,17 +85,22 @@ Commits are written for human reviewers, not systems. Prioritize cognitive clari
 - **The "What":** Describe what was changed at a conceptual level. Avoid summarizing the raw code diff (which the reviewer can already see); instead, describe the logical transition of the system.
 - **Explain the Tradeoffs:** If a non-obvious design pattern or workaround was employed, document it honestly.
 
-### Atomicity and Focus
+### Atomicity and Boundary Discipline
 
 - Each commit must represent a single, cohesive logical change.
-- **Anti-pattern:** Blending unrelated concerns (e.g., `feat: add user login and fix lint errors`). If a change contains the word "and" in its header description, evaluate if it should be split into multiple commits.
+- **Proactive boundary identification:** Before beginning a task, identify the natural commit boundaries. If a task involves multiple logical steps (e.g., "add a type, then update callers, then add tests"), each step is a candidate boundary. Do not defer this judgment to the end — plan where you will commit before you start writing code.
+- **Reviewable diffs:** Every diff attached to a commit must be reviewable by a human in one sitting without losing the thread. If a diff touches many files across unrelated concerns, it has crossed a boundary that should have been a separate commit.
+- **Anti-pattern — spaghetti diffs:** Massive, entangled diffs that span multiple logical changes are the primary failure mode of git history. They make review impossible, bisect useless, and revert dangerous. Avoiding them is not optional.
+- **Anti-pattern — "and" commits:** If a commit message requires the word "and" to describe its change (e.g., `feat: add user login and fix lint errors`), evaluate whether it should be split.
+- **This applies universally.** Logical boundary discipline is a de facto standard for all codebase work — not a feature of any specific workflow. C.O.R.E. formalizes it with explicit commit gates, but the underlying obligation exists whether or not C.O.R.E. is active.
 
 ---
 
-## Commit Message Checklist
+## Commit Checklist
 
-Before presenting a commit message, run this audit:
+Before presenting a commit, run this audit:
 
+### Message Quality
 - [ ] Is the header length ≤ 50 characters?
 - [ ] Are all body and footer lines ≤ 72 characters?
 - [ ] Is there a blank line between the header and the body?
@@ -89,3 +108,9 @@ Before presenting a commit message, run this audit:
 - [ ] Does it use a valid Conventional Commit type?
 - [ ] Does the body explain the *why* and *what*, rather than just reproducing the diff?
 - [ ] Are breaking changes explicitly denoted using `!` in the header and/or a `BREAKING CHANGE: <description>` footer?
+
+### Boundary Discipline
+- [ ] Does this commit represent a single, cohesive logical change?
+- [ ] Is the diff reviewable by a human without losing the thread?
+- [ ] Does the commit avoid mixing unrelated concerns?
+- [ ] If the message needs "and" to describe the change, should this be split?
