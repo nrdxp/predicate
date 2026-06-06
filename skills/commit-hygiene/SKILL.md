@@ -85,6 +85,12 @@ Commits are written for human reviewers, not systems. Prioritize cognitive clari
 - **The "What":** Describe what was changed at a conceptual level. Avoid summarizing the raw code diff (which the reviewer can already see); instead, describe the logical transition of the system.
 - **Explain the Tradeoffs:** If a non-obvious design pattern or workaround was employed, document it honestly.
 
+### Avoid Contextless or Internal References
+
+- **No Workflow/Agent Idiosyncrasies:** Do not reference internal workflow states, subagent execution steps, or transient, agent-specific planning phases (e.g., "resolving step 4 of the execution plan"). These references are meaningless to an independent reviewer.
+- **Independently Derivable Information:** The only information referenced in a commit message should be context that is independently derivable by a human observer looking at the repository or external context.
+- **Direct and Markdown Links:** When referring to documentation, requirements, or design decisions, use direct paths or markdown links (e.g., `[SKILL.md](skills/commit-hygiene/SKILL.md)` or external URLs) to make the referenced context explicitly traceable.
+
 ### Atomicity and Boundary Discipline
 
 - Each commit must represent a single, cohesive logical change.
@@ -108,6 +114,9 @@ Before presenting a commit, run this audit:
 - [ ] Does it use a valid Conventional Commit type?
 - [ ] Does the body explain the *why* and *what*, rather than just reproducing the diff?
 - [ ] Are breaking changes explicitly denoted using `!` in the header and/or a `BREAKING CHANGE: <description>` footer?
+- [ ] Does the message avoid contextless or internal references
+      (e.g., workflow steps) and use only independently derivable
+      or linked sources?
 
 ### Boundary Discipline
 - [ ] Does this commit represent a single, cohesive logical change?
