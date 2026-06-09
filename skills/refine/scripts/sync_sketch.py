@@ -21,17 +21,31 @@ def main():
         print(f"Error: .sketches directory not found at {sketches_dir}", file=sys.stderr)
         sys.exit(1)
         
-    # Find modified or untracked .md files in .sketches
-    status_output = run_git(["status", "--porcelain"], cwd=sketches_dir)
+    # Find modified or untracked .md files in .sketches using -z for robust parsing
+    status_output = run_git(["status", "--porcelain", "-z"], cwd=sketches_dir)
     modified_files = []
-    for line in status_output.splitlines():
-        if line.strip():
-            # Match status codes like M, A, ?? followed by file path
-            parts = line.strip().split(maxsplit=1)
-            if len(parts) == 2:
-                file_path = parts[1]
-                if file_path.endswith(".md") and file_path != "README.md":
-                    modified_files.append(file_path)
+    
+    # Split NUL-terminated fields
+    fields = status_output.split("\x00")
+    i = 0
+    while i < len(fields):
+        field = fields[i]
+        if not field:
+            i += 1
+            continue
+        
+        # Format: XY path (status is at index 0..1, path starts at index 3)
+        if len(field) >= 4:
+            status = field[:2]
+            file_path = field[3:]
+            
+            # For renames (R) or copies (C), the next field is the from_path, skip it
+            if status.startswith("R") or status.startswith("C"):
+                i += 1
+                
+            if file_path.endswith(".md") and file_path != "README.md":
+                modified_files.append(file_path)
+        i += 1
                     
     if not modified_files:
         print("No modified sketch files found in .sketches sub-repository.")
@@ -79,12 +93,14 @@ def main():
     except Exception as e:
         print(f"Warning: Failed to parse sketch frontmatter: {e}", file=sys.stderr)
 
-    # Fallback to date-prefixed filename for topic extraction if frontmatter topic is unknown
+    # Fallback to filename for topic extraction if frontmatter topic is unknown
     if topic == "unknown":
         basename = os.path.basename(active_sketch)
         fn_match = re.match(r"^\d{4}-\d{2}-\d{2}-(.+)\.md$", basename)
         if fn_match:
             topic = fn_match.group(1).strip()
+        else:
+            topic = os.path.splitext(basename)[0]
 
     # Stage the file using double dash to prevent git option injection
     run_git(["add", "--", active_sketch], cwd=sketches_dir)

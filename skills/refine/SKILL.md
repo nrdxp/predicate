@@ -32,7 +32,7 @@ To evaluate convergence in real-time, the error metric $e_k$ is computed using a
 $$\rho_k = \frac{d_p(\mathbf{S}_k)}{d_p(\mathbf{S}_{k-1})}$$
 
 For a true contraction, $\rho_k \le q < 1$. If $d_p(\mathbf{S}_k) \to 0$, the system is Cauchy-convergent. In practical autoregressive generations:
-1. **Unstable Oscillations (Limit Cycles):** If $\rho_k \ge 1$ (active only when $d_p(\mathbf{S}_k) > 0$) or if codebase states exhibit exact tracked workspace file hash equality with any prior loop state ($\mathbf{S}_k = \mathbf{S}_j$ for $0 \le j < k$ stored in `TRACKED_WORKSPACE_HASHES`), the loop has entered an unstable cycle. The system must adapt search parameters (lower generation temperature, inject explicit negative examples, or alter subagent critique rubrics) or execute the rollback protocol to break the attractor basin.
+1. **Unstable Oscillations (Limit Cycles):** If $\rho_k \ge 1$ (active only when $d_p(\mathbf{S}_{k-1}) > 0$ and $d_p(\mathbf{S}_k) > 0$) or if codebase states exhibit exact tracked workspace file hash equality with any prior loop state ($\mathbf{S}_k = \mathbf{S}_j$ for $0 \le j < k$ stored in `TRACKED_WORKSPACE_HASHES`), the loop has entered an unstable cycle. The system must adapt search parameters (lower generation temperature, inject explicit negative examples, or alter subagent critique rubrics) or execute the rollback protocol to break the attractor basin.
 2. **Diminishing Returns & Stochastic Cascades:** Self-correction exhibits sublinear convergence, where functional errors are corrected early, but sequential, identical sweeps on unchanged code accumulate stochastic LLM noise (false positive critiques). To prevent these cascades, sweep angles must execute in parallel, and any new subagent finding on unchanged code must be ignored unless backed by a deterministic test or static linter failure.
 
 ### Prefix-Induced Attractor Basin Bias
@@ -94,6 +94,8 @@ CTX:
     - "path/to/target/file"
   TEST_FILES:
     - "path/to/test/file"
+  SPECIFICATION_FILES:
+    - "path/to/specification/file"
   GOAL: "Verbatim objective statement"
   MODE: [INTERACTIVE | AUTONOMOUS]  # Interactive requires human gates; Autonomous runs under /goal
   ASSUMPTIONS: []            # Hypotheses logged during autonomous CLARIFY resolution
@@ -135,13 +137,21 @@ TRACE:
   CONSECUTIVE_CLEAN_SWEEPS: 0  # Number of consecutive clean sweeps completed
   ROLLBACK_RETRY_COUNT: 0      # Consecutive rollbacks at current state (resets on progress, capped at 3)
   TOTAL_ROLLBACK_COUNT: 0      # Cumulative rollbacks executed during the entire run
+  ROLLBACKS:                   # Audit trail of all executed rollback actions
+    - COMMIT: "sha256_hash"
+      FROM_LOOP: 4
+      TO_LOOP: 2
+  FILTERED_CRITIQUES:          # Track critiques discarded by verifier/spec triage filters
+    - SUBAGENT_ID: "conv-uuid"
+      CRITIQUE: "Subjective styling suggestion"
+      REASON: [REJECTED_SUBJECTIVE | REJECTED_OUT_OF_SCOPE | REJECTED_FAKE_FAILURE]
   LOOPS:
     - LOOP: 1
       TARGETS_ADDRESSED:
         - R1
       ERROR_METRIC: 0          # Proxy error count d_p(S_k)
       CONVERGENCE_RATE: 0.0    # Computed convergence rate rho_k
-      TRACKED_WORKSPACE_HASHES:  # Content hashes of target, test, and all modified files for oscillation detection
+      TRACKED_WORKSPACE_HASHES:  # Content hashes of all repository files for oscillation detection
         "path/to/file": "sha256_hash"
       VERIFICATION: "Compiler/linter/test outputs"
       COMMITS:
@@ -162,9 +172,9 @@ AUDIT  ──→ ITERATE   (if ledger has PENDING items)
        ├──→ CLARIFY   (if unexpected environment/dependency ambiguities occur mid-run)
        └─→ SWEEP     (if ledger is empty)
  
-ITERATE ─→ AUDIT     (once all ledger items are RESOLVED and CURRENT_LOOP <= K_MAX)
+ITERATE ─→ AUDIT     (once all ledger items are RESOLVED and (CURRENT_LOOP <= K_MAX or CONSECUTIVE_CLEAN_SWEEPS > 0))
         ├──→ CLARIFY   (if unexpected environment/dependency ambiguities occur mid-run)
-        └─→ HALT     (if CURRENT_LOOP > K_MAX, loop oscillation is detected, or rollback fails)
+        └─→ HALT     (if CURRENT_LOOP > K_MAX and CONSECUTIVE_CLEAN_SWEEPS == 0, loop oscillation is detected, or rollback fails)
  
 SWEEP  ──→ AUDIT     (if a sweep discovers new issues, or if sweeps pass but limits not met)
        └─→ REPORT    (once CONSECUTIVE_CLEAN_SWEEPS = M_SWEEP and CURRENT_LOOP >= N_MIN)
@@ -195,8 +205,8 @@ At the start of the audit phase:
 2. Update the `TRACE.LOOPS` list in the active sketch file for the new loop entry (or update the existing entry if `CURRENT_LOOP` was not incremented):
    - **ERROR_METRIC ($d_p$):** Record the proxy error metric $d_p(\mathbf{S}_k) = (\text{number of PENDING ledger items}) + (\text{number of active test/compiler/linter failures})$.
    - **CONVERGENCE_RATE ($\rho_k$):** Calculate and record the convergence rate $\rho_k = \frac{d_p(\mathbf{S}_k)}{d_p(\mathbf{S}_{k-1})}$. If $k = 1$ or if $d_p(\mathbf{S}_{k-1}) = 0$, set $\rho_k = 0.0$ if $d_p(\mathbf{S}_k) = 0$, and $\rho_k = \infty$ (or `N/A`) if $d_p(\mathbf{S}_k) > 0$.
-   - **TRACKED_WORKSPACE_HASHES:** Compute and record the SHA-256 hashes of all files in `CTX.TARGET_ARTIFACTS` and `CTX.TEST_FILES`, plus any other file in the workspace (excluding `.git/`, `.sketches/`, and external untracked caches) that has been modified or added in the git repository diff since the start of the refinement session ($S_0$).
-   - **CORE_PREMISE_VERIFICATION:** Challenge the underlying design before continuing. If a design choice is determined to be fundamentally flawed ("stupid"), log the premise failure in the sketch, and immediately transition to `CLARIFY`.
+   - **TRACKED_WORKSPACE_HASHES:** Compute and record the SHA-256 hashes of all files in the repository (excluding `.git/`, `.sketches/`, and external untracked caches). This ensures that any return to a prior workspace configuration (including files added, deleted, or reverted to their $S_0$ state) is detected as an exact state match.
+   - **CORE_PREMISE_VERIFICATION:** Challenge the underlying design before continuing. If a design choice is determined to be fundamentally flawed ("stupid"), log the premise failure in the sketch, and immediately transition to `CLARIFY` (in interactive mode) or `HALT` (in autonomous mode) to prevent turf-polishing via automated assumptions.
 
 **Sibling Skills Consultation:**
 You are required to actively consult the workspace's sibling skills to think more broadly:
@@ -257,8 +267,8 @@ Once the ledger is empty:
      ```
 4. **Evaluate Findings:**
    - If *any* subagent reports findings:
-     - **Verifier Grounding Filter:** Filter all subagent findings against the strict Verifier Grounding rule. Any finding that cannot be mapped directly to a deterministic compiler error, linter warning, test failure, or documented specification violation must be rejected as subjective/stylistic and omitted from the active ledger. Reject any finding claiming a compiler error, linter warning, or test failure unless it is verified by actively executing the corresponding tool in the local workspace. If the compiler, linter, or test runner executes cleanly (exit code 0, no errors/warnings on the target), the finding must be classified as `REJECTED_FAKE_FAILURE` and omitted from the active ledger.
-     - **Semantic Spec-Violation Triage:** For any subagent finding claiming a specification violation, the refiner must first check if the cited specification file is localized. Specification files checked during triage MUST be explicitly mapped to the target artifact in `CTX.TARGET_ARTIFACTS`, reside in the target package/module directory, or be listed in the active sketchpad context under a new field `CTX.SPECIFICATION_FILES`. If the cited specification is not in this localized set, the finding must be classified as `REJECTED_OUT_OF_SCOPE` and discarded. The refiner must verify if the finding explicitly contradicts a statement, constraint, or invariant documented in those localized spec files. If no documented specification contradicts the current implementation, and no automated tool reports a failure, the finding must be classified as `REJECTED_SUBJECTIVE` and omitted from the active ledger.
+     - **Verifier Grounding Filter:** Filter all subagent findings against the strict Verifier Grounding rule. Any finding that cannot be mapped directly to a deterministic compiler error, linter warning, test failure, or documented specification violation must be rejected as subjective/stylistic and omitted from the active ledger. Reject any finding claiming a compiler error, linter warning, or test failure unless it is verified by actively executing the corresponding tool in the local workspace. If the compiler, linter, or test runner executes cleanly (exit code 0, no errors/warnings on the target), the finding must be classified as `REJECTED_FAKE_FAILURE`, logged under `TRACE.FILTERED_CRITIQUES` in the sketch, and omitted from the active ledger.
+     - **Semantic Spec-Violation Triage:** For any subagent finding claiming a specification violation, the refiner must first check if the cited specification file is localized. Specification files checked during triage MUST be explicitly mapped to the target artifact in `CTX.TARGET_ARTIFACTS`, reside in the target package/module directory, or be listed in the active sketchpad context under `CTX.SPECIFICATION_FILES`. If the cited specification is not in this localized set, the finding must be classified as `REJECTED_OUT_OF_SCOPE`, logged under `TRACE.FILTERED_CRITIQUES` in the sketch, and discarded. The refiner must verify if the finding explicitly contradicts a statement, constraint, or invariant documented in those localized spec files. If no documented specification contradicts the current implementation, and no automated tool reports a failure, the finding must be classified as `REJECTED_SUBJECTIVE`, logged under `TRACE.FILTERED_CRITIQUES` in the sketch, and omitted from the active ledger.
      - **Stochastic Cascade Guard:** If the codebase has not changed since the previous sweep phase, any new subagent finding that was not identified in the previous sweep is automatically rejected and discarded unless it is backed by an automated compiler, linter, or test runner failure.
      - For accepted findings, merge them into `REF_LEDGER` as `PENDING` items.
      - Reset `CONSECUTIVE_CLEAN_SWEEPS` to 0.
@@ -275,7 +285,7 @@ Once the ledger is empty:
        - Transition to `REPORT`. (Transition to `REPORT` is strictly forbidden if any code or documentation changes have occurred since the last sweep pass, or if `CONSECUTIVE_CLEAN_SWEEPS` has been reset to `0`).
 
 ### 6. AUTONOMOUS BACK-TRACKING & OSCILLATION RECOVERY
-If at any loop boundary `CURRENT_LOOP` exceeds $K_{max}$, or if oscillation is detected ($\rho_k \ge 1$ when $d_p(\mathbf{S}_k) > 0$, or if codebase states exhibit exact tracked workspace file hash equality $\mathbf{S}_k = \mathbf{S}_j$ for any prior loop state $0 \le j < k$ stored in `TRACKED_WORKSPACE_HASHES`):
+If at any loop boundary `CURRENT_LOOP` exceeds $K_{max}$ (and `CONSECUTIVE_CLEAN_SWEEPS` == 0), or if oscillation is detected ($\rho_k \ge 1$ when $d_p(\mathbf{S}_{k-1}) > 0$ and $d_p(\mathbf{S}_k) > 0$, or if codebase states exhibit exact tracked workspace file hash equality $\mathbf{S}_k = \mathbf{S}_j$ for any prior loop state $0 \le j < k$ stored in `TRACKED_WORKSPACE_HASHES`):
 - **Interactive Mode:** Halt and transition to `HALT`.
 - **Autonomous Mode:**
   1. Identify the target loop index $j$ in `TRACE.LOOPS` where all regression tests passed. If the codebase starts with pre-existing test failures that the agent is trying to resolve, select the loop index $j$ that achieved the lowest proxy error metric $d_p(\mathbf{S}_j)$, or default to the starting commit of the refinement session ($S_0$). Resolve the target commit hash; if the `COMMITS` list is empty for loop $j$ (e.g. it was a clean sweep pass), search backwards for the most recent preceding loop entry containing a valid commit hash, or default to the starting commit if none exists.
@@ -286,7 +296,7 @@ If at any loop boundary `CURRENT_LOOP` exceeds $K_{max}$, or if oscillation is d
      git clean -fd -e .sketches/
      git commit -m "fix(refine): rollback workspace to Loop j state"
      ```
-  3. Reset `CURRENT_LOOP` in the active sketchpad to $j$ (the loop index of the restored clean state), truncate the `TRACE.LOOPS` list to length $j$ to remove duplicate or stale loop entries, and reset `CONSECUTIVE_CLEAN_SWEEPS` to `0` in the sketchpad. Run the sketch synchronization script to commit this state update:
+  3. Reset `CURRENT_LOOP` in the active sketchpad to $j$ (the loop index of the restored clean state), truncate the `TRACE.LOOPS` list to length $j$ to remove duplicate or stale loop entries, reset `CONSECUTIVE_CLEAN_SWEEPS` to `0` in the sketchpad, and record the rollback commit hash, target loop index, and current loop index in `TRACE.ROLLBACKS`. Run the sketch synchronization script to commit this state update:
      ```bash
      ./skills/refine/scripts/sync_sketch.py "docs(sketch): rollback to Loop j state"
      ```
