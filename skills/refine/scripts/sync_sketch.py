@@ -22,7 +22,11 @@ def main():
         sys.exit(1)
         
     # Find modified or untracked .md files in .sketches using -z for robust parsing
-    status_output = run_git(["status", "--porcelain", "-z"], cwd=sketches_dir)
+    res = subprocess.run(["git", "status", "--porcelain", "-z"], cwd=sketches_dir, capture_output=True, text=True)
+    if res.returncode != 0:
+        print(f"Git error in {sketches_dir}: {res.stderr.strip()}", file=sys.stderr)
+        sys.exit(res.returncode)
+    status_output = res.stdout
     modified_files = []
     
     # Split NUL-terminated fields
