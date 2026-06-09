@@ -191,7 +191,7 @@ Halt sequence generation. Surface obstacles or questions regarding the target ar
 ### 3. AUDIT
 Exhaustively analyze the artifact across four dimensions to identify how to achieve its **minimal representation** (optimal articulation of the problem space without superfluous complexity). 
 At the start of the audit phase:
-1. Increment `CURRENT_LOOP` by 1 only if the previous loop executed commits under `ITERATE`, or if this is the first loop ($CURRENT\_LOOP = 0$). If the previous loop was a clean sweep pass that made no commits, preserve the current `CURRENT_LOOP` value (do not increment).
+1. Increment `CURRENT_LOOP` by 1 (representing a new loop cycle $k$) at the start of every audit phase (except when returning from `CLARIFY` within the same loop).
 2. Update the `TRACE.LOOPS` list in the active sketch file for the new loop entry (or update the existing entry if `CURRENT_LOOP` was not incremented):
    - **ERROR_METRIC ($d_p$):** Record the proxy error metric $d_p(\mathbf{S}_k) = (\text{number of PENDING ledger items}) + (\text{number of active test/compiler/linter failures})$.
    - **CONVERGENCE_RATE ($\rho_k$):** Calculate and record the convergence rate $\rho_k = \frac{d_p(\mathbf{S}_k)}{d_p(\mathbf{S}_{k-1})}$. If $k = 1$ or if $d_p(\mathbf{S}_{k-1}) = 0$, set $\rho_k = 0.0$ if $d_p(\mathbf{S}_k) = 0$, and $\rho_k = \infty$ (or `N/A`) if $d_p(\mathbf{S}_k) > 0$.
@@ -221,6 +221,7 @@ Look for opportunities to simplify the system structure. Ask:
 Populate the `REF_LEDGER` with all discovered targets (including items to be simplified or pruned). If no targets are found, transition to `SWEEP`.
 
 ### 4. ITERATE
+At the start of `ITERATE`, reset `CONSECUTIVE_CLEAN_SWEEPS` to `0` (since codebase modifications are about to occur).
 For each ledger item:
 1. Apply the local closed-loop verification loop:
    - **For code artifacts:** Apply TDD validation (write/update tests, verify baseline failure, implement changes, verify success).
@@ -256,8 +257,8 @@ Once the ledger is empty:
      ```
 4. **Evaluate Findings:**
    - If *any* subagent reports findings:
-     - **Verifier Grounding Filter:** Filter all subagent findings against the strict Verifier Grounding rule. Any finding that cannot be mapped directly to a deterministic compiler error, linter warning, test failure, or documented specification violation must be rejected as subjective/stylistic and omitted from the active ledger. Reject any finding lacking a concrete trace or file/line location of failure.
-     - **Semantic Spec-Violation Triage:** For any subagent finding claiming a specification violation, the refiner must first locate and check the relevant documentation or specification files in the workspace (such as markdown specs, RFCs, or header files). The refiner must verify if the finding explicitly contradicts a statement, constraint, or invariant documented in those files. If no documented specification contradicts the current implementation, and no automated tool reports a failure, the finding must be classified as `REJECTED_SUBJECTIVE` and omitted from the active ledger.
+     - **Verifier Grounding Filter:** Filter all subagent findings against the strict Verifier Grounding rule. Any finding that cannot be mapped directly to a deterministic compiler error, linter warning, test failure, or documented specification violation must be rejected as subjective/stylistic and omitted from the active ledger. Reject any finding claiming a compiler error, linter warning, or test failure unless it is verified by actively executing the corresponding tool in the local workspace. If the compiler, linter, or test runner executes cleanly (exit code 0, no errors/warnings on the target), the finding must be classified as `REJECTED_FAKE_FAILURE` and omitted from the active ledger.
+     - **Semantic Spec-Violation Triage:** For any subagent finding claiming a specification violation, the refiner must first check if the cited specification file is localized. Specification files checked during triage MUST be explicitly mapped to the target artifact in `CTX.TARGET_ARTIFACTS`, reside in the target package/module directory, or be listed in the active sketchpad context under a new field `CTX.SPECIFICATION_FILES`. If the cited specification is not in this localized set, the finding must be classified as `REJECTED_OUT_OF_SCOPE` and discarded. The refiner must verify if the finding explicitly contradicts a statement, constraint, or invariant documented in those localized spec files. If no documented specification contradicts the current implementation, and no automated tool reports a failure, the finding must be classified as `REJECTED_SUBJECTIVE` and omitted from the active ledger.
      - **Stochastic Cascade Guard:** If the codebase has not changed since the previous sweep phase, any new subagent finding that was not identified in the previous sweep is automatically rejected and discarded unless it is backed by an automated compiler, linter, or test runner failure.
      - For accepted findings, merge them into `REF_LEDGER` as `PENDING` items.
      - Reset `CONSECUTIVE_CLEAN_SWEEPS` to 0.
@@ -278,12 +279,17 @@ If at any loop boundary `CURRENT_LOOP` exceeds $K_{max}$, or if oscillation is d
 - **Interactive Mode:** Halt and transition to `HALT`.
 - **Autonomous Mode:**
   1. Identify the target loop index $j$ in `TRACE.LOOPS` where all regression tests passed. If the codebase starts with pre-existing test failures that the agent is trying to resolve, select the loop index $j$ that achieved the lowest proxy error metric $d_p(\mathbf{S}_j)$, or default to the starting commit of the refinement session ($S_0$). Resolve the target commit hash; if the `COMMITS` list is empty for loop $j$ (e.g. it was a clean sweep pass), search backwards for the most recent preceding loop entry containing a valid commit hash, or default to the starting commit if none exists.
-  2. Restore the workspace back to the target commit and clean untracked files, leaving the `.sketches/` sub-repository untouched. If the commands fail, immediately transition to `HALT` and log a failure report.
+  2. Restore both the staged index and working directory to the target commit state, clean untracked files, commit this restoration immediately to HEAD to maintain linear history, and reset `CONSECUTIVE_CLEAN_SWEEPS` to `0`. If the commands fail, immediately transition to `HALT` and log a failure report.
      ```bash
+     git restore --staged --source=<hash> :/
      git restore --source=<hash> :/
      git clean -fd -e .sketches/
+     git commit -m "fix(refine): rollback workspace to Loop j state"
      ```
-  3. Reset `CURRENT_LOOP` in the active sketchpad to $j$ (the loop index of the restored clean state). Truncate the `TRACE.LOOPS` list to length $j$ to remove duplicate or stale loop entries.
+  3. Reset `CURRENT_LOOP` in the active sketchpad to $j$ (the loop index of the restored clean state), truncate the `TRACE.LOOPS` list to length $j$ to remove duplicate or stale loop entries, and reset `CONSECUTIVE_CLEAN_SWEEPS` to `0` in the sketchpad. Run the sketch synchronization script to commit this state update:
+     ```bash
+     ./skills/refine/scripts/sync_sketch.py "docs(sketch): rollback to Loop j state"
+     ```
   4. Increment both `ROLLBACK_RETRY_COUNT` and `TOTAL_ROLLBACK_COUNT` in the active sketchpad.
   5. If `ROLLBACK_RETRY_COUNT` > 3, or if no rollback target state can be resolved from `TRACE.LOOPS`, transition to `HALT` and log a failure report.
   6. Perturb the Initial Boundary Condition (IBC) for the next iteration: lower the generation temperature, inject explicit negative examples (what not to do) in the next prompt, or modify the subagent critique personas.
@@ -313,5 +319,5 @@ Before generating the final report, execute a post-mortem review of the refineme
 6. **COMMIT_HYGIENE:** All commits must strictly conform to [commit-hygiene](../commit-hygiene/SKILL.md).
 7. **OSCILLATION_BREAKING:** Detect and break limit cycles autonomously using target file hash matches. If in autonomous mode, roll back targeted files to the last passing commit and perturb prompt parameters before retrying. In interactive mode, halt immediately.
 8. **EXIT_GATE_INVARIANCE:** Transitions to `REPORT` are strictly forbidden unless initiated from a passing `SWEEP` state where `CONSECUTIVE_CLEAN_SWEEPS >= M_SWEEP`. Bypassing sweeps after code-modifying iterations is a protocol violation.
-9. **GIT_HISTORY_INVARIANCE:** History-altering git commands (such as `reset`, `rebase`, or `commit --amend` for non-HEAD commits) are strictly forbidden. Address all commit hygiene or formatting issues prospectively in new commits.
+9. **GIT_HISTORY_INVARIANCE:** History-altering git commands (such as `reset`, `rebase`, or `commit --amend` on any commit, including HEAD) are strictly forbidden across both the main repository and the `.sketches/` sub-repository. Address all commit hygiene or formatting issues prospectively in new commits.
 10. **PREMISE_CHALLENGING:** Never refine a design without challenging its core premises and assumptions first. If the design is fundamentally flawed or over-engineered, halt and pivot instead of polishing a "turd."

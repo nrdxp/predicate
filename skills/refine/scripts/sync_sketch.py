@@ -39,6 +39,9 @@ def main():
 
     # Select the first modified sketch file (usually there is only one active)
     active_sketch = modified_files[0]
+    if len(modified_files) > 1:
+        print(f"Warning: Multiple modified sketch files found. Only processing the first one: {active_sketch}", file=sys.stderr)
+
     full_path = os.path.join(sketches_dir, active_sketch)
     
     # Read the YAML frontmatter to construct commit message context
@@ -47,8 +50,9 @@ def main():
     loop = "0"
     
     try:
+        # Bounded read to prevent memory exhaustion / catastrophic regex backtracking
         with open(full_path, "r", encoding="utf-8") as f:
-            content = f.read()
+            content = f.read(4096)
             
         yaml_match = re.search(r"^```yaml\s*\n(.*?)\n```", content, re.DOTALL | re.MULTILINE)
         if yaml_match:
@@ -75,8 +79,15 @@ def main():
     except Exception as e:
         print(f"Warning: Failed to parse sketch frontmatter: {e}", file=sys.stderr)
 
-    # Stage the file
-    run_git(["add", active_sketch], cwd=sketches_dir)
+    # Fallback to date-prefixed filename for topic extraction if frontmatter topic is unknown
+    if topic == "unknown":
+        basename = os.path.basename(active_sketch)
+        fn_match = re.match(r"^\d{4}-\d{2}-\d{2}-(.+)\.md$", basename)
+        if fn_match:
+            topic = fn_match.group(1).strip()
+
+    # Stage the file using double dash to prevent git option injection
+    run_git(["add", "--", active_sketch], cwd=sketches_dir)
     
     # Determine commit message
     if len(sys.argv) > 1:

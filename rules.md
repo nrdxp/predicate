@@ -101,6 +101,7 @@ The overarching goal of git hygiene is a **clean, human-reviewable history**. A 
 4. **Contextual Derivability:** Commit messages must not contain contextless or internal references (e.g., specific subagent execution steps, workflow task IDs, or transient planning phases). Every referenced context must be independently derivable by a human reviewer, or explicitly linked using direct paths or markdown links to repository files or external resources.
 5. **Anti-Pattern — Spaghetti Diffs:** Massive, entangled diffs that span multiple logical changes are the primary failure mode of git history. They make review impossible, `git bisect` useless, and `git revert` dangerous. Producing them is a protocol violation.
 6. **Forbid Git Push:** Under no circumstances is the sequence walk permitted to execute a `git push` to any remote repository. Remote updates must be left entirely to the manual control of the human developer.
+7. **GLOBAL_HISTORY_INVARIANCE:** History-altering git commands (such as `git reset`, `git rebase`, or `git commit --amend`) are strictly prohibited across all repositories in this workspace (including the main repository and the independent `.sketches/` sub-repository). Under no circumstances may any existing commit be amended, rebased, or deleted. Any commit hygiene or formatting failures flagged in prior commits must be addressed prospectively in a new commit, preserving the linear audit trail.
 
 
 ---
