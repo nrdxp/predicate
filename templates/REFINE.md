@@ -25,6 +25,8 @@
 - **Execution Mode:** [INTERACTIVE | AUTONOMOUS]
 - **Autonomous Assumptions:** [List assumptions formulated under autonomous mode, or N/A]
 - **Meta-Auditor Approval Mode:** [INTERACTIVE | PROGRAMMATIC_AUTONOMOUS]
+- **Worktree Path:** [Path to isolated worktree, or N/A]
+- **Agent Branch Attempts:** [List of attempt branches e.g. agent/refine-<topic>-attempt-1, -attempt-2, or N/A]
 - **Total Refinement Loops ($k$):** [Count]
 - **Consecutive Clean Sweeps ($M$):** [Count]
 - **Total Rollback Count:** [Count]

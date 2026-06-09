@@ -85,6 +85,7 @@ Only when $M_{sweep}$ consecutive sweeps find zero new issues on the final, stat
 
 ```yaml
 # 1. METADATA
+TOPIC: "topic-slug"            # Topic slug for the refinement session
 STATUS: [ABSORB | CLARIFY | AUDIT | ITERATE | SWEEP | REPORT | HALT]
 UNCERTAINTY: [0.0-1.0]       # Residual uncertainty. Must be 0.0 to proceed to AUDIT.
 
@@ -98,6 +99,9 @@ CTX:
     - "path/to/specification/file"
   GOAL: "Verbatim objective statement"
   MODE: [INTERACTIVE | AUTONOMOUS]  # Interactive requires human gates; Autonomous runs under /goal
+  PREMISE_BYPASS: [TRUE | FALSE]     # If TRUE, bypass premise verification halts (defaults to FALSE)
+  WORKTREE_PATH: "path/to/worktree"  # Path to the isolated git worktree
+  AGENT_BRANCH: "branch_name"        # Current active agent branch attempt (e.g., agent/refine-<topic>-attempt-1)
   ASSUMPTIONS: []            # Hypotheses logged during autonomous CLARIFY resolution
   CONSTRAINTS:
     N_MIN: 4                 # Adaptive loop limit scaled to task complexity
@@ -148,6 +152,7 @@ TRACE:
       REASON: [REJECTED_SUBJECTIVE | REJECTED_OUT_OF_SCOPE | REJECTED_FAKE_FAILURE | REJECTED_CASCADE_GUARD]
   LOOPS:
     - LOOP: 1
+      STATUS: [ACTIVE | ROLLED_BACK] # Current status of this loop entry
       TARGETS_ADDRESSED:
         - R1
       ERROR_METRIC: 0          # Proxy error count d_p(S_k)
@@ -187,6 +192,13 @@ SWEEP  ──→ AUDIT     (if a sweep discovers new issues, or if sweeps pass b
 Ingest the target artifact, the optimization goals, and any relevant specs or test suites. Setup the tracking ledger in the active sketch file.
 - **Mode Selection:** Set `CTX.MODE` to `AUTONOMOUS` if executing under a long-running background worker (e.g. `/goal`), otherwise default to `INTERACTIVE`.
 - **Ambiguity Gate:** If there is ambiguity in the goal or scope, set `UNCERTAINTY` > 0.0 and transition to `CLARIFY`.
+- **Worktree Setup:** 
+  Initialize a dedicated git worktree at `.worktrees/refine-<topic>` based on the active HEAD and create a private branch attempt:
+  ```bash
+  git worktree add -b agent/refine-<topic>-attempt-1 .worktrees/refine-<topic> HEAD
+  ```
+  Ensure `.worktrees/` is added to the main `.gitignore` file to prevent untracked file pollution in the user's view. Set `CTX.WORKTREE_PATH` to `.worktrees/refine-<topic>` and `CTX.AGENT_BRANCH` to `agent/refine-<topic>-attempt-1`.
+  *Note:* All subsequent code modification, linter checking, and test runs MUST execute inside the worktree directory, leaving the user's active working directory completely isolated and undisturbed.
 
 **Adaptive Parameter Bounds Initialization:**
 Evaluate the complexity of the target artifact and goal. Scale the limits dynamically:
@@ -237,12 +249,12 @@ If no targets are found in `REF_LEDGER`, transition to `SWEEP`. Otherwise, trans
 ### 4. ITERATE
 At the start of `ITERATE`, reset `CONSECUTIVE_CLEAN_SWEEPS` to `0` (since codebase modifications are about to occur).
 For each ledger item:
-1. Apply the local closed-loop verification loop:
+1. Apply the local closed-loop verification loop inside the isolated worktree (`CTX.WORKTREE_PATH`):
    - **For code artifacts:** Apply TDD validation (write/update tests, verify baseline failure, implement changes, verify success).
    - **For non-code artifacts (e.g. documentation, specifications):** Apply rigorous linting, link checking, style alignment audits (e.g. [documentation](../documentation/SKILL.md)), and structural completeness checks. Verify baseline deficiency before correction.
-2. Commit the change using conventional commits conforming to [commit-hygiene](../commit-hygiene/SKILL.md), and record the conventional commit hash and message in `TRACE.LOOPS[CURRENT_LOOP].COMMITS`.
+2. Commit the change using conventional commits conforming to [commit-hygiene](../commit-hygiene/SKILL.md) inside the worktree directory, and record the conventional commit hash and message in `TRACE.LOOPS[CURRENT_LOOP].COMMITS`.
 3. Update the ledger item status to `RESOLVED` with evidence.
-4. Update the sketch ledger and commit within the `.sketches/` subrepo. To automate updating and committing sketch files, you can use the synchronization script:
+4. Update the sketch ledger in the main repository and commit within the `.sketches/` subrepo. To automate updating and committing sketch files, you can use the synchronization script from the main repo root:
    ```bash
    ./skills/refine/scripts/sync_sketch.py [optional custom message]
    ```
@@ -289,25 +301,25 @@ Once the ledger is empty:
        - Transition to `REPORT`. (Transition to `REPORT` is strictly forbidden if any code or documentation changes have occurred since the last sweep pass, or if `CONSECUTIVE_CLEAN_SWEEPS` has been reset to `0`).
 
 ### 6. AUTONOMOUS BACK-TRACKING & OSCILLATION RECOVERY
-If at any loop boundary `CURRENT_LOOP` exceeds $K_{max}$ (and `CONSECUTIVE_CLEAN_SWEEPS` == 0), or if oscillation is detected (k >= 2 and $\rho_k \ge 1$ when $d_p(\mathbf{S}_{k-1}) > 0$ and $d_p(\mathbf{S}_k) > 0$, or if codebase states exhibit exact tracked workspace file hash equality $\mathbf{S}_k = \mathbf{S}_j$ for any prior loop state $0 \le j < k$ stored in `TRACKED_WORKSPACE_HASHES` when `CONSECUTIVE_CLEAN_SWEEPS` == 0):
+If at any loop boundary `CURRENT_LOOP` exceeds $K_{max}$ (and `CONSECUTIVE_CLEAN_SWEEPS` == 0), or if oscillation is detected (k >= 2 and $\rho_k \ge 1$ when $d_p(\mathbf{S}_{k-1}) > 0$ and $d_p(\mathbf{S}_k) > 0$, or if codebase states exhibit exact tracked workspace file hash equality $\mathbf{S}_k = \mathbf{S}_j$ for any prior loop state $1 \le j < k$ stored in `TRACKED_WORKSPACE_HASHES` when `CONSECUTIVE_CLEAN_SWEEPS` == 0 and not (k = j + 1 and `TOTAL_ROLLBACK_COUNT` > 0 and `TRACE.LOOPS[k].COMMITS` is empty)):
 - **Interactive Mode:** Halt and transition to `HALT`.
 - **Autonomous Mode:**
   1. Identify the target loop index $j$ (an integer, where $j < k$) in `TRACE.LOOPS` where all regression tests passed. If the codebase starts with pre-existing test failures that the agent is trying to resolve, select the target loop index $j$ that achieved the lowest proxy error metric $d_p(\mathbf{S}_j)$, or default to `0` (representing the initial state $S_0$ before any modifications). Resolve the target commit hash by selecting the last commit hash recorded in the `COMMITS` list of the `TRACE.LOOPS` entry where `LOOP == j`, or default to `TRACE.INITIAL_STATE_COMMIT` if $j = 0$. If the `COMMITS` list is empty for loop $j$ (e.g. it was a clean sweep pass), search backwards for the most recent preceding loop entry (where `LOOP < j`) containing a valid commit hash and whose status is NOT `ROLLED_BACK`, or default to `TRACE.INITIAL_STATE_COMMIT` if none exists.
-  2. Restore both the staged index and working directory to the target commit state, clean untracked files, commit this restoration immediately to HEAD to maintain linear history, and reset `CONSECUTIVE_CLEAN_SWEEPS` to `0`. If the commands fail, immediately transition to `HALT` and log a failure report.
+  2. Compute the next branch attempt index `N = TOTAL_ROLLBACK_COUNT + 2`.
+  3. Inside the worktree directory (`CTX.WORKTREE_PATH`), create and check out a new branch attempt from the target stable commit hash:
      ```bash
-     git restore --staged --source=<hash> :/
-     git restore --source=<hash> :/
-     git clean -fd -e .sketches/
-     git commit --allow-empty -m "fix(refine): rollback to stable state"
+     git checkout -b agent/refine-<topic>-attempt-N <stable-commit-hash>
      ```
-  3. Reset `CURRENT_LOOP` in the active sketchpad to $j$ (the loop index of the restored clean state), reset `CONSECUTIVE_CLEAN_SWEEPS` to `0` in the sketchpad, and record the rollback commit hash, target loop index, and current loop index in `TRACE.ROLLBACKS`. Do NOT truncate `TRACE.LOOPS`; instead, mark the status of the rolled-back loops (from $j+1$ to $k$) as `ROLLED_BACK` in the sketchpad to preserve the complete linear audit trail. Run the sketch synchronization script to commit this state update:
+     This completely isolates the new attempt and preserves the entire history of the previous attempt branch (`-attempt-(N-1)`) for complete workspace auditability, satisfying global history invariants.
+  4. Update `CTX.AGENT_BRANCH` to `agent/refine-<topic>-attempt-N` in the active sketch file.
+  5. Reset `CURRENT_LOOP` in the active sketchpad to $j$ (the loop index of the restored stable state), reset `CONSECUTIVE_CLEAN_SWEEPS` to `0` in the sketchpad, and record the rollback target stable commit hash, target loop index, and current loop index in `TRACE.ROLLBACKS`. Do NOT truncate `TRACE.LOOPS`; instead, mark the status of the rolled-back loops (from $j+1$ to $k$) as `ROLLED_BACK` in the sketchpad to preserve the complete linear audit trail. Run the sketch synchronization script from the main repo to commit this state update:
      ```bash
-     ./skills/refine/scripts/sync_sketch.py "docs(sketch): rollback to stable state"
+     ./skills/refine/scripts/sync_sketch.py "docs(sketch): rollback to loop j via branch attempt N"
      ```
-  4. Increment both `ROLLBACK_RETRY_COUNT` and `TOTAL_ROLLBACK_COUNT` in the active sketchpad.
-  5. If `ROLLBACK_RETRY_COUNT` > 3, or if no rollback target state can be resolved from `TRACE.LOOPS`, transition to `HALT` and log a failure report.
-  6. Perturb the Initial Boundary Condition (IBC) for the next iteration: lower the generation temperature, inject explicit negative examples (what not to do) in the next prompt, or modify the subagent critique personas.
-  7. Transition to `AUDIT` and resume.
+  6. Increment both `ROLLBACK_RETRY_COUNT` and `TOTAL_ROLLBACK_COUNT` in the active sketchpad.
+  7. If `ROLLBACK_RETRY_COUNT` > 3, or if no rollback target state can be resolved from `TRACE.LOOPS`, transition to `HALT` and log a failure report.
+  8. Perturb the Initial Boundary Condition (IBC) for the next iteration: lower the generation temperature, inject explicit negative examples (what not to do) in the next prompt, or modify the subagent critique personas.
+  9. Transition to `AUDIT` and resume.
 
 ### 7. HALT
 Freeze the execution trajectory immediately. Record a failure report detailing the cause of the halt (unresolved ambiguity, budget exhaustion, rollback failure, or loop oscillation) and return control to the human developer for manual intervention.
@@ -318,8 +330,12 @@ Before generating the final report, execute a post-mortem review of the refineme
    - **Role:** Adversarial Process Auditor
    - **Task:** Retrieve and analyze the entire parent conversation history (`transcript.jsonl` under `<appDataDir>/brain/<conversation-id>/.system_generated/logs/`) and git commit history of the refinement run. Critically evaluate the process: where did the refiner overcorrect, loop inefficiently, deviate from scope, or miss structural simplifications? What could have been done better?
    - **Output:** Return a structured critique outlining process inefficiencies and retrospective recommendations.
-2. **Compile Report:** Compile and output the final refinement report using the template at [templates/REFINE.md](../../templates/REFINE.md). Embed the adversarial post-mortem audit findings and recommendations directly in the report.
-3. **Record Final Trace:** Before transitioning to `REPORT`, record a final trace entry in `TRACE.LOOPS` for loop $k+1$ (the final state $\mathbf{S}^*$) with $d_p(\mathbf{S}^*) = 0$ and `VERIFICATION: "Fixed-point reached. Consecutive clean sweeps verified."` to demonstrate complete convergence.
+2. **Apply Converged State:** Merge the final successful agent branch (e.g. `agent/refine-<topic>-attempt-N`) back into the user's active main branch, or format it as a single, clean conventional commit. Clean up and remove the git worktree:
+   ```bash
+   git worktree remove --force .worktrees/refine-<topic>
+   ```
+3. **Compile Report:** Compile and output the final refinement report using the template at [templates/REFINE.md](../../templates/REFINE.md). Embed the adversarial post-mortem audit findings and recommendations directly in the report.
+4. **Record Final Trace:** Before transitioning to `REPORT`, record a final trace entry in `TRACE.LOOPS` for loop $k+1$ (the final state $\mathbf{S}^*$) with $d_p(\mathbf{S}^*) = 0$ and `VERIFICATION: "Fixed-point reached. Consecutive clean sweeps verified."` to demonstrate complete convergence.
 
 ---
 
@@ -331,7 +347,7 @@ Before generating the final report, execute a post-mortem review of the refineme
 4. **DETERMINISTIC_GROUNDING:** Banish subjective criticisms. Every item entered in the refinement ledger must map directly to a verified failure of a linter, compiler, test assertion, or specification contract. Reject any finding without a concrete failure trace.
 5. **SKETCH_SYNCHRONIZATION:** The active sketchpad ledger in `.sketches/` must be updated and committed in the subrepo at every loop boundary. Do not bundle multiple loops of code modifications and sketch pad updates into a single commit. Automate commits using `./skills/refine/scripts/sync_sketch.py`.
 6. **COMMIT_HYGIENE:** All commits must strictly conform to [commit-hygiene](../commit-hygiene/SKILL.md).
-7. **OSCILLATION_BREAKING:** Detect and break limit cycles autonomously using target file hash matches. If in autonomous mode, roll back targeted files to the last passing commit and perturb prompt parameters before retrying. In interactive mode, halt immediately.
+7. **OSCILLATION_BREAKING:** Detect and break limit cycles autonomously using target file hash matches. If in autonomous mode, check out a new attempt branch from the last stable commit in the isolated worktree and perturb prompt parameters before retrying. In interactive mode, halt immediately.
 8. **EXIT_GATE_INVARIANCE:** Transitions to `REPORT` are strictly forbidden unless initiated from a passing `SWEEP` state where `CONSECUTIVE_CLEAN_SWEEPS >= M_SWEEP`. Bypassing sweeps after code-modifying iterations is a protocol violation.
-9. **GIT_HISTORY_INVARIANCE:** History-altering git commands (such as `reset`, `rebase`, or `commit --amend` on any commit, including HEAD) are strictly forbidden across both the main repository and the `.sketches/` sub-repository. Address all commit hygiene or formatting issues prospectively in new commits.
+9. **GIT_HISTORY_INVARIANCE:** History-altering git commands (such as `reset`, `rebase`, or `commit --amend` on any commit in any user-facing branch) are strictly forbidden across both the main repository and the `.sketches/` sub-repository. Backtracking via attempt branches preserves the linear history of all attempts and satisfies global history invariance.
 10. **PREMISE_CHALLENGING:** Never refine a design without challenging its core premises and assumptions first. If the design is fundamentally flawed or over-engineered, halt execution immediately instead of polishing a "turd."
