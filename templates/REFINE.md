@@ -24,16 +24,15 @@
 
 - **Execution Mode:** [INTERACTIVE | AUTONOMOUS]
 - **Autonomous Assumptions:** [List assumptions formulated under autonomous mode, or N/A]
-- **Meta-Auditor Approval Mode:** [INTERACTIVE | PROGRAMMATIC_AUTONOMOUS]
+- **Meta-Auditor Approval Mode:** [INTERACTIVE | BYPASSED_AUTONOMOUS]
 - **Worktree Path:** [Path to isolated worktree, or N/A]
 - **Agent Branch Attempts:** [List of attempt branches e.g. agent/refine-<topic>-attempt-1, -attempt-2, or N/A]
 - **Total Refinement Loops ($k$):** [Count]
 - **Consecutive Clean Sweeps ($M$):** [Count]
 - **Total Rollback Count:** [Count]
 - **Initial State Commit:** [S0 Commit Hash]
-- **Rollbacks Detail:** [List rollback commit hashes and loops affected, or N/A]
 - **Filtered Critiques:** [List subagent critiques discarded as subjective or out-of-scope, or None]
-- **Sibling Skills Consulted:** [e.g., robust-testing, engineering, prior-art]
+- **Sibling Skills Consulted:** [e.g. robust-testing, engineering, prior-art]
 
 
 - **Initial Baseline State:** [Describe initial flaws, gaps, or complexity metrics before refinement]

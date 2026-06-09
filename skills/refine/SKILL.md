@@ -107,7 +107,7 @@ CTX:
     N_MIN: 4                 # Adaptive loop limit scaled to task complexity
     M_SWEEP: 4               # Adaptive sweep limit scaled to task complexity
     K_MAX: 12                # Adaptive divergence boundary
-    COGNIZANCE:              # Sibling skills loaded and consulted during audit
+    SIBLING_SKILLS:          # Sibling skills loaded and consulted during audit
       - robust-testing
       - engineering
       - prior-art
@@ -283,7 +283,6 @@ Once the ledger is empty:
      - **Stochastic Cascade Guard:** If the codebase has not changed since the previous sweep phase, any new subagent finding that was not identified in the previous sweep is automatically classified as `REJECTED_CASCADE_GUARD`, logged under `TRACE.FILTERED_CRITIQUES` in the sketch, and discarded unless it is backed by an automated compiler, linter, or test runner failure.
      - For accepted findings, merge them into `REF_LEDGER` as `PENDING` items.
      - Reset `CONSECUTIVE_CLEAN_SWEEPS` to 0.
-     - Reset `ROLLBACK_RETRY_COUNT` to 0.
      - Reset `META_AUDITOR_STATUS` to `PENDING`.
      - Transition to `AUDIT`.
    - If *all* subagents report `PASS`:
@@ -301,13 +300,15 @@ If at any loop boundary `CURRENT_LOOP` exceeds $K_{max}$ (and `CONSECUTIVE_CLEAN
 - **Autonomous Mode:**
   1. Identify the target loop index $j$ (an integer, where $j < k$) in `TRACE.LOOPS` where all regression tests passed. If the codebase starts with pre-existing test failures that the agent is trying to resolve, select the target loop index $j$ that achieved the lowest proxy error metric $d_p(\mathbf{S}_j)$, or default to `0` (representing the initial state $S_0$ before any modifications). Resolve the target commit hash by selecting the last commit hash recorded in the `COMMITS` list of the `TRACE.LOOPS` entry where `LOOP == j`, or default to `TRACE.INITIAL_STATE_COMMIT` if $j = 0$. If the `COMMITS` list is empty for loop $j$ (e.g. it was a clean sweep pass), search backwards for the most recent preceding loop entry (where `LOOP < j`) containing a valid commit hash, or default to `TRACE.INITIAL_STATE_COMMIT` if none exists.
   2. Compute the next branch attempt index `N = TOTAL_ROLLBACK_COUNT + 2`.
-  3. Inside the worktree directory (`CTX.WORKTREE_PATH`), create and check out a new branch attempt from the target stable commit hash:
+  3. Inside the worktree directory (`CTX.WORKTREE_PATH`), clean up the workspace and check out a new branch attempt from the target stable commit hash:
      ```bash
+     git restore :/
+     git clean -fd
      git checkout -b agent/refine-<topic>-attempt-N <stable-commit-hash>
      ```
      This completely isolates the new attempt and preserves the entire history of the previous attempt branch (`-attempt-(N-1)`) for complete workspace auditability, satisfying global history invariants.
   4. Update `CTX.AGENT_BRANCH` to `agent/refine-<topic>-attempt-N` in the active sketch file.
-  5. Reset `CURRENT_LOOP` in the active sketchpad to $j$ (the loop index of the restored stable state), and reset `CONSECUTIVE_CLEAN_SWEEPS` to `0` in the sketchpad. Run the sketch synchronization script from the main repo to commit this state update:
+  5. Do NOT reset `CURRENT_LOOP` in the active sketchpad (it must increment monotonically to preserve linear audit history). Instead, log the target loop index $j$ as metadata (e.g. `RESTORED_FROM_LOOP: j`) in the next loop entry, and reset `CONSECUTIVE_CLEAN_SWEEPS` to `0` in the sketchpad. Run the sketch synchronization script from the main repo to commit this state update:
      ```bash
      ./skills/refine/scripts/sync_sketch.py "docs(sketch): rollback to loop j via branch attempt N"
      ```
