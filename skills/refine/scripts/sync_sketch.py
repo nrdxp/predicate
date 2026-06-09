@@ -107,7 +107,7 @@ def main():
                     commit_msg = f"docs(sketch): update {topic[:15]} L{loop}"
                 
         # Commit
-        commit_out = run_git(["commit", "-m", commit_msg], cwd=sketches_dir)
+        commit_out = run_git(["commit", "-m", commit_msg, "--", active_sketch], cwd=sketches_dir)
         print(f"Successfully committed sketch {active_sketch} in .sketches:")
         print(commit_out)
 
