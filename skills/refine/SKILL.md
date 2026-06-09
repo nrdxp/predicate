@@ -27,7 +27,7 @@ for all $\mathbf{A}, \mathbf{B} \in \mathcal{X}$ and some contraction factor $0 
 $$\mathbf{S}^* = \lim_{k \rightarrow \infty} R^k(\mathbf{S}_0)$$
 
 ### CyberCorrect & Computable Loop Dynamics
-To evaluate convergence in real-time, the error metric $e_k$ is computed using a **computable proxy metric** $d_p(\mathbf{S}_k)$, defined as the total count of unresolved issues in `REF_LEDGER` plus any active linter or compiler warnings. The convergence rate is defined as:
+To evaluate convergence in real-time, the error metric $e_k$ is computed using a **computable proxy metric** $d_p(\mathbf{S}_k)$, defined as the count of unresolved (`PENDING` or `IN_PROGRESS`) items in `REF_LEDGER`. The convergence rate is defined as:
 
 $$\rho_k = \frac{d_p(\mathbf{S}_k)}{d_p(\mathbf{S}_{k-1})}$$
 
@@ -142,13 +142,14 @@ TRACE:
   CONSECUTIVE_CLEAN_SWEEPS: 0  # Number of consecutive clean sweeps completed
   ROLLBACK_RETRY_COUNT: 0      # Consecutive rollbacks at current state (resets on progress, capped at 3)
   TOTAL_ROLLBACK_COUNT: 0      # Cumulative rollbacks executed during the entire run
+  LAST_RESTORED_LOOP: 0        # Loop index j of the last restored state (defaults to 0)
   FILTERED_CRITIQUES:          # Track critiques discarded by verifier/spec triage filters
     - SUBAGENT_ID: "conv-uuid"
       CRITIQUE: "Subjective styling suggestion"
       REASON: [REJECTED_SUBJECTIVE | REJECTED_OUT_OF_SCOPE | REJECTED_FAKE_FAILURE | REJECTED_CASCADE_GUARD]
   LOOPS:
     - LOOP: 1
-      RESTORED_FROM_LOOP: 0    # Optional: loop index j restored from on rollback (defaults to N/A)
+      RESTORED_FROM_LOOP: null # Optional: loop index j restored from on rollback (defaults to null)
       TARGETS_ADDRESSED:
         - R1
       ERROR_METRIC: 0          # Proxy error count d_p(S_k)
@@ -176,9 +177,9 @@ AUDIT  ──→ ITERATE   (if ledger has PENDING items)
        ├──→ AUDIT      (if loop budget/oscillation is detected and autonomous rollback succeeds)
        └─→ SWEEP     (if ledger is empty)
  
-ITERATE ─→ AUDIT     (once all ledger items are RESOLVED and (CURRENT_LOOP <= K_MAX or CONSECUTIVE_CLEAN_SWEEPS > 0))
+ITERATE ─→ AUDIT     (once all ledger items are RESOLVED and (CURRENT_LOOP - LAST_RESTORED_LOOP <= K_MAX or CONSECUTIVE_CLEAN_SWEEPS > 0))
         ├──→ CLARIFY   (if unexpected environment/dependency ambiguities occur mid-run)
-        └─→ HALT     (if CURRENT_LOOP > K_MAX and CONSECUTIVE_CLEAN_SWEEPS == 0, loop oscillation is detected, or rollback fails)
+        └─→ HALT     (if CURRENT_LOOP - LAST_RESTORED_LOOP > K_MAX and CONSECUTIVE_CLEAN_SWEEPS == 0, loop oscillation is detected, or rollback fails)
  
 SWEEP  ──→ AUDIT     (if a sweep discovers new issues, or if sweeps pass but limits not met)
        └─→ REPORT    (once CONSECUTIVE_CLEAN_SWEEPS = M_SWEEP and CURRENT_LOOP >= N_MIN, or via Convergence Shortcut)
@@ -214,10 +215,11 @@ Exhaustively analyze the artifact across four dimensions to identify how to achi
 At the start of the audit phase:
 1. Increment `CURRENT_LOOP` by 1 (representing a new loop cycle $k$) at the start of every audit phase (except when returning from `CLARIFY` within the same loop).
 2. Run audit tools and populate `REF_LEDGER` with all discovered targets.
-3. Update the `TRACE.LOOPS` list in the active sketch file. To ensure mathematical correctness and avoid blind convergence calculations, metrics MUST be calculated and recorded at the END of the AUDIT phase (after all findings are populated in the ledger, but before transitioning to ITERATE or commencing edits):
+3. Update the `TRACE.LOOPS` list in the active sketch file. If `TRACE.LAST_RESTORED_LOOP` > 0, set `RESTORED_FROM_LOOP` of the current loop entry to `TRACE.LAST_RESTORED_LOOP`. To ensure mathematical correctness and avoid blind convergence calculations, metrics MUST be calculated and recorded at the END of the AUDIT phase (after all findings are populated in the ledger, but before transitioning to ITERATE or commencing edits):
    - **ERROR_METRIC ($d_p$):** Record the proxy error metric $d_p(\mathbf{S}_k)$ defined as the count of unresolved (`PENDING` or `IN_PROGRESS`) items in `REF_LEDGER`.
    - **CONVERGENCE_RATE ($\rho_k$):** Calculate and record the convergence rate $\rho_k = \frac{d_p(\mathbf{S}_k)}{d_p(\mathbf{S}_{k-1})}$. If $k = 1$, $d_p(\mathbf{S}_{k-1})$ refers to the initial state error $d_p(\mathbf{S}_0)$. If $k = 1$ or if $d_p(\mathbf{S}_{k-1}) = 0$, set $\rho_k = 0.0$ if $d_p(\mathbf{S}_k) = 0$, and $\rho_k = \infty$ (or `N/A`) if $d_p(\mathbf{S}_k) > 0$.
-   - **TRACKED_WORKSPACE_HASHES:** Compute and record the SHA-256 hashes of target files (`CTX.TARGET_ARTIFACTS`), test files (`CTX.TEST_FILES`), and any modified files returned by `git status --porcelain` (excluding files inside the `.sketches/` directory). If a file exists on the filesystem, record its SHA-256 hash. If a file has been deleted in the working tree, record its hash as the sentinel value `"ABSENT"`. This avoids scanning the entire repository tree while safely capturing all localized workspace state changes.
+   - **ROLLBACK_RETRY_COUNT Reset:** If $d_p(\mathbf{S}_k)$ < $d_p(\mathbf{S}_{k-1})$, progress has been made; reset `ROLLBACK_RETRY_COUNT` to 0.
+   - **TRACKED_WORKSPACE_HASHES:** Compute and record the SHA-256 hashes of target files (`CTX.TARGET_ARTIFACTS`), test files (`CTX.TEST_FILES`), and any files modified in the current branch attempt (resolved using `git diff --name-only TRACE.INITIAL_STATE_COMMIT HEAD`). If a file exists on the filesystem, record its SHA-256 hash. If a file has been deleted in the working tree, record its hash as the sentinel value `"ABSENT"`. This avoids scanning the entire repository tree while safely capturing all localized workspace state changes.
    - **CORE_PREMISE_VERIFICATION:** Challenge the underlying design before continuing. If a design choice is determined to be fundamentally flawed ("stupid"), log the premise failure in the sketch, and immediately transition to `HALT` (in both interactive and autonomous modes) to prevent turf-polishing via automated assumptions.
 
 **Sibling Skills Consultation:**
@@ -291,12 +293,12 @@ Once the ledger is empty:
      - Reset `ROLLBACK_RETRY_COUNT` to 0.
      - **Convergence Shortcut:** If this is loop 1 (`CURRENT_LOOP` = 1), the initial audit was clean, and all subagents pass, the codebase has converged. Transition directly to `REPORT` (bypassing `N_MIN`).
      - If `CONSECUTIVE_CLEAN_SWEEPS` < `M_SWEEP` or `CURRENT_LOOP` < `N_MIN`:
-       - Transition to `AUDIT` to run another sweep cycle. To ensure diversity on unchanged code, the Meta-Auditor must choose different audit angles or perturb/alter the subagent personas (e.g. increase temperature or change persona roles).
+       - Transition to `AUDIT` to run another sweep cycle. Reset `META_AUDITOR_STATUS` to `PENDING`. To ensure diversity on unchanged code, the Meta-Auditor must choose different audit angles or perturb/alter the subagent personas (e.g. increase temperature or change persona roles).
      - If `CONSECUTIVE_CLEAN_SWEEPS` >= `M_SWEEP` and `CURRENT_LOOP` >= `N_MIN`:
        - Transition to `REPORT`. (Transition to `REPORT` is strictly forbidden if any code or documentation changes have occurred since the last sweep pass, or if `CONSECUTIVE_CLEAN_SWEEPS` has been reset to `0`).
 
 ### 6. AUTONOMOUS BACK-TRACKING & OSCILLATION RECOVERY
-If at any loop boundary `CURRENT_LOOP` exceeds $K_{max}$ (and `CONSECUTIVE_CLEAN_SWEEPS` == 0), or if oscillation is detected (k >= 2 and $\rho_k \ge 1$ when $d_p(\mathbf{S}_{k-1}) > 0$ and $d_p(\mathbf{S}_k) > 0$, or if codebase states exhibit exact tracked workspace file hash equality $\mathbf{S}_k = \mathbf{S}_j$ for any prior loop state $1 \le j < k$ stored in `TRACKED_WORKSPACE_HASHES` when `CONSECUTIVE_CLEAN_SWEEPS` == 0 and not (j == TRACE.LOOPS[k].RESTORED_FROM_LOOP and TRACE.LOOPS[k].COMMITS is empty)):
+If at any loop boundary `CURRENT_LOOP` - LAST_RESTORED_LOOP exceeds $K_{max}$ (and `CONSECUTIVE_CLEAN_SWEEPS` == 0), or if oscillation is detected (k >= 2 and $\rho_k \ge 1$ when $d_p(\mathbf{S}_{k-1}) > 0$ and $d_p(\mathbf{S}_k) > 0$ and TRACE.LOOPS[k].RESTORED_FROM_LOOP is null, or if codebase states exhibit exact tracked workspace file hash equality $\mathbf{S}_k = \mathbf{S}_j$ for any prior loop state $1 \le j < k$ stored in `TRACKED_WORKSPACE_HASHES` when `CONSECUTIVE_CLEAN_SWEEPS` == 0 and not (j == TRACE.LOOPS[k].RESTORED_FROM_LOOP and TRACE.LOOPS[k].COMMITS is empty)):
 - **Interactive Mode:** Halt and transition to `HALT`.
 - **Autonomous Mode:**
   1. Identify the target loop index $j$ (an integer, where $j < k$) in `TRACE.LOOPS` where all regression tests passed. If the codebase starts with pre-existing test failures that the agent is trying to resolve, select the target loop index $j$ that achieved the lowest proxy error metric $d_p(\mathbf{S}_j)$, or default to `0` (representing the initial state $S_0$ before any modifications). Resolve the target commit hash by selecting the last commit hash recorded in the `COMMITS` list of the `TRACE.LOOPS` entry where `LOOP == j`, or default to `TRACE.INITIAL_STATE_COMMIT` if $j = 0$. If the `COMMITS` list is empty for loop $j$ (e.g. it was a clean sweep pass), search backwards for the most recent preceding loop entry (where `LOOP < j`) containing a valid commit hash, or default to `TRACE.INITIAL_STATE_COMMIT` if none exists.
@@ -309,7 +311,7 @@ If at any loop boundary `CURRENT_LOOP` exceeds $K_{max}$ (and `CONSECUTIVE_CLEAN
      ```
      This completely isolates the new attempt and preserves the entire history of the previous attempt branch (`-attempt-(N-1)`) for complete workspace auditability, satisfying global history invariants.
   4. Update `CTX.AGENT_BRANCH` to `agent/refine-<topic>-attempt-N` in the active sketch file.
-  5. Do NOT reset `CURRENT_LOOP` in the active sketchpad (it must increment monotonically to preserve linear audit history). Instead, log the target loop index $j$ as metadata (e.g. `RESTORED_FROM_LOOP: j`) in the next loop entry, and reset `CONSECUTIVE_CLEAN_SWEEPS` to `0` in the sketchpad. Run the sketch synchronization script from the main repo to commit this state update:
+  5. Set `TRACE.LAST_RESTORED_LOOP` to $j$ in the active sketchpad, and reset `CONSECUTIVE_CLEAN_SWEEPS` to `0` in the sketchpad. Run the sketch synchronization script from the main repo to commit this state update:
      ```bash
      ./skills/refine/scripts/sync_sketch.py "docs(sketch): rollback to loop j via branch attempt N"
      ```
@@ -345,6 +347,6 @@ Before generating the final report, execute a post-mortem review of the refineme
 5. **SKETCH_SYNCHRONIZATION:** The active sketchpad ledger in `.sketches/` must be updated and committed in the subrepo at every loop boundary. Do not bundle multiple loops of code modifications and sketch pad updates into a single commit. Automate commits using `./skills/refine/scripts/sync_sketch.py`.
 6. **COMMIT_HYGIENE:** All commits must strictly conform to [commit-hygiene](../commit-hygiene/SKILL.md).
 7. **OSCILLATION_BREAKING:** Detect and break limit cycles autonomously using target file hash matches. If in autonomous mode, check out a new attempt branch from the last stable commit in the isolated worktree and perturb prompt parameters before retrying. In interactive mode, halt immediately.
-8. **EXIT_GATE_INVARIANCE:** Transitions to `REPORT` are strictly forbidden unless initiated from a passing `SWEEP` state where `CONSECUTIVE_CLEAN_SWEEPS >= M_SWEEP`. Bypassing sweeps after code-modifying iterations is a protocol violation.
+8. **EXIT_GATE_INVARIANCE:** Transitions to `REPORT` are strictly forbidden unless initiated from a passing `SWEEP` state where `CONSECUTIVE_CLEAN_SWEEPS >= M_SWEEP`, or via the Convergence Shortcut. Bypassing sweeps after code-modifying iterations is a protocol violation.
 9. **GIT_HISTORY_INVARIANCE:** History-altering git commands (such as `reset`, `rebase`, or `commit --amend` on any commit in any user-facing branch) are strictly forbidden across both the main repository and the `.sketches/` sub-repository. Backtracking via attempt branches preserves the linear history of all attempts and satisfies global history invariance.
 10. **PREMISE_CHALLENGING:** Never refine a design without challenging its core premises and assumptions first. If the design is fundamentally flawed or over-engineered, halt execution immediately instead of polishing a "turd."
