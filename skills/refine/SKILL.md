@@ -262,7 +262,7 @@ Once the ledger is empty:
      - If `CONSECUTIVE_CLEAN_SWEEPS` >= `M_SWEEP` and `CURRENT_LOOP` >= `N_MIN`, transition to `REPORT`.
 
 ### 6. AUTONOMOUS BACK-TRACKING & OSCILLATION RECOVERY
-If at any loop boundary `CURRENT_LOOP` exceeds $K_{max}$, or if oscillation is detected ($\mathbf{S}_k = \mathbf{S}_j$ for any prior loop state $0 \le j < k$ via exact target and test file hashes stored in `TARGET_AND_TEST_HASHES`):
+If at any loop boundary `CURRENT_LOOP` exceeds $K_{max}$, or if oscillation is detected ($\rho_k \ge 1$ when $d_p(\mathbf{S}_k) > 0$, or if codebase states exhibit exact target and test file hash equality $\mathbf{S}_k = \mathbf{S}_j$ for any prior loop state $0 \le j < k$ stored in `TARGET_AND_TEST_HASHES`):
 - **Interactive Mode:** Halt and transition to `HALT`.
 - **Autonomous Mode:**
   1. Identify the target loop index $j$ in `TRACE.LOOPS` where all regression tests passed. If the codebase starts with pre-existing test failures that the agent is trying to resolve, select the loop index $j$ that achieved the lowest proxy error metric $d_p(\mathbf{S}_j)$, or default to the starting commit of the refinement session ($S_0$). Resolve the target commit hash; if the `COMMITS` list is empty for loop $j$ (e.g. it was a clean sweep pass), search backwards for the most recent preceding loop entry containing a valid commit hash, or default to the starting commit if none exists.
