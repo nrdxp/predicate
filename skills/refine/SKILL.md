@@ -75,7 +75,7 @@ The exact parameter bounds are initialized in the `ABSORB` phase based on task c
 ```yaml
 # 1. METADATA
 TOPIC: "topic-slug"            # Topic slug for the refinement session
-STATUS: [ABSORB | CLARIFY | AUDIT | ITERATE | SWEEP | REPORT | HALT]
+STATUS: [ABSORB | CLARIFY | AUDIT | ITERATE | SWEEP | REVIEW | REPORT | HALT]
 UNCERTAINTY: [0.0-1.0]       # Residual uncertainty. Must be 0.0 to proceed to AUDIT.
 
 # 2. CONTEXT
@@ -86,6 +86,8 @@ CTX:
     - "path/to/test/file"
   SPECIFICATION_FILES:
     - "path/to/specification/file"
+  ARCHITECTURAL_DOCS:
+    - "path/to/architectural/doc"   # Mapped architectural docs (README, ADR, etc.)
   GOAL: "Verbatim objective statement"
   MODE: [INTERACTIVE | AUTONOMOUS]  # Interactive requires human gates; Autonomous runs under /goal
   PREMISE_BYPASS: [TRUE | FALSE]     # If TRUE, bypass premise verification halts (defaults to FALSE)
@@ -96,6 +98,7 @@ CTX:
     N_MIN: 4                 # Adaptive loop limit scaled to task complexity
     M_SWEEP: 4               # Adaptive sweep limit scaled to task complexity
     K_MAX: 12                # Adaptive divergence boundary
+    REVIEW_BUDGET: 3         # Max maintainer review cycles before halting
     SIBLING_SKILLS:          # Sibling skills loaded and consulted during audit
       - robust-testing
       - engineering
@@ -112,7 +115,20 @@ REF_LEDGER:
     STATUS: [PENDING | IN_PROGRESS | RESOLVED]
     EVIDENCE: "Verification results / test run outputs"
 
-# 4. ADVERSARIAL SWEEP SYSTEM (MBSS)
+# 4. DYNAMIC REVIEW LEDGER (PR REVIEW)
+# Track all nitpicks and design critique targets identified during the REVIEW phase.
+# All items must be RESOLVED before human sign-off and merge.
+REVIEW_LEDGER:
+  - ID: N1
+    AXIS: [CORRECTNESS | API_SUFFICIENCY | COMPLIANCE | EDGE_CASES]
+    MAINTAINER: [maintainer-architecture | maintainer-complexity | maintainer-documentation]
+    TARGET: "symbol_or_line_or_file"
+    STATEMENT: "Nitpick/critique details"
+    STATUS: [PENDING | RESOLVED]
+    RESOLUTION: "commit_hash or text justification"
+    RE_REVIEW_STATUS: [REJECTED | APPROVED]
+
+# 5. ADVERSARIAL SWEEP SYSTEM (MBSS)
 # Track the dynamically identified adversarial review angles and subagent sessions.
 MBSS_PLAN:
   META_AUDITOR_STATUS: [PENDING | APPROVED | BYPASSED_AUTONOMOUS]  # Bypassed in autonomous mode if programmed criteria met
@@ -123,12 +139,13 @@ MBSS_PLAN:
       SUBAGENT_ID: "conv-uuid"
       STATUS: PENDING          # [PENDING | PASS | FAIL]
 
-# 5. ITERATIVE TRACE
+# 6. ITERATIVE TRACE
 # Live execution metrics updated at each loop boundary
 TRACE:
   CURRENT_LOOP: 0              # Current iteration index (k)
   INITIAL_STATE_COMMIT: "sha256_hash"  # The commit hash of S0 before any modifications
   CONSECUTIVE_CLEAN_SWEEPS: 0  # Number of consecutive clean sweeps completed
+  REVIEW_CYCLE_COUNT: 0        # Current maintainer review cycle index
   ROLLBACK_RETRY_COUNT: 0      # Consecutive rollbacks at current state (resets on progress, capped at 3)
   TOTAL_ROLLBACK_COUNT: 0      # Cumulative rollbacks executed during the entire run
   LAST_RESTORED_LOOP: 0        # Loop index j of the last restored state (defaults to 0)
@@ -148,11 +165,7 @@ TRACE:
         "path/to/file": "sha256_hash"
       VERIFICATION: "Compiler/linter/test outputs"
       COMMITS:
-```
-
----
-
-## State Transitions & Definitions
+``## State Transitions & Definitions
 
 ```
 ABSORB ──→ CLARIFY   (if UNCERTAINTY > 0.0)
@@ -172,13 +185,18 @@ ITERATE ─→ AUDIT     (once all ledger items are RESOLVED and (CURRENT_LOOP -
         └─→ HALT     (if CURRENT_LOOP - LAST_RESTORED_LOOP > K_MAX and CONSECUTIVE_CLEAN_SWEEPS == 0, loop oscillation is detected, or rollback fails)
  
 SWEEP  ──→ AUDIT     (if a sweep discovers new issues, or if sweeps pass but limits not met)
-       └─→ REPORT    (once CONSECUTIVE_CLEAN_SWEEPS = M_SWEEP and CURRENT_LOOP >= N_MIN, or via Convergence Shortcut)
+       └─→ REVIEW    (once CONSECUTIVE_CLEAN_SWEEPS = M_SWEEP and CURRENT_LOOP >= N_MIN, or via Convergence Shortcut)
+
+REVIEW ──→ ITERATE   (if review findings require code/doc modifications; resets sweep counters)
+       ├──→ HALT     (if review budget is exceeded or oscillation detected)
+       └─→ REPORT    (once all maintainers approve, leading to human final merge decision)
 ```
 
 ### 1. ABSORB
 Ingest the target artifact, the optimization goals, and any relevant specs or test suites. Setup the tracking ledger in the active sketch file.
 - **Mode Selection:** Set `CTX.MODE` to `AUTONOMOUS` if executing under a long-running background worker (e.g. `/goal`), otherwise default to `INTERACTIVE`.
 - **Ambiguity Gate:** If there is ambiguity in the goal or scope, set `UNCERTAINTY` > 0.0 and transition to `CLARIFY`.
+- **Architectural Documentation Mapping:** Locate and map all relevant design/architectural documents (e.g., `README.md`, ADRs, docs in `docs/`) and log their relative paths in `CTX.ARCHITECTURAL_DOCS`.
 - **Worktree Setup:** 
   Initialize a dedicated git worktree at `.worktrees/refine-<topic>` based on the active HEAD and create a private branch attempt:
   ```bash
@@ -189,9 +207,9 @@ Ingest the target artifact, the optimization goals, and any relevant specs or te
 
 **Adaptive Parameter Bounds Initialization:**
 Evaluate the complexity of the target artifact and goal. Scale the limits dynamically:
-- *Simple (local edits, docs):* Set $N_{min}=3$, $M_{sweep}=3$, $K_{max}=8$.
-- *Medium (single-module refactors, test suite updates):* Set $N_{min}=4$, $M_{sweep}=3$, $K_{max}=10$.
-- *Complex (core logic changes, protocol designs, multi-file refinements):* Set $N_{min} \ge 4$, $M_{sweep} \ge 4$, $K_{max} \ge 12$.
+- *Simple (local edits, docs):* Set $N_{min}=3$, $M_{sweep}=3$, $K_{max}=8$, $REVIEW\_BUDGET=2$.
+- *Medium (single-module refactors, test suite updates):* Set $N_{min}=4$, $M_{sweep}=3$, $K_{max}=10$, $REVIEW\_BUDGET=3$.
+- *Complex (core logic changes, protocol designs, multi-file refinements):* Set $N_{min} \ge 4$, $M_{sweep} \ge 4$, $K_{max} \ge 12$, $REVIEW\_BUDGET \ge 3$.
 
 Log these parameters and their complexity rationale in the sketch.
 
@@ -205,7 +223,8 @@ Exhaustively analyze the artifact across four dimensions to identify how to achi
 At the start of the audit phase:
 1. Increment `CURRENT_LOOP` by 1 (representing a new loop cycle $k$) at the start of every audit phase (except when returning from `CLARIFY` within the same loop).
 2. Run audit tools and populate `REF_LEDGER` with all discovered targets.
-3. Update the `TRACE.LOOPS` list in the active sketch file. If `TRACE.JUST_RESTORED` is not null, set `RESTORED_FROM_LOOP` of the current loop entry to `TRACE.JUST_RESTORED` and then reset `TRACE.JUST_RESTORED` to `null` in the active sketchpad. To ensure mathematical correctness and avoid blind convergence calculations, metrics MUST be calculated and recorded at the END of the AUDIT phase (after all findings are populated in the ledger, but before transitioning to ITERATE or commencing edits):
+3. **Architectural Documentation Audit:** Audit the codebase modifications against the mapped `CTX.ARCHITECTURAL_DOCS`. If code changes introduce architectural drift (e.g., public API modifications, new module coupling, changed invariants), the refiner MUST log documentation tasks (e.g. `R_DOC_1`) in the `REF_LEDGER` to update the documents during `ITERATE`.
+4. Update the `TRACE.LOOPS` list in the active sketch file. If `TRACE.JUST_RESTORED` is not null, set `RESTORED_FROM_LOOP` of the current loop entry to `TRACE.JUST_RESTORED` and then reset `TRACE.JUST_RESTORED` to `null` in the active sketchpad. To ensure mathematical correctness and avoid blind convergence calculations, metrics MUST be calculated and recorded at the END of the AUDIT phase (after all findings are populated in the ledger, but before transitioning to ITERATE or commencing edits):
    - **ERROR_METRIC ($d_p$):** Record the proxy error metric $d_p(\mathbf{S}_k)$ defined as the count of unresolved (`PENDING` or `IN_PROGRESS`) items in `REF_LEDGER`.
    - **CONVERGENCE_RATE ($\rho_k$):** Calculate and record the convergence rate $\rho_k = \frac{d_p(\mathbf{S}_k)}{d_p(\mathbf{S}_{k-1})}$. If $k = 1$, $d_p(\mathbf{S}_{k-1})$ refers to the initial state error $d_p(\mathbf{S}_0)$. If $k = 1$ or if $d_p(\mathbf{S}_{k-1}) = 0$, set $\rho_k = 0.0$ if $d_p(\mathbf{S}_k) = 0$, and $\rho_k = \infty$ (or `N/A`) if $d_p(\mathbf{S}_k) > 0$.
    - **ROLLBACK_RETRY_COUNT Reset:** If $d_p(\mathbf{S}_k)$ < $d_p(\mathbf{S}_{k-1})$ and `TRACE.LOOPS[CURRENT_LOOP].RESTORED_FROM_LOOP` is null, progress has been made; reset `ROLLBACK_RETRY_COUNT` to 0.
@@ -232,7 +251,7 @@ Counter the additive bias of self-correction loops. LLMs tend to over-engineer s
 - *Note:* Pruning applies aggressively to any agent-added complexities. Do not delete pre-existing public API surfaces unless explicitly requested by `CTX.GOAL` or verified as completely unused by downstream code.
 - **Grounded Ledger Invariant:** You must only add targets to the `REF_LEDGER` that are deterministically grounded. Socratic checks and sibling skill reviews (e.g., Hickey simplicity, Lowy volatility) may guide design reasoning, but cannot spawn ledger entries unless they are converted into concrete, reproducible test assertions, spec contract requirements, or compiler/linter rules. Any target added to the ledger by the refiner must be actively verified by executing the compiler, linter, or test runner in the workspace; unverified or hypothesized tool errors are strictly prohibited.
 
-If no targets are found in `REF_LEDGER`, transition to `SWEEP` (transitioning directly to `REPORT` from `AUDIT` is strictly prohibited under any circumstances, even if the initial audit was completely clean). Otherwise, transition to `ITERATE`.
+If no targets are found in `REF_LEDGER`, transition to `SWEEP` (transitioning directly to `REVIEW` or `REPORT` from `AUDIT` is strictly prohibited under any circumstances, even if the initial audit was completely clean). Otherwise, transition to `ITERATE`.
 
 ### 4. ITERATE
 At the start of `ITERATE`, reset `CONSECUTIVE_CLEAN_SWEEPS` to `0` (since codebase modifications are about to occur).
@@ -282,13 +301,39 @@ Once the ledger is empty:
    - If *all* subagents report `PASS`:
      - Increment `CONSECUTIVE_CLEAN_SWEEPS` by 1.
      - Reset `ROLLBACK_RETRY_COUNT` to 0.
-     - **Convergence Shortcut:** If this is loop 1 (`CURRENT_LOOP` = 1), the initial audit was clean, and all subagents pass, the codebase has converged. Transition directly to `REPORT` (bypassing `N_MIN`).
+     - **Convergence Shortcut:** If this is loop 1 (`CURRENT_LOOP` = 1), the initial audit was clean, and all subagents pass, the codebase has converged. Transition directly to `REVIEW` (bypassing `N_MIN`).
      - If `CONSECUTIVE_CLEAN_SWEEPS` < `M_SWEEP` or `CURRENT_LOOP` < `N_MIN`:
        - Transition to `AUDIT` to run another sweep cycle. Reset `META_AUDITOR_STATUS` to `PENDING`. To ensure diversity on unchanged code, the Meta-Auditor must choose different audit angles or perturb/alter the subagent personas (e.g. increase temperature or change persona roles).
      - If `CONSECUTIVE_CLEAN_SWEEPS` >= `M_SWEEP` and `CURRENT_LOOP` >= `N_MIN`:
-       - Transition to `REPORT`. (Transition to `REPORT` is strictly forbidden if any code or documentation changes have occurred since the last sweep pass, or if `CONSECUTIVE_CLEAN_SWEEPS` has been reset to `0`).
+       - Transition to `REVIEW`. (Transition to `REVIEW` is strictly forbidden if any code or documentation changes have occurred since the last sweep pass, or if `CONSECUTIVE_CLEAN_SWEEPS` has been reset to `0`).
 
-### 6. AUTONOMOUS BACK-TRACKING & OSCILLATION RECOVERY
+### 6. REVIEW (Hostile Maintainer PR Review)
+This state models a formal Pull Request review under extremely strict and hostile maintainers.
+1. Increment `REVIEW_CYCLE_COUNT` by 1.
+2. **Spawn Hostile Maintainers:** Spawn 3 independent subagents initialized with specific, critical reviewer personas representing codebase owners. They review the final changeset (the `git diff` against the starting commit `TRACE.INITIAL_STATE_COMMIT` inside the worktree) and mapped `CTX.ARCHITECTURAL_DOCS`.
+   - **Maintainer 1 (`maintainer-architecture`):**
+     - *Role:* Architecture & API Coherence Cop.
+     - *Rubric:* Critique module coupling, boundary cleanliness, naming consistency, adherence to Hickey simplicity (complection) and Lowy volatility (axes of change). Reject redundant classes/functions and leaky boundaries.
+   - **Maintainer 2 (`maintainer-complexity`):**
+     - *Role:* Complexity & Performance Auditor.
+     - *Rubric:* Critique line counts, cognitive overhead, redundant loops/conditions, over-engineering, unnecessary allocations.
+   - **Maintainer 3 (`maintainer-documentation`):**
+     - *Role:* Quality & Documentation Custodian.
+     - *Rubric:* Critique documentation alignment (README, ADR, etc.), test coverage, edge cases, type-safety coverage.
+   - **Isolation Invariant:** Spawns must operate in mutually isolated context windows. They cannot see the refiner's internal thinking trace or each other's rubrics or findings.
+3. **Evaluate Maintainer Feedback:**
+   - Maintainers output their findings in structured format. The refiner merges these findings into `REVIEW_LEDGER` as `PENDING`.
+4. **Address Ledger Items:** For each nit, the refiner must either:
+   - **Commit Fix:** Edit code or architectural docs in the worktree directory, run linters/tests, commit changes, and record the commit hash in the ledger item `RESOLUTION`.
+   - **justification:** Provide a formal, evidence-backed text explanation in `RESOLUTION` explaining why the code/architecture must be maintained in its current form.
+   - **Triage Transition Rules:**
+     - If *any* code or documentation modification is made, the refiner MUST transition back to `ITERATE` (resetting all sweep counters) to compile, check lint, and run the adversarial validation sweeps (`SWEEP`) on the updated codebase state before returning to `REVIEW`.
+     - If *only* text justifications are written, the refiner remains in the `REVIEW` state and requests re-evaluation from the maintainers.
+5. **Re-Review Gate:** Maintainers review the updates. If they accept the fix or the justification, they mark the comment as `APPROVED`. If they reject, it stays `PENDING` and the refiner must attempt a new resolution.
+6. **Cycle Budget Gate:** If `REVIEW_CYCLE_COUNT` > `CTX.CONSTRAINTS.REVIEW_BUDGET` and unresolved ledger items remain, transition to `HALT` and log a review budget exhaustion report.
+7. Once all items in `REVIEW_LEDGER` are marked `APPROVED` by all maintainers, transition to `REPORT`.
+
+### 7. AUTONOMOUS BACK-TRACKING & OSCILLATION RECOVERY
 If at any loop boundary `CURRENT_LOOP` - LAST_RESTORED_LOOP exceeds $K_{max}$ (and `CONSECUTIVE_CLEAN_SWEEPS` == 0), or if oscillation is detected (k >= 2 and $\rho_k \ge 1$ when $d_p(\mathbf{S}_{k-1}) > 0$ and $d_p(\mathbf{S}_k) > 0$ and TRACE.LOOPS[k].RESTORED_FROM_LOOP is null, or if codebase states exhibit exact tracked workspace file hash equality $\mathbf{S}_k = \mathbf{S}_j$ for any prior loop state $1 \le j < k$ stored in `TRACKED_WORKSPACE_HASHES` when `CONSECUTIVE_CLEAN_SWEEPS` == 0 and j != TRACE.LOOPS[k].RESTORED_FROM_LOOP):
 - **Interactive Mode:** Halt and transition to `HALT`.
 - **Autonomous Mode:**
@@ -311,21 +356,34 @@ If at any loop boundary `CURRENT_LOOP` - LAST_RESTORED_LOOP exceeds $K_{max}$ (a
   8. Apply Reflective Attempt Mutation (GEPA-inspired): Analyze the execution trace, modified diffs, and failures of the discarded branch attempt(s). Formulate an explicit list of "what not to do" (negative exemplars) and target modifications, documenting this reflection in the new loop entry. Perturb the Initial Boundary Condition (IBC) for the next attempt: lower the generation temperature, inject the negative exemplars into the reasoning context, or modify the subagent critique personas.
   9. Transition to `AUDIT` and resume.
 
-### 7. HALT
-Freeze the execution trajectory immediately. Record a failure report detailing the cause of the halt (unresolved ambiguity, budget exhaustion, rollback failure, or loop oscillation) and return control to the human developer for manual intervention.
+### 8. HALT
+Freeze the execution trajectory immediately. Record a failure report detailing the cause of the halt (unresolved ambiguity, budget exhaustion, rollback failure, review budget exhaustion, or loop oscillation) and return control to the human developer for manual intervention.
+- **Cleanup Invariant:** Before completing the transition to `HALT`, clean up and remove the git worktree to leave the host environment in a pristine state:
+  ```bash
+  git worktree remove --force .worktrees/refine-<topic>
+  ```
 
-### 8. REPORT
+### 9. REPORT
 Before generating the final report, execute a post-mortem review of the refinement process itself:
 1. **Spawn Post-Mortem Process Auditor:** Spawn a final, independent adversarial review subagent:
    - **Role:** Adversarial Process Auditor
    - **Task:** Retrieve and analyze the entire parent conversation history (`transcript.jsonl` under `<appDataDir>/brain/<conversation-id>/.system_generated/logs/`) and git commit history of the refinement run. Critically evaluate the process: where did the refiner overcorrect, loop inefficiently, deviate from scope, or miss structural simplifications? What could have been done better?
    - **Output:** Return a structured critique outlining process inefficiencies and retrospective recommendations.
-2. **Apply Converged State:** Merge the final successful agent branch (e.g. `agent/refine-<topic>-attempt-N`) back into the user's active main branch, or format it as a single, clean conventional commit. Clean up and remove the git worktree:
-   ```bash
-   git worktree remove --force .worktrees/refine-<topic>
-   ```
-3. **Compile Report:** Compile and output the final refinement report using the template at [templates/REFINE.md](../../templates/REFINE.md). Embed the adversarial post-mortem audit findings and recommendations directly in the report.
-4. **Record Final Trace:** Before transitioning to `REPORT`, record a final trace entry in `TRACE.LOOPS` for loop $k+1$ (the final state $\mathbf{S}^*$) with $d_p(\mathbf{S}^*) = 0$ and `VERIFICATION: "Fixed-point reached. Consecutive clean sweeps verified."` to demonstrate complete convergence.
+2. **Human Approval Gate:** Present the finalized sign-off, approvals, and diffs to the human developer (nrd).
+   - If approved by the human:
+     - Merge the final successful agent branch (e.g. `agent/refine-<topic>-attempt-N`) back into the active main branch, or format it as a single, clean conventional commit.
+     - Clean up and remove the git worktree:
+       ```bash
+       git worktree remove --force .worktrees/refine-<topic>
+       ```
+     - Compile and output the final report using the template at `templates/REFINE.md`. Embed the maintainer review results and the post-mortem findings.
+     - Record a final trace entry in `TRACE.LOOPS` for loop $k+1$ (the final state $\mathbf{S}^*$) with $d_p(\mathbf{S}^*) = 0$ and `VERIFICATION: "Fixed-point reached. Consecutive clean sweeps verified."` to demonstrate complete convergence.
+   - If rejected by the human:
+     - Clean up and remove the git worktree:
+       ```bash
+       git worktree remove --force .worktrees/refine-<topic>
+       ```
+     - Transition to `HALT`.
 
 ---
 
@@ -338,6 +396,9 @@ Before generating the final report, execute a post-mortem review of the refineme
 5. **SKETCH_SYNCHRONIZATION:** The active sketchpad ledger in `.sketches/` must be updated and committed in the subrepo at every loop boundary. Do not bundle multiple loops of code modifications and sketch pad updates into a single commit. Automate commits using `./skills/refine/scripts/sync_sketch.py`.
 6. **COMMIT_HYGIENE:** All commits must strictly conform to [commit-hygiene](../commit-hygiene/SKILL.md).
 7. **OSCILLATION_BREAKING:** Detect and break limit cycles autonomously using target file hash matches. If in autonomous mode, check out a new attempt branch from the last stable commit in the isolated worktree and perturb prompt parameters before retrying. In interactive mode, halt immediately.
-8. **EXIT_GATE_INVARIANCE:** Transitions to `REPORT` are strictly forbidden unless initiated from a passing `SWEEP` state where `CONSECUTIVE_CLEAN_SWEEPS >= M_SWEEP`, or via the Convergence Shortcut (which itself requires running the sweep). Bypassing sweeps or skipping the spawning of adversarial subagents is a fatal protocol violation.
+8. **EXIT_GATE_INVARIANCE:** Transitions to `REPORT` are strictly forbidden unless initiated from a passing `REVIEW` state where all maintainers have approved all items in the `REVIEW_LEDGER`, followed by the human final merge decision.
 9. **GIT_HISTORY_INVARIANCE:** History-altering git commands (such as `reset`, `rebase`, or `commit --amend` on any commit in any user-facing branch) are strictly forbidden across both the main repository and the `.sketches/` sub-repository. Backtracking via attempt branches preserves the linear history of all attempts and satisfies global history invariance.
 10. **PREMISE_CHALLENGING:** Never refine a design without challenging its core premises and assumptions first. If the design is fundamentally flawed or over-engineered, halt execution immediately instead of polishing a "turd."
+11. **TIGHT_WORKTREE_LIFECYCLE:** The git worktree MUST be cleaned up and removed using `git worktree remove --force .worktrees/refine-<topic>` on any exit path (`REPORT` or `HALT`), leaving the host repository clean and undisturbed.
+12. **HOSTILE_MAINTAINER_REVIEW:** You are required to submit changesets to a panel of independent, critical maintainer subagents representing codebase owners. They review code design, simplicity, and documentation. All comments in `REVIEW_LEDGER` must be resolved (via commits or justified rebuttals) and marked `APPROVED` before presenting the PR to the human.
+13. **DOCUMENTATION_ALIGNMENT:** Manage architectural documentation actively. You must audit code modifications against mapped `CTX.ARCHITECTURAL_DOCS` to identify and resolve document drift, committing documentation updates in the same attempt branch.
