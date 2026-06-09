@@ -3,6 +3,7 @@ import os
 import sys
 import re
 import subprocess
+import stat
 
 def run_git(args, cwd):
     res = subprocess.run(["git"] + args, cwd=cwd, capture_output=True, text=True)
@@ -12,9 +13,22 @@ def run_git(args, cwd):
     return res.stdout.strip()
 
 def main():
-    # Find repository root
+    # Find repository root by searching directories upwards for .git or .sketches
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    repo_root = os.path.abspath(os.path.join(script_dir, "..", "..", ".."))
+    current = os.path.abspath(script_dir)
+    repo_root = None
+    while True:
+        if os.path.exists(os.path.join(current, ".sketches")) or os.path.exists(os.path.join(current, ".git")):
+            repo_root = current
+            break
+        parent = os.path.dirname(current)
+        if parent == current:
+            break
+        current = parent
+        
+    if not repo_root:
+        repo_root = os.path.abspath(os.path.join(script_dir, "..", "..", ".."))
+        
     sketches_dir = os.path.join(repo_root, ".sketches")
     
     if not os.path.exists(sketches_dir):
@@ -64,9 +78,24 @@ def main():
         loop = "0"
         
         try:
+            # Security Checks: Avoid symlinks outside .sketches and non-regular files (FIFOs/pipes)
+            real_sketches_dir = os.path.realpath(sketches_dir)
+            real_file_path = os.path.realpath(full_path)
+            
+            # 1. Path traversal / symlink escape check
+            if not real_file_path.startswith(real_sketches_dir + os.sep) and real_file_path != real_sketches_dir:
+                print(f"Warning: Skipping {active_sketch} as it resolves outside .sketches boundary.", file=sys.stderr)
+                continue
+                
+            # 2. Regular file check (prevents hanging on Named Pipes / FIFOs)
+            file_stat = os.lstat(full_path)
+            if not stat.S_ISREG(file_stat.st_mode):
+                print(f"Warning: Skipping {active_sketch} as it is not a regular file.", file=sys.stderr)
+                continue
+
             # Bounded read (1MB) to prevent memory exhaustion on abnormally large markdown files,
             # while still allowing large YAML blocks containing workspace file hashes.
-            with open(full_path, "r", encoding="utf-8") as f:
+            with open(real_file_path, "r", encoding="utf-8") as f:
                 content = f.read(1024 * 1024)
                 
             yaml_match = re.search(r"^```yaml\s*\n(.*?)\n```", content, re.DOTALL | re.MULTILINE)
