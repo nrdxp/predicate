@@ -38,7 +38,7 @@ For a true contraction, $\rho_k \le q < 1$. If $d_p(\mathbf{S}_k) \to 0$, the sy
 ### Prefix-Induced Attractor Basin Bias
 Autoregressive Large Language Models do not generate tokens in a vacuum; they traverse a sequence probability landscape where each token step is conditioned on the historical prefix $\mathbf{S}_t$. When the same agent that modified the code also reviews it, the prefix $\mathbf{S}_t$ contains the refiner's internal steps, design rationale, and implicit assumptions. This warps the landscape to construct a deep **attractor basin** around the refiner's localized choices, mathematically biasing the walk to reinforce its own decisions.
 
-To break this self-congratulatory lock-in and achieve a non-delusional fixed point $\mathbf{S}^*$, validation must execute under **Multi-Boundary Subagent Sweeps (MBSS)**. We project the artifact's state space onto orthogonal axes of critique using independent subagents primed with distinct Initial Boundary Conditions (IBCs) that are completely blind to the refiner's internal trajectory history.
+To break this self-congratulatory lock-in and achieve a non-delusional fixed point $\mathbf{S}^*$, validation must execute under **Multi-Boundary Subagent Sweeps (MBSS)**. We project the artifact's state space onto orthogonal axes of critique using independent subagents primed with distinct Initial Boundary Conditions (IBCs) that are completely blind to the refiner's internal trajectory history and to each other's active rubrics or findings, preventing any collusive context leakage.
 
 ### The Accuracy-Correction Paradox (SCoRe Trajectory Guardrails)
 To prevent the system from degrading correct artifacts or entering overcorrection loops (editing a correct implementation into an incorrect one), we enforce strict **Deterministic Grounding**:
@@ -270,8 +270,8 @@ Once the ledger is empty:
      `"You must only report findings that can be demonstrated with a concrete, reproducible test scenario, a compiler error, a specific linter rule violation, or a documented specification contract violation. Banish all stylistic, aesthetic, or subjective suggestions."`
    - **Interactive Gate:** The sweep cannot proceed until the human approves the angles list and sets `META_AUDITOR_STATUS: APPROVED`.
    - **Autonomous Gate:** The Meta-Auditor's critique and updated angles are accepted programmatically. The system updates the angle definitions, sets `META_AUDITOR_STATUS: BYPASSED_AUTONOMOUS`, and transitions immediately.
-3. **Execute Isolated Subagent Audits:** For each approved angle, the refiner spawns an independent subagent in an isolated context:
-   - **IBC Setup:** Initialize the subagent with the specific custom prompt/persona approved by the Meta-Auditor, including the Grounded Critique Invariant.
+3. **Execute Isolated Subagent Audits:** For each approved angle, the refiner spawns an independent subagent in a mutually isolated context:
+   - **IBC Setup:** Initialize the subagent with the specific custom prompt/persona approved by the Meta-Auditor, including the Grounded Critique Invariant. The subagent MUST remain completely blind to the existence, active rubrics, or findings of all other parallel sweep angles to prevent cross-reviewer influence or collusive group-think.
    - **Task:** Critically review the modified files against its specific rubric and return findings in a strict machine-readable format:
      ```yaml
      status: [PASS | FAIL]
