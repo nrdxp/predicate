@@ -54,6 +54,8 @@ To ensure sequence generations converge to $\mathbf{S}^*$ rather than terminatin
 
 1. **Minimum Execution Loops ($N_{min}$):** The loop MUST execute at least $N_{min}$ iterations, even if no issues are initially visible.
    *Convergence Shortcut:* If the initial audit finds $d_p(\mathbf{S}_0) = 0$ and the first parallel sweep phase yields zero findings, the artifact is declared converged, and the system bypasses $N_{min}$ to transition directly to `REPORT`.
+   > [!IMPORTANT]
+   > The Convergence Shortcut still requires executing the full `SWEEP` phase. The refiner MUST spawn the independent subagents to verify there are zero findings. Transitioning directly to `REPORT` from `AUDIT` without running the sweep is a protocol violation.
 2. **Consecutive Clean Sweeps ($M_{sweep}$):** Once the active refinement ledger is empty, the agent must perform $M_{sweep}$ consecutive adversarial sweeps.
 3. **Divergence Boundary ($K_{max}$):** To prevent infinite limit cycles or chaotic oscillations, we define a loop limit $K_{max}$.
 
@@ -230,7 +232,7 @@ Counter the additive bias of self-correction loops. LLMs tend to over-engineer s
 - *Note:* Pruning applies aggressively to any agent-added complexities. Do not delete pre-existing public API surfaces unless explicitly requested by `CTX.GOAL` or verified as completely unused by downstream code.
 - **Grounded Ledger Invariant:** You must only add targets to the `REF_LEDGER` that are deterministically grounded. Socratic checks and sibling skill reviews (e.g., Hickey simplicity, Lowy volatility) may guide design reasoning, but cannot spawn ledger entries unless they are converted into concrete, reproducible test assertions, spec contract requirements, or compiler/linter rules. Any target added to the ledger by the refiner must be actively verified by executing the compiler, linter, or test runner in the workspace; unverified or hypothesized tool errors are strictly prohibited.
 
-If no targets are found in `REF_LEDGER`, transition to `SWEEP`. Otherwise, transition to `ITERATE`.
+If no targets are found in `REF_LEDGER`, transition to `SWEEP` (transitioning directly to `REPORT` from `AUDIT` is strictly prohibited under any circumstances, even if the initial audit was completely clean). Otherwise, transition to `ITERATE`.
 
 ### 4. ITERATE
 At the start of `ITERATE`, reset `CONSECUTIVE_CLEAN_SWEEPS` to `0` (since codebase modifications are about to occur).
@@ -247,6 +249,7 @@ For each ledger item:
    Transition to `AUDIT` once all ledger items are `RESOLVED`.
 
 ### 5. SWEEP
+Once the ledger is empty, the refiner MUST execute parallel validation sweeps using independent adversarial subagents. Self-auditing, self-certification, or skipping subagent creation based on the refiner's confidence or the minor size of edits is strictly prohibited and constitutes a fatal protocol violation.
 Once the ledger is empty:
 1. **Dynamic Angle Identification:** The refiner analyzes the scope of modifications and lists the relevant **Adversarial Audit Angles** (dimensions of the state-space) that must be audited in parallel. These must span every conceivable risk category for the modification (e.g., security, edge cases, UX, concurrency, performance, schema safety).
 2. **Spawn Meta-Auditor:** Spawn an independent subagent with a clean context, passing the goal, constraints, final code/diff, and the proposed audit angles.
@@ -330,11 +333,11 @@ Before generating the final report, execute a post-mortem review of the refineme
 
 1. **FIXED_POINT_RIGOR:** Never declare completion without executing the minimum $N_{min}$ loops and satisfying the $M_{sweep}$ consecutive clean sweeps constraint, unless the convergence shortcut applies.
 2. **ATOMIC_REFINEMENTS:** Every refinement commit must be logically atomic. Do not bundle unrelated refactorings or style updates into a single transaction.
-3. **ORTHOGONAL_SWEEPS:** Every sweep MUST execute Multi-Boundary Subagent Sweeps (MBSS) in parallel. Spawning specialized, isolated review subagents approved by an independent Meta-Auditor is mandatory. Self-auditing by the refiner alone is forbidden.
+3. **ORTHOGONAL_SWEEPS:** Every sweep MUST execute Multi-Boundary Subagent Sweeps (MBSS) in parallel. Spawning specialized, isolated review subagents approved by an independent Meta-Auditor is mandatory. Self-auditing, self-certification, or skipping subagent execution is strictly forbidden, regardless of refiner confidence or change size.
 4. **DETERMINISTIC_GROUNDING:** Banish subjective criticisms. Every item entered in the refinement ledger must map directly to a verified failure of a linter, compiler, test assertion, or specification contract. Reject any finding without a concrete failure trace.
 5. **SKETCH_SYNCHRONIZATION:** The active sketchpad ledger in `.sketches/` must be updated and committed in the subrepo at every loop boundary. Do not bundle multiple loops of code modifications and sketch pad updates into a single commit. Automate commits using `./skills/refine/scripts/sync_sketch.py`.
 6. **COMMIT_HYGIENE:** All commits must strictly conform to [commit-hygiene](../commit-hygiene/SKILL.md).
 7. **OSCILLATION_BREAKING:** Detect and break limit cycles autonomously using target file hash matches. If in autonomous mode, check out a new attempt branch from the last stable commit in the isolated worktree and perturb prompt parameters before retrying. In interactive mode, halt immediately.
-8. **EXIT_GATE_INVARIANCE:** Transitions to `REPORT` are strictly forbidden unless initiated from a passing `SWEEP` state where `CONSECUTIVE_CLEAN_SWEEPS >= M_SWEEP`, or via the Convergence Shortcut. Bypassing sweeps after code-modifying iterations is a protocol violation.
+8. **EXIT_GATE_INVARIANCE:** Transitions to `REPORT` are strictly forbidden unless initiated from a passing `SWEEP` state where `CONSECUTIVE_CLEAN_SWEEPS >= M_SWEEP`, or via the Convergence Shortcut (which itself requires running the sweep). Bypassing sweeps or skipping the spawning of adversarial subagents is a fatal protocol violation.
 9. **GIT_HISTORY_INVARIANCE:** History-altering git commands (such as `reset`, `rebase`, or `commit --amend` on any commit in any user-facing branch) are strictly forbidden across both the main repository and the `.sketches/` sub-repository. Backtracking via attempt branches preserves the linear history of all attempts and satisfies global history invariance.
 10. **PREMISE_CHALLENGING:** Never refine a design without challenging its core premises and assumptions first. If the design is fundamentally flawed or over-engineered, halt execution immediately instead of polishing a "turd."
