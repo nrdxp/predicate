@@ -87,6 +87,7 @@ Governs the iterative optimization and polishing of pre-existing codebase artifa
 - **Rigor Check:** Mandates updating and committing the Dynamic Sketchpad ledger in the sketches repository at each loop boundary.
 - **Exit Gate Invariance:** All code-modifying iterations MUST route through a sweep phase; exiting to `REPORT` directly from `ITERATE` is strictly forbidden.
 - **Git History Invariance:** History-altering git commands (such as `reset`, `rebase`, or `commit --amend` for past commits) are strictly prohibited; address all commit hygiene issues prospectively.
+- **Premise Verification:** Before optimizing a target artifact, apply the Premise Verification Protocol from [integral](skills/integral/SKILL.md) to challenge design assumptions. Halt and pivot if the design premise is flawed ("stupid"), rather than continuing to refine a flawed implementation.
 
 ---
 

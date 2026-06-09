@@ -47,6 +47,11 @@ To prevent the system from degrading correct artifacts or entering overcorrectio
 - **Sieving & Cutting Pruning Limits:** "Sieving and Cutting" optimizations are strictly restricted to dead code (unused functions, variables, imports) verified by compilers or static analysis. Deleting functional public API surfaces or parameters is strictly prohibited unless explicitly demanded by `CTX.GOAL`.
 - **Regression Invariance:** Every iteration step must verify that previous working test suites continue to pass. If a change breaks a regression test, the edit is immediately discarded, the state rolled back, and the correction re-attempted.
 - **Git History Invariance:** The use of history-altering git commands (such as `git reset`, `git rebase`, or `git commit --amend` for past commits) is strictly prohibited during a refinement run. All history must remain linear and immutable. Any formatting, hygiene, or compilation failures flagged in prior loops must be addressed prospectively in a new commit in the current loop, ensuring full traceability of the trajectory states.
+- **Core Premise Verification (The "Turd-Polishing" Guardrail):** Before optimizing or polishing any target artifact, the agent must apply the Premise Verification Protocol from [integral](../integral/SKILL.md) to challenge the underlying design. Ask:
+  1. *Are we refining this specific architecture simply because it was the first draft or because it was suggested? If we remove this design from context, is it still the simplest and most decoupled solution?*
+  2. *What implicit assumptions (e.g., statefulness, protocol choices, design patterns) are embedded here? If these assumptions are wrong or "stupid," does the refinement become a beautifully optimized but fundamentally flawed solution?*
+  3. *Can the goal be achieved by completely deleting this code, simplifying the interfaces, or replacing it with standard primitives?*
+  If a core premise is found to be flawed, the agent MUST halt the refinement of the flawed design, log a premise failure in the sketch, and transition to `CLARIFY` (in autonomous mode, formulate a new safe design hypothesis/assumption and pivot targets; in interactive mode, halt and propose the redesign to the human).
 
 ### Loop Bounds and Exit Metrics
 To ensure sequence generations converge to $\mathbf{S}^*$ rather than terminating in local sub-optimal minima, the workflow enforces three control-theoretic bounds that scale dynamically based on the complexity of the task (assessed during `ABSORB`):
@@ -191,6 +196,7 @@ At the start of the audit phase:
    - **ERROR_METRIC ($d_p$):** Record the proxy error metric $d_p(\mathbf{S}_k) = (\text{number of PENDING ledger items}) + (\text{number of active test/compiler/linter failures})$.
    - **CONVERGENCE_RATE ($\rho_k$):** Calculate and record the convergence rate $\rho_k = \frac{d_p(\mathbf{S}_k)}{d_p(\mathbf{S}_{k-1})}$. If $k = 1$ or if $d_p(\mathbf{S}_{k-1}) = 0$, set $\rho_k = 0.0$ if $d_p(\mathbf{S}_k) = 0$, and $\rho_k = \infty$ (or `N/A`) if $d_p(\mathbf{S}_k) > 0$.
    - **TARGET_AND_TEST_HASHES:** Compute and record the SHA-256 hashes of all files in `CTX.TARGET_ARTIFACTS` and `CTX.TEST_FILES`.
+   - **CORE_PREMISE_VERIFICATION:** Challenge the underlying design before continuing. If a design choice is determined to be fundamentally flawed ("stupid"), log the premise failure in the sketch, and immediately transition to `CLARIFY`.
 
 **Sibling Skills Consultation:**
 You are required to actively consult the workspace's sibling skills to think more broadly:
@@ -308,3 +314,4 @@ Before generating the final report, execute a post-mortem review of the refineme
 7. **OSCILLATION_BREAKING:** Detect and break limit cycles autonomously using target file hash matches. If in autonomous mode, roll back targeted files to the last passing commit and perturb prompt parameters before retrying. In interactive mode, halt immediately.
 8. **EXIT_GATE_INVARIANCE:** Transitions to `REPORT` are strictly forbidden unless initiated from a passing `SWEEP` state where `CONSECUTIVE_CLEAN_SWEEPS >= M_SWEEP`. Bypassing sweeps after code-modifying iterations is a protocol violation.
 9. **GIT_HISTORY_INVARIANCE:** History-altering git commands (such as `reset`, `rebase`, or `commit --amend` for non-HEAD commits) are strictly forbidden. Address all commit hygiene or formatting issues prospectively in new commits.
+10. **PREMISE_CHALLENGING:** Never refine a design without challenging its core premises and assumptions first. If the design is fundamentally flawed or over-engineered, halt and pivot instead of polishing a "turd."
