@@ -51,7 +51,7 @@ To prevent the system from degrading correct artifacts or entering overcorrectio
   1. *Are we refining this specific architecture simply because it was the first draft or because it was suggested? If we remove this design from context, is it still the simplest and most decoupled solution?*
   2. *What implicit assumptions (e.g., statefulness, protocol choices, design patterns) are embedded here? If these assumptions are wrong or "stupid," does the refinement become a beautifully optimized but fundamentally flawed solution?*
   3. *Can the goal be achieved by completely deleting this code, simplifying the interfaces, or replacing it with standard primitives?*
-  If a core premise is found to be flawed, the agent MUST halt the refinement of the flawed design, log a premise failure in the sketch, and transition to `CLARIFY` (in autonomous mode, formulate a new safe design hypothesis/assumption and pivot targets; in interactive mode, halt and propose the redesign to the human).
+  If a core premise is found to be flawed, the agent MUST log the premise failure in the sketch and transition to `CLARIFY` (in interactive mode) or `HALT` (in autonomous mode) to prevent turf-polishing via automated workarounds.
 
 ### Loop Bounds and Exit Metrics
 To ensure sequence generations converge to $\mathbf{S}^*$ rather than terminating in local sub-optimal minima, the workflow enforces three control-theoretic bounds that scale dynamically based on the complexity of the task (assessed during `ABSORB`):
@@ -134,6 +134,7 @@ MBSS_PLAN:
 # Live execution metrics updated at each loop boundary
 TRACE:
   CURRENT_LOOP: 0              # Current iteration index (k)
+  INITIAL_STATE_COMMIT: "sha256_hash"  # The commit hash of S0 before any modifications
   CONSECUTIVE_CLEAN_SWEEPS: 0  # Number of consecutive clean sweeps completed
   ROLLBACK_RETRY_COUNT: 0      # Consecutive rollbacks at current state (resets on progress, capped at 3)
   TOTAL_ROLLBACK_COUNT: 0      # Cumulative rollbacks executed during the entire run
@@ -170,6 +171,7 @@ CLARIFY ─→ AUDIT     (once uncertainty resolved)
  
 AUDIT  ──→ ITERATE   (if ledger has PENDING items)
        ├──→ CLARIFY   (if unexpected environment/dependency ambiguities occur mid-run)
+       ├──→ HALT      (if core premise verification fails in autonomous mode)
        └─→ SWEEP     (if ledger is empty)
  
 ITERATE ─→ AUDIT     (once all ledger items are RESOLVED and (CURRENT_LOOP <= K_MAX or CONSECUTIVE_CLEAN_SWEEPS > 0))
@@ -202,10 +204,11 @@ Halt sequence generation. Surface obstacles or questions regarding the target ar
 Exhaustively analyze the artifact across four dimensions to identify how to achieve its **minimal representation** (optimal articulation of the problem space without superfluous complexity). 
 At the start of the audit phase:
 1. Increment `CURRENT_LOOP` by 1 (representing a new loop cycle $k$) at the start of every audit phase (except when returning from `CLARIFY` within the same loop).
-2. Update the `TRACE.LOOPS` list in the active sketch file for the new loop entry (or update the existing entry if `CURRENT_LOOP` was not incremented):
+2. Run audit tools and populate `REF_LEDGER` with all discovered targets.
+3. Update the `TRACE.LOOPS` list in the active sketch file. To ensure mathematical correctness and avoid blind convergence calculations, metrics MUST be calculated and recorded at the END of the AUDIT phase (after all findings are populated in the ledger, but before transitioning to ITERATE or commencing edits):
    - **ERROR_METRIC ($d_p$):** Record the proxy error metric $d_p(\mathbf{S}_k) = (\text{number of PENDING ledger items}) + (\text{number of active test/compiler/linter failures})$.
    - **CONVERGENCE_RATE ($\rho_k$):** Calculate and record the convergence rate $\rho_k = \frac{d_p(\mathbf{S}_k)}{d_p(\mathbf{S}_{k-1})}$. If $k = 1$ or if $d_p(\mathbf{S}_{k-1}) = 0$, set $\rho_k = 0.0$ if $d_p(\mathbf{S}_k) = 0$, and $\rho_k = \infty$ (or `N/A`) if $d_p(\mathbf{S}_k) > 0$.
-   - **TRACKED_WORKSPACE_HASHES:** Compute and record the SHA-256 hashes of all files in the repository (excluding `.git/`, `.sketches/`, and external untracked caches). This ensures that any return to a prior workspace configuration (including files added, deleted, or reverted to their $S_0$ state) is detected as an exact state match.
+   - **TRACKED_WORKSPACE_HASHES:** Compute and record the SHA-256 hashes of all files returned by `git ls-files -c -o --exclude-standard` (excluding files inside the `.sketches/` directory). This ensures that any return to a prior workspace configuration (including files added, deleted, or reverted to their $S_0$ state) is detected as an exact state match, while excluding gitignored build artifacts and test caches.
    - **CORE_PREMISE_VERIFICATION:** Challenge the underlying design before continuing. If a design choice is determined to be fundamentally flawed ("stupid"), log the premise failure in the sketch, and immediately transition to `CLARIFY` (in interactive mode) or `HALT` (in autonomous mode) to prevent turf-polishing via automated assumptions.
 
 **Sibling Skills Consultation:**
@@ -226,9 +229,9 @@ Look for opportunities to simplify the system structure. Ask:
 - *Is there any feature, dependency, parameter, configuration option, or documentation section that is superfluous?*
 - *Would cutting, merging, or deleting components improve the overall clarity, type-safety, or maintainability without violating structural constraints?*
 - *Note:* Do not prune public API endpoints or parameters unless explicitly requested by `CTX.GOAL`.
-- **Grounded Ledger Invariant:** You must only add targets to the `REF_LEDGER` that are deterministically grounded. Socratic checks and sibling skill reviews (e.g., Hickey simplicity, Lowy volatility) may guide design reasoning, but cannot spawn ledger entries unless they are converted into concrete, reproducible test assertions, spec contract requirements, or compiler/linter rules.
+- **Grounded Ledger Invariant:** You must only add targets to the `REF_LEDGER` that are deterministically grounded. Socratic checks and sibling skill reviews (e.g., Hickey simplicity, Lowy volatility) may guide design reasoning, but cannot spawn ledger entries unless they are converted into concrete, reproducible test assertions, spec contract requirements, or compiler/linter rules. Any target added to the ledger by the refiner must be actively verified by executing the compiler, linter, or test runner in the workspace; unverified or hypothesized tool errors are strictly prohibited.
 
-Populate the `REF_LEDGER` with all discovered targets (including items to be simplified or pruned). If no targets are found, transition to `SWEEP`.
+If no targets are found in `REF_LEDGER`, transition to `SWEEP`. Otherwise, transition to `ITERATE`.
 
 ### 4. ITERATE
 At the start of `ITERATE`, reset `CONSECUTIVE_CLEAN_SWEEPS` to `0` (since codebase modifications are about to occur).
@@ -288,17 +291,17 @@ Once the ledger is empty:
 If at any loop boundary `CURRENT_LOOP` exceeds $K_{max}$ (and `CONSECUTIVE_CLEAN_SWEEPS` == 0), or if oscillation is detected ($\rho_k \ge 1$ when $d_p(\mathbf{S}_{k-1}) > 0$ and $d_p(\mathbf{S}_k) > 0$, or if codebase states exhibit exact tracked workspace file hash equality $\mathbf{S}_k = \mathbf{S}_j$ for any prior loop state $0 \le j < k$ stored in `TRACKED_WORKSPACE_HASHES`):
 - **Interactive Mode:** Halt and transition to `HALT`.
 - **Autonomous Mode:**
-  1. Identify the target loop index $j$ in `TRACE.LOOPS` where all regression tests passed. If the codebase starts with pre-existing test failures that the agent is trying to resolve, select the loop index $j$ that achieved the lowest proxy error metric $d_p(\mathbf{S}_j)$, or default to the starting commit of the refinement session ($S_0$). Resolve the target commit hash; if the `COMMITS` list is empty for loop $j$ (e.g. it was a clean sweep pass), search backwards for the most recent preceding loop entry containing a valid commit hash, or default to the starting commit if none exists.
+  1. Identify the target loop index $j$ in `TRACE.LOOPS` where all regression tests passed. If the codebase starts with pre-existing test failures that the agent is trying to resolve, select the loop index $j$ that achieved the lowest proxy error metric $d_p(\mathbf{S}_j)$, or default to `TRACE.INITIAL_STATE_COMMIT`. Resolve the target commit hash by selecting the last commit hash recorded in `TRACE.LOOPS[j].COMMITS`. If the `COMMITS` list is empty for loop $j$ (e.g. it was a clean sweep pass), search backwards for the most recent preceding loop entry containing a valid commit hash, or default to `TRACE.INITIAL_STATE_COMMIT` if none exists.
   2. Restore both the staged index and working directory to the target commit state, clean untracked files, commit this restoration immediately to HEAD to maintain linear history, and reset `CONSECUTIVE_CLEAN_SWEEPS` to `0`. If the commands fail, immediately transition to `HALT` and log a failure report.
      ```bash
      git restore --staged --source=<hash> :/
      git restore --source=<hash> :/
      git clean -fd -e .sketches/
-     git commit -m "fix(refine): rollback workspace to Loop j state"
+     git commit --allow-empty -m "fix(refine): restore workspace to last verified stable configuration"
      ```
-  3. Reset `CURRENT_LOOP` in the active sketchpad to $j$ (the loop index of the restored clean state), truncate the `TRACE.LOOPS` list to length $j$ to remove duplicate or stale loop entries, reset `CONSECUTIVE_CLEAN_SWEEPS` to `0` in the sketchpad, and record the rollback commit hash, target loop index, and current loop index in `TRACE.ROLLBACKS`. Run the sketch synchronization script to commit this state update:
+  3. Reset `CURRENT_LOOP` in the active sketchpad to $j$ (the loop index of the restored clean state), reset `CONSECUTIVE_CLEAN_SWEEPS` to `0` in the sketchpad, and record the rollback commit hash, target loop index, and current loop index in `TRACE.ROLLBACKS`. Do NOT truncate `TRACE.LOOPS`; instead, mark the status of the rolled-back loops (from $j+1$ to $k$) as `ROLLED_BACK` in the sketchpad to preserve the complete linear audit trail. Run the sketch synchronization script to commit this state update:
      ```bash
-     ./skills/refine/scripts/sync_sketch.py "docs(sketch): rollback to Loop j state"
+     ./skills/refine/scripts/sync_sketch.py "docs(sketch): restore workspace to stable configuration"
      ```
   4. Increment both `ROLLBACK_RETRY_COUNT` and `TOTAL_ROLLBACK_COUNT` in the active sketchpad.
   5. If `ROLLBACK_RETRY_COUNT` > 3, or if no rollback target state can be resolved from `TRACE.LOOPS`, transition to `HALT` and log a failure report.

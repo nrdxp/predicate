@@ -28,9 +28,11 @@
 - **Total Refinement Loops ($k$):** [Count]
 - **Consecutive Clean Sweeps ($M$):** [Count]
 - **Total Rollback Count:** [Count]
+- **Initial State Commit:** [S0 Commit Hash]
 - **Rollbacks Detail:** [List rollback commit hashes and loops affected, or N/A]
 - **Filtered Critiques:** [List subagent critiques discarded as subjective or out-of-scope, or None]
 - **Sibling Skills Consulted:** [e.g., robust-testing, engineering, prior-art]
+
 
 - **Initial Baseline State:** [Describe initial flaws, gaps, or complexity metrics before refinement]
 - **Final Convergence State:** [Describe final optimized state, verified bounds, and evidence]

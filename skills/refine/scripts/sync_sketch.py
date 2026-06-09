@@ -64,34 +64,28 @@ def main():
     loop = "0"
     
     try:
-        # Bounded read to prevent memory exhaustion / catastrophic regex backtracking
+        # Bounded read (1MB) to prevent memory exhaustion on abnormally large markdown files,
+        # while still allowing large YAML blocks containing workspace file hashes.
         with open(full_path, "r", encoding="utf-8") as f:
-            content = f.read(4096)
+            content = f.read(1024 * 1024)
             
         yaml_match = re.search(r"^```yaml\s*\n(.*?)\n```", content, re.DOTALL | re.MULTILINE)
         if yaml_match:
             yaml_text = yaml_match.group(1)
-            topic_match = re.search(r"^TOPIC:\s*\"?([^\n\"]+)\"?", yaml_text, re.MULTILINE)
+            topic_match = re.search(r"^TOPIC:\s*(.*)$", yaml_text, re.MULTILINE)
             if topic_match:
-                topic = topic_match.group(1).strip()
+                topic = topic_match.group(1).strip(" \"'")
                 
-            status_match = re.search(r"^STATUS:\s*([^\n]+)", yaml_text, re.MULTILINE)
+            status_match = re.search(r"^STATUS:\s*(.*)$", yaml_text, re.MULTILINE)
             if status_match:
-                status = status_match.group(1).strip()
+                status = status_match.group(1).strip(" \"'")
                 
-            # Search for CURRENT_LOOP under TRACE:
-            trace_match = re.search(r"^TRACE:\s*\n(.*?)(?=\n\w|\Z)", yaml_text, re.DOTALL | re.MULTILINE)
-            if trace_match:
-                trace_text = trace_match.group(1)
-                loop_match = re.search(r"CURRENT_LOOP:\s*(\d+)", trace_text)
-                if loop_match:
-                    loop = loop_match.group(1).strip()
-            else:
-                loop_match = re.search(r"CURRENT_LOOP:\s*(\d+)", yaml_text)
-                if loop_match:
-                    loop = loop_match.group(1).strip()
+            loop_match = re.search(r"CURRENT_LOOP:\s*(\d+)", yaml_text)
+            if loop_match:
+                loop = loop_match.group(1).strip()
     except Exception as e:
         print(f"Warning: Failed to parse sketch frontmatter: {e}", file=sys.stderr)
+
 
     # Fallback to filename for topic extraction if frontmatter topic is unknown
     if topic == "unknown":
