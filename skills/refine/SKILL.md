@@ -129,7 +129,8 @@ TRACE:
   CONSECUTIVE_CLEAN_SWEEPS: 0  # Number of consecutive clean sweeps completed
   ROLLBACK_RETRY_COUNT: 0      # Consecutive rollbacks at current state (resets on progress, capped at 3)
   TOTAL_ROLLBACK_COUNT: 0      # Cumulative rollbacks executed during the entire run
-  LAST_RESTORED_LOOP: null     # Optional: loop index j of the last restored state (defaults to null)
+  LAST_RESTORED_LOOP: 0        # Loop index j of the last restored state (defaults to 0)
+  JUST_RESTORED: null          # Optional: transient loop index j just restored from (defaults to null)
   FILTERED_CRITIQUES:          # Track critiques discarded by verifier/spec triage filters
     - SUBAGENT_ID: "conv-uuid"
       CRITIQUE: "Subjective styling suggestion"
@@ -202,7 +203,7 @@ Exhaustively analyze the artifact across four dimensions to identify how to achi
 At the start of the audit phase:
 1. Increment `CURRENT_LOOP` by 1 (representing a new loop cycle $k$) at the start of every audit phase (except when returning from `CLARIFY` within the same loop).
 2. Run audit tools and populate `REF_LEDGER` with all discovered targets.
-3. Update the `TRACE.LOOPS` list in the active sketch file. If `TRACE.LAST_RESTORED_LOOP` is not null (and greater than 0), set `RESTORED_FROM_LOOP` of the current loop entry to `TRACE.LAST_RESTORED_LOOP` and then reset `TRACE.LAST_RESTORED_LOOP` to `null` in the active sketchpad. To ensure mathematical correctness and avoid blind convergence calculations, metrics MUST be calculated and recorded at the END of the AUDIT phase (after all findings are populated in the ledger, but before transitioning to ITERATE or commencing edits):
+3. Update the `TRACE.LOOPS` list in the active sketch file. If `TRACE.JUST_RESTORED` is not null, set `RESTORED_FROM_LOOP` of the current loop entry to `TRACE.JUST_RESTORED` and then reset `TRACE.JUST_RESTORED` to `null` in the active sketchpad. To ensure mathematical correctness and avoid blind convergence calculations, metrics MUST be calculated and recorded at the END of the AUDIT phase (after all findings are populated in the ledger, but before transitioning to ITERATE or commencing edits):
    - **ERROR_METRIC ($d_p$):** Record the proxy error metric $d_p(\mathbf{S}_k)$ defined as the count of unresolved (`PENDING` or `IN_PROGRESS`) items in `REF_LEDGER`.
    - **CONVERGENCE_RATE ($\rho_k$):** Calculate and record the convergence rate $\rho_k = \frac{d_p(\mathbf{S}_k)}{d_p(\mathbf{S}_{k-1})}$. If $k = 1$, $d_p(\mathbf{S}_{k-1})$ refers to the initial state error $d_p(\mathbf{S}_0)$. If $k = 1$ or if $d_p(\mathbf{S}_{k-1}) = 0$, set $\rho_k = 0.0$ if $d_p(\mathbf{S}_k) = 0$, and $\rho_k = \infty$ (or `N/A`) if $d_p(\mathbf{S}_k) > 0$.
    - **ROLLBACK_RETRY_COUNT Reset:** If $d_p(\mathbf{S}_k)$ < $d_p(\mathbf{S}_{k-1})$ and `TRACE.LOOPS[CURRENT_LOOP].RESTORED_FROM_LOOP` is null, progress has been made; reset `ROLLBACK_RETRY_COUNT` to 0.
@@ -298,7 +299,7 @@ If at any loop boundary `CURRENT_LOOP` - LAST_RESTORED_LOOP exceeds $K_{max}$ (a
      ```
      This completely isolates the new attempt and preserves the entire history of the previous attempt branch (`-attempt-(N-1)`) for complete workspace auditability, satisfying global history invariants.
   4. Update `CTX.AGENT_BRANCH` to `agent/refine-<topic>-attempt-N` in the active sketch file.
-  5. Set `TRACE.LAST_RESTORED_LOOP` to $j$ in the active sketchpad, and reset `CONSECUTIVE_CLEAN_SWEEPS` to `0` in the sketchpad. Run the sketch synchronization script from the main repo to commit this state update:
+  5. Set `TRACE.LAST_RESTORED_LOOP` to $j$ and set `TRACE.JUST_RESTORED` to $j$ in the active sketchpad, and reset `CONSECUTIVE_CLEAN_SWEEPS` to `0` in the sketchpad. Run the sketch synchronization script from the main repo to commit this state update:
      ```bash
      ./skills/refine/scripts/sync_sketch.py "docs(sketch): rollback to loop j via branch attempt N"
      ```
