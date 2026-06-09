@@ -142,22 +142,17 @@ TRACE:
   CONSECUTIVE_CLEAN_SWEEPS: 0  # Number of consecutive clean sweeps completed
   ROLLBACK_RETRY_COUNT: 0      # Consecutive rollbacks at current state (resets on progress, capped at 3)
   TOTAL_ROLLBACK_COUNT: 0      # Cumulative rollbacks executed during the entire run
-  ROLLBACKS:                   # Audit trail of all executed rollback actions
-    - COMMIT: "sha256_hash"
-      FROM_LOOP: 4
-      TO_LOOP: 2
   FILTERED_CRITIQUES:          # Track critiques discarded by verifier/spec triage filters
     - SUBAGENT_ID: "conv-uuid"
       CRITIQUE: "Subjective styling suggestion"
       REASON: [REJECTED_SUBJECTIVE | REJECTED_OUT_OF_SCOPE | REJECTED_FAKE_FAILURE | REJECTED_CASCADE_GUARD]
   LOOPS:
     - LOOP: 1
-      STATUS: [ACTIVE | ROLLED_BACK] # Current status of this loop entry
       TARGETS_ADDRESSED:
         - R1
       ERROR_METRIC: 0          # Proxy error count d_p(S_k)
       CONVERGENCE_RATE: 0.0    # Computed convergence rate rho_k
-      TRACKED_WORKSPACE_HASHES:  # Content hashes of all repository files for oscillation detection
+      TRACKED_WORKSPACE_HASHES: # Content hashes of target, test, and modified files only
         "path/to/file": "sha256_hash"
       VERIFICATION: "Compiler/linter/test outputs"
       COMMITS:
@@ -221,7 +216,7 @@ At the start of the audit phase:
 3. Update the `TRACE.LOOPS` list in the active sketch file. To ensure mathematical correctness and avoid blind convergence calculations, metrics MUST be calculated and recorded at the END of the AUDIT phase (after all findings are populated in the ledger, but before transitioning to ITERATE or commencing edits):
    - **ERROR_METRIC ($d_p$):** Record the proxy error metric $d_p(\mathbf{S}_k)$ defined as the count of unresolved (`PENDING` or `IN_PROGRESS`) items in `REF_LEDGER`.
    - **CONVERGENCE_RATE ($\rho_k$):** Calculate and record the convergence rate $\rho_k = \frac{d_p(\mathbf{S}_k)}{d_p(\mathbf{S}_{k-1})}$. If $k = 1$, $d_p(\mathbf{S}_{k-1})$ refers to the initial state error $d_p(\mathbf{S}_0)$. If $k = 1$ or if $d_p(\mathbf{S}_{k-1}) = 0$, set $\rho_k = 0.0$ if $d_p(\mathbf{S}_k) = 0$, and $\rho_k = \infty$ (or `N/A`) if $d_p(\mathbf{S}_k) > 0$.
-   - **TRACKED_WORKSPACE_HASHES:** Compute and record the SHA-256 hashes of all files returned by `git ls-files -c -o --exclude-standard` (excluding files inside the `.sketches/` directory). If a file exists on the filesystem, record its SHA-256 hash. If a file has been deleted in the working tree, record its hash as the sentinel value `"ABSENT"`. This ensures deletion-based state changes are captured in the workspace signature while excluding gitignored build/test artifacts.
+   - **TRACKED_WORKSPACE_HASHES:** Compute and record the SHA-256 hashes of target files (`CTX.TARGET_ARTIFACTS`), test files (`CTX.TEST_FILES`), and any modified files returned by `git status --porcelain` (excluding files inside the `.sketches/` directory). If a file exists on the filesystem, record its SHA-256 hash. If a file has been deleted in the working tree, record its hash as the sentinel value `"ABSENT"`. This avoids scanning the entire repository tree while safely capturing all localized workspace state changes.
    - **CORE_PREMISE_VERIFICATION:** Challenge the underlying design before continuing. If a design choice is determined to be fundamentally flawed ("stupid"), log the premise failure in the sketch, and immediately transition to `HALT` (in both interactive and autonomous modes) to prevent turf-polishing via automated assumptions.
 
 **Sibling Skills Consultation:**
@@ -304,7 +299,7 @@ Once the ledger is empty:
 If at any loop boundary `CURRENT_LOOP` exceeds $K_{max}$ (and `CONSECUTIVE_CLEAN_SWEEPS` == 0), or if oscillation is detected (k >= 2 and $\rho_k \ge 1$ when $d_p(\mathbf{S}_{k-1}) > 0$ and $d_p(\mathbf{S}_k) > 0$, or if codebase states exhibit exact tracked workspace file hash equality $\mathbf{S}_k = \mathbf{S}_j$ for any prior loop state $1 \le j < k$ stored in `TRACKED_WORKSPACE_HASHES` when `CONSECUTIVE_CLEAN_SWEEPS` == 0 and not (k = j + 1 and `TOTAL_ROLLBACK_COUNT` > 0 and `TRACE.LOOPS[k].COMMITS` is empty)):
 - **Interactive Mode:** Halt and transition to `HALT`.
 - **Autonomous Mode:**
-  1. Identify the target loop index $j$ (an integer, where $j < k$) in `TRACE.LOOPS` where all regression tests passed. If the codebase starts with pre-existing test failures that the agent is trying to resolve, select the target loop index $j$ that achieved the lowest proxy error metric $d_p(\mathbf{S}_j)$, or default to `0` (representing the initial state $S_0$ before any modifications). Resolve the target commit hash by selecting the last commit hash recorded in the `COMMITS` list of the `TRACE.LOOPS` entry where `LOOP == j`, or default to `TRACE.INITIAL_STATE_COMMIT` if $j = 0$. If the `COMMITS` list is empty for loop $j$ (e.g. it was a clean sweep pass), search backwards for the most recent preceding loop entry (where `LOOP < j`) containing a valid commit hash and whose status is NOT `ROLLED_BACK`, or default to `TRACE.INITIAL_STATE_COMMIT` if none exists.
+  1. Identify the target loop index $j$ (an integer, where $j < k$) in `TRACE.LOOPS` where all regression tests passed. If the codebase starts with pre-existing test failures that the agent is trying to resolve, select the target loop index $j$ that achieved the lowest proxy error metric $d_p(\mathbf{S}_j)$, or default to `0` (representing the initial state $S_0$ before any modifications). Resolve the target commit hash by selecting the last commit hash recorded in the `COMMITS` list of the `TRACE.LOOPS` entry where `LOOP == j`, or default to `TRACE.INITIAL_STATE_COMMIT` if $j = 0$. If the `COMMITS` list is empty for loop $j$ (e.g. it was a clean sweep pass), search backwards for the most recent preceding loop entry (where `LOOP < j`) containing a valid commit hash, or default to `TRACE.INITIAL_STATE_COMMIT` if none exists.
   2. Compute the next branch attempt index `N = TOTAL_ROLLBACK_COUNT + 2`.
   3. Inside the worktree directory (`CTX.WORKTREE_PATH`), create and check out a new branch attempt from the target stable commit hash:
      ```bash
@@ -312,7 +307,7 @@ If at any loop boundary `CURRENT_LOOP` exceeds $K_{max}$ (and `CONSECUTIVE_CLEAN
      ```
      This completely isolates the new attempt and preserves the entire history of the previous attempt branch (`-attempt-(N-1)`) for complete workspace auditability, satisfying global history invariants.
   4. Update `CTX.AGENT_BRANCH` to `agent/refine-<topic>-attempt-N` in the active sketch file.
-  5. Reset `CURRENT_LOOP` in the active sketchpad to $j$ (the loop index of the restored stable state), reset `CONSECUTIVE_CLEAN_SWEEPS` to `0` in the sketchpad, and record the rollback target stable commit hash, target loop index, and current loop index in `TRACE.ROLLBACKS`. Do NOT truncate `TRACE.LOOPS`; instead, mark the status of the rolled-back loops (from $j+1$ to $k$) as `ROLLED_BACK` in the sketchpad to preserve the complete linear audit trail. Run the sketch synchronization script from the main repo to commit this state update:
+  5. Reset `CURRENT_LOOP` in the active sketchpad to $j$ (the loop index of the restored stable state), and reset `CONSECUTIVE_CLEAN_SWEEPS` to `0` in the sketchpad. Run the sketch synchronization script from the main repo to commit this state update:
      ```bash
      ./skills/refine/scripts/sync_sketch.py "docs(sketch): rollback to loop j via branch attempt N"
      ```
