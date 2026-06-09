@@ -69,6 +69,7 @@
 - **Trace Metrics:**
   - **Proxy Error Metric ($d_p$):** [Count]
   - **Convergence Rate ($\rho$):** [Ratio]
+  - **Restored From Loop:** [Loop index, or N/A]
   - **Tracked Workspace Hashes:**
     - `[path/to/file]`: `[sha256]`
 - **Verification Trace:**

@@ -148,6 +148,7 @@ TRACE:
       REASON: [REJECTED_SUBJECTIVE | REJECTED_OUT_OF_SCOPE | REJECTED_FAKE_FAILURE | REJECTED_CASCADE_GUARD]
   LOOPS:
     - LOOP: 1
+      RESTORED_FROM_LOOP: 0    # Optional: loop index j restored from on rollback (defaults to N/A)
       TARGETS_ADDRESSED:
         - R1
       ERROR_METRIC: 0          # Proxy error count d_p(S_k)
@@ -295,7 +296,7 @@ Once the ledger is empty:
        - Transition to `REPORT`. (Transition to `REPORT` is strictly forbidden if any code or documentation changes have occurred since the last sweep pass, or if `CONSECUTIVE_CLEAN_SWEEPS` has been reset to `0`).
 
 ### 6. AUTONOMOUS BACK-TRACKING & OSCILLATION RECOVERY
-If at any loop boundary `CURRENT_LOOP` exceeds $K_{max}$ (and `CONSECUTIVE_CLEAN_SWEEPS` == 0), or if oscillation is detected (k >= 2 and $\rho_k \ge 1$ when $d_p(\mathbf{S}_{k-1}) > 0$ and $d_p(\mathbf{S}_k) > 0$, or if codebase states exhibit exact tracked workspace file hash equality $\mathbf{S}_k = \mathbf{S}_j$ for any prior loop state $1 \le j < k$ stored in `TRACKED_WORKSPACE_HASHES` when `CONSECUTIVE_CLEAN_SWEEPS` == 0 and not (k = j + 1 and `TOTAL_ROLLBACK_COUNT` > 0 and `TRACE.LOOPS[k].COMMITS` is empty)):
+If at any loop boundary `CURRENT_LOOP` exceeds $K_{max}$ (and `CONSECUTIVE_CLEAN_SWEEPS` == 0), or if oscillation is detected (k >= 2 and $\rho_k \ge 1$ when $d_p(\mathbf{S}_{k-1}) > 0$ and $d_p(\mathbf{S}_k) > 0$, or if codebase states exhibit exact tracked workspace file hash equality $\mathbf{S}_k = \mathbf{S}_j$ for any prior loop state $1 \le j < k$ stored in `TRACKED_WORKSPACE_HASHES` when `CONSECUTIVE_CLEAN_SWEEPS` == 0 and not (j == TRACE.LOOPS[k].RESTORED_FROM_LOOP and TRACE.LOOPS[k].COMMITS is empty)):
 - **Interactive Mode:** Halt and transition to `HALT`.
 - **Autonomous Mode:**
   1. Identify the target loop index $j$ (an integer, where $j < k$) in `TRACE.LOOPS` where all regression tests passed. If the codebase starts with pre-existing test failures that the agent is trying to resolve, select the target loop index $j$ that achieved the lowest proxy error metric $d_p(\mathbf{S}_j)$, or default to `0` (representing the initial state $S_0$ before any modifications). Resolve the target commit hash by selecting the last commit hash recorded in the `COMMITS` list of the `TRACE.LOOPS` entry where `LOOP == j`, or default to `TRACE.INITIAL_STATE_COMMIT` if $j = 0$. If the `COMMITS` list is empty for loop $j$ (e.g. it was a clean sweep pass), search backwards for the most recent preceding loop entry (where `LOOP < j`) containing a valid commit hash, or default to `TRACE.INITIAL_STATE_COMMIT` if none exists.
@@ -314,7 +315,7 @@ If at any loop boundary `CURRENT_LOOP` exceeds $K_{max}$ (and `CONSECUTIVE_CLEAN
      ```
   6. Increment both `ROLLBACK_RETRY_COUNT` and `TOTAL_ROLLBACK_COUNT` in the active sketchpad.
   7. If `ROLLBACK_RETRY_COUNT` > 3, or if no rollback target state can be resolved from `TRACE.LOOPS`, transition to `HALT` and log a failure report.
-  8. Perturb the Initial Boundary Condition (IBC) for the next iteration: lower the generation temperature, inject explicit negative examples (what not to do) in the next prompt, or modify the subagent critique personas.
+  8. Apply Reflective Attempt Mutation (GEPA-inspired): Analyze the execution trace, modified diffs, and failures of the discarded branch attempt(s). Formulate an explicit list of "what not to do" (negative exemplars) and target modifications, documenting this reflection in the new loop entry. Perturb the Initial Boundary Condition (IBC) for the next attempt: lower the generation temperature, inject the negative exemplars into the reasoning context, or modify the subagent critique personas.
   9. Transition to `AUDIT` and resume.
 
 ### 7. HALT
