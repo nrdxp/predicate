@@ -32,7 +32,7 @@ To evaluate convergence in real-time, the error metric $e_k$ is computed using a
 $$\rho_k = \frac{d_p(\mathbf{S}_k)}{d_p(\mathbf{S}_{k-1})}$$
 
 For a true contraction, $\rho_k \le q < 1$. If $d_p(\mathbf{S}_k) \to 0$, the system is Cauchy-convergent. In practical autoregressive generations:
-1. **Unstable Oscillations (Limit Cycles):** If $\rho_k \ge 1$ (active only when $d_p(\mathbf{S}_k) > 0$) or if codebase states exhibit exact target and test file hash equality with any prior loop state ($\mathbf{S}_k = \mathbf{S}_j$ for $0 \le j < k$ stored in `TARGET_AND_TEST_HASHES`), the loop has entered an unstable cycle. The system must adapt search parameters (lower generation temperature, inject explicit negative examples, or alter subagent critique rubrics) or execute the rollback protocol to break the attractor basin.
+1. **Unstable Oscillations (Limit Cycles):** If $\rho_k \ge 1$ (active only when $d_p(\mathbf{S}_k) > 0$) or if codebase states exhibit exact tracked workspace file hash equality with any prior loop state ($\mathbf{S}_k = \mathbf{S}_j$ for $0 \le j < k$ stored in `TRACKED_WORKSPACE_HASHES`), the loop has entered an unstable cycle. The system must adapt search parameters (lower generation temperature, inject explicit negative examples, or alter subagent critique rubrics) or execute the rollback protocol to break the attractor basin.
 2. **Diminishing Returns & Stochastic Cascades:** Self-correction exhibits sublinear convergence, where functional errors are corrected early, but sequential, identical sweeps on unchanged code accumulate stochastic LLM noise (false positive critiques). To prevent these cascades, sweep angles must execute in parallel, and any new subagent finding on unchanged code must be ignored unless backed by a deterministic test or static linter failure.
 
 ### Prefix-Induced Attractor Basin Bias
@@ -141,7 +141,7 @@ TRACE:
         - R1
       ERROR_METRIC: 0          # Proxy error count d_p(S_k)
       CONVERGENCE_RATE: 0.0    # Computed convergence rate rho_k
-      TARGET_AND_TEST_HASHES:  # Target and test file content hashes for oscillation detection
+      TRACKED_WORKSPACE_HASHES:  # Content hashes of target, test, and all modified files for oscillation detection
         "path/to/file": "sha256_hash"
       VERIFICATION: "Compiler/linter/test outputs"
       COMMITS:
@@ -195,7 +195,7 @@ At the start of the audit phase:
 2. Update the `TRACE.LOOPS` list in the active sketch file for the new loop entry (or update the existing entry if `CURRENT_LOOP` was not incremented):
    - **ERROR_METRIC ($d_p$):** Record the proxy error metric $d_p(\mathbf{S}_k) = (\text{number of PENDING ledger items}) + (\text{number of active test/compiler/linter failures})$.
    - **CONVERGENCE_RATE ($\rho_k$):** Calculate and record the convergence rate $\rho_k = \frac{d_p(\mathbf{S}_k)}{d_p(\mathbf{S}_{k-1})}$. If $k = 1$ or if $d_p(\mathbf{S}_{k-1}) = 0$, set $\rho_k = 0.0$ if $d_p(\mathbf{S}_k) = 0$, and $\rho_k = \infty$ (or `N/A`) if $d_p(\mathbf{S}_k) > 0$.
-   - **TARGET_AND_TEST_HASHES:** Compute and record the SHA-256 hashes of all files in `CTX.TARGET_ARTIFACTS` and `CTX.TEST_FILES`.
+   - **TRACKED_WORKSPACE_HASHES:** Compute and record the SHA-256 hashes of all files in `CTX.TARGET_ARTIFACTS` and `CTX.TEST_FILES`, plus any other file in the workspace (excluding `.git/`, `.sketches/`, and external untracked caches) that has been modified or added in the git repository diff since the start of the refinement session ($S_0$).
    - **CORE_PREMISE_VERIFICATION:** Challenge the underlying design before continuing. If a design choice is determined to be fundamentally flawed ("stupid"), log the premise failure in the sketch, and immediately transition to `CLARIFY`.
 
 **Sibling Skills Consultation:**
@@ -274,7 +274,7 @@ Once the ledger is empty:
        - Transition to `REPORT`. (Transition to `REPORT` is strictly forbidden if any code or documentation changes have occurred since the last sweep pass, or if `CONSECUTIVE_CLEAN_SWEEPS` has been reset to `0`).
 
 ### 6. AUTONOMOUS BACK-TRACKING & OSCILLATION RECOVERY
-If at any loop boundary `CURRENT_LOOP` exceeds $K_{max}$, or if oscillation is detected ($\rho_k \ge 1$ when $d_p(\mathbf{S}_k) > 0$, or if codebase states exhibit exact target and test file hash equality $\mathbf{S}_k = \mathbf{S}_j$ for any prior loop state $0 \le j < k$ stored in `TARGET_AND_TEST_HASHES`):
+If at any loop boundary `CURRENT_LOOP` exceeds $K_{max}$, or if oscillation is detected ($\rho_k \ge 1$ when $d_p(\mathbf{S}_k) > 0$, or if codebase states exhibit exact tracked workspace file hash equality $\mathbf{S}_k = \mathbf{S}_j$ for any prior loop state $0 \le j < k$ stored in `TRACKED_WORKSPACE_HASHES`):
 - **Interactive Mode:** Halt and transition to `HALT`.
 - **Autonomous Mode:**
   1. Identify the target loop index $j$ in `TRACE.LOOPS` where all regression tests passed. If the codebase starts with pre-existing test failures that the agent is trying to resolve, select the loop index $j$ that achieved the lowest proxy error metric $d_p(\mathbf{S}_j)$, or default to the starting commit of the refinement session ($S_0$). Resolve the target commit hash; if the `COMMITS` list is empty for loop $j$ (e.g. it was a clean sweep pass), search backwards for the most recent preceding loop entry containing a valid commit hash, or default to the starting commit if none exists.

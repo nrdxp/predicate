@@ -60,7 +60,7 @@
 - **Trace Metrics:**
   - **Proxy Error Metric ($d_p$):** [Count]
   - **Convergence Rate ($\rho$):** [Ratio]
-  - **Target and Test Hashes:**
+  - **Tracked Workspace Hashes:**
     - `[path/to/file]`: `[sha256]`
 - **Verification Trace:**
   - [Validator run outputs / test status]
