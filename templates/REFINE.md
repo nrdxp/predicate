@@ -17,6 +17,8 @@
   - `[path/to/artifact/2]`
 - **Specification Files:**
   - `[path/to/specification/1]`
+- **Architectural Documentation Files:**
+  - `[path/to/architectural/doc/1]`
 - **Goal Statement:** [Describe the target outcome of this refinement run]
 
 
@@ -29,10 +31,12 @@
 - **Agent Branch Attempts:** [List of attempt branches e.g. agent/refine-<topic>-attempt-1, -attempt-2, or N/A]
 - **Total Refinement Loops ($k$):** [Count]
 - **Consecutive Clean Sweeps ($M_{sweep}$):** [Count]
+- **Review Cycles Count ($REVIEW\_CYCLE\_COUNT$):** [Count]
 - **Total Rollback Count:** [Count]
 - **Initial State Commit:** [S0 Commit Hash]
 - **Filtered Critiques:** [List subagent critiques discarded as subjective or out-of-scope, or None]
 - **Sibling Skills Consulted:** [e.g. robust-testing, engineering, prior-art]
+- **Architectural Documentation Status:** [Aligned / Drift Resolved]
 
 
 - **Initial Baseline State:** [Describe initial flaws, gaps, or complexity metrics before refinement]
@@ -54,6 +58,20 @@
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | R1 | [Axis] | [Target] | [Description] | RESOLVED | [Test pass link/log] |
 | ... | ... | ... | ... | ... | ... |
+
+---
+
+## Pull Request Review Ledger
+
+<!--
+  List all nitpicks and design critiques raised by Hostile Maintainers,
+  along with their resolution (commit or text justification) and re-review status.
+-->
+
+| ID | Axis | Maintainer | Target | Critique Description | Resolution / Evidence | Re-Review |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| N1 | [Axis] | [maintainer-architecture] | [Target] | [Description] | [Commit SHA / Justification text] | [APPROVED / REJECTED] |
+| ... | ... | ... | ... | ... | ... | ... |
 
 ---
 
@@ -103,6 +121,7 @@
 - **Simplicity Audit (Hickey check):** [Explain why concerns are uncomplected and state is cleanly managed]
 - **Volatility Audit (Lowy check):** [Explain why axes of change are cleanly isolated]
 - **Test Invariants Compliance:** [Verify all test invariants remain fully satisfied]
+- **Architectural Documentation Alignment:** [Confirm code and docs are 100% aligned, with links to updated documentation files]
 - **Socratic Purpose Checklist Trace:** [Detail how the implementation moves past a superficial prop to a production-grade art, and how it represents the minimal representation of the goal]
 - **Sieving & Cutting Analysis:** [Document the sieving/cutting process: details on whether any components, parameters, or configurations were pruned or simplified, or the justification for why every remaining component is strictly necessary to achieve the goal]
 
