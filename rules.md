@@ -84,10 +84,14 @@ Governs researching, auditing, and importing production-tested code, standards, 
 Governs the iterative optimization and polishing of pre-existing codebase artifacts.
 - **Fixed-Point Convergence Bounds:** Enforces a minimum loop execution bound ($N_{min}$) and a series of consecutive adversarial sweeps ($M_{sweep}$) to ensure convergence to a stable, zero-finding fixed point.
 - **Multi-Boundary Subagent Sweeps (MBSS):** Mandates executing verification sweeps using independent subagents spawned in mutually isolated contexts (completely blind to the main agent's history and to each other's rubrics or findings) initialized with orthogonal, Meta-Auditor-approved Initial Boundary Conditions (IBCs) to break prefix-induced attractor basin bias.
+- **Hostile Maintainer Review:** Mandates submitting the completed changeset to a panel of independent, critical maintainer subagents representing codebase owners who critique design complexity, module boundaries, and documentation. All comments in `REVIEW_LEDGER` must be resolved (via commits or justified rebuttals) and marked approved.
+- **Tighter Git Worktree Lifecycle:** Requires creating an isolated git worktree at `.worktrees/refine-<topic>` during absorption, and ensuring it is cleaned up and removed using `git worktree remove --force` on any success or failure exit path (`REPORT` or `HALT`).
+- **Active Documentation Alignment:** Requires mapping and auditing architectural documentation (`CTX.ARCHITECTURAL_DOCS`) to identify and resolve document-code drift, committing documentation updates in the same attempt branch.
 - **Rigor Check:** Mandates updating and committing the Dynamic Sketchpad ledger in the sketches repository at each loop boundary.
-- **Exit Gate Invariance:** All code-modifying iterations MUST route through a sweep phase; exiting to `REPORT` directly from `ITERATE` is strictly forbidden.
+- **Exit Gate Invariance:** Transitions to `REPORT` are strictly forbidden unless initiated from a passing `REVIEW` state where all maintainers have approved all items in the `REVIEW_LEDGER`, followed by the human final merge decision.
 - **Git History Invariance:** History-altering git commands (such as `reset`, `rebase`, or `commit --amend` for past commits) are strictly prohibited; address all commit hygiene issues prospectively.
 - **Premise Verification:** Before optimizing a target artifact, apply the Premise Verification Protocol from [integral](skills/integral/SKILL.md) to challenge design assumptions. If the design premise is flawed ("stupid"), immediately halt execution (phase-space freeze) in both interactive and autonomous modes to prevent polishing a flawed implementation.
+
 
 ---
 
