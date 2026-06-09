@@ -51,69 +51,66 @@ def main():
         print("No modified sketch files found in .sketches sub-repository.")
         return
 
-    # Select the first modified sketch file (usually there is only one active)
-    active_sketch = modified_files[0]
-    if len(modified_files) > 1:
-        print(f"Warning: Multiple modified sketch files found. Only processing the first one: {active_sketch}", file=sys.stderr)
-
-    full_path = os.path.join(sketches_dir, active_sketch)
-    
-    # Read the YAML frontmatter to construct commit message context
-    topic = "unknown"
-    status = "UNKNOWN"
-    loop = "0"
-    
-    try:
-        # Bounded read (1MB) to prevent memory exhaustion on abnormally large markdown files,
-        # while still allowing large YAML blocks containing workspace file hashes.
-        with open(full_path, "r", encoding="utf-8") as f:
-            content = f.read(1024 * 1024)
-            
-        yaml_match = re.search(r"^```yaml\s*\n(.*?)\n```", content, re.DOTALL | re.MULTILINE)
-        if yaml_match:
-            yaml_text = yaml_match.group(1)
-            topic_match = re.search(r"^TOPIC:\s*(.*)$", yaml_text, re.MULTILINE)
-            if topic_match:
-                topic = topic_match.group(1).strip(" \"'")
+    for active_sketch in modified_files:
+        full_path = os.path.join(sketches_dir, active_sketch)
+        
+        # Read the YAML frontmatter to construct commit message context
+        topic = ""
+        status = "UNKNOWN"
+        loop = "0"
+        
+        try:
+            # Bounded read (1MB) to prevent memory exhaustion on abnormally large markdown files,
+            # while still allowing large YAML blocks containing workspace file hashes.
+            with open(full_path, "r", encoding="utf-8") as f:
+                content = f.read(1024 * 1024)
                 
-            status_match = re.search(r"^STATUS:\s*(.*)$", yaml_text, re.MULTILINE)
-            if status_match:
-                status = status_match.group(1).strip(" \"'")
+            yaml_match = re.search(r"^```yaml\s*\n(.*?)\n```", content, re.DOTALL | re.MULTILINE)
+            if yaml_match:
+                yaml_text = yaml_match.group(1)
                 
-            loop_match = re.search(r"CURRENT_LOOP:\s*(\d+)", yaml_text)
-            if loop_match:
-                loop = loop_match.group(1).strip()
-    except Exception as e:
-        print(f"Warning: Failed to parse sketch frontmatter: {e}", file=sys.stderr)
+                topic_match = re.search(r"^\s*TOPIC:\s*(.*)$", yaml_text, re.MULTILINE)
+                if topic_match:
+                    topic = topic_match.group(1).split("#", 1)[0].strip(" \"'")
+                    
+                status_match = re.search(r"^\s*STATUS:\s*(.*)$", yaml_text, re.MULTILINE)
+                if status_match:
+                    status = status_match.group(1).split("#", 1)[0].strip(" \"'")
+                    
+                loop_match = re.search(r"^\s*CURRENT_LOOP:\s*(\d+)", yaml_text, re.MULTILINE)
+                if loop_match:
+                    loop = loop_match.group(1).strip()
+        except Exception as e:
+            print(f"Warning: Failed to parse sketch frontmatter for {active_sketch}: {e}", file=sys.stderr)
 
+        # Fallback to filename for topic extraction if frontmatter topic is empty or unknown
+        if not topic or topic == "unknown":
+            basename = os.path.basename(active_sketch)
+            fn_match = re.match(r"^\d{4}-\d{2}-\d{2}-(.+)\.md$", basename)
+            if fn_match:
+                topic = fn_match.group(1).strip()
+            else:
+                topic = os.path.splitext(basename)[0]
 
-    # Fallback to filename for topic extraction if frontmatter topic is unknown
-    if topic == "unknown":
-        basename = os.path.basename(active_sketch)
-        fn_match = re.match(r"^\d{4}-\d{2}-\d{2}-(.+)\.md$", basename)
-        if fn_match:
-            topic = fn_match.group(1).strip()
+        # Stage the file using double dash to prevent git option injection
+        run_git(["add", "--", active_sketch], cwd=sketches_dir)
+        
+        # Determine commit message
+        if len(sys.argv) > 1:
+            commit_msg = " ".join(sys.argv[1:])
         else:
-            topic = os.path.splitext(basename)[0]
-
-    # Stage the file using double dash to prevent git option injection
-    run_git(["add", "--", active_sketch], cwd=sketches_dir)
-    
-    # Determine commit message
-    if len(sys.argv) > 1:
-        commit_msg = " ".join(sys.argv[1:])
-    else:
-        commit_msg = f"docs(sketch): sync {topic} to Loop {loop} [{status}]"
-        # Ensure header is <= 50 chars
-        if len(commit_msg) > 50:
-            commit_msg = f"docs(sketch): sync {topic} L{loop} [{status}]"
+            commit_msg = f"docs(sketch): sync {topic} to Loop {loop} [{status}]"
+            # Ensure header is <= 50 chars
             if len(commit_msg) > 50:
-                commit_msg = f"docs(sketch): update {topic[:15]} L{loop}"
-            
-    # Commit
-    commit_out = run_git(["commit", "-m", commit_msg], cwd=sketches_dir)
-    print(f"Successfully committed sketch in .sketches:")
-    print(commit_out)
+                commit_msg = f"docs(sketch): sync {topic} L{loop} [{status}]"
+                if len(commit_msg) > 50:
+                    commit_msg = f"docs(sketch): update {topic[:15]} L{loop}"
+                
+        # Commit
+        commit_out = run_git(["commit", "-m", commit_msg], cwd=sketches_dir)
+        print(f"Successfully committed sketch {active_sketch} in .sketches:")
+        print(commit_out)
+
 
 if __name__ == "__main__":
     main()
