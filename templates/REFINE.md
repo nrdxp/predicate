@@ -59,13 +59,20 @@
 
 ## Verification Sweep Log
 
-<!-- Log of the adversarial sweeps performed after all ledger items were resolved -->
+<!-- Log of the Multi-Boundary Subagent Sweeps (MBSS) performed after all ledger items were resolved -->
 
 ### Sweep [N]
 
-- **Result:** [CLEAN | FINDINGS_FOUND]
-- **Audits Performed:** [e.g., compile checks, unit tests, Hickey spatial complexity checks, Lowy temporal volatility checks]
-- **Findings:** [Describe any issues found, or state "No residual entropy detected."]
+- **Meta-Auditor ID:** `[conv-uuid]`
+- **Meta-Auditor Validation Summary:** [Provide the Meta-Auditor's evaluation of the angles, any gaps identified, and the finalized set of rubrics]
+- **Sweep Result:** [CLEAN | FINDINGS_FOUND]
+- **Adversarial Subagents Executed:**
+  - **Subagent A1 (`[conv-uuid]`):** [Name/Persona]
+    - **Rubric:** [What was checked]
+    - **Result:** [PASS | FAIL (Findings details)]
+  - **Subagent A2 (`[conv-uuid]`):** [Name/Persona]
+    - **Rubric:** [What was checked]
+    - **Result:** [PASS | FAIL (Findings details)]
 
 ---
 

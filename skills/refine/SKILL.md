@@ -26,6 +26,11 @@ for all $\mathbf{A}, \mathbf{B} \in \mathcal{X}$ and some contraction factor $0 
 
 $$\mathbf{S}^* = \lim_{k \rightarrow \infty} R^k(\mathbf{S}_0)$$
 
+### Prefix-Induced Attractor Basin Bias
+Autoregressive Large Language Models do not generate tokens in a vacuum; they traverse a sequence probability landscape where each token step is conditioned on the historical prefix $\mathbf{S}_t$. When the same agent that modified the code also reviews it, the prefix $\mathbf{S}_t$ contains the refiner's internal steps, design rationale, and implicit assumptions. This warps the landscape to construct a deep **attractor basin** around the refiner's localized choices, mathematically biasing the walk to reinforce its own decisions.
+
+To break this self-congratulatory lock-in and achieve a non-delusional fixed point $\mathbf{S}^*$, validation must execute under **Multi-Boundary Subagent Sweeps (MBSS)**. We project the artifact's state space onto orthogonal axes of critique using independent subagents primed with distinct Initial Boundary Conditions (IBCs) that are completely blind to the refiner's internal trajectory history.
+
 To ensure sequence generations converge to $\mathbf{S}^*$ rather than terminating in local sub-optimal minima, the workflow enforces three control-theoretic bounds that scale dynamically based on the complexity of the task (assessed during `ABSORB`):
 
 1. **Minimum Execution Loops ($N_{min}$):** The loop MUST execute at least $N_{min}$ iterations, even if no issues are initially visible. This scales adaptively:
@@ -83,7 +88,18 @@ REF_LEDGER:
     STATUS: [PENDING | IN_PROGRESS | RESOLVED]
     EVIDENCE: "Verification results / test run outputs"
 
-# 4. ITERATIVE TRACE
+# 4. ADVERSARIAL SWEEP SYSTEM (MBSS)
+# Track the dynamically identified adversarial review angles and subagent sessions.
+MBSS_PLAN:
+  META_AUDITOR_STATUS: PENDING # APPROVED once meta-auditor validates the angles list
+  ANGLES:
+    - ID: A1
+      NAME: "e.g., security-sandbox"
+      RUBRIC: "Search for specific resource leak or sandbox escape"
+      SUBAGENT_ID: "conv-uuid"
+      STATUS: PENDING          # [PENDING | PASS | FAIL]
+
+# 5. ITERATIVE TRACE
 # Live execution metrics updated at each loop boundary
 TRACE:
   CURRENT_LOOP: 0              # Current iteration index (k)
@@ -165,21 +181,24 @@ For each ledger item:
 
 ### 5. SWEEP
 Once the ledger is empty:
-1. Conduct an adversarial sweep across the entire modified space. The sweep should act as a high-sensitivity sensor, auditing code safety, type ergonomics, test coverage, and documentation.
-2. **Adversarial Skepticism Rule:** If the sweep returns zero new findings, you MUST actively challenge this result rather than accepting it superficially. Ask:
-   - *Am I being lazy or superficial? Have I actually read and evaluated every line of the modified code and its test coverage?*
-   - *If a future reviewer wanted to break this code or find a loophole, where would they look?*
-   - *What edge case in our consulted sibling skills (e.g. robust-testing, engineering guidelines) did I not verify?*
-   - *Does this representation genuinely satisfy the minimal representation principle, or is it under-specified?*
-   - *Sieving Sweep: Can any of the newly added changes or pre-existing components be cut or simplified? Is every element of the implementation strictly necessary for correctness and safety?*
-3. If any new issue, regression, or code smell is found:
-   - Add a new item to `REF_LEDGER` with status `PENDING`.
-   - Reset `CONSECUTIVE_CLEAN_SWEEPS` to 0.
-   - Transition to `ITERATE`.
-4. If the sweep is clean (zero new findings):
-   - Increment `CONSECUTIVE_CLEAN_SWEEPS` by 1.
-   - If `CONSECUTIVE_CLEAN_SWEEPS` < `M_SWEEP` or `CURRENT_LOOP` < `N_MIN`, run another sweep loop.
-   - If `CONSECUTIVE_CLEAN_SWEEPS` >= `M_SWEEP` and `CURRENT_LOOP` >= `N_MIN`, transition to `REPORT`.
+1. **Dynamic Angle Identification:** The refiner analyzes the scope of modifications and lists the relevant **Adversarial Audit Angles** (dimensions of the state-space) that must be audited. These must span every conceivable risk category for the modification (e.g., security, edge cases, UX, concurrency, performance, schema safety).
+2. **Spawn Meta-Auditor:** Spawn an independent subagent with a clean context, passing the goal, constraints, final code/diff, and the proposed audit angles.
+   - **Role:** Meta-Auditor
+   - **Goal:** Audit the proposed review angles for completeness. Check for structural blind spots (e.g., "You touched the DB but have no schema-migration angle"). Refine and sharpen the subagent prompts to ensure they are highly critical and target real vulnerability boundaries.
+   - **Constraint:** The sweep cannot proceed until the Meta-Auditor approves the angles list and sets `META_AUDITOR_STATUS: APPROVED`.
+3. **Execute Isolated Subagent Audits:** For each approved angle, the refiner spawns an independent subagent in an isolated context (blind to the refiner's internal trajectory and other subagents):
+   - **IBC Setup:** Initialize the subagent with the specific custom prompt/persona approved by the Meta-Auditor.
+   - **Task:** Critically review the modified files against its specific rubric and output either `STATUS: PASS` or a structured list of findings.
+4. **Evaluate Findings:**
+   - If *any* subagent reports findings:
+     - Merge the findings into `REF_LEDGER` as `PENDING` items.
+     - Reset `CONSECUTIVE_CLEAN_SWEEPS` to 0.
+     - Reset `META_AUDITOR_STATUS` to `PENDING`.
+     - Transition to `ITERATE`.
+   - If *all* subagents report `PASS`:
+     - Increment `CONSECUTIVE_CLEAN_SWEEPS` by 1.
+     - If `CONSECUTIVE_CLEAN_SWEEPS` < `M_SWEEP` or `CURRENT_LOOP` < `N_MIN`, run another sweep loop (which requires generating a fresh meta-audit and spawning fresh subagents to ensure no state pollution).
+     - If `CONSECUTIVE_CLEAN_SWEEPS` >= `M_SWEEP` and `CURRENT_LOOP` >= `N_MIN`, transition to `REPORT`.
 
 ### 6. REPORT
 Compile and output the final refinement report using the template at `templates/REFINE.md`.
@@ -190,7 +209,7 @@ Compile and output the final refinement report using the template at `templates/
 
 1. **FIXED_POINT_RIGOR:** Never declare completion without executing the minimum $N_{min}$ loops and satisfying the $M_{sweep}$ consecutive clean sweeps constraint.
 2. **ATOMIC_REFINEMENTS:** Every refinement commit must be logically atomic. Do not bundle unrelated refactorings or style updates into a single transaction.
-3. **SKEPTICAL_SWEEPS:** Sweeps must be adversarial. Actively attempt to find flaws, side-effects of edits, or overlooked gaps in the modified codebase.
+3. **ORTHOGONAL_SWEEPS:** Every sweep MUST execute Multi-Boundary Subagent Sweeps (MBSS). Spawning specialized, isolated review subagents approved by an independent Meta-Auditor is mandatory. Self-auditing by the refiner alone is forbidden.
 4. **SKETCH_SYNCHRONIZATION:** The active sketchpad ledger in `.sketches/` must be updated and committed in the subrepo at every loop boundary.
 5. **COMMIT_HYGIENE:** All commits must strictly conform to [commit-hygiene](../commit-hygiene/SKILL.md).
 6. **DIVERGENCE_HALT:** If the execution loop count exceeds $K_{max}$ or oscillations/cycles are detected, transition to `HALT` immediately and do not attempt to auto-resolve.

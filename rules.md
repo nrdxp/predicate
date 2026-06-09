@@ -83,6 +83,7 @@ Governs researching, auditing, and importing production-tested code, standards, 
 ### G. Refinement Loop Skill: Fixed-Point Contraction Mapping (`skills/refine/SKILL.md`)
 Governs the iterative optimization and polishing of pre-existing codebase artifacts.
 - **Fixed-Point Convergence Bounds:** Enforces a minimum loop execution bound ($N_{min}$) and a series of consecutive adversarial sweeps ($M_{sweep}$) to ensure convergence to a stable, zero-finding fixed point.
+- **Multi-Boundary Subagent Sweeps (MBSS):** Mandates executing verification sweeps using independent subagents initialized with orthogonal, Meta-Auditor-approved Initial Boundary Conditions (IBCs) to break prefix-induced attractor basin bias.
 - **Rigor Check:** Mandates updating and committing the Dynamic Sketchpad ledger in the sketches repository at each loop boundary.
 
 ---
