@@ -85,6 +85,8 @@ Governs the iterative optimization and polishing of pre-existing codebase artifa
 - **Fixed-Point Convergence Bounds:** Enforces a minimum loop execution bound ($N_{min}$) and a series of consecutive adversarial sweeps ($M_{sweep}$) to ensure convergence to a stable, zero-finding fixed point.
 - **Multi-Boundary Subagent Sweeps (MBSS):** Mandates executing verification sweeps using independent subagents initialized with orthogonal, Meta-Auditor-approved Initial Boundary Conditions (IBCs) to break prefix-induced attractor basin bias.
 - **Rigor Check:** Mandates updating and committing the Dynamic Sketchpad ledger in the sketches repository at each loop boundary.
+- **Exit Gate Invariance:** All code-modifying iterations MUST route through a sweep phase; exiting to `REPORT` directly from `ITERATE` is strictly forbidden.
+- **Git History Invariance:** History-altering git commands (such as `reset`, `rebase`, or `commit --amend` for past commits) are strictly prohibited; address all commit hygiene issues prospectively.
 
 ---
 
