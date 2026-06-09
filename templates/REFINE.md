@@ -24,7 +24,7 @@
 - **Meta-Auditor Approval Mode:** [INTERACTIVE | PROGRAMMATIC_AUTONOMOUS]
 - **Total Refinement Loops ($k$):** [Count]
 - **Consecutive Clean Sweeps ($M$):** [Count]
-- **Rollback Count:** [Count]
+- **Total Rollback Count:** [Count]
 - **Sibling Skills Consulted:** [e.g., robust-testing, engineering, prior-art]
 - **Initial Baseline State:** [Describe initial flaws, gaps, or complexity metrics before refinement]
 - **Final Convergence State:** [Describe final optimized state, verified bounds, and evidence]
@@ -60,7 +60,7 @@
 - **Trace Metrics:**
   - **Proxy Error Metric ($d_p$):** [Count]
   - **Convergence Rate ($\rho$):** [Ratio]
-  - **Target Hashes:**
+  - **Target and Test Hashes:**
     - `[path/to/file]`: `[sha256]`
 - **Verification Trace:**
   - [Validator run outputs / test status]

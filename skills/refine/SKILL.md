@@ -32,7 +32,7 @@ To evaluate convergence in real-time, the error metric $e_k$ is computed using a
 $$\rho_k = \frac{d_p(\mathbf{S}_k)}{d_p(\mathbf{S}_{k-1})}$$
 
 For a true contraction, $\rho_k \le q < 1$. If $d_p(\mathbf{S}_k) \to 0$, the system is Cauchy-convergent. In practical autoregressive generations:
-1. **Unstable Oscillations (Limit Cycles):** If $\rho_k \ge 1$ or if codebase states exhibit exact target file hash equality with any prior loop state ($\mathbf{S}_k = \mathbf{S}_j$ for $0 \le j < k$), the loop has entered an unstable cycle. The system must adapt search parameters (lower generation temperature, inject explicit negative examples, or alter subagent critique rubrics) or execute the rollback protocol to break the attractor basin.
+1. **Unstable Oscillations (Limit Cycles):** If $\rho_k \ge 1$ (active only when $d_p(\mathbf{S}_k) > 0$) or if codebase states exhibit exact target and test file hash equality with any prior loop state ($\mathbf{S}_k = \mathbf{S}_j$ for $0 \le j < k$ stored in `TARGET_AND_TEST_HASHES`), the loop has entered an unstable cycle. The system must adapt search parameters (lower generation temperature, inject explicit negative examples, or alter subagent critique rubrics) or execute the rollback protocol to break the attractor basin.
 2. **Diminishing Returns & Stochastic Cascades:** Self-correction exhibits sublinear convergence, where functional errors are corrected early, but sequential, identical sweeps on unchanged code accumulate stochastic LLM noise (false positive critiques). To prevent these cascades, sweep angles must execute in parallel, and any new subagent finding on unchanged code must be ignored unless backed by a deterministic test or static linter failure.
 
 ### Prefix-Induced Attractor Basin Bias
@@ -127,14 +127,15 @@ MBSS_PLAN:
 TRACE:
   CURRENT_LOOP: 0              # Current iteration index (k)
   CONSECUTIVE_CLEAN_SWEEPS: 0  # Number of consecutive clean sweeps completed
-  ROLLBACK_COUNT: 0            # Number of times git rollback was executed due to oscillation/divergence
+  ROLLBACK_RETRY_COUNT: 0      # Consecutive rollbacks at current state (resets on progress, capped at 3)
+  TOTAL_ROLLBACK_COUNT: 0      # Cumulative rollbacks executed during the entire run
   LOOPS:
     - LOOP: 1
       TARGETS_ADDRESSED:
         - R1
       ERROR_METRIC: 0          # Proxy error count d_p(S_k)
       CONVERGENCE_RATE: 0.0    # Computed convergence rate rho_k
-      TARGET_HASHES:           # Target file content hashes for oscillation detection
+      TARGET_AND_TEST_HASHES:  # Target and test file content hashes for oscillation detection
         "path/to/file": "sha256_hash"
       VERIFICATION: "Compiler/linter/test outputs"
       COMMITS:
@@ -184,11 +185,11 @@ Halt sequence generation. Surface obstacles or questions regarding the target ar
 ### 3. AUDIT
 Exhaustively analyze the artifact across four dimensions to identify how to achieve its **minimal representation** (optimal articulation of the problem space without superfluous complexity). 
 At the start of the audit phase:
-1. Increment `CURRENT_LOOP` by 1.
-2. Update the `TRACE.LOOPS` list in the active sketch file for the new loop entry:
+1. Increment `CURRENT_LOOP` by 1 only if the previous loop executed commits under `ITERATE`, or if this is the first loop ($CURRENT\_LOOP = 0$). If the previous loop was a clean sweep pass that made no commits, preserve the current `CURRENT_LOOP` value (do not increment).
+2. Update the `TRACE.LOOPS` list in the active sketch file for the new loop entry (or update the existing entry if `CURRENT_LOOP` was not incremented):
    - **ERROR_METRIC ($d_p$):** Record the proxy error metric $d_p(\mathbf{S}_k) = (\text{number of PENDING ledger items}) + (\text{number of active test/compiler/linter failures})$.
-   - **CONVERGENCE_RATE ($\rho_k$):** Calculate and record the convergence rate $\rho_k = \frac{d_p(\mathbf{S}_k)}{d_p(\mathbf{S}_{k-1})}$. If $k = 1$ or if $d_p(\mathbf{S}_{k-1}) = 0$, set $\rho_k = 0.0$.
-   - **TARGET_HASHES:** Compute and record the SHA-256 hashes of all files in `CTX.TARGET_ARTIFACTS` and `CTX.TEST_FILES`.
+   - **CONVERGENCE_RATE ($\rho_k$):** Calculate and record the convergence rate $\rho_k = \frac{d_p(\mathbf{S}_k)}{d_p(\mathbf{S}_{k-1})}$. If $k = 1$ or if $d_p(\mathbf{S}_{k-1}) = 0$, set $\rho_k = 0.0$ if $d_p(\mathbf{S}_k) = 0$, and $\rho_k = \infty$ (or `N/A`) if $d_p(\mathbf{S}_k) > 0$.
+   - **TARGET_AND_TEST_HASHES:** Compute and record the SHA-256 hashes of all files in `CTX.TARGET_ARTIFACTS` and `CTX.TEST_FILES`.
 
 **Sibling Skills Consultation:**
 You are required to actively consult the workspace's sibling skills to think more broadly:
@@ -249,29 +250,30 @@ Once the ledger is empty:
      - **Stochastic Cascade Guard:** If the codebase has not changed since the previous sweep phase, any new subagent finding that was not identified in the previous sweep is automatically rejected and discarded unless it is backed by an automated compiler, linter, or test runner failure.
      - For accepted findings, merge them into `REF_LEDGER` as `PENDING` items.
      - Reset `CONSECUTIVE_CLEAN_SWEEPS` to 0.
-     - Reset `ROLLBACK_COUNT` to 0.
+     - Reset `ROLLBACK_RETRY_COUNT` to 0.
      - Reset `META_AUDITOR_STATUS` to `PENDING`.
      - Transition to `AUDIT`.
    - If *all* subagents report `PASS`:
      - Increment `CONSECUTIVE_CLEAN_SWEEPS` by 1.
-     - Reset `ROLLBACK_COUNT` to 0.
+     - Reset `ROLLBACK_RETRY_COUNT` to 0.
      - **Convergence Shortcut:** If this is loop 1 (`CURRENT_LOOP` = 1), the initial audit was clean, and all subagents pass, the codebase has converged. Transition directly to `REPORT` (bypassing `N_MIN`).
      - If `CONSECUTIVE_CLEAN_SWEEPS` < `M_SWEEP` or `CURRENT_LOOP` < `N_MIN`:
        - Transition to `AUDIT` to run another sweep cycle. To ensure diversity on unchanged code, the Meta-Auditor must choose different audit angles or perturb/alter the subagent personas (e.g. increase temperature or change persona roles).
      - If `CONSECUTIVE_CLEAN_SWEEPS` >= `M_SWEEP` and `CURRENT_LOOP` >= `N_MIN`, transition to `REPORT`.
 
 ### 6. AUTONOMOUS BACK-TRACKING & OSCILLATION RECOVERY
-If at any loop boundary `CURRENT_LOOP` exceeds $K_{max}$, or if oscillation is detected ($\mathbf{S}_k = \mathbf{S}_j$ for any prior loop state $0 \le j < k$ via exact target and test file hashes):
+If at any loop boundary `CURRENT_LOOP` exceeds $K_{max}$, or if oscillation is detected ($\mathbf{S}_k = \mathbf{S}_j$ for any prior loop state $0 \le j < k$ via exact target and test file hashes stored in `TARGET_AND_TEST_HASHES`):
 - **Interactive Mode:** Halt and transition to `HALT`.
 - **Autonomous Mode:**
-  1. Identify the last clean commit hash and its corresponding loop index $j$ from `TRACE.LOOPS` where all regression tests passed.
-  2. Execute git rollback on all modified files, leaving the `.sketches/` sub-repository untouched. If the restore command fails, immediately transition to `HALT` and log a failure report.
+  1. Identify the target loop index $j$ in `TRACE.LOOPS` where all regression tests passed. If the codebase starts with pre-existing test failures that the agent is trying to resolve, select the loop index $j$ that achieved the lowest proxy error metric $d_p(\mathbf{S}_j)$, or default to the starting commit of the refinement session ($S_0$). Resolve the target commit hash; if the `COMMITS` list is empty for loop $j$ (e.g. it was a clean sweep pass), search backwards for the most recent preceding loop entry containing a valid commit hash, or default to the starting commit if none exists.
+  2. Restore the workspace back to the target commit and clean untracked files, leaving the `.sketches/` sub-repository untouched. If the commands fail, immediately transition to `HALT` and log a failure report.
      ```bash
-     git restore --source=<hash> .
+     git restore --source=<hash> :/
+     git clean -fd -e .sketches/
      ```
   3. Reset `CURRENT_LOOP` in the active sketchpad to $j$ (the loop index of the restored clean state). Truncate the `TRACE.LOOPS` list to length $j$ to remove duplicate or stale loop entries.
-  4. Increment `ROLLBACK_COUNT` in the active sketchpad (which is unaffected by the rollback).
-  5. If `ROLLBACK_COUNT` > 3, or if no clean state index $j$ can be found in `TRACE.LOOPS` where all tests passed, transition to `HALT` and log a failure report.
+  4. Increment both `ROLLBACK_RETRY_COUNT` and `TOTAL_ROLLBACK_COUNT` in the active sketchpad.
+  5. If `ROLLBACK_RETRY_COUNT` > 3, or if no rollback target state can be resolved from `TRACE.LOOPS`, transition to `HALT` and log a failure report.
   6. Perturb the Initial Boundary Condition (IBC) for the next iteration: lower the generation temperature, inject explicit negative examples (what not to do) in the next prompt, or modify the subagent critique personas.
   7. Transition to `AUDIT` and resume.
 
@@ -285,6 +287,7 @@ Before generating the final report, execute a post-mortem review of the refineme
    - **Task:** Retrieve and analyze the entire parent conversation history (`transcript.jsonl` under `<appDataDir>/brain/<conversation-id>/.system_generated/logs/`) and git commit history of the refinement run. Critically evaluate the process: where did the refiner overcorrect, loop inefficiently, deviate from scope, or miss structural simplifications? What could have been done better?
    - **Output:** Return a structured critique outlining process inefficiencies and retrospective recommendations.
 2. **Compile Report:** Compile and output the final refinement report using the template at [templates/REFINE.md](../../templates/REFINE.md). Embed the adversarial post-mortem audit findings and recommendations directly in the report.
+3. **Record Final Trace:** Before transitioning to `REPORT`, record a final trace entry in `TRACE.LOOPS` for loop $k+1$ (the final state $\mathbf{S}^*$) with $d_p(\mathbf{S}^*) = 0$ and `VERIFICATION: "Fixed-point reached. Consecutive clean sweeps verified."` to demonstrate complete convergence.
 
 ---
 
@@ -294,6 +297,6 @@ Before generating the final report, execute a post-mortem review of the refineme
 2. **ATOMIC_REFINEMENTS:** Every refinement commit must be logically atomic. Do not bundle unrelated refactorings or style updates into a single transaction.
 3. **ORTHOGONAL_SWEEPS:** Every sweep MUST execute Multi-Boundary Subagent Sweeps (MBSS) in parallel. Spawning specialized, isolated review subagents approved by an independent Meta-Auditor is mandatory. Self-auditing by the refiner alone is forbidden.
 4. **DETERMINISTIC_GROUNDING:** Banish subjective criticisms. Every item entered in the refinement ledger must map directly to a verified failure of a linter, compiler, test assertion, or specification contract.
-5. **SKETCH_SYNCHRONIZATION:** The active sketchpad ledger in `.sketches/` must be updated and committed in the subrepo at every loop boundary.
+5. **SKETCH_SYNCHRONIZATION:** The active sketchpad ledger in `.sketches/` must be updated and committed in the subrepo at every loop boundary. Do not bundle multiple loops of code modifications and sketch pad updates into a single commit.
 6. **COMMIT_HYGIENE:** All commits must strictly conform to [commit-hygiene](../commit-hygiene/SKILL.md).
 7. **OSCILLATION_BREAKING:** Detect and break limit cycles autonomously using target file hash matches. If in autonomous mode, roll back targeted files to the last passing commit and perturb prompt parameters before retrying. In interactive mode, halt immediately.
