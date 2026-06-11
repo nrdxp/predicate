@@ -1,5 +1,5 @@
 ---
-name: model
+name: form
 description: |
   SOP for formal mathematical domain modeling.
   Trigger when:
