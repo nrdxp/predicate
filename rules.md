@@ -93,6 +93,19 @@ Governs the iterative optimization and polishing of pre-existing codebase artifa
 - **Premise Verification:** Before optimizing a target artifact, apply the Premise Verification Protocol from [integral](skills/integral/SKILL.md) to challenge design assumptions. If the design premise is flawed ("stupid"), immediately halt execution (phase-space freeze) in both interactive and autonomous modes to prevent polishing a flawed implementation.
 
 
+### H. Boundary Authority: IBC Sufficiency (`skills/boundary/SKILL.md`)
+Governs the contract every Initial Boundary Condition (IBC) must satisfy before an expensive or autonomous walk launches from it, and the cheap-tier refinement loop that manufactures the approved fixed point $\text{IBC}^*$.
+- **Cheap Rejection Primacy:** Boundaries are optimized so the receiving walker can refute a wrong frame in its first few hundred tokens, not its last fifty thousand.
+- **Sufficiency Conditions (S1–S7):** Falsifiable premises (manufactured tripwires), a first-class rejection genre, resolved/delegated/reserved decision rights, evaluator attachment, curated (never paraphrased) context, load-bearing vs plastic amendment rights, and discipline proportion.
+- **Human Dispatch Gate:** No expensive or autonomous walk launches from an unapproved boundary.
+
+### I. Orchestration Authority: Campaign (`skills/campaign/SKILL.md`)
+Governs architect-tier multi-workstream orchestration: exhaustive survey (MBSS fan-out), mitigation planning as a DAG of worker IBCs, tier routing, and reconciliation.
+- **Premise Freshness:** Pending worker IBCs are re-verified against current `HEAD` before every dispatch — the plan-level closed loop.
+- **Architect as Judge:** Landed worker commits are judged with `git-review` semantics and re-run evaluators; worker self-certification is void.
+- **Working Set vs Flight Recorder:** Live campaign state lives in the git-ignored `.scratch/<topic>/`; the committed sketch checkpoints at every reconcile boundary so resume derives from sketch + git alone.
+
+
 ---
 
 ## 4. General Commit and Git Hygiene Invariants
@@ -176,3 +189,15 @@ In long-running autonomous sessions (e.g., `/goal` loops), context drift and com
    - *What constraint is currently being optimized?*
    - *What is the baseline failure condition for this step?*
 3. **Linear Logging:** Update the Dynamic Sketchpad rubric, constraints, and commits ledger *before* committing the step to git. Never defer documentation updates to the end of the long-horizon session.
+
+---
+
+## 8. Heterogeneous Walker Economics
+
+The workspace contains multiple weight matrices with different cost-per-token, context depth, and attractor-basin stability. **Tier assignment is itself a control variable.** Error-correction iterations belong in the cheapest space that can host them; expensive walks launch from saturated boundaries and run as close to one-shot as the task allows.
+
+1. **Tier Assignment:** Route every task to the cheapest walker whose capability bounds it. Architect-class (expensive, long-horizon) walkers are reserved for state-space mapping (exhaustive survey and review), boundary emission, and judgment of landed work. Worker-class walkers execute saturated IBCs under exactly one disciplining workflow. Mechanical work (retrieval, premise freshness checks, link audits) defaults to the cheapest tier.
+2. **Boundary Mass Scaling:** Boundary mass scales inversely with walker capability. Weaker walkers receive smaller, prioritized boundaries — rule overload causes silent prioritization failure. See the sufficiency conditions in [boundary](skills/boundary/SKILL.md) (S7).
+3. **IBC Manufacturing Gate:** No expensive or autonomous walk launches without a boundary satisfying the sufficiency conditions S1–S7 and the human dispatch gate in [boundary](skills/boundary/SKILL.md).
+4. **Evaluator Strength Hierarchy:** Wherever this ruleset requires "deterministic verification," select the strongest affordable evaluator from: **machine-checked proof > type system > property test > example test > linter > human review**. In formally modeled domains, proof obligations (e.g. Lean theorem statements) are the preferred acceptance criteria — the boundary then contains its own evaluator.
+5. **Working Set vs Flight Recorder:** Architect-tier campaigns keep their live controller state (review, plan, orchestration, worker prompts) in the git-ignored `.scratch/<topic>/` directory — mutable, never committed. The committed `.sketches/` ledger remains the flight recorder: at every reconciliation boundary it must checkpoint enough state that the campaign can be regenerated from sketch + git alone.
