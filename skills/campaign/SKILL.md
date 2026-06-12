@@ -210,7 +210,7 @@ multi-agent review of the target system.
   semantics from [refine](../refine/SKILL.md)) across orthogonal angles
   spanning the goal's risk surface (correctness, security, proofs/specs,
   testing, docs-drift, performance — as the goal demands).
-- The **Grounded Critique Invariant** ([rules.md](../../rules.md) §5.8)
+- The **Grounded Critique Invariant** ([rules.md](../../rules.md) §4)
   applies in full: findings without reproducible evidence are filtered.
 - The architect synthesizes `REVIEW.md` and the `FINDINGS` ledger. The
   architect reads primary sources directly (boundary S5) — subagents
