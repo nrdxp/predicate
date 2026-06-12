@@ -56,7 +56,7 @@ Refine the `/refine` workflow skill (`skills/refine/SKILL.md`), the refinement r
 
 2. **Phase 2: Update Templates and Rules (`templates/REFINE.md` and `rules.md`)**
    - [ ] Refactor `templates/REFINE.md` to include review ledger, maintainer feedback, and worktree status fields.
-   - [ ] Align `rules.md` §3.G with the new worktree and review-centric refine protocol.
+   - [ ] Align `rules.md` skill routing entry for refine with the new worktree and review-centric refine protocol.
 
 3. **Phase 3: Verification & Link Audit**
    - [ ] Run doc link audit: `python3 skills/doc-audit/scripts/check_docs.py .`.
