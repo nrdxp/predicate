@@ -78,6 +78,8 @@ Predicate prevents this by separating planning from execution:
 
 Each phase has its own workflow and halt points. You only use what you need: a large initiative starts with `/charter`, an unfamiliar problem starts with `/sketch`, a well-scoped change goes straight to `/core`, `/model` can be invoked anywhere to formalize domain boundaries, and `/refine` optimizes existing artifacts.
 
+Above the pipeline sit two tier-aware workflows for working across heterogeneous model classes: `/boundary` manufactures and adversarially refines the prompt contract (IBC) before any expensive or autonomous walk launches, and `/campaign` lets an architect-class model survey exhaustively, emit worker prompts routed to cheaper tiers, and judge the work that returns.
+
 ---
 
 #### `/charter` — Frame before you explore
@@ -179,6 +181,32 @@ A workflow for exhaustively auditing, optimizing, and polishing pre-existing cod
 
 ---
 
+#### `/boundary` — Contract before you dispatch
+
+Manufactures the Initial Boundary Condition (IBC) for an expensive or autonomous walk as the fixed point of a cheap refinement loop. A good boundary is optimized for **cheap rejection**, not guaranteed success: the receiving model must be able to refute a wrong frame in its first few hundred tokens.
+
+Seven sufficiency conditions (S1–S7) govern every IBC: falsifiable premises, a first-class rejection genre, resolved/delegated/reserved decision rights, evaluator attachment (machine-checked proof at the top of the hierarchy), curated rather than paraphrased context, load-bearing vs plastic amendment rights, and boundary mass scaled to walker capability.
+
+1. **DRAFT:** Author the candidate IBC from `templates/IBC.md` (cheap tier).
+2. **ATTACK:** Independent adversarial reviewers object by citing violated sufficiency conditions; contested framings escalate to `/dialectic`.
+3. **REVISE:** Amend or rebut with evidence; loop until an attack sweep yields zero grounded objections.
+4. **APPROVE:** Mandatory human gate before dispatch.
+
+---
+
+#### `/campaign` — Orchestrate across model tiers
+
+An architect-class model coordinates a multi-workstream goal as an hourglass: cheap boundary preparation, one expensive survey-and-planning pass, cheap disciplined execution.
+
+1. **ABSORB:** Premise-audit the approved campaign IBC (rejecting the frame early is a success condition). Initialize the git-ignored `.scratch/<topic>/` working set.
+2. **SURVEY:** Exhaustive multi-agent review fan-out; synthesize an evidence-grounded findings ledger.
+3. **PLAN:** Derive a mitigation plan — a dependency graph of worker tasks, each mapped to the findings it mitigates.
+4. **ORCHESTRATE:** Emit one IBC per task and route each to the cheapest capable model tier, assigning exactly one disciplining workflow (`/refine`, `/core`) per worker.
+5. **DISPATCH ⇄ RECONCILE:** Workers execute autonomously and commit; the architect judges landed work with `/git-review` semantics and re-run evaluators, then re-verifies the premises of every pending prompt against current `HEAD` before further dispatch — realigning the living plan when reality diverges.
+6. **CLOSE:** Full verification surface, a final adversarial sweep over the cumulative diff, and the campaign report.
+
+---
+
 ### The sketch as a lifecycle journal
 
 The sketch is not discarded when implementation begins; it serves as a living record across all workflows:
@@ -192,6 +220,8 @@ The sketch is not discarded when implementation begins; it serves as a living re
 | `/dialectic` | Cross-sampling traces and barycentric intersections |
 | `/core` | Live execution notes, discoveries, and divergence logs |
 | `/refine` | Refinement ledgers, sweep traces, and convergence history |
+| `/boundary` | Sufficiency objections, revisions, and the approved contract |
+| `/campaign` | Reconcile checkpoints — enough to regenerate `.scratch/` from sketch + git |
 
 Every modification is committed to `.sketches/` immediately. This creates a linear git history of all architectural decisions, discoveries, and pivots.
 
