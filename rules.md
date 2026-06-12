@@ -38,7 +38,7 @@ Five invariants, in precedence order. Every other rule in this workspace elabora
 
 ## 3. The Commit Gate
 
-Every `git commit`, in every repository (main, `.sketches/`, worktrees), passes this gate. Hygiene enforced as a memory fails under context pressure; this is a gate with an evaluator.
+Every `git commit`, in every repository (the main repository, the independent `.sketches/` sub-repository, and any worktree), passes this gate. Hygiene enforced as a memory fails under context pressure; this is a gate with an evaluator.
 
 1. **Validate mechanically.** The message must pass the [commit-hygiene](skills/commit-hygiene/SKILL.md) validator with exit `0`:
    ```bash
@@ -49,8 +49,8 @@ Every `git commit`, in every repository (main, `.sketches/`, worktrees), passes 
    - One cohesive logical change? (If the message needs "and", split it.)
    - Does the body give the *why*, derivable by a stranger with no access to this conversation? No internal workflow or agent references.
    - Diff free of complected concerns ([hickey](skills/hickey/SKILL.md)) and volatility leaks ([lowy](skills/lowy/SKILL.md))?
-3. **Run the full verification surface** for the repository at the gate — complete test suite and linters. (Targeted, sub-5-second selectors are for the iteration loop; the gate gets everything.)
-4. **Update the active sketch ledger first**, then commit.
+3. **Run the full verification surface** for the repository at the gate — complete test suite and linters.
+4. **Record the boundary in the active sketch ledger** — committed in the `.sketches/` sub-repository — before executing the commit here.
 
 **Hard rails — no exceptions, all repositories:**
 - **Never `git push`.** Remotes belong to the human.
@@ -66,7 +66,8 @@ Always active, with or without a formal workflow ceremony:
 2. **One-shot skepticism.** A first-pass success (`LOOPS: 1`) triggers an adversarial self-audit of the diff — genuine baseline? hidden assumptions? — documented at the review gate.
 3. **Iteration transparency.** Review-gate reports state the exact loop count, baseline diagnostics, and corrections applied. Unverifiable passes are treated as failures.
 4. **Grounded critique.** A finding exists only if it maps to a reproducible evaluator failure or a localized, in-scope specification contract — verified by actually running the tool. Subjective and stylistic critiques are barred from ledgers; discards are logged. Full protocol: [refine](skills/refine/SKILL.md) (Verifier Grounding).
-5. **Prior art.** Non-trivial algorithms, protocols, or abstractions require at least two production-grade references documented in the active ledger before generation. Procedure: [prior-art](skills/prior-art/SKILL.md).
+5. **Targeted feedback.** During the iteration loop, run targeted test selectors (specific cases, module suites, focused paths) to keep feedback latency under ~5 seconds — the complete suite is reserved for the Commit Gate. Slow feedback decays the corrective loop.
+6. **Prior art.** Non-trivial algorithms, protocols, or abstractions require at least two production-grade references documented in the active ledger before generation. Procedure: [prior-art](skills/prior-art/SKILL.md).
 
 ---
 
