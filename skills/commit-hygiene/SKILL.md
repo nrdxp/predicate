@@ -85,11 +85,37 @@ Commits are written for human reviewers, not systems. Prioritize cognitive clari
 - **The "What":** Describe what was changed at a conceptual level. Avoid summarizing the raw code diff (which the reviewer can already see); instead, describe the logical transition of the system.
 - **Explain the Tradeoffs:** If a non-obvious design pattern or workaround was employed, document it honestly.
 
-### Avoid Contextless or Internal References
+### Self-Contained Messages — No Contextless References
 
-- **No Workflow/Agent Idiosyncrasies:** Do not reference internal workflow states, subagent execution steps, or transient, agent-specific planning phases (e.g., "resolving step 4 of the execution plan"). These references are meaningless to an independent reviewer.
-- **Independently Derivable Information:** The only information referenced in a commit message should be context that is independently derivable by a human observer looking at the repository or external context.
-- **Direct and Markdown Links:** When referring to documentation, requirements, or design decisions, use direct paths or markdown links (e.g., `[SKILL.md](skills/commit-hygiene/SKILL.md)` or external URLs) to make the referenced context explicitly traceable.
+Commit messages must be **self-contained**. A reviewer reading
+`git log` has access to exactly two things: the repository's
+committed history and the public internet. If a reference in a
+commit message cannot be resolved from one of those two sources,
+it is meaningless noise.
+
+- **No Uncommitted Artifacts:** Planning documents, sketches,
+  scratch files, and workstream trackers (`.sketches/`,
+  `.scratch/`, agent scratch pads, etc.) are **never committed
+  to history**. Referencing labels that originate from these
+  artifacts — workstream items like "(P3)", sketch IDs, plan
+  phase names, task-tracker shortcodes — is **prohibited**.
+  These tokens carry zero information for any reader who did
+  not have the ephemeral document open. Describe the *actual
+  change and its motivation* instead.
+- **No Workflow/Agent Idiosyncrasies:** Do not reference
+  internal workflow states, subagent execution steps, or
+  transient, agent-specific planning phases (e.g., "resolving
+  step 4 of the execution plan"). These are equally opaque.
+- **Independently Derivable Information:** Every reference in a
+  commit message must resolve to something a human reviewer can
+  independently locate — a committed file path, a prior commit
+  SHA, an issue number in a linked tracker, or a URL. If a
+  reviewer cannot follow the reference, it must not appear.
+- **Direct Links for External Context:** When referring to
+  requirements, design decisions, or documentation, use paths
+  to committed files (e.g., `skills/commit-hygiene/SKILL.md`)
+  or full URLs. If the context is not committed and not on the
+  public internet, paraphrase it inline instead of citing it.
 
 ### Atomicity and Boundary Discipline
 
@@ -136,9 +162,10 @@ Before presenting a commit, run this audit:
 - [ ] Does it use a valid Conventional Commit type?
 - [ ] Does the body explain the *why* and *what*, rather than just reproducing the diff?
 - [ ] Are breaking changes explicitly denoted using `!` in the header and/or a `BREAKING CHANGE: <description>` footer?
-- [ ] Does the message avoid contextless or internal references
-      (e.g., workflow steps) and use only independently derivable
-      or linked sources?
+- [ ] Is the message self-contained? Does it avoid references to
+      uncommitted artifacts (sketches, scratch files, workstream
+      labels like "P3") and use only committed paths, commit SHAs,
+      tracker issue numbers, or URLs?
 
 ### Boundary Discipline
 - [ ] Does this commit represent a single, cohesive logical change?
