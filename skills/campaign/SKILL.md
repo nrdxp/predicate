@@ -175,7 +175,7 @@ RECONCILE ─→ DISPATCH    (accepted; fresh pending nodes remain)
           ├─→ CLOSE       (all findings MITIGATED or ACCEPTED_RISK; DAG complete)
           └─→ HALT        (reserved predicate tripped, or budget exhausted)
 
-CLOSE ──→ REPORT/end     (final sweep passes; human accepts)
+CLOSE ──→ end            (final sweep passes; human accepts the report)
       └─→ RECONCILE      (final sweep finds regressions)
 ```
 
