@@ -50,7 +50,7 @@ Every `git commit`, in every repository (the main repository, the independent `.
    - Does the body give the *why*, derivable by a stranger with no access to this conversation? No internal workflow or agent references.
    - Diff free of complected concerns ([hickey](skills/hickey/SKILL.md)) and volatility leaks ([lowy](skills/lowy/SKILL.md))?
 3. **Run the full verification surface** for the repository at the gate — complete test suite and linters.
-4. **Record the boundary in the active sketch ledger** — committed in the `.sketches/` sub-repository — before executing the commit here.
+4. **Record the boundary in the active sketch ledger** and commit that update in the `.sketches/` sub-repository; only then execute the main-repository commit.
 
 **Hard rails — no exceptions, all repositories:**
 - **Never `git push`.** Remotes belong to the human.
