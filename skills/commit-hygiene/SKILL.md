@@ -102,6 +102,28 @@ Commits are written for human reviewers, not systems. Prioritize cognitive clari
 
 ---
 
+## Mechanical Validation
+
+The hard constraints are deterministic, so they are enforced by an
+evaluator, not by recall. Before every commit (and after, when auditing
+history), run:
+
+```bash
+python3 skills/commit-hygiene/scripts/check_commit_msg.py --message "<msg>"
+python3 skills/commit-hygiene/scripts/check_commit_msg.py --file <msgfile>
+python3 skills/commit-hygiene/scripts/check_commit_msg.py --ref HEAD
+```
+
+Exit `0` is required to proceed. Errors (`E1`–`E5`) cover the header
+limit, Conventional Commits structure, trailing period, blank-line
+separation, and body line length (URL-bearing lines exempt). Warnings
+(`W1`–`W2`) flag probable case/mood issues but do not fail — they need
+human judgment (proper nouns, unusual verbs). If the script is missing
+or fails to execute, fall back to the manual checklist below; never
+skip validation silently.
+
+---
+
 ## Commit Checklist
 
 Before presenting a commit, run this audit:
