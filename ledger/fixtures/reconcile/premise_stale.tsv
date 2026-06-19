@@ -1,0 +1,4 @@
+# A node planned assuming the enum still omitted 'doc. That premise is now
+# stale: the grep below was expected to FIND-NOTHING (exit 1) at plan time,
+# but 'doc now exists (grep exits 0), so the verdict flips -> INVALIDATED.
+1	grep -q "'doc" ledger/contracts/dag.ncl

@@ -1,0 +1,3 @@
+# expected-exit<TAB>command  — premises that hold against current HEAD
+0	test -f ledger/contracts/dag.ncl
+0	grep -q "'doc" ledger/contracts/dag.ncl
