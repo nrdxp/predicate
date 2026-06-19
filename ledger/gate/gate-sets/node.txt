@@ -1,0 +1,16 @@
+# Gate set a DAG node passes at its commit boundary.
+#
+# One gate identifier per line; comments (#) and blank lines ignored. The
+# checker sorts before comparing, so author order is not load-bearing — but
+# the file is kept sorted for review.
+#
+# Every line here is a step of the universal Commit Gate (rules.md §3), which
+# binds *every* commit in *every* repository — a node and a direct task pass the
+# identical §3 gates. The node set is exactly this universal gate; a node adds
+# nothing beyond it. Each identifier names the evaluator that closes the step.
+boundary-audit
+commit-msg-hygiene
+full-verification-surface
+ledger-authority
+ledger-structure
+sketch-ledger-record

@@ -1,0 +1,25 @@
+# Gate set a /core task passes at its commit boundary.
+#
+# One gate identifier per line; comments (#) and blank lines ignored. The
+# checker sorts before comparing, so author order is not load-bearing — but
+# the file is kept sorted for review.
+#
+# A /core task passes the universal Commit Gate (rules.md §3) — the same six
+# gates a node passes — and ADDS the Verification Protocol gates that rules.md
+# §4 routes to /core (TDD-first, one-shot skepticism, iteration transparency,
+# the refinement-contraction loop). The set is therefore a strict superset of
+# the node set: it is the node gates plus the §4 gates, never the node gates
+# minus any. This inclusion is what `gate-set.sh check` proves mechanically.
+#
+# --- universal Commit Gate (rules.md §3), shared with a node -----------------
+boundary-audit
+commit-msg-hygiene
+full-verification-surface
+ledger-authority
+ledger-structure
+sketch-ledger-record
+# --- /core Verification Protocol additions (rules.md §4) ---------------------
+iteration-transparency
+one-shot-skepticism
+refinement-contraction
+tdd-baseline-failure
