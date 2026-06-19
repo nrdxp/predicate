@@ -69,13 +69,13 @@ Workflow skills define active SOP procedures. They guide the agent through struc
 #### Example Frontmatter:
 ```yaml
 ---
-name: plan
+name: core
 description: |
-  SOP for the rigorous planning phase.
+  SOP for the micro-execution C.O.R.E. phase.
   Trigger when:
-  - Creating a detailed technical design, blueprint, or implementation plan.
-  - Running the /plan command, steel-manning alternatives, or performing pre-mortems.
-  - Prompt contains: /plan, plan workflow, design specification, refine, challenge, scope, commit.
+  - Implementing plan steps, managing code changes at commit boundaries, and verifying incremental progress.
+  - Navigating states: Absorb, Clarify, Plan, Execute.
+  - Prompt contains: /core, core workflow, absorb, clarify, execution invariants, commit boundary, verify assertion.
 ---
 ```
 
