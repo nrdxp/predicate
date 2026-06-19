@@ -128,6 +128,33 @@ let c = import "../contracts/dag.ncl" in
           mitigates = ["AC8"],
           rationale = "All gates green, link checks clean, final decorrelated sweep over the cumulative diff for cross-node integration drift. Empty file surface (verification only).",
         },
+        {
+          id = "P14",
+          title = "Gate bundle: tracked, hook-enforced, installable",
+          depends_on = ["P11"],
+          file_surface = ["gates/", "hooks/", "docs/getting-started.md"],
+          discipline = 'core,
+          mitigates = ["gate-bundle"],
+          rationale = "Promote the .scratch gates into tracked tooling; commit-msg + pre-commit hooks make a failing check block the commit; one-command installer; fix the orphan gate prose-coverage gap.",
+        },
+        {
+          id = "P13",
+          title = "Machine-executable orchestration + reconcile protocol",
+          depends_on = ["P14"],
+          file_surface = ["skills/campaign/SKILL.md", "ledger/contracts/dag.ncl", "ledger/gate/authorized.py", "docs/orchestration-protocol.md"],
+          discipline = 'core,
+          mitigates = ["self-driving"],
+          rationale = "Specify the team-execution + reconcile loop (explicit premise-freshness + bidirectional coherence) machine-executably; evolve file_surface to derive-and-verify with the surface-exceed protocol.",
+        },
+        {
+          id = "P15",
+          title = "Documentation refresh to the new architecture",
+          depends_on = ["P13"],
+          file_surface = ["README.md", "docs/"],
+          discipline = 'doc,
+          mitigates = ["doc-drift"],
+          rationale = "README leads with the Verification Dual + ambient/ledger; getting-started fixed (cut-workflow examples + hook install); chronicle entry + ADR for the refactor.",
+        },
       ]
     } | c.Dag
   ) | c.DagNoConflict
