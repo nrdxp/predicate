@@ -207,6 +207,17 @@ An architect-class model coordinates a multi-workstream goal as an hourglass: ch
 
 ---
 
+#### `/chronicle` — Maintain project history
+
+Maintains a persistent, high-level chronicle of the project's evolution in `docs/chronicle.md` using commit cutoff markers for cheap incremental updates.
+
+1. **PREPARE:** Run `update_chronicle.py --prepare` to fetch a batch of commits since the last recorded SHA cutoff, ending at a `TARGET_END_SHA`.
+2. **SUMMARIZE:** Conceptualize and group the batch's commits into design decisions, features, workflows, quality adjustments, and documentation.
+3. **WRITE:** Run `update_chronicle.py --write --end-sha <TARGET_END_SHA> --summary "<markdown>"` to append the summary to `docs/chronicle.md` and advance the cutoff SHA in its frontmatter to the summarized range's end.
+4. **REPEAT:** Iterate until the prepare command reports that the chronicle is up to date.
+
+---
+
 ### The sketch as a lifecycle journal
 
 The sketch is not discarded when implementation begins; it serves as a living record across all workflows:
