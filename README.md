@@ -9,7 +9,7 @@ See the [Getting Started Guide](docs/getting-started.md) to integrate Predicate 
 ```
 predicate/
 ├── skills/      # Encapsulated agent skills (rules, workflows, tools)
-├── templates/   # Project templates (AGENTS.md, PLAN.md, etc.)
+├── templates/   # Project templates (AGENTS.md, IBC.md, etc.)
 └── docs/        # Guides, plans, ADRs, and formal models
 ```
 
@@ -20,7 +20,7 @@ Predicate packages all agent assets as **skills**:
 | Term | Category | Description |
 | :--- | :--- | :--- |
 | **Rule** | Constraint | Declarative guardrails (like `rust` or `engineering` guidelines). |
-| **Workflow** | Procedure | State-machine SOPs (like `plan`, `core`, or `/dialectic` [MDCS]). |
+| **Workflow** | Procedure | State-machine SOPs (like `core`, `refine`, or `/dialectic` [MDCS]). |
 | **Tool** | Capability | Executable scripts (like `depmap` or `security-audit`). |
 
 ---
@@ -45,7 +45,7 @@ Predicate models the agent's prompt as an **Initial Boundary Condition (IBC)** t
 Predicate translates this control-theoretic paradigm into concrete workspace configurations through modular **skills** loaded dynamically based on the active task:
 
 * **Rules (phase-space constriction):** Declarative guardrails (like language styles) prune unneeded state-space dimensions. This lowers sequence entropy and prevents the model from wandering into invalid APIs.
-* **Workflows (state-transition bounds):** State-machine SOPs (like `/plan` or `/core`) force the agent to generate intermediate step tokens (such as challenge logs or verification plans). This induces a structured state-space expansion that lowers the conditional entropy of the final code.
+* **Workflows (state-transition bounds):** State-machine SOPs (like `/sketch` or `/core`) force the agent to generate intermediate step tokens (such as exploration logs or verification plans). This induces a structured state-space expansion that lowers the conditional entropy of the final code.
 * **Tools (error-differential feedback):** Executable validation scripts act as the outer-loop feedback controller. They run the validator, report the error vector, and loop until the validation error reaches zero.
 
 ---
@@ -68,31 +68,17 @@ Predicate implements the [AGENTS.md specification](https://agents.md). Instead o
 
 Left unchecked, coding agents optimize for speed over design coherence. They interpret vague requirements silently, make hidden assumptions, creep scope, and write throwaway code. 
 
-Predicate prevents this by separating planning from execution:
+Predicate prevents this by separating exploration from execution:
 
-| Phase | `/charter` | `/sketch` | `/plan` | `/model` | `/core` | `/refine` |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Focus** | Frame | Explore | Stress-test | Formalize | Execute | Optimize |
-| **Method** | Declare | Diverge | Challenge | Construct | Verify | Polish |
-| **Output** | Priorities | Propose | Commit plan | Commit model | Commit code | Commit refinement |
+| Phase | `/sketch` | `/model` | `/core` | `/refine` |
+| :--- | :--- | :--- | :--- | :--- |
+| **Focus** | Explore | Formalize | Execute | Optimize |
+| **Method** | Diverge | Construct | Verify | Polish |
+| **Output** | Propose | Commit model | Commit code | Commit refinement |
 
-Each phase has its own workflow and halt points. You only use what you need: a large initiative starts with `/charter`, an unfamiliar problem starts with `/sketch`, a well-scoped change goes straight to `/core`, `/model` can be invoked anywhere to formalize domain boundaries, and `/refine` optimizes existing artifacts.
+Each phase has its own workflow and halt points. You only use what you need: an unfamiliar problem starts with `/sketch`, a well-scoped change goes straight to `/core`, `/model` can be invoked anywhere to formalize domain boundaries, and `/refine` optimizes existing artifacts.
 
-Above the pipeline sit two tier-aware workflows for working across heterogeneous model classes: `/boundary` manufactures and adversarially refines the prompt contract (IBC) before any expensive or autonomous walk launches, and `/campaign` lets an architect-class model survey exhaustively, emit worker prompts routed to cheaper tiers, and judge the work that returns.
-
----
-
-#### `/charter` — Frame before you explore
-
-Defines *why* a project exists, what success looks like, and what workstreams to prioritize.
-
-A charter is a strategic declaration committed to `docs/charters/` using `templates/CHARTER.md`. It has no state machine. Instead, it defines:
-
-* **Purpose:** The core problem this project solves.
-* **North star:** The long-term success criteria.
-* **Workstreams:** Prioritized list of tasks (each workstream is explored via `/sketch`).
-* **Non-goals:** Strategic boundaries (what we are deliberately not doing).
-* **Appetite:** The maximum investment budget. If a workstream exceeds its appetite, we descope it.
+Above the pipeline sit two tier-aware workflows for working across heterogeneous model classes: `/boundary` manufactures and adversarially refines the prompt contract (IBC) before any expensive or autonomous walk launches, and `/campaign` lets an architect-class model frame the initiative, survey exhaustively, derive a mitigation plan, emit worker prompts routed to cheaper tiers, and judge the work that returns. Strategic framing and stress-test planning — what a standalone charter or plan once held — live inside `/campaign`'s ABSORB, SURVEY, and PLAN states, where they are produced and consumed in one architect pass.
 
 ---
 
@@ -106,17 +92,6 @@ Forces the agent to explore the problem space before selecting an implementation
 4. **PROPOSE:** Present the draft sketch to the human for feedback.
 
 Sketches live in the git-ignored `.sketches/` directory, which maintains its own local git history. This preserves the archaeological thought process without bloating the main repository history.
-
----
-
-#### `/plan` — Stress-test before you build
-
-Translates a sketch recommendation into an execution blueprint. While `/sketch` explores options, `/plan` tries to break them:
-
-1. **REFINE:** Convert the recommendation into a precise design specification.
-2. **CHALLENGE:** Actively try to find reasons the design will fail. The agent uses assumption inversion, steel-manning alternatives, and pre-mortems. It must identify at least one medium-to-high risk.
-3. **SCOPE:** Break the work into concrete execution phases and tactical non-goals.
-4. **COMMIT:** Present the final plan and Architecture Decision Records (ADRs) for approval.
 
 ---
 
@@ -224,9 +199,7 @@ The sketch is not discarded when implementation begins; it serves as a living re
 
 | Phase | Sketch Role |
 | :--- | :--- |
-| `/charter` | Strategic framing context |
 | `/sketch` | Direct ideation and design proposals |
-| `/plan` | Challenge findings and design refinements |
 | `/model` | Domain formalizations and mathematical maps |
 | `/dialectic` | Cross-sampling traces and barycentric intersections |
 | `/core` | Live execution notes, discoveries, and divergence logs |
