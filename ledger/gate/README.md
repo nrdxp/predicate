@@ -43,13 +43,55 @@ ledger/gate/ledger-validate.sh commit-gate <dag>.ncl
 
 Exit codes: `0` pass, `1` a check failed, `2` usage or environment error.
 
+## Scale invariance
+
+The gate is the same at every scale: the boundary a multi-node campaign
+DAG passes and the boundary a direct `/core` task passes run the
+identical command set, because a `/core` task is a degenerate one-node
+DAG. `gate-set.sh` proves this *mechanically* — the gate set a `/core`
+task runs is a **superset** of the gate set a node runs.
+
+| Set | Is | Source |
+| :--- | :--- | :--- |
+| **node** | the universal Commit Gate, nothing more | `rules.md` §3 |
+| **/core** | those same gates **plus** the Verification Protocol additions | `rules.md` §3 + §4 |
+
+Each set is data — `gate-sets/node.txt`, `gate-sets/core.txt` — one
+gate identifier per line. The `/core` set adds the §4 gates a feature
+task runs (TDD baseline failure, one-shot skepticism, iteration
+transparency, the refinement loop) on top of the node set, never
+removing any. The proof is set inclusion:
+
+```bash
+ledger/gate/gate-set.sh check   # comm -23 node core; exit 0 iff empty
+ledger/gate/gate-set.sh diff    # the gates /core adds over a node
+```
+
+`comm -23 <node> <core>` emits node gates not covered by `/core`; empty
+output means `node ⊆ core`, so the `/core` set is a superset. A
+non-empty line is an uncovered node gate and the check exits non-zero
+naming it.
+
+```bash
+ledger/gate/demo_scale_invariant.sh   # exits 0 iff transcripts coincide
+```
+
+The demonstration runs the gates rather than asserting the property: it
+builds a one-node DAG, stages one authorized change, runs the identical
+commit-gate sequence under the campaign DAG and the one-node DAG, and
+asserts the two gate transcripts are byte-identical — a `/core` task
+passes exactly the gates a node does.
+
 ## Files
 
 | File | Holds |
 | :--- | :--- |
 | `ledger-validate.sh` | The gate: portable runner + structure + authority. |
 | `authorized.py` | The authorization predicate over an exported DAG JSON. |
+| `gate-set.sh` | The scale-invariance check: proves `/core` gates ⊇ node gates by `comm -23`. |
+| `gate-sets/` | The two gate sets as data — `node.txt`, `core.txt`. |
 | `demo_unauthorized.sh` | Reproducible demo: an unauthorized staged change exits non-zero (baseline ΔE₀ ≠ 0); an authorized path passes. |
+| `demo_scale_invariant.sh` | Reproducible demo: a `/core` task's gate transcript matches a node's, re-run not claimed. |
 
 ## Demonstration
 
