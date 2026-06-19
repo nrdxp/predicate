@@ -15,8 +15,39 @@
 # no out-of-band step to forget. Acyclicity and referential integrity remain
 # intrinsic in `Dag` as required.
 {
+  # Node contract: a node declares the fields the campaign reasons over. The
+  # record is open — human-facing fields (title, rationale) and the optional
+  # `serialize` marker may ride alongside and are ignored by the contract.
+  #
+  # `discipline` enumerates the surviving worker workflows: 'core (feature/TDD),
+  # 'refine (polish), and 'doc (documentation). An out-of-enum tag fails the
+  # contract — but ONLY because `Dag` applies this contract per element (below);
+  # a defined-but-unapplied contract enforces nothing.
+  Node = {
+    id | String,
+    depends_on | Array String,
+    file_surface | Array String,   # paths/globs this node may touch
+    discipline | [| 'core, 'refine, 'doc |],
+    mitigates | Array String,      # finding ids this node addresses
+    ..                             # open: title/rationale/serialize ride along
+  },
+
   Dag = std.contract.custom (fun _label value =>
     let nodes = value.nodes in
+    # Per-element node conformance: annotate each node with the `Node` contract
+    # so the field shapes and the `discipline` enum are actually enforced. A
+    # contract defined but never applied is inert; checking it over each element
+    # is what makes `discipline | [| 'core, 'refine, 'doc |]` a real gate. The
+    # annotation form `(n | Node)` under `std.deep_seq` raises the violation
+    # EAGERLY — `std.contract.apply` alone stays lazy and the bad node slips
+    # through `nickel export`. deep_seq descends into the annotated fields so an
+    # out-of-enum discipline fails the export rather than being skipped.
+    let _node_conformance =
+      std.array.fold_left
+        (fun acc n => std.deep_seq (n | Node) acc)
+        null
+        nodes
+    in
     let ids = std.array.map (fun n => n.id) nodes in
     # referential integrity: every depends_on resolves to a declared node id
     let all_edges_resolve =
@@ -51,22 +82,16 @@
         ids
     in
     let unique_ids = std.array.length ids == std.array.length dedup in
-    if !unique_ids then 'Error { message = "duplicate node id" }
-    else if !all_edges_resolve then 'Error { message = "dangling depends_on edge" }
-    else if !acyclic then 'Error { message = "cycle detected in DAG" }
-    else 'Ok value
+    # `std.seq _node_conformance` forces the per-element `Node` applications
+    # (above) before the structural verdict, so a malformed node fails the
+    # contract eagerly rather than being skipped by laziness.
+    std.seq _node_conformance (
+      if !unique_ids then 'Error { message = "duplicate node id" }
+      else if !all_edges_resolve then 'Error { message = "dangling depends_on edge" }
+      else if !acyclic then 'Error { message = "cycle detected in DAG" }
+      else 'Ok value
+    )
   ),
-
-  # Node contract: a node declares the fields the campaign reasons over. The
-  # record is open — human-facing fields (title, rationale) and the optional
-  # `serialize` marker may ride alongside and are ignored by the contract.
-  Node = {
-    id | String,
-    depends_on | Array String,
-    file_surface | Array String,   # paths/globs this node may touch
-    discipline | [| 'core, 'refine |],
-    mitigates | Array String,      # finding ids this node addresses
-  },
 
   # Conflict-detection gate (C10 part c), layered over `Dag`. Concurrent nodes
   # (no dependency path between them) MUST declare disjoint file_surface OR carry
@@ -100,10 +125,35 @@
     let ordered = fun a b =>
       std.array.elem b.id (reach a.id) || std.array.elem a.id (reach b.id)
     in
-    # surfaces overlap if they share any declared path/glob token (exact-string
-    # disjointness; the campaign normalizes surfaces to comparable tokens)
+    # Two surface TOKENS overlap when one path-contains the other, not merely
+    # when they are byte-equal. Exact-string comparison wrongly read "docs/" and
+    # "docs/x.md" as disjoint, so two concurrent nodes editing the same tree
+    # passed the gate. A token names a directory subtree, addressed by its
+    # directory prefix (the token with a guaranteed trailing "/"); t1 contains
+    # t2 when t2 equals t1 or t2 begins with t1's directory prefix. Plain string
+    # prefixing, no regex, so glob metacharacters in a token are inert here
+    # (globs are an authorization-time concern, handled in authorized.py).
+    let starts_with = fun prefix s =>
+      let lp = std.string.length prefix in
+      std.string.length s >= lp && std.string.substring 0 lp s == prefix
+    in
+    let dir_prefix = fun t =>
+      if std.string.length t > 0
+         && std.string.substring (std.string.length t - 1) (std.string.length t) t == "/"
+      then t
+      else t ++ "/"
+    in
+    let token_contains = fun t1 t2 =>
+      t1 == t2 || starts_with (dir_prefix t1) t2
+    in
+    let tokens_overlap = fun t1 t2 =>
+      token_contains t1 t2 || token_contains t2 t1
+    in
+    # surfaces overlap if ANY token pair overlaps under path-containment
     let surfaces_overlap = fun a b =>
-      std.array.any (fun s => std.array.elem s b.file_surface) a.file_surface
+      std.array.any
+        (fun s1 => std.array.any (fun s2 => tokens_overlap s1 s2) b.file_surface)
+        a.file_surface
     in
     let has_serialize = fun n =>
       std.record.has_field "serialize" n && n.serialize == true
