@@ -92,7 +92,7 @@ Skills are routed *by moment*. Beneath them sits the **ambient layer** — stand
 principles that are never *not* active and so have no entrypoint to route to. They
 live in [ambient.md](ambient.md), presumed read alongside this file. That document
 is the destination for principles currently mis-packaged as skills (planning's
-invariants, the sketch/dialectic/boundary-reconstruction dispositions, the
+invariants; the sketch, dialectic, and boundary-reconstruction dispositions; the
 code-edit constraints); relocate a demoted skill's principle there per the Cutting
 Imperative (§2).
 
@@ -101,7 +101,6 @@ The skill is the authority; this table only routes. Load by moment, not by mass:
 | Moment | Authority | Essence |
 | :--- | :--- | :--- |
 | Any conflict, precedence, or ethics question | [constitution](skills/constitution/SKILL.md) | Truth > Harmony, Evidence > Authority, Halt > Assumption, Outcomes > Process |
-| A workstream begins or resumes | [planning](skills/planning/SKILL.md) | Sketchpad ledger in `.sketches/`; one file per workstream lifecycle |
 | Writing any commit | [commit-hygiene](skills/commit-hygiene/SKILL.md) | §3 gate: validator + atomic boundaries + why-centric messages |
 | Implementing plan steps | [core](skills/core/SKILL.md) | TDD state machine with commit gates and review blocks |
 | Polishing existing artifacts | [refine](skills/refine/SKILL.md) | Contraction loop, MBSS sweeps, hostile maintainer review |
