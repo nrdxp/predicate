@@ -201,6 +201,19 @@ verifiable states:
   evidence from each source and propose a resolution — do not silently pick a
   winner.
 
+**Robust-testing mandate.** Tests are written with the implementation, not after.
+Do not rely on example-based happy-path unit tests alone: when the agent writes
+both the code and its tests, example tests propagate the same blind spots to both
+and produce self-deception. Verify against **properties and invariants**, and
+select the method by domain — property-based testing for algebraic properties,
+fuzzing for untrusted or serialization boundaries, metamorphic testing for
+oracle-less systems, integration and end-to-end testing for multi-module
+boundaries. If a specification or model exists, tests trace directly to its
+constraints. Every test suite must fail on empty or unimplemented code
+($\Delta E_0 \neq 0$); a suite that passes on a stub is invalid. The full method
+taxonomy is the reference content of [robust-testing](skills/robust-testing/SKILL.md),
+which survives as the testing authority; the mandate to apply it is ambient.
+
 ---
 
 > [!IMPORTANT]
