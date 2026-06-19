@@ -1,6 +1,6 @@
 ---
-latest_commit: b840f3a033d2165654200ae2cabe16b3fc4184cf
-updated_at: 2026-06-12T14:09:07.299649
+latest_commit: 9f67eecf10abbd6effe065078bf5cbb830c5fc02
+updated_at: 2026-06-19T15:43:55.619923
 ---
 # Project Chronicle
 
@@ -63,3 +63,18 @@ This document tracks the conceptual evolution of the project.
   - Created the `/campaign` skill to coordinate multi-tier model operations (architect survey, worker routing).
   - Formalized cap-dependent Walker Economics in `rules.md`.
   - Built the `check_commit_msg.py` validator script to enforce Conventional Commits rules in the `commit-hygiene` checkpoint.
+
+## [2026-06-19] Commits: b840f3a0..2eebd8b0
+
+- **Architectural Shift / Design Decisions**: Refactored the historically-grown skill set into one cohesive, machine-checkable system organized around a single core invariant. Adopted the **Verification Dual** — every condition is closed by the strongest applicable evaluator on exactly one of two paths (a deterministic symbolic gate where one can exist, decorrelated context-free adversarial review where none can), both iterating to a fixed point. Added the **Cutting Imperative** as a Prime Invariant, governed by a `molten`/`stable` maturity flag, recasting unjustified artifacts as drift surface to be cut rather than amended-around. Introduced the **`boundary → campaign` spine** with single-walk disciplines beneath it, and an **ambient layer** (`ambient.md`) for standing principles that have no entrypoint. Recorded the doctrine and consolidation rationale in ADR-003.
+- **Workflow & Rulesets**: Rewrote `rules.md` so the Verification Dual leads the Prime Invariants and the ledger gate is wired into the Commit Gate. Consolidated the skill set against the Dual: demoted four principle-shaped workflows (`sketch`, `dialectic`, `planning`, `predicate`) and the binding code-edit and robust-testing constraints into the ambient layer; cut five subsumed workflows (`plan`, `charter`, `plan-review`, `continue`, `personalization`); thinned `engineering` and folded `doc-audit`'s prose rules into `documentation`. Grounded `/core` refinement as a contraction loop.
+- **Features & Implementation**: Built the Nickel **ledger** — intrinsic contracts for the campaign IBC, worker IBC, DAG (acyclicity, referential integrity, concurrent-surface conflict detection), findings, and reconcile log, each making "a condition is only closed once its evaluator is named" structurally unforgeable. Added a portable ledger-validation gate, a Kahn-layering derivation computed from the DAG, and a scale-invariant gate-set check.
+- **Infrastructure & Quality**: Aligned `.gitignore` to the `.scratch/` mount, removed a dangling `.agent/workflows` symlink, and dropped a stale pipeline-augmentation plan.
+- **Documentation**: Initialized the project chronicle and added the chronicle skill; documented the ledger substrate and its gates; absorbed README framing and planning-phase prose; neutralized references to the demoted and cut workflows across surviving skills, templates, and guides.
+
+## [2026-06-19] Commits: 2eebd8b0..9f67eecf
+
+- **Architectural Shift / Design Decisions**: Extended the cohesion refactor from a *mapped* campaign to a *self-driving* one by specifying the execution layer deterministically. Made the campaign's previously-implicit drift checks explicit: a per-boundary premise-freshness pass (re-verify every pending node against the new HEAD) and a bidirectional coherence-impact check, so cross-node drift dies at each reconcile boundary instead of accumulating to CLOSE. Reframed declared file surfaces as fail-closed authorization with an explicit surface-exceed protocol (halt → derive → collision-check → widen or serialize).
+- **Workflow & Rulesets**: Added the machine-executable **orchestration protocol** (`docs/orchestration-protocol.md`) — the exact deterministic procedure that drives a validated campaign DAG to a correctly-merged branch, identical whether a human, an agent, or an external tool runs it, with the irreducible human role isolated to a small set of explicit `[HUMAN SEAM]` points. Made the campaign skill's drift gates explicit to match.
+- **Features & Implementation**: Promoted the gate bundle into the repository as tracked, installable, un-bypassable machinery: standalone `gates/` (the semantic orphan gate and the self-containment gate) and `hooks/` (`commit-msg` + `pre-commit`) wired by an idempotent, worktree-aware `install-hooks.sh`, so a failing check blocks the commit rather than relying on recall. Hardened the DAG contract to enforce per-node discipline and surface overlap, and added the boundary reconcile evaluators (surface authorization, coherence-impact, premise-freshness) with fixtures and protocol tests.
+- **Documentation**: Refreshed the durable docs to the current architecture. The README now leads with the Verification Dual, documents the ambient layer, the spine, the ledger/gates/hooks enforcement machinery, and the orchestration protocol, and includes them in the repository-structure diagram. Documented hook installation in the getting-started guide, fixed a residual cut-workflow example in the authoring guide, and recorded the doctrine and consolidation decision in ADR-003.
