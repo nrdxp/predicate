@@ -116,9 +116,21 @@ Documentation debt is a first-class concept, parallel to technical debt:
 
 When you encounter documentation debt, flag it explicitly. Do not silently work around it.
 
-### 13. Link Portability and Relative Paths
+### 13. Markdown Audit: Links, Headers, and Linting
 
-All markdown file cross-references must remain portable across different host environments and mounting contexts:
-- **Use Relative Paths:** Link between files using relative markdown paths (e.g. `[constitution](../constitution/SKILL.md)`).
-- **Forbid Machine-Specific Absolute Paths:** Never use absolute file URIs (e.g., `file:///var/home/...` or `file:///absolute/path/...`) in any documentation, comments, or plans. They are host-specific and fail to resolve when skills or projects are copied, symlinked, or cloned.
-- **Verification:** Proactively audit link targets to confirm that the relative references resolve correctly from the directory of the file containing the link.
+When editing or auditing markdown files, enforce the following structural rules. They keep documents portable across host environments and consistent in formatting.
+
+**Link integrity and portability** — all markdown file cross-references must resolve from any host environment or mounting context:
+- **Use standard Markdown link format:** All links must follow `[text](url)`.
+- **Use relative paths:** Link between files using relative markdown paths (e.g. `[constitution](../constitution/SKILL.md)`).
+- **Forbid machine-specific absolute paths:** Never use absolute file URIs (e.g., `file:///var/home/...` or `file:///absolute/path/...`) in any documentation, comments, or plans. They are host-specific and fail to resolve when skills or projects are copied, symlinked, or cloned.
+- **Verify:** Proactively audit link targets to confirm that the relative references resolve correctly from the directory of the file containing the link.
+
+**Header hierarchy** — use a single `<h1>` (one `#`) per page, then nest header levels sequentially (`##`, `###`, ...) without skipping a level.
+
+**Linting standards:**
+- Align table columns.
+- Use a consistent list symbol (`-`).
+- Leave no trailing spaces.
+
+To check link integrity automatically, run the script at [`doc-audit/scripts/check_docs.py`](../doc-audit/scripts/check_docs.py): it scans markdown files for broken local and external links.
