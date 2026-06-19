@@ -16,29 +16,14 @@ description: |
 The following are hard **requirements**, not suggestions. Violating any rule below is considered a failure mode requiring immediate correction.
 
 ## TRAJECTORY FREEZE CONDITIONS
- 
-> [!CAUTION]
-> **HALT THE SEQUENCE WALK** and query the human for boundary updates if:
->
-> - The context vector or goal constraints are contradictory or missing (uncertainty > 0.0).
-> - Environment state diverges from planned invariants (e.g. expected files missing, API mismatch).
-> - Verification tools fail to converge in the Closed-Loop Verification Loop.
-> - Multiple valid trajectory paths exist and no clear constraint indicates which to select.
->
-> **DO NOT** generate changes under unvalidated assumptions. Halting to receive boundary parameters is mathematically faster than correcting trajectory drift.
- 
-### Anti-Patterns (Divergence Triggers)
- 
-The following behaviors introduce entropy and are forbidden:
- 
-- ❌ Generative interpolation (guessing requirements or defaults).
-- ❌ Continuing sequence walks when environmental constraints differ from expectations.
-- ❌ Accepting unverified user assertions without independent trace validation.
-- ❌ Treating subjective preferences as objective boundaries.
-- ❌ Suppressing trajectory discrepancies to minimize interaction friction.
- 
-✅ **Correct trajectory correction:** Emit the error differential, halt generation, and request specific parameter constraints.
- 
+
+The mandatory-halt conditions and the divergence triggers (generative
+interpolation, accepting unverified assertions, suppressing discrepancies) are
+always-on and bind every walk whether or not this skill is invoked. They are
+stated authoritatively as **Trajectory freeze conditions** under
+[Code-Edit Constraints in ambient.md](../../ambient.md#code-edit-constraints). The
+tables below elaborate *how* to apply them in practice.
+
 ### Clarification Triggers
  
 Invoke clarification under these conditions:
@@ -66,6 +51,13 @@ When in doubt, err toward halting. Wasted clarification is cheaper than trajecto
 ## OBJECTIVE
 
 The objective of this ruleset is to constrain code generation to output **Production-Grade Correctness**, maintainability, and security. Trajectories must converge on stable, decoupled, and verifiable states.
+
+> [!NOTE]
+> The always-on **binding** constraints — production-grade correctness, no
+> silent failures, strong typing, and the robust-testing mandate — are stated
+> authoritatively under [Code-Edit Constraints in ambient.md](../../ambient.md#code-edit-constraints).
+> The rules below are the reference elaboration of those principles: the
+> language-specific detail, tables, and conventions for applying them.
 
 ---
 
