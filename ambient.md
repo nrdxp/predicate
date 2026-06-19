@@ -72,19 +72,19 @@ all others ([rules.md](rules.md) §3). The `.sketches/` substrate itself is the
 flight recorder described under [the sketch principle](#the-sketch-principle).
 
 **Strategic Escalation.** Divergence from a plan is *tactical* when it changes
-*how* work is done but stays within the plan's goals, the charter's non-goals,
-and its appetite — record it and continue. Divergence is *strategic* when it
-violates a charter non-goal, pushes past appetite, contradicts the north star,
-invalidates a formal model's assumptions, or renders a decision record obsolete.
-Strategic drift requires immediate escalation, not silent absorption.
+*how* work is done but stays within the governing IBC's goal and non-goals —
+record it and continue. Divergence is *strategic* when it violates an IBC
+non-goal, contradicts the IBC's goal, invalidates a formal model's assumptions,
+or renders a decision record obsolete. Strategic drift requires immediate
+escalation, not silent absorption.
 
 > [!CAUTION]
 > Strategic deviation without escalation is a protocol violation. The cost of a
 > false-positive escalation is a brief human review; the cost of silent strategic
-> drift is artifact rot across charters, plans, models, and decision records. On
+> drift is artifact rot across IBCs, plans, models, and decision records. On
 > strategic drift, **emit an `ESCALATION` block and HALT** — naming the threatened
 > artifact, the violated upstream constraint, the triggering evidence, and a
-> recommended response (re-charter, dialectic, or descope). This is a *framework
+> recommended response (re-frame the boundary IBC, or descope). This is a *framework
 > invariant*: any walk that interacts with reality closely enough to invalidate
 > an upstream premise must be able to throw it, whatever workflow is active.
 
@@ -230,6 +230,8 @@ direct address rather than the third person.
 
 > [!IMPORTANT]
 > Adding a principle here is governed by the **Cutting Imperative**
-> ([rules.md](rules.md) §2): a principle relocates *and the source skill is cut*
-> in the same motion. A copy left behind in a demoted skill is duplicated
-> phase-space volume — the drift surface the imperative exists to eliminate.
+> ([rules.md](rules.md) §2): when a principle relocates, its source must not keep
+> a second copy. A skill whose *entire* load is the principle is cut outright; a
+> skill that also carries non-principle reference detail is *thinned* — the
+> principle deferred here, only the elaboration retained. The rule forbids the
+> duplicated copy, not the retained elaboration.

@@ -120,7 +120,7 @@ These formats are not alternatives to the SPEC.md template — they complement i
 Determine what needs constraining. Sources of normative constraints:
 
 - **The model** (if one exists): What states, transitions, and observers does it define? What structural properties must hold?
-- **The charter** (if one exists): What strategic NON_GOALS impose behavioral bounds?
+- **The governing IBC** (if one exists): What strategic non-goals impose behavioral bounds?
 - **Domain knowledge**: What invariants are assumed but unwritten? What "everyone knows" but nobody has documented?
 - **Failure modes**: What MUST NEVER happen? What would constitute a critical failure?
 - **Existing implementations**: What behavioral rules are encoded in code but not documented?
