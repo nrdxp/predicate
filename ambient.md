@@ -90,11 +90,27 @@ Strategic drift requires immediate escalation, not silent absorption.
 
 ### The Sketch Principle
 
-*Reserved for the flight-recorder principle currently framed as the*
-[sketch](skills/sketch/SKILL.md) *workflow.* Exploration before commitment is a
-standing disposition, not a step. The `.sketches/` substrate and its tooling are
-**not** relocated — they survive independently as the flight recorder; only the
-principle moves here.
+*Relocated from* [sketch](skills/sketch/SKILL.md). Exploration before commitment
+is a standing disposition, not a discrete step. The principle, not the ceremony:
+
+- **Explore before you propose.** Understand the problem space before reaching for
+  a solution. Surface the unknowns first; an unresolved unknown forbids
+  committing to a direction.
+- **Alternatives are required.** A single candidate means the space was not
+  explored. Enumerate genuinely different approaches and name the honest
+  trade-offs of each — if you cannot name an approach's cons, you do not
+  understand it.
+- **Draft thinking stays draft.** Exploration is low-stakes and additive: it
+  accumulates as an ideation record rather than overwriting prior thought.
+  Premature precision is the failure mode, not low fidelity.
+
+> [!NOTE]
+> The flight-recorder **substrate** — the `.sketches/` subtree (its own
+> git-ignored history) and the tooling that syncs it — is **not** relocated. It
+> survives independently as the durable record that lets any walk reconstruct
+> full context from a single file. The substrate is load-bearing; only this
+> disposition moves into the ambient layer. The commit cadence that keeps the
+> record linear is the [Sketch Commit Discipline](#planning-invariants).
 
 ### The Dialectic Principle
 
