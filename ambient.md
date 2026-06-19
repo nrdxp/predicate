@@ -165,11 +165,41 @@ mapping from psychological heuristics to trajectory operations) lives in
 
 ### Code-Edit Constraints
 
-*Reserved for the production-grade code-edit rules currently in*
-[engineering](skills/engineering/SKILL.md) *that apply whenever code is written*
-(type safety, error handling, defensive programming, mandatory halts) — a
-standing ruleset, not an invoked workflow. The reference detail may remain in the
-skill artifact; the binding constraints relocate here.
+*Relocated from* [engineering](skills/engineering/SKILL.md). These bind whenever
+code is written, with or without a workflow ceremony. The skill artifact may
+remain as the reference elaboration ([rules.md](rules.md) §5 still routes to it);
+the binding constraints are stated here.
+
+**Trajectory freeze conditions (mandatory halts).** Halt the walk and query for
+boundary updates — generating under unvalidated assumptions is forbidden — when:
+
+- the goal or context is contradictory or missing (uncertainty > 0.0);
+- environment state diverges from planned invariants (expected files missing, API
+  mismatch);
+- verification tools fail to converge in the closed-loop verification loop;
+- multiple valid paths exist and no constraint indicates which to select.
+
+Halting to receive parameters is faster than correcting trajectory drift.
+Generative interpolation (guessing requirements or defaults), accepting
+unverified assertions without independent validation, and suppressing
+discrepancies to reduce friction are all divergence triggers.
+
+**Production-grade correctness.** Code must converge on stable, decoupled,
+verifiable states:
+
+- **Root cause, not band-aid.** Fix the cause; if the foundation is flawed, stop
+  and discuss before re-architecting. No core logic left as `// TODO` within the
+  task's scope; out-of-scope stubs return a clear error and are tracked.
+- **No silent failures.** Every error is handled or propagated, preserving the
+  causal chain. Error messages state **what** failed, **why**, and **where** —
+  no opaque "invalid input". Validate external inputs at system boundaries; never
+  trust user input, API responses, or file contents unchecked.
+- **Strong typing.** Use the type system to enforce invariants; avoid escape
+  hatches (`any`, `interface{}`) unless genuinely necessary. Library code returns
+  `Result`/`Option` rather than panicking.
+- **Discrepancy resolution.** When spec, tests, and code disagree, alert with
+  evidence from each source and propose a resolution — do not silently pick a
+  winner.
 
 ---
 
