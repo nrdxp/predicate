@@ -139,11 +139,29 @@ at its strongest, by switching the generator itself.
 
 ### Boundary Reconstruction
 
-*Reserved for the self-prompting principle currently framed as the*
-[predicate](skills/predicate/SKILL.md) *workflow* (re-read the governing
-invariants and active ledger to combat context drift). This is the standing
-discipline already named in [rules.md](rules.md) §7; the demoted skill's essence
-consolidates here.
+*Relocated from* [predicate](skills/predicate/SKILL.md) *(the refresh protocol)
+and* [continue](skills/continue/SKILL.md) *(context recovery).* Both were thin
+wrappers around one standing discipline: drift is the default of open-loop
+generation, so a long walk must periodically rebuild its boundary from the
+durable sources rather than trusting accumulated context.
+
+**Reconstruct, don't recall.** When context may have drifted — a long session,
+many steps, a resume after a halt — reload the boundary in order rather than
+proceeding on memory:
+
+1. **Governing invariants** — re-read [rules.md](rules.md) and the nearest
+   `AGENTS.md` (nearest ancestor wins for the working directory).
+2. **Active ledger** — re-read the workstream's `.sketches/` sketchpad (or the
+   plan and any relevant decision records) for goals, decisions, and execution
+   notes.
+3. **Active skills** — re-read the foundational and currently relevant skills so
+   their constraints are present, not paraphrased from recall.
+
+This is the same discipline [rules.md](rules.md) §7 mandates at the start of
+every step in a long-horizon loop; it is named here so the demoted skills'
+essence has an ambient home. The canonical control-theoretic lexicon (the
+mapping from psychological heuristics to trajectory operations) lives in
+[rules.md](rules.md) §1 — the source skills only pointed at it.
 
 ### Code-Edit Constraints
 
