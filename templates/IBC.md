@@ -79,7 +79,8 @@
 
 <!-- Every constraint names the strongest affordable deterministic
      evaluator: machine-checked proof > type system > property test >
-     example test > linter > human review. A constraint without an
+     example test > linter > decorrelated adversarial review >
+     [human: escalation only]. A constraint without an
      evaluator is an exhortation — ground it or move it to the rubric.
 
      Format:

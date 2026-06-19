@@ -118,7 +118,7 @@ affordable deterministic evaluator that checks it, selected from the
 evaluator hierarchy:
 
 **machine-checked proof > type system > property test > example test >
-linter > human review**
+linter > decorrelated adversarial review > [human: escalation only]**
 
 In domains with formal models, a theorem statement is the perfectly
 saturated acceptance criterion — the boundary contains its own evaluator
