@@ -110,7 +110,6 @@ The skill is the authority; this table only routes. Load by moment, not by mass:
 | Multi-workstream orchestration across tiers | [campaign](skills/campaign/SKILL.md) | Survey → orchestrate → reconcile; premise freshness; architect judges |
 | Designing non-trivial algorithms or protocols | [prior-art](skills/prior-art/SKILL.md) | Tiered search; shallow clones to `.prior_art_cache/`; cleanup before commit |
 | Auditing structural simplicity | [hickey](skills/hickey/SKILL.md) / [lowy](skills/lowy/SKILL.md) | Decomplect concerns / align boundaries to volatility |
-| Contested high-stakes propositions | [dialectic](skills/dialectic/SKILL.md) | Multi-model cross-sampling with mandatory model switches |
 
 ---
 
