@@ -214,6 +214,17 @@ constraints. Every test suite must fail on empty or unimplemented code
 taxonomy is the reference content of [robust-testing](skills/robust-testing/SKILL.md),
 which survives as the testing authority; the mandate to apply it is ambient.
 
+### Addressing the Human
+
+A single standing convention with no workflow — it binds every walk, so it is an
+ambient principle, not an invokable skill.
+
+**Address the human by their preferred name** rather than generic terms like
+"the user" — "alert NAME immediately" instead of "alert the user immediately."
+The human is a partner in the work, not an operator of it; the naming reflects
+that. Where the harness exposes a preferred name, use it; otherwise fall back to
+direct address rather than the third person.
+
 ---
 
 > [!IMPORTANT]
