@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# commit-msg hook — the message half of the commit gate (rules.md §3), enforced
+# rather than remembered. A failing check exits non-zero and BLOCKS the commit.
+#
+# Composes the two message gates:
+#   1. check_commit_msg.py  — Conventional Commits FORM (header length, type,
+#                             blank-line separation, body wrapping).
+#   2. check_selfcontained.sh — SEMANTIC self-containment: no internal campaign
+#                             refs (node IDs, layer tags, AC/C ids) that a
+#                             stranger reading `git log` could not resolve.
+#
+# git passes the path to the prepared message file as $1.
+set -u
+
+msg_file="${1:-}"
+if [ -z "$msg_file" ] || [ ! -f "$msg_file" ]; then
+  echo "commit-msg: no message file provided" >&2
+  exit 2
+fi
+
+# Resolve the repo root so the hook works from the main checkout and any linked
+# worktree (git invokes the hook with cwd = the working tree root, but be explicit).
+root="$(git rev-parse --show-toplevel)"
+
+rc=0
+
+python3 "$root/skills/commit-hygiene/scripts/check_commit_msg.py" --file "$msg_file"
+hygiene_rc=$?
+if [ "$hygiene_rc" -ne 0 ]; then rc=1; fi
+
+# The self-containment gate takes the message TEXT, not a file path.
+msg="$(cat "$msg_file")"
+bash "$root/gates/check_selfcontained.sh" "$msg"
+selfc_rc=$?
+if [ "$selfc_rc" -ne 0 ]; then rc=1; fi
+
+if [ "$rc" -ne 0 ]; then
+  echo "commit-msg: message gate failed — commit blocked (fix the message above)." >&2
+  echo "  (Hooks enforce the commit gate; bypassing with --no-verify defeats it.)" >&2
+fi
+exit "$rc"

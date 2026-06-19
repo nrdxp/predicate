@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+# pre-commit hook — the staged-surface half of the commit gate (rules.md §3),
+# enforced rather than remembered. Any failing check exits non-zero and BLOCKS
+# the commit.
+#
+# Three checks, each gating what THIS commit stages:
+#   1. ORPHANS    no staged authoritative file may reference a removed/demoted
+#                 workflow as if it were live. The orphan gate is a repo-wide
+#                 referential-truth scan; here it is SCOPED to the staged set so
+#                 a commit is blocked for orphans IT introduces or touches, not
+#                 for pre-existing debt elsewhere (which would force routine
+#                 --no-verify and defeat the gate). The full repo-wide audit
+#                 stays available as: gates/check_orphans.sh <root> <names>...
+#   2. DOC LINKS  staged markdown has valid local links (check_docs.py).
+#   3. LEDGER     a staged Nickel ledger artifact satisfies its contract
+#                 (ledger-validate.sh structure) — a malformed .ncl cannot land.
+#
+# A check whose inputs aren't staged is skipped (no-op), so unrelated commits
+# pass cleanly.
+set -u
+
+root="$(git rev-parse --show-toplevel)"
+
+# The removed/demoted workflows the orphan gate polices. Kept in sync with the
+# cohesion campaign's cut set; a name here must have no live skills/<name>/ dir.
+REMOVED=(plan charter plan-review continue personalization sketch dialectic predicate planning)
+
+rc=0
+
+# Staged files (added/copied/modified), repo-root-relative paths — the same
+# coordinate system check_orphans.sh emits, so prefix matching is exact.
+mapfile -t staged < <(git diff --cached --name-only --diff-filter=ACM)
+
+# --- 1. ORPHANS (scoped to staged files) ----------------------------------
+# Run the full repo-wide gate for its pattern truth, then fail the commit only
+# if a flagged "file:line:match" names a file in the staged set.
+orphan_out="$(bash "$root/gates/check_orphans.sh" "$root" "${REMOVED[@]}" 2>/dev/null || true)"
+staged_orphans=""
+while IFS= read -r line; do
+  # gate output rows are "path:line:matched-text"; take the path column.
+  file="${line%%:*}"
+  for s in "${staged[@]}"; do
+    if [ "$file" = "$s" ]; then
+      staged_orphans+="$line"$'\n'
+      break
+    fi
+  done
+done <<< "$orphan_out"
+if [ -n "${staged_orphans//[$'\n']/}" ]; then
+  echo "pre-commit: ORPHAN WORKFLOW REFERENCES in staged files:" >&2
+  printf '%s' "$staged_orphans" >&2
+  echo "  A staged file names a removed/demoted workflow as if it were live." >&2
+  rc=1
+fi
+
+# --- 2. DOC LINKS (staged markdown) ----------------------------------------
+for f in "${staged[@]}"; do
+  case "$f" in
+    *.md)
+      if [ -f "$root/$f" ]; then
+        ( cd "$root" && python3 "$root/skills/doc-audit/scripts/check_docs.py" "$f" )
+        doc_rc=$?
+        if [ "$doc_rc" -ne 0 ]; then rc=1; fi
+      fi
+      ;;
+  esac
+done
+
+# --- 3. LEDGER STRUCTURE (staged .ncl) -------------------------------------
+for f in "${staged[@]}"; do
+  case "$f" in
+    *.ncl)
+      if [ -f "$root/$f" ]; then
+        bash "$root/ledger/gate/ledger-validate.sh" structure "$root/$f"
+        led_rc=$?
+        if [ "$led_rc" -ne 0 ]; then
+          echo "pre-commit: ledger artifact failed structure validation: $f" >&2
+          rc=1
+        fi
+      fi
+      ;;
+  esac
+done
+
+if [ "$rc" -ne 0 ]; then
+  echo "pre-commit: staged-surface gate failed — commit blocked." >&2
+  echo "  (Hooks enforce the commit gate; bypassing with --no-verify defeats it.)" >&2
+fi
+exit "$rc"
