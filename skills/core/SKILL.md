@@ -19,7 +19,7 @@ This workflow defines the C.O.R.E. micro-execution phase. The objective is to gu
 ## Scope
  
 > [!IMPORTANT]
-> C.O.R.E. maps a localized plan segment (typically 2-3 commit boundaries) and manages the execution trajectory. It is NOT high-level planning (that's `/plan`) and NOT exploration (that's `/sketch`). If the sequence begins exploring design alternatives or modifying the architecture, it has exited C.O.R.E. space; the walk must immediately halt.
+> C.O.R.E. maps a localized plan segment (typically 2-3 commit boundaries) and manages the execution trajectory. It is execution, not strategy: high-level planning and the exploration of design alternatives are standing dispositions — the [Planning Invariants](../../ambient.md#planning-invariants) and the [Sketch Principle](../../ambient.md#the-sketch-principle) — not steps inside this workflow. If the sequence begins exploring design alternatives or modifying the architecture, it has exited C.O.R.E. space; the walk must immediately halt.
  
 ## Grammar
  

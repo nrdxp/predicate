@@ -29,7 +29,7 @@ Without explicit specifications, sequence walks rely on stochastic priors. Every
 ## Scope
 
 > [!IMPORTANT]
-> SPEC produces **normative constraint artifacts** — declarations of what a system MUST, SHOULD, MUST NOT, and MAY do. It is NOT structural modeling (that's `/model`), NOT planning (that's `/plan`), NOT exploration (that's `/sketch`), and NOT implementation (that's `/core`). If you find yourself describing ontology without constraints, you're in `/model` territory. If you find yourself evaluating approaches, you're in `/plan` territory.
+> SPEC produces **normative constraint artifacts** — declarations of what a system MUST, SHOULD, MUST NOT, and MAY do. It is NOT structural modeling (that's `/model`) and NOT implementation (that's `/core`); strategic planning and exploration are the standing [Planning Invariants](../../ambient.md#planning-invariants) and [Sketch Principle](../../ambient.md#the-sketch-principle), not workflows you switch into. If you find yourself describing ontology without constraints, you're in `/model` territory. If you find yourself evaluating approaches rather than declaring constraints, you've left SPEC for strategy.
 
 ---
 
@@ -191,7 +191,7 @@ Link the specification constraints to execution-level verification targets:
 - **Generate Test Invariants**: For every named constraint, define a test invariant specification (e.g. mock assertions, property tests, or trace boundaries).
 - **Assemble Verification Suite**: Map these invariants to specific test cases in the project's test suite, creating the deterministic evaluator $V(\mathbf{S})$ for execution.
 - Cross-reference the model in `docs/models/` — the spec constrains the model's state space.
-- Link constraints to downstream `/plan` deliverables, ensuring they become non-negotiable step verification assertions.
+- Link constraints to downstream execution, ensuring they become non-negotiable step verification assertions when `/core` regulates state against them.
 - If the spec reveals model inadequacies, flag them for `/model` revision.
 - Update the sketch with specification findings.
 
@@ -222,7 +222,7 @@ You MUST stop and await human input at:
 
 1. **After FORMALIZE:** Constraints must be human-approved before verification begins
 2. **After VERIFY (if failures):** Human decides whether to revise or accept partial verification
-3. **ESCALATION:** If the spec contradicts the model or charter, emit ESCALATION per the `planning` skill § Strategic Escalation and HALT
+3. **ESCALATION:** If the spec contradicts the model or an upstream strategic frame, emit ESCALATION per the **Strategic Escalation** invariant in [ambient.md](../../ambient.md#planning-invariants) and HALT
 
 ---
 
@@ -243,25 +243,25 @@ Specification filenames should be descriptive of the domain being constrained, n
 Specifications are living artifacts. Rot prevention uses existing pipeline infrastructure:
 
 - **Model changes** → spec re-verification required (surfaced by `/model`'s CONNECT step)
-- **Plan deviates from spec** → ESCALATION fires (same mechanism as charter deviation)
-- **`/core` discovers spec is wrong** → reconciliation sketch (see `planning` skill § Reconciliation Sketches)
+- **Execution deviates from spec** → ESCALATION fires per the **Strategic Escalation** invariant in [ambient.md](../../ambient.md#planning-invariants)
+- **`/core` discovers spec is wrong** → empirical invalidation: emit an ESCALATION block and HALT for the human to choose the response (re-frame, dialectic, or descope), per the same [Strategic Escalation](../../ambient.md#planning-invariants) invariant
 
 ---
 
-## Integration with Pipeline
+## Position in the Workflow Chain
 
 ```
-/sketch → /charter → /model → /spec   → /plan → /core
-(explore)  (frame)    (what)   (must)    (how)    (do)
-                        ↑         ↓
-                        └─── cross-reference ───┘
+explore → frame → /model → /spec → /core
+(ambient dispositions)  (what)  (must)  (do)
+                          ↑        ↓
+                          └─ cross-reference ─┘
 ```
 
-SPEC can be invoked standalone or from within any phase. A specification produced during `/sketch` informs `/plan`. A specification produced during `/core` validates implementation decisions. The specification is a _normative tool_ available at any point in the pipeline.
+Exploring and framing are standing dispositions — the [Sketch Principle](../../ambient.md#the-sketch-principle) and the [Planning Invariants](../../ambient.md#planning-invariants) — not workflows you switch into. SPEC can be invoked standalone or from within any other workflow. A specification produced while exploring informs the strategy that follows; one produced during `/core` validates implementation decisions. The specification is a _normative tool_ available at any point.
 
-**Pipeline positions:**
+**Where it fits:**
 
-- **After `/model`**: The natural position. The model defines the ontology; the spec constrains it. The plan then operates within those constraints.
+- **After `/model`**: The natural position. The model defines the ontology; the spec constrains it. Execution then operates within those constraints.
 - **Without `/model`**: Valid. Not every system needs a formal model, but many need behavioral contracts. `/spec` can be invoked with inline type declarations instead of model references.
 - **During `/core`**: Valid. If `/core` discovers undocumented behavioral requirements, invoking `/spec` mid-execution captures them as normative artifacts rather than ad hoc code comments.
 

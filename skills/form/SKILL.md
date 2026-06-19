@@ -27,7 +27,7 @@ MODEL provides the procedure for constructing these structural representations. 
 ## Scope
 
 > [!IMPORTANT]
-> MODEL produces formal model documents — either creating new ones from `templates/MODEL.md` or scrutinizing existing documents (protocol specs, whitepapers, design docs) through the SDMA lens. It is NOT planning (that's `/plan`), NOT exploration (that's `/sketch`), and NOT implementation (that's `/core`). If you find yourself writing code or redesigning architecture, you've left MODEL territory.
+> MODEL produces formal model documents — either creating new ones from `templates/MODEL.md` or scrutinizing existing documents (protocol specs, whitepapers, design docs) through the SDMA lens. It is structural analysis, not planning, exploration, or implementation: strategic planning and exploration are the standing [Planning Invariants](../../ambient.md#planning-invariants) and [Sketch Principle](../../ambient.md#the-sketch-principle), and implementation is `/core`. If you find yourself writing code or redesigning architecture, you've left MODEL territory.
 
 ---
 
@@ -122,7 +122,7 @@ Choose the appropriate formalism(s), starting from the Decision Matrix (SDMA §6
 - Apply the **principle of minimal representation**: choose the simplest formalism that faithfully captures the domain's essential structure
 - If multiple characteristics are present, determine the layering strategy
 - Document the rationale for selection and alternatives considered
-- **Independence check:** Would you have selected this formalism if the user hadn't suggested or implied a direction? If the user said "I think this is categorical," verify that claim against the domain's actual structure rather than accepting it as a constraint. If competing formalisms have genuinely comparable merit and the stakes are high, recommend `/dialectic` (see `planning.md` — Cross-sampling escalation).
+- **Independence check:** Would you have selected this formalism if the user hadn't suggested or implied a direction? If the user said "I think this is categorical," verify that claim against the domain's actual structure rather than accepting it as a constraint. If competing formalisms have genuinely comparable merit and the stakes are high, escalate to the [Dialectic Principle](../../ambient.md#the-dialectic-principle) — cross-model sampling for a decorrelated second opinion.
 
 > [!IMPORTANT]
 > **HALT after SELECT.** Present the formalism selection and rationale to the human before constructing the model. Wrong formalism choice cascades into wasted work.
@@ -151,7 +151,7 @@ Verify the model's internal consistency, external adequacy, and framing assumpti
 - **External adequacy:** Does the model capture the domain faithfully? Are there domain properties that the model cannot express?
 - **Minimality:** Is the model unnecessarily complex? Could a simpler formalism capture the same properties?
 - **Assumption independence:** Revisit the framing from IDENTIFY. Now that the model is constructed, does the domain's actual structure confirm the assumptions that guided formalism selection? A model can be internally consistent yet built on an unchallenged framing error — the formalism "works" because the wrong question was asked precisely.
-- **Upstream coherence:** Does the validated model contradict any upstream strategic artifact — a charter's NORTH_STAR, a plan's assumptions, or an existing ADR's rationale? If the model reveals that an upstream premise is false, emit an ESCALATION block per the `planning` skill's **Strategic Escalation** section and HALT. A valid model that contradicts the charter is a discovery, not an error.
+- **Upstream coherence:** Does the validated model contradict any upstream strategic artifact — a charter's NORTH_STAR, a plan's assumptions, or an existing ADR's rationale? If the model reveals that an upstream premise is false, emit an ESCALATION block per the **Strategic Escalation** invariant in [ambient.md](../../ambient.md#planning-invariants) and HALT. A valid model that contradicts the charter is a discovery, not an error.
 
 Document all validation checks and their results.
 
@@ -243,21 +243,18 @@ The sketch captures the _modeling journey_; the model document captures the _out
 
 ---
 
-## Integration with Planning Pipeline
+## Position in the Workflow Chain
 
-MODEL fits into the pipeline as a domain-specific tool:
+MODEL is a domain-specific structural-analysis tool, not a pipeline stage:
 
 ```
-/sketch  →  explore problem space
-         ↓
+explore (ambient Sketch Principle)  →  understand the problem space
+                                        ↓
 /model   →  formalize domain understanding (can be invoked from any phase)
          ↓
 /spec    →  declare normative constraints over the model (→ what MUST hold)
          ↓
-/plan    →  perturb/dampen trajectory (informed by model, constrained by spec)
-         ↓
 /core    →  regulate state (guided by model, constrained by spec)
 ```
 
-MODEL can be invoked standalone or from within any other phase. A model produced during `/sketch` informs `/plan`. A model produced during `/core` validates implementation decisions. The formal model is a structural analysis tool available at any point in the pipeline.
-```
+MODEL can be invoked standalone or from within any other workflow. A model produced while exploring informs the strategy that follows; a model produced during `/core` validates implementation decisions. The formal model is a structural analysis tool available at any point. Strategy itself is governed by the ambient [Planning Invariants](../../ambient.md#planning-invariants), not a discrete planning workflow.

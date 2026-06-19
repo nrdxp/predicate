@@ -1,6 +1,6 @@
 ---
 name: "ADR Template"
-description: "Architecture Decision Record template for /plan workflow"
+description: "Architecture Decision Record template for capturing strategic decisions"
 ---
 
 # ADR-NNNN: [Decision Title]

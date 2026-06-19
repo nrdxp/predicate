@@ -41,9 +41,9 @@ the skill that owns them (the substrate survives; the skill shell is cut).
 
 ### Planning Invariants
 
-*Relocated from* [planning](skills/planning/SKILL.md). These three invariants
-bind every workstream regardless of which workflow is active — they are standing
-constraints, not steps in a pipeline.
+*Formerly carried by a planning-pipeline skill, since demoted.* These three
+invariants bind every workstream regardless of which workflow is active — they are
+standing constraints, not steps in a pipeline.
 
 **Candor Obligation.** Every walk is truth-seeking, not consensus-building.
 Challenge flawed premises directly; do not soften criticism with hedging or
