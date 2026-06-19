@@ -20,7 +20,7 @@ Predicate packages all agent assets as **skills**:
 | Term | Category | Description |
 | :--- | :--- | :--- |
 | **Rule** | Constraint | Declarative guardrails (like `rust` or `engineering` guidelines). |
-| **Workflow** | Procedure | State-machine SOPs (like `core`, `refine`, or `/dialectic` [MDCS]). |
+| **Workflow** | Procedure | State-machine SOPs (like `core`, `refine`, or `campaign`). |
 | **Tool** | Capability | Executable scripts (like `depmap` or `security-audit`). |
 
 ---
@@ -45,7 +45,7 @@ Predicate models the agent's prompt as an **Initial Boundary Condition (IBC)** t
 Predicate translates this control-theoretic paradigm into concrete workspace configurations through modular **skills** loaded dynamically based on the active task:
 
 * **Rules (phase-space constriction):** Declarative guardrails (like language styles) prune unneeded state-space dimensions. This lowers sequence entropy and prevents the model from wandering into invalid APIs.
-* **Workflows (state-transition bounds):** State-machine SOPs (like `/sketch` or `/core`) force the agent to generate intermediate step tokens (such as exploration logs or verification plans). This induces a structured state-space expansion that lowers the conditional entropy of the final code.
+* **Workflows (state-transition bounds):** State-machine SOPs (like `/core` or `/refine`) force the agent to generate intermediate step tokens (such as verification plans or audit logs). This induces a structured state-space expansion that lowers the conditional entropy of the final code.
 * **Tools (error-differential feedback):** Executable validation scripts act as the outer-loop feedback controller. They run the validator, report the error vector, and loop until the validation error reaches zero.
 
 ---
@@ -70,28 +70,15 @@ Left unchecked, coding agents optimize for speed over design coherence. They int
 
 Predicate prevents this by separating exploration from execution:
 
-| Phase | `/sketch` | `/model` | `/core` | `/refine` |
-| :--- | :--- | :--- | :--- | :--- |
-| **Focus** | Explore | Formalize | Execute | Optimize |
-| **Method** | Diverge | Construct | Verify | Polish |
-| **Output** | Propose | Commit model | Commit code | Commit refinement |
+| Phase | `/model` | `/core` | `/refine` |
+| :--- | :--- | :--- | :--- |
+| **Focus** | Formalize | Execute | Optimize |
+| **Method** | Construct | Verify | Polish |
+| **Output** | Commit model | Commit code | Commit refinement |
 
-Each phase has its own workflow and halt points. You only use what you need: an unfamiliar problem starts with `/sketch`, a well-scoped change goes straight to `/core`, `/model` can be invoked anywhere to formalize domain boundaries, and `/refine` optimizes existing artifacts.
+Each phase has its own workflow and halt points. You only use what you need: a well-scoped change goes straight to `/core`, `/model` can be invoked anywhere to formalize domain boundaries, and `/refine` optimizes existing artifacts. Exploring before committing is an always-on disposition rather than a workflow — see the ambient sketch principle.
 
 Above the pipeline sit two tier-aware workflows for working across heterogeneous model classes: `/boundary` manufactures and adversarially refines the prompt contract (IBC) before any expensive or autonomous walk launches, and `/campaign` lets an architect-class model frame the initiative, survey exhaustively, derive a mitigation plan, emit worker prompts routed to cheaper tiers, and judge the work that returns. Strategic framing and stress-test planning — what a standalone charter or plan once held — live inside `/campaign`'s ABSORB, SURVEY, and PLAN states, where they are produced and consumed in one architect pass.
-
----
-
-#### `/sketch` — Explore before you commit
-
-Forces the agent to explore the problem space before selecting an implementation path. A sketch moves through four states:
-
-1. **EXPLORE:** Research the problem. Surface unknowns. The agent is blocked from advancing if any unknowns remain unresolved.
-2. **DIVERGE:** Generate at least two distinct approaches. Single-option designs are blocked.
-3. **CONVERGE:** Evaluate tradeoffs and recommend a direction.
-4. **PROPOSE:** Present the draft sketch to the human for feedback.
-
-Sketches live in the git-ignored `.sketches/` directory, which maintains its own local git history. This preserves the archaeological thought process without bloating the main repository history.
 
 ---
 
@@ -116,19 +103,6 @@ Builds mathematical domain models or analyzes existing specifications using the 
 * **Apply mode:** Scrutinizes an external specification (protocol spec, whitepaper) through the SDMA lens.
 
 The agent must halt after selecting a mathematical formalism (linear logic, coalgebra, category theory) to get human approval before building. The core constraint is minimal representation: select the simplest mathematics that faithfully captures the domain.
-
----
-
-#### `/dialectic` — Multi-distribution cross-sampling
-
-Arbitrates high-stakes logical tensions by sampling a proposition under opposing parameter biases:
-
-1. **FRAME:** Define the falsifiable proposition.
-2. **D_ALPHA:** Sample the sequence space under a positive parameter bias ($D\_\alpha$). Halt for model switch.
-3. **D_BETA:** Sample the sequence space under an adversarial parameter bias ($D\_\beta$). Halt for model switch.
-4. **BARYCENTRIC:** Intersect the two distributions to isolate unresolved unknowns.
-
-Each transition is a mandatory halt point where the human switches to a different LLM. This prevents token-variance contamination between distributions.
 
 ---
 
@@ -163,7 +137,7 @@ Manufactures the Initial Boundary Condition (IBC) for an expensive or autonomous
 Seven sufficiency conditions (S1–S7) govern every IBC: falsifiable premises, a first-class rejection genre, resolved/delegated/reserved decision rights, evaluator attachment (machine-checked proof at the top of the hierarchy), curated rather than paraphrased context, load-bearing vs plastic amendment rights, and boundary mass scaled to walker capability.
 
 1. **DRAFT:** Author the candidate IBC from `templates/IBC.md` (cheap tier).
-2. **ATTACK:** Independent adversarial reviewers object by citing violated sufficiency conditions; contested framings escalate to `/dialectic`.
+2. **ATTACK:** Independent adversarial reviewers object by citing violated sufficiency conditions; contested framings escalate to the cross-model dialectic principle.
 3. **REVISE:** Amend or rebut with evidence; loop until an attack sweep yields zero grounded objections.
 4. **APPROVE:** Mandatory human gate before dispatch.
 
@@ -199,9 +173,7 @@ The sketch is not discarded when implementation begins; it serves as a living re
 
 | Phase | Sketch Role |
 | :--- | :--- |
-| `/sketch` | Direct ideation and design proposals |
 | `/model` | Domain formalizations and mathematical maps |
-| `/dialectic` | Cross-sampling traces and barycentric intersections |
 | `/core` | Live execution notes, discoveries, and divergence logs |
 | `/refine` | Refinement ledgers, sweep traces, and convergence history |
 | `/boundary` | Sufficiency objections, revisions, and the approved contract |

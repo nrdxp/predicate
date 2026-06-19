@@ -90,8 +90,9 @@ Strategic drift requires immediate escalation, not silent absorption.
 
 ### The Sketch Principle
 
-*Relocated from* [sketch](skills/sketch/SKILL.md). Exploration before commitment
-is a standing disposition, not a discrete step. The principle, not the ceremony:
+*Formerly carried by a sketch workflow, since demoted.* Exploration before
+commitment is a standing disposition, not a discrete step. The principle, not the
+ceremony:
 
 - **Explore before you propose.** Understand the problem space before reaching for
   a solution. Surface the unknowns first; an unresolved unknown forbids
@@ -114,7 +115,7 @@ is a standing disposition, not a discrete step. The principle, not the ceremony:
 
 ### The Dialectic Principle
 
-*Relocated from* [dialectic](skills/dialectic/SKILL.md). Thesis ⇄ adversarial
+*Formerly carried by a dialectic workflow, since demoted.* Thesis ⇄ adversarial
 antithesis → reconciled synthesis is the *shape* of the system, not a step in it.
 It is the high-stakes (cross-model) tier of the Verification Dual's adversarial
 path ([rules.md](rules.md) §2 Invariant 1).
@@ -139,11 +140,11 @@ at its strongest, by switching the generator itself.
 
 ### Boundary Reconstruction
 
-*Relocated from* [predicate](skills/predicate/SKILL.md) *(the refresh protocol)
-and* [continue](skills/continue/SKILL.md) *(context recovery).* Both were thin
-wrappers around one standing discipline: drift is the default of open-loop
-generation, so a long walk must periodically rebuild its boundary from the
-durable sources rather than trusting accumulated context.
+*Formerly carried by two demoted workflows — a refresh protocol and a
+context-recovery resume.* Both were thin wrappers around one standing discipline:
+drift is the default of open-loop generation, so a long walk must periodically
+rebuild its boundary from the durable sources rather than trusting accumulated
+context.
 
 **Reconstruct, don't recall.** When context may have drifted — a long session,
 many steps, a resume after a halt — reload the boundary in order rather than

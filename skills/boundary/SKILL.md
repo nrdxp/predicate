@@ -195,7 +195,8 @@ APPROVE ─→ DISPATCH  (human approves IBC*; expensive walk launches)
    MUST cite the sufficiency condition it violates and the evidence;
    ungrounded objections are filtered exactly as in refine's verifier
    grounding. For contested framings — where reviewers disagree about the
-   goal itself — escalate to [dialectic](../dialectic/SKILL.md) with the
+   goal itself — apply the cross-model
+   [dialectic principle](../../ambient.md#the-dialectic-principle) to the
    proposition "this IBC is sufficient to bound the walk."
 3. **REVISE:** Resolve each objection by amending the IBC or rebutting
    with evidence. Premises raised to RESOLVED status MUST carry their
