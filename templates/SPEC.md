@@ -175,6 +175,6 @@
      Consider:
      - Implementation guidance: what /core MUST respect
      - Testing strategy: what property-based tests to write
-     - Plan constraints: what /plan phases MUST NOT violate
+     - Planning constraints: what downstream work MUST NOT violate
      - Model gaps: what the specification reveals about model inadequacies
      - Open questions: what the specification cannot answer -->

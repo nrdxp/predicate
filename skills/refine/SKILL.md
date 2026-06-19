@@ -76,7 +76,7 @@ The exact parameter bounds are initialized in the `ABSORB` phase based on task c
 ## Scope
 
 > [!IMPORTANT]
-> `/refine` is for **optimizing and polishing pre-existing artifacts**. It is NOT for implementing new features (that's `/core`) or drafting high-level architecture plans (that's `/plan`). If the sequence begins adding new functional scopes or diverging from the initial target artifact, the walk must halt and return control to the human.
+> `/refine` is for **optimizing and polishing pre-existing artifacts**. It is NOT for implementing new features (that's `/core`) nor for drafting high-level architecture; that strategic work is governed by the [Planning Invariants](../../ambient.md#planning-invariants), not this loop. If the sequence begins adding new functional scopes or diverging from the initial target artifact, the walk must halt and return control to the human.
 
 ---
 
