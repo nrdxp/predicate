@@ -46,17 +46,22 @@ Six invariants, in precedence order. Every other rule in this workspace elaborat
 
 Every `git commit`, in every repository (the main repository, the independent `.sketches/` sub-repository, and any worktree), passes this gate. Hygiene enforced as a memory fails under context pressure; this is a gate with an evaluator.
 
-1. **Validate mechanically.** The message must pass the [commit-hygiene](skills/commit-hygiene/SKILL.md) validator with exit `0`:
+1. **Validate the message mechanically.** The message must pass the [commit-hygiene](skills/commit-hygiene/SKILL.md) validator with exit `0`:
    ```bash
    python3 skills/commit-hygiene/scripts/check_commit_msg.py --message "<msg>"
    ```
    (≤50-char header, Conventional Commits type, blank-line separation, ≤72-char body lines.)
-2. **Emit the boundary audit** — in output, not silently:
+2. **Validate the ledger and authorize the change.** The same [ledger gate](ledger/gate/README.md) that runs at dispatch runs here, so an autonomous walk meets the identical gate a human does. It exits `0` only when the change is both *structurally valid* (its Nickel artifact exports) and *authorized* — every staged path falls under some campaign DAG node's `file_surface`. **Not in the IBC → not authorized:** a staged path no node covers fails the gate.
+   ```bash
+   ledger/gate/ledger-validate.sh commit-gate <dag>.ncl
+   ```
+   The runner resolves `nickel` directly or via `nix run nixpkgs#nickel --`, so the one command is portable across human and headless shells. A direct `/core` task is a degenerate one-node DAG, so the authorization property holds universally without extra ceremony.
+3. **Emit the boundary audit** — in output, not silently:
    - One cohesive logical change? (If the message needs "and", split it.)
    - Does the body give the *why*, derivable by a stranger with no access to this conversation? No internal workflow or agent references.
    - Diff free of complected concerns ([hickey](skills/hickey/SKILL.md)) and volatility leaks ([lowy](skills/lowy/SKILL.md))?
-3. **Run the full verification surface** for the repository at the gate — complete test suite and linters.
-4. **Record the boundary in the active sketch ledger** and commit that update in the `.sketches/` sub-repository; only then execute the main-repository commit.
+4. **Run the full verification surface** for the repository at the gate — complete test suite and linters.
+5. **Record the boundary in the active sketch ledger** and commit that update in the `.sketches/` sub-repository; only then execute the main-repository commit.
 
 **Hard rails — no exceptions, all repositories:**
 - **Never `git push`.** Remotes belong to the human.
