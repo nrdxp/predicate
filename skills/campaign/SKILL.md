@@ -254,19 +254,35 @@ Manufacture the worker boundaries.
 
 ### 6. DISPATCH
 
-Launch workers on fresh nodes whose dependencies are `ACCEPTED`.
+Launch workers on fresh nodes whose dependencies are `ACCEPTED`. The
+deterministic team-execution model — the Kahn-derived layer schedule, a
+worktree per node branched from the layer's start tip, the conflict-free set
+dispatched in parallel with the rest serialized, each reconciled node merged
+into the shared branch and the tip advanced per layer — is the
+[orchestration protocol](../../docs/orchestration-protocol.md). The narrative:
 
 - Workers run autonomously (e.g. under a `/goal`-style runner) inside
   their assigned discipline workflow, committing to the repository per
   [commit-hygiene](../commit-hygiene/SKILL.md).
-- Parallel dispatch is permitted for nodes with disjoint file surfaces;
-  nodes sharing surfaces MUST be serialized or isolated in worktrees.
+- Parallel dispatch is permitted for nodes with disjoint file surfaces; the
+  `DagNoConflict` contract proves the parallel set conflict-free, so the
+  partition is a read of the validated DAG, not a fresh judgment. Nodes sharing
+  surfaces carry a `serialize` marker and run one at a time, each isolated in
+  its own worktree.
 - A worker that trips a reserved predicate or rejects its boundary
-  freezes and returns its report — that is the IBC working as designed.
+  freezes and returns its report — that is the IBC working as designed. A
+  surface-exceed halt and a refuted premise have deterministic resolutions
+  (the surface-exceed protocol; realignment); any other reserved halt escalates
+  to the human.
 
 ### 7. RECONCILE
 
-The architect re-enters as judge. For every `LANDED` node:
+The architect re-enters as judge. The mechanical form of every step below —
+its evaluator command and exit-code routing — is the
+[orchestration protocol](../../docs/orchestration-protocol.md); that document
+is what makes RECONCILE drivable by an automaton. For every `LANDED` node, in a
+fixed (node-id) order, before merging it and before trusting the next node's
+premises:
 
 1. **Judge the changeset** with [git-review](../git-review/SKILL.md)
    semantics — `PURPOSE: verify node Pn's commits satisfy its IBC's
@@ -274,16 +290,35 @@ The architect re-enters as judge. For every `LANDED` node:
    atomicity, hygiene).
 2. **Re-run the evaluators** named in the node's acceptance criteria
    (S4). Worker claims are not evidence; evaluator output is.
-3. **Verdict:**
-   - `ACCEPT` — mark the node `ACCEPTED`, mark mitigated findings.
-   - `REWORK` — emit a corrective delta IBC (error feedback in cheap
-     space) and re-dispatch; the node returns to `PENDING`.
+3. **Surface honesty.** Derive the node's *actual* touched set from its diff
+   and reconcile it against its declared `file_surface`
+   (`authorized.py --reconcile-node`). An undeclared touch routes through the
+   **surface-exceed protocol** (collision-check vs concurrent surfaces →
+   authorize-and-widen if disjoint, serialize if not), so the conflict
+   guarantee stays honest rather than trusting a stale declaration.
+4. **Bidirectional coherence-impact** — the per-landing drift gate, explicit:
+   does this landing break an **already-landed** artifact, or invalidate a
+   **pending** one? Machine-check it where an evaluator exists — re-run the
+   orphan, link, and contract gates over the affected surface
+   (`coherence_impact.sh`); for any concern no evaluator covers (meaning-level
+   coherence), dispatch a decorrelated review (the Verification Dual's
+   adversarial path). Breakage is caught at *this* boundary, not deferred to
+   `CLOSE`.
+5. **Verdict:**
+   - `ACCEPT` — steps 1–4 clean and any dispatched review converged-pass;
+     merge the node, mark it `ACCEPTED` and its mitigated findings.
+   - `REWORK` — an evaluator, surface, or coherence check failed: emit a
+     corrective delta IBC (error feedback in cheap space) and re-dispatch;
+     the node returns to `PENDING`.
    - `ESCALATE` — the fault is structural (the plan's, not the
      worker's): return to `PLAN` or `ORCHESTRATE` and realign.
 
-Then, for every `PENDING` node: run the **premise freshness check**
-against current `HEAD` (cheap tier). Stale nodes are `INVALIDATED` and
-their IBCs realigned before any dispatch.
+Then, for **every** `PENDING` node, re-run the explicit **premise freshness
+check** against the new `HEAD` (`premise_fresh.sh`, cheap tier): re-verify the
+node's S1 tripwires; a flipped verdict marks the node `INVALIDATED` and its IBC
+is realigned before any dispatch. Running this at *every* boundary — not once up
+front — is what kills cross-node drift at the boundary instead of letting it
+accumulate to `CLOSE`.
 
 Finally: append the `RECONCILE_LOG` round, write the **sketch
 checkpoint**, and commit it in the sketches subrepo. Reserved-predicate
