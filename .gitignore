@@ -2,3 +2,4 @@
 .antigravitycli/
 .prior_art_cache/
 .scratch/
+__pycache__/
