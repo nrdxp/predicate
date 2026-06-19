@@ -89,8 +89,31 @@ Antigravity CLI natively discovers and mounts Predicate skills from the global p
    - `constitution` — Foundational ethics and structural principles.
    - `engineering` — Technical guidelines and safety rules.
    - `rust` or `go` — Language-specific idioms and conventions.
-   - `plan` or `core` — Workflow SOPs.
-2. **Verify Semantic Triggering**: To start a workflow, simply direct the agent using natural language (e.g., *"Let's run the plan workflow"* or *"Help me sketch out this design"*). The runner will match your request against the skill descriptions and load the required skill context.
+   - `core` or `refine` — Workflow SOPs.
+2. **Verify Semantic Triggering**: To start a workflow, simply direct the agent using natural language (e.g., *"Let's run the core workflow"* or *"Help me refine this module"*). The runner will match your request against the skill descriptions and load the required skill context.
+
+---
+
+## 4. Install the Commit Gate (Recommended)
+
+Predicate's commit conventions — Conventional Commits form, self-contained messages, and referential integrity — are enforceable as git hooks, so a violation *blocks* the commit instead of relying on remembering to run a check. Install them with one command from anywhere inside the repository:
+
+```bash
+hooks/install-hooks.sh
+```
+
+The installer is idempotent (re-running it is a no-op) and worktree-aware: git stores hooks in the shared common git directory, so a single install makes the hooks effective in the main checkout and every linked worktree.
+
+Two hooks are wired:
+
+- **`commit-msg`** validates the message — Conventional Commits form (header length, type, body wrapping) plus self-containment (no internal references a stranger reading `git log` could not resolve).
+- **`pre-commit`** validates the staged surface — staged markdown has valid local links, a staged Nickel ledger artifact satisfies its contract, and no staged file references a removed or demoted workflow as if it were live.
+
+To check the whole repository for stale workflow references at any time, not just what a commit stages, run the orphan gate directly:
+
+```bash
+gates/check_orphans.sh . plan charter sketch
+```
 
 ---
 
