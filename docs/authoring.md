@@ -13,7 +13,7 @@ Predicate consolidates all agent configuration under the **Skills** abstraction.
 Skills are categorized by their role, but share the same directory structure and loading model:
 
 1. **Rule Skills:** Declarative constraints, language idioms, and architectural guardrails (e.g., `rust`, `engineering`).
-2. **Workflow Skills:** Procedural SOPs with structured states, state machines, and checkpoints (e.g., `plan`, `core`).
+2. **Workflow Skills:** Procedural SOPs with structured states, state machines, and checkpoints (e.g., `refine`, `core`).
 3. **Tool Skills:** Functional capabilities containing executable scripts or dependency maps (e.g., `depmap`, `security-audit`).
 
 ---
