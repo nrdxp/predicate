@@ -26,13 +26,19 @@ An LLM is a deterministic, high-dimensional weight matrix executing an Autoregre
 
 ## 2. Prime Invariants
 
-Five invariants, in precedence order. Every other rule in this workspace elaborates one of them.
+Six invariants, in precedence order. Every other rule in this workspace elaborates one of them.
 
-1. **Closed loop — verify, then trust.** No output is correct until a deterministic evaluator says so; unevaluated generation is structurally unverified regardless of confidence. Select the strongest affordable evaluator: **machine-checked proof > type system > property test > example test > linter > human review**. Iterate against error feedback toward $\Delta E = 0$; if 3–5 corrective iterations fail to converge, freeze and surface.
+1. **The Verification Dual — verify, then trust.** Every condition that must hold is closed by the strongest applicable evaluator, and exactly one of two complementary paths closes it. **If a deterministic evaluator exists or can be built, it MUST be used** (the symbolic path); **if none can exist, the condition is closed by adversarial review from context-free agents operating out of decorrelated boundaries** (the adversarial path). Both paths iterate to a fixed point against error feedback toward $\Delta E = 0$; if 3–5 corrective iterations fail to converge, freeze and surface. The evaluator hierarchy, strongest first:
+   ```
+   proof > type > property test > example test > linter
+         > decorrelated adversarial review > [human: escalation only]
+   ```
+   Decorrelation is load-bearing: a single reviewer shares the generator's attractor basin, so their blind spots coincide; context-free reviewers in different basins have non-overlapping blind spots whose union covers the artifact. The adversarial reviewer also audits the classification — "could this have been machine-checked?" — so the soft path self-polices back toward the hard path and never becomes an escape hatch. Human review is the escalation slot only, invoked when decorrelated reviewers fail to converge.
 2. **Halt over assumption.** Ambiguous requirements, conflicting constraints, refuted premises, or evaluator output with no usable diagnostics all freeze the walk. Guessing a corrective edit from ambiguous feedback is forbidden. Rejecting a flawed frame early is a success condition, not a failure.
-3. **The history is the deliverable.** The durable interface between agent work and human judgment is `git log`. A reviewer must be able to reconstruct what changed and why from history alone. Enforced at the Commit Gate (§3) — never by recall.
-4. **Track state; reconstruct, don't recall.** An active workstream keeps its ledger in a `.sketches/` Dynamic Sketchpad (rubric, constraints, unknowns, commits — every touch a commit); otherwise track the same in the reasoning context. At every gate, re-read the governing invariant and the active ledger rather than trusting memory of them.
-5. **Tier economy.** Route every task to the cheapest walker whose capability bounds it. No expensive or autonomous walk launches without a sufficient, human-approved boundary ([boundary](skills/boundary/SKILL.md) S1–S7). Boundary mass scales inversely with walker capability: a weak walker gets one disciplining workflow and the load-bearing rules only.
+3. **The Cutting Imperative.** Unjustified code, stale docs, and redundant skills are excess phase-space volume — drift surface. "Cut complexity" is the *same* invariant as "narrow the basin," applied to artifacts rather than tokens. A standing **maturity flag** sets the default stance: **`molten`** (pre-1.0) flips the default from "amend only" to *refactor and cut freely*; **`stable`** (post-1.0) restores amend-by-default with cuts justified per change. **This project's default is `molten`.** Treating a work-in-progress, mostly-machine-authored repository as a human-vetted immutable structure to be amended only is a defect, not caution.
+4. **The history is the deliverable.** The durable interface between agent work and human judgment is `git log`. A reviewer must be able to reconstruct what changed and why from history alone. Enforced at the Commit Gate (§3) — never by recall.
+5. **Track state; reconstruct, don't recall.** An active workstream keeps its ledger in a `.sketches/` Dynamic Sketchpad (rubric, constraints, unknowns, commits — every touch a commit); otherwise track the same in the reasoning context. At every gate, re-read the governing invariant and the active ledger rather than trusting memory of them.
+6. **Tier economy.** Route every task to the cheapest walker whose capability bounds it. No expensive or autonomous walk launches without a sufficient, human-approved boundary ([boundary](skills/boundary/SKILL.md) S1–S7). Boundary mass scales inversely with walker capability: a weak walker gets one disciplining workflow and the load-bearing rules only.
 
 ---
 
@@ -65,13 +71,25 @@ Always active, with or without a formal workflow ceremony:
 1. **TDD-first.** Before modifying implementation code, write the test invariant (method per [robust-testing](skills/robust-testing/SKILL.md)) and verify baseline failure ($\Delta E_0 \neq 0$). Green-field execution without a confirmed baseline failure is a protocol violation. Full loop: [core](skills/core/SKILL.md).
 2. **One-shot skepticism.** A first-pass success (`LOOPS: 1`) triggers an adversarial self-audit of the diff — genuine baseline? hidden assumptions? — documented at the review gate.
 3. **Iteration transparency.** Review-gate reports state the exact loop count, baseline diagnostics, and corrections applied. Unverifiable passes are treated as failures.
-4. **Grounded critique.** A finding exists only if it maps to a reproducible evaluator failure or a localized, in-scope specification contract — verified by actually running the tool. Subjective and stylistic critiques are barred from ledgers; discards are logged. Full protocol: [refine](skills/refine/SKILL.md) (Verifier Grounding).
+4. **Grounded critique — dual grounding.** A finding is admissible only if it is *grounded*, and grounding is determined by the path that closes the condition under audit (Invariant 1). The two paths are mutually exclusive per condition: a condition is closed symbolically when a deterministic evaluator exists or can be built, and adversarially only when none can — so exactly one grounding mode applies to any given condition, never both.
+   - **On a symbolically-closed condition**, a finding is grounded by **evaluator-determinism**: it maps to a reproducible evaluator failure or a localized, in-scope specification contract, verified by actually running the tool. Inter-reviewer agreement does *not* ground a finding here — the evaluator does.
+   - **On an adversarially-closed condition** (no deterministic evaluator can exist), a finding is grounded by **inter-reviewer reproducibility**: decorrelated, context-free reviewers independently converge on it. A single reviewer's unreproduced assertion does *not* ground a finding here — independent convergence does.
+
+   Subjective and stylistic critiques that satisfy neither mode are barred from ledgers; discards are logged. The adversarial path also audits whether the condition could have been closed symbolically; if so, it routes back to the symbolic path rather than grounding adversarially. Full protocol: [refine](skills/refine/SKILL.md) (Verifier Grounding).
 5. **Targeted feedback.** During the iteration loop, run targeted test selectors (specific cases, module suites, focused paths) to keep feedback latency under ~5 seconds — the complete suite is reserved for the Commit Gate. Slow feedback decays the corrective loop.
 6. **Prior art.** Non-trivial algorithms, protocols, or abstractions require at least two production-grade references documented in the active ledger before generation. Procedure: [prior-art](skills/prior-art/SKILL.md).
 
 ---
 
 ## 5. Skill Routing
+
+Skills are routed *by moment*. Beneath them sits the **ambient layer** — standing
+principles that are never *not* active and so have no entrypoint to route to. They
+live in [ambient.md](ambient.md), presumed read alongside this file. That document
+is the destination for principles currently mis-packaged as skills (planning's
+invariants, the sketch/dialectic/boundary-reconstruction dispositions, the
+code-edit constraints); relocate a demoted skill's principle there per the Cutting
+Imperative (§2).
 
 The skill is the authority; this table only routes. Load by moment, not by mass:
 
