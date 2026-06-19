@@ -114,11 +114,28 @@ is a standing disposition, not a discrete step. The principle, not the ceremony:
 
 ### The Dialectic Principle
 
-*Reserved for the principle currently framed as the*
-[dialectic](skills/dialectic/SKILL.md) *workflow.* Thesis ⇄ adversarial
-antithesis → reconciled synthesis is the *shape* of the system, an instance of
-the Verification Dual's adversarial path at its high-stakes (cross-model)
-decorrelation tier — not a discrete step.
+*Relocated from* [dialectic](skills/dialectic/SKILL.md). Thesis ⇄ adversarial
+antithesis → reconciled synthesis is the *shape* of the system, not a step in it.
+It is the high-stakes (cross-model) tier of the Verification Dual's adversarial
+path ([rules.md](rules.md) §2 Invariant 1).
+
+**Cross-model decorrelation.** A single walk reasoning about both sides of a
+tension is bound by its own training distribution, biases, and unvalidated
+priors — the two sides are correlated because one prefix generated both. Genuine
+independence requires a **model switch** between the opposing samplings: different
+models occupy different attractor basins, so their blind spots do not coincide
+and their union covers the proposition. This is the same load-bearing
+decorrelation that grounds adversarial review generally; the dialectic applies it
+at its strongest, by switching the generator itself.
+
+> [!IMPORTANT]
+> This tier is reserved for propositions that resist confident single-agent
+> resolution — high-stakes strategic decisions, critical formal models, contested
+> architectural directions. It supplements ordinary adversarial self-testing when
+> that is insufficient; it is not a substitute for routine rigor and is not
+> invoked for routine decisions. The mechanics of orchestrating cross-model
+> rounds fold into the ambient adversarial-review escalation rather than living
+> as a workflow.
 
 ### Boundary Reconstruction
 
