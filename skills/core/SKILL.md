@@ -83,11 +83,14 @@ For each step in the plan, execute a local optimization loop:
    - If tests/compilation fail ($V(\mathbf{S}_k) \neq 0$), apply a corrective edit $\Delta \mathbf{S}_{k+1}$ designed to minimize the error feedback vector $\Delta E_k$. Repeat up to a cap of 3-5 iterations. If no convergence occurs, transition to `CLARIFY` and halt.
  
 ### 2. Iterative Refinement Loop
-Before concluding work at any commit boundary:
+Before concluding work at any commit boundary, contract the diff toward its fixed point. This is one loop — a contraction mapping that re-enters itself until it stops moving, not a second machine bolted onto the verification loop above. Each pass is an application of the refinement operator $R$; the loop halts at the fixed point $R(\mathbf{S}^*) = \mathbf{S}^*$ — the pass that finds nothing left to correct. (The full Banach contraction model is the reference content of [refine](../refine/SKILL.md); `/core` runs the same loop at task scale.)
+
+Each pass:
 - Audit the generated diff against code simplicity (Hickey complecting check), volatility alignment (Lowy temporal check), test completeness, and style guidelines.
 - **One-Shot Skeptical Audit**: If a plan step converges in exactly 1 iteration (`LOOPS: 1`), you must perform an explicit adversarial audit of the diff. Validate that the baseline failure check was genuine, analyze whether any hidden assumptions were left unverified, and run spatial/temporal checks to ensure no structural complexity was introduced. Document this audit in the `REVIEW` block under `SKEPTICAL_AUDIT`.
+- **Deterministic grounding (no additive drift).** A correction enters this loop only when it is grounded — it maps to a reproducible evaluator failure (linter, compiler, failed assertion) or a localized, in-scope specification contract, verified by actually running the tool. Subjective or stylistic critiques do not spawn corrections; they would only accrete complexity the loop is meant to shed. Self-correction is additively biased, so each pass must also *prune* — fold, merge, or delete anything a prior pass added that no longer serves the goal. This bound is what makes the loop a contraction ($q < 1$) rather than a divergent accumulation; it is the [Cutting Imperative](../../rules.md) applied to the diff.
 - Update the **Dynamic Sketchpad** rubric ledger (including goals/evaluators), constraint ledger, unknowns ledger, and standards checklists in `.sketches/[topic].md` to track compliance states in real-time. Log any dynamic shifts or refinements to the rubric goals for human reporting.
-- If the quality score is less than 1.0 or any standard/constraint is violated, formulate a corrective refactor, apply it, and re-run verification.
+- If the quality score is less than 1.0 or any standard/constraint is violated, formulate a corrective refactor, apply it, re-run verification, and **re-enter this loop**. The boundary is reached only when a pass produces no grounded correction.
  
 ### 3. Commit Gates
 At each commit boundary (or phase completion):
