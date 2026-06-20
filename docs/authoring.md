@@ -14,7 +14,7 @@ Skills are categorized by their role, but share the same directory structure and
 
 1. **Rule Skills:** Declarative constraints, language idioms, and architectural guardrails (e.g., `rust`, `engineering`).
 2. **Workflow Skills:** Procedural SOPs with structured states, state machines, and checkpoints (e.g., `refine`, `core`).
-3. **Tool Skills:** Functional capabilities containing executable scripts or dependency maps (e.g., `depmap`, `security-audit`).
+3. **Tool Skills:** Functional capabilities containing executable scripts or external integration instructions (e.g., `security-audit`).
 
 ---
 
@@ -94,12 +94,12 @@ Tool skills package custom utilities or external integration instructions with e
 #### Example Frontmatter:
 ```yaml
 ---
-name: depmap
+name: security-audit
 description: |
-  Repository and dependency analysis tools.
+  SOP for auditing code for security vulnerabilities.
   Trigger when:
-  - Exploring new/large codebases, mapping API surfaces, or finding type/function definitions.
-  - Prompt contains keywords: repo_map, search_identifiers, resolve_dependencies, dep_map.
+  - Reviewing code for OWASP vulnerabilities, injection risks, or authentication flaws.
+  - Prompt contains keywords: security audit, vulnerability, CVE, injection, authentication.
 ---
 ```
 
