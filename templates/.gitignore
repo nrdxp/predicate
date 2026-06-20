@@ -1,3 +1,5 @@
-# Ledger workflow storage
-# Durable flight-recorder history, tracked locally but not in main repo
+# Topology: ephemeral working state lives under .scratch/; durable agent history
+# (the flight-recorder subrepo) lives under .ledger/. Both are gitignored so
+# the parent repo does not track transient artifacts or subrepo internals.
+.scratch/
 .ledger/
