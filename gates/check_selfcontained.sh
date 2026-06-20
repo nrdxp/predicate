@@ -5,10 +5,16 @@
 # Complements check_commit_msg.py (form only). Usage: <msg> -> 0 clean / 1 viol.
 set -u
 msg="${1:-}"
+root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+# Load project config if present; allows a downstream repo to supply its own
+# node-ID grammar via SELFCONTAINED_PAT. Absent config → predicate defaults.
+# shellcheck source=/dev/null
+[ -f "$root/.ledger/config.sh" ] && source "$root/.ledger/config.sh"
 # P[0-9]+ covers every node ID (the prior P1..P11 cap silently passed P12+,
 # which the campaign now uses) without a leading zero so it cannot match a bare
-# "P0"-style token; node IDs start at P1.
-pat='\bP[1-9][0-9]*\b|\bnode P[0-9]|\bL[0-9]\b|\bAC-?P?[0-9]+|\bC-P[0-9]+'
+# "P0"-style token; node IDs start at P1. Config may override via SELFCONTAINED_PAT.
+: "${SELFCONTAINED_PAT:=\bP[1-9][0-9]*\b|\bnode P[0-9]|\bL[0-9]\b|\bAC-?P?[0-9]+|\bC-P[0-9]+}"
+pat="$SELFCONTAINED_PAT"
 hits=$(printf '%s' "$msg" | grep -noE "$pat" || true)
 if [ -n "$hits" ]; then
   printf 'SELF-CONTAINMENT VIOLATION — internal refs:\n%s\n' "$hits"

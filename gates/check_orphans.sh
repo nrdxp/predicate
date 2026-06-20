@@ -26,12 +26,27 @@ if [ -z "$root" ]; then echo "usage: check_orphans.sh <repo-root> <removed-workf
 shift
 if [ "$#" -eq 0 ]; then echo "usage: check_orphans.sh <repo-root> <removed-workflow>..." >&2; exit 2; fi
 
+# Load project config if present; a downstream repo can override ORPHAN_TARGETS
+# (bash array), ORPHAN_EXCLUDE (grep -vE pattern suffix), and SKILLS_DIR (the
+# skills-directory token used in reference patterns). Absent config → predicate
+# defaults below.
+# shellcheck source=/dev/null
+[ -f "$root/.ledger/config.sh" ] && source "$root/.ledger/config.sh"
+# Default to predicate's authoritative surfaces when not set by config.
+if [ -z "${ORPHAN_TARGETS+set}" ]; then
+  ORPHAN_TARGETS=(skills templates ambient.md README.md AGENTS.md rules.md docs/authoring.md docs/getting-started.md)
+fi
+# Default exclusion: genuine URLs and this project's own install-path name.
+: "${ORPHAN_EXCLUDE:=plugins/predicate}"
+# Default skills-directory token used in reference-pattern matching.
+: "${SKILLS_DIR:=skills}"
+
 pat=""
 for n in "$@"; do
   # /<name> not followed by a word char or hyphen (so /plan matches neither
   # /planning nor /plan-review), OR a skills/<name>/ path reference, OR the
   # backticked name as a live example, OR "the <name> workflow" prose.
-  pat="${pat:+$pat|}(/${n}([^A-Za-z0-9-]|\$)|skills/${n}/|\`${n}\`|the ${n} workflow)"
+  pat="${pat:+$pat|}(/${n}([^A-Za-z0-9-]|\$)|${SKILLS_DIR}/${n}/|\`${n}\`|the ${n} workflow)"
 done
 
 # cd into the root so grep emits RELATIVE match paths. CRITICAL: an absolute root
@@ -42,15 +57,13 @@ cd "$root" 2>/dev/null || { echo "check_orphans: no such root: $root" >&2; exit 
 
 # Authoritative surfaces only. Dated history (docs/chronicle.md, docs/plans/) and
 # the .scratch working set are intentionally excluded — they record history.
-targets=(skills templates ambient.md README.md AGENTS.md rules.md docs/authoring.md docs/getting-started.md)
-
 # Exclude genuine URL / install-path CONTENT: the project is itself named
 # "predicate", so its URLs (https://.../predicate) and plugin install paths
 # (plugins/predicate) are not workflow invocations. Safe now that paths are relative.
 # Case-sensitive (no -i): workflow/skill names are lowercase by convention, so a
 # lowercase `plan` is the cut workflow while an uppercase `PLAN`/`SKETCH` is a
 # campaign STATE or chronicle protocol name — legitimately distinct, not an orphan.
-hits=$(grep -rnE "$pat" "${targets[@]}" 2>/dev/null | grep -vE 'https?://|plugins/predicate')
+hits=$(grep -rnE "$pat" "${ORPHAN_TARGETS[@]}" 2>/dev/null | grep -vE "https?://|${ORPHAN_EXCLUDE}")
 
 if [ -n "$hits" ]; then
   echo "ORPHAN WORKFLOW REFERENCES (named but removed/demoted):"
