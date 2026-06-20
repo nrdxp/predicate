@@ -30,7 +30,11 @@
 # Exit codes: 0 = pass, 1 = a check failed, 2 = usage / environment error.
 set -euo pipefail
 
-here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Resolve THIS script's own real directory (symlink-safe via realpath) so the
+# sibling machinery it invokes — authorized.py — is located relative to where the
+# PLUGIN lives, not relative to whatever repo is being gated. The gate is correct
+# wherever it is invoked from, including through a symlink in a consuming repo.
+here="$(cd "$(dirname "$(realpath "${BASH_SOURCE[0]}")")" && pwd)"
 
 # --- portable nickel runner (AC7) -----------------------------------------
 # Resolve once; every nickel call below goes through "$@" expansion of it.

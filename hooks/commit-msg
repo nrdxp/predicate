@@ -18,16 +18,29 @@ if [ -z "$msg_file" ] || [ ! -f "$msg_file" ]; then
   exit 2
 fi
 
+# Two distinct locations, deliberately kept apart (the packaging invariant):
+#   $plugin = where predicate's MACHINERY lives. Resolved from THIS hook's own
+#             real path. The installed hook is a SYMLINK in the consuming repo's
+#             .git/hooks/ pointing back to <plugin>/hooks/commit-msg, so resolve
+#             symlinks (realpath) to land in the real plugin tree. All sibling
+#             machinery (the form checker, the self-containment gate) is located
+#             relative to $plugin — never relative to the repo being gated.
+#   $root   = the repo being GATED. Used here only to locate the GATED repo's
+#             config; the message under inspection arrives as $1 from git. In the
+#             self-host case ($plugin == $root) both coincide.
+plugin="$(cd "$(dirname "$(realpath "${BASH_SOURCE[0]}")")/.." && pwd)"
 # Resolve the repo root so the hook works from the main checkout and any linked
 # worktree (git invokes the hook with cwd = the working tree root, but be explicit).
 root="$(git rev-parse --show-toplevel)"
 
 # Load project config if present; a downstream repo can override COMMIT_HYGIENE_CHECK
-# (path to the Conventional Commits form checker). Absent config → predicate default.
+# (path to the Conventional Commits form checker). Config belongs to the GATED
+# repo ($root), not the plugin. Absent config → predicate default.
 # shellcheck source=/dev/null
 [ -f "$root/.ledger/config.sh" ] && source "$root/.ledger/config.sh"
-# Path to the Conventional Commits form checker; downstream repos redirect here.
-: "${COMMIT_HYGIENE_CHECK:=$root/skills/commit-hygiene/scripts/check_commit_msg.py}"
+# Path to the Conventional Commits form checker — predicate MACHINERY, so it
+# lives under $plugin. Downstream repos can still redirect here via config.
+: "${COMMIT_HYGIENE_CHECK:=$plugin/skills/commit-hygiene/scripts/check_commit_msg.py}"
 
 rc=0
 
@@ -37,7 +50,7 @@ if [ "$hygiene_rc" -ne 0 ]; then rc=1; fi
 
 # The self-containment gate takes the message TEXT, not a file path.
 msg="$(cat "$msg_file")"
-bash "$root/gates/check_selfcontained.sh" "$msg"
+bash "$plugin/gates/check_selfcontained.sh" "$msg"
 selfc_rc=$?
 if [ "$selfc_rc" -ne 0 ]; then rc=1; fi
 

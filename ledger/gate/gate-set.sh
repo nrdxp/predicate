@@ -28,7 +28,11 @@
 # 2 = usage or environment error.
 set -euo pipefail
 
-here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Resolve THIS script's own real directory (symlink-safe via realpath) so the
+# gate-set DATA it reads — gate-sets/{node,core}.txt — is located relative to
+# where the PLUGIN lives, not relative to whatever repo is being gated. The proof
+# is correct wherever it is invoked from, including through a symlink downstream.
+here="$(cd "$(dirname "$(realpath "${BASH_SOURCE[0]}")")" && pwd)"
 sets="$here/gate-sets"
 
 # Read a gate-set file to a sorted, de-duplicated, comment-free stream. Sorting

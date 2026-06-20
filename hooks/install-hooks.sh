@@ -13,7 +13,12 @@
 # Exit:   0 = installed / already current, non-zero = could not install.
 set -euo pipefail
 
-root="$(git rev-parse --show-toplevel)"
+# The hooks SOURCE is predicate MACHINERY: resolve it from THIS installer's own
+# real path (it is <plugin>/hooks/install-hooks.sh), not from the git toplevel, so
+# the installer wires the plugin's hooks even when run inside a consuming repo. The
+# DESTINATION is the gated repo's git dir, resolved with git. In the self-host case
+# the two coincide.
+hooks_src="$(cd "$(dirname "$(realpath "${BASH_SOURCE[0]}")")" && pwd)"
 common_git_dir="$(git rev-parse --git-common-dir)"
 # --git-common-dir may be relative to cwd; normalize to an absolute path.
 case "$common_git_dir" in
@@ -21,7 +26,6 @@ case "$common_git_dir" in
   *)  common_git_dir="$(cd "$common_git_dir" && pwd)" ;;
 esac
 
-hooks_src="$root/hooks"
 hooks_dst="$common_git_dir/hooks"
 mkdir -p "$hooks_dst"
 

@@ -44,9 +44,16 @@ while [ "$#" -gt 0 ]; do
   shift || true
 done
 
+# $plugin = where predicate's MACHINERY lives, resolved from THIS script's own
+# real path (this file is <plugin>/ledger/gate/coherence_impact.sh, so $plugin
+# is two dirs up). The sibling gates this evaluator INVOKES — ledger-validate.sh,
+# check_orphans.sh, check_docs.py — are located relative to $plugin, never to the
+# $root it SCANS. In the self-host case ($plugin == $root) both coincide.
+plugin="$(cd "$(dirname "$(realpath "${BASH_SOURCE[0]}")")/../.." && pwd)"
+
 fails=0
-gate="$root/ledger/gate"
-gates="$root/gates"
+gate="$plugin/ledger/gate"
+gates="$plugin/gates"
 
 # Load project config if present; a downstream repo can override LINK_TARGETS
 # (bash array) to match its own authoritative surface layout.
@@ -107,7 +114,7 @@ fi
 # by check_orphans.sh — frozen history (docs/plans/, docs/chronicle.md, and
 # the .scratch/.ledger working trees) is naturally excluded by not being listed.
 link_gate=""
-for cand in "$gates/check_docs.py" "$root/skills/doc-audit/scripts/check_docs.py"; do
+for cand in "$gates/check_docs.py" "$plugin/skills/doc-audit/scripts/check_docs.py"; do
   [ -f "$cand" ] && { link_gate="$cand"; break; }
 done
 if [ -n "$link_gate" ]; then

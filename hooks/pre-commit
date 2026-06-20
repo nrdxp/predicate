@@ -19,11 +19,22 @@
 # pass cleanly.
 set -u
 
+# Two distinct locations, deliberately kept apart (the packaging invariant):
+#   $plugin = where predicate's MACHINERY lives. Resolved from THIS hook's own
+#             real path. The installed hook is a SYMLINK in the consuming repo's
+#             .git/hooks/ pointing back to <plugin>/hooks/pre-commit, so we must
+#             resolve symlinks (realpath) to land in the real plugin tree. All
+#             sibling machinery (gate scripts, per-skill checkers) is located
+#             relative to $plugin — never relative to the repo being gated.
+#   $root   = the repo being GATED (the consuming repo). Used ONLY for the FILES
+#             under inspection (staged paths, the target tree) — never to locate
+#             machinery. In the self-host case ($plugin == $root) both coincide.
+plugin="$(cd "$(dirname "$(realpath "${BASH_SOURCE[0]}")")/.." && pwd)"
 root="$(git rev-parse --show-toplevel)"
 
 # Load project config if present; a downstream repo can override REMOVED (bash
 # array of demoted workflows) and DOC_AUDIT_CHECK (path to the doc-link checker).
-# Absent config → predicate defaults below.
+# Config belongs to the GATED repo ($root), not the plugin. Absent → defaults.
 # shellcheck source=/dev/null
 [ -f "$root/.ledger/config.sh" ] && source "$root/.ledger/config.sh"
 # The removed/demoted workflows the orphan gate polices. Kept in sync with the
@@ -31,8 +42,9 @@ root="$(git rev-parse --show-toplevel)"
 if [ -z "${REMOVED+set}" ]; then
   REMOVED=(plan charter plan-review continue personalization sketch dialectic predicate planning)
 fi
-# Path to the doc-link checker; downstream repos can redirect to their own script.
-: "${DOC_AUDIT_CHECK:=$root/skills/doc-audit/scripts/check_docs.py}"
+# Path to the doc-link checker — predicate MACHINERY, so it lives under $plugin.
+# Downstream repos can still redirect to their own script via config.
+: "${DOC_AUDIT_CHECK:=$plugin/skills/doc-audit/scripts/check_docs.py}"
 
 rc=0
 
@@ -43,7 +55,7 @@ mapfile -t staged < <(git diff --cached --name-only --diff-filter=ACM)
 # --- 1. ORPHANS (scoped to staged files) ----------------------------------
 # Run the full repo-wide gate for its pattern truth, then fail the commit only
 # if a flagged "file:line:match" names a file in the staged set.
-orphan_out="$(bash "$root/gates/check_orphans.sh" "$root" "${REMOVED[@]}" 2>/dev/null || true)"
+orphan_out="$(bash "$plugin/gates/check_orphans.sh" "$root" "${REMOVED[@]}" 2>/dev/null || true)"
 staged_orphans=""
 while IFS= read -r line; do
   # gate output rows are "path:line:matched-text"; take the path column.
@@ -80,7 +92,7 @@ for f in "${staged[@]}"; do
   case "$f" in
     *.ncl)
       if [ -f "$root/$f" ]; then
-        bash "$root/ledger/gate/ledger-validate.sh" structure "$root/$f"
+        bash "$plugin/ledger/gate/ledger-validate.sh" structure "$root/$f"
         led_rc=$?
         if [ "$led_rc" -ne 0 ]; then
           echo "pre-commit: ledger artifact failed structure validation: $f" >&2
