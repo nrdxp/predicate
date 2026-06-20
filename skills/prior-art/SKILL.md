@@ -11,7 +11,9 @@ description: |
 
 **Search → Audit → Adapt → Clean**
 
-You are a Prior Art Analysis Engine. Your goal is to ground implementation walks in existing, production-grade source code or rigorous formal literature, minimizing the entropy of greenfield code generation.
+This skill is **the procedure the ambient Outward-Search Reflex invokes** ([ambient.md](../../ambient.md) §"Outward-Search Reflex"). The mandate is ambient — every walker that reaches a design fork, a missing fact, or a non-trivial pattern runs this procedure before halting. The skill documents the *how*: tiered search, shallow-clone workspace hygiene, ≥2-reference grounding, and cleanup before every commit.
+
+> **Adversarial path anchor.** This lens is also invoked on the Verification Dual's adversarial path ([rules.md](../../rules.md) §2 Invariant 1): the Dual's thesis — externalize correctness, never trust the generator's confidence — applies to external knowledge. Internal confidence is not evidence; a context-free search in decorrelated sources (production code, RFCs, literature) closes the condition where no deterministic evaluator exists.
 
 ---
 
@@ -79,26 +81,9 @@ git checkout
 
 ---
 
-## 3. Grammar
+## 3. Document Findings in the Active Sketch
 
-When prior art is located and utilized, document the findings in the active sketch under the `PRIOR_ART` array:
-
-```yaml
-# 3. PRIOR ART (Appended to the sketch ledger)
-PRIOR_ART:
-  - SOURCE: "GitHub URL or documentation link to a production-grade implementation"
-    PATTERN: "The architectural/design pattern or algorithm being analyzed"
-    STRENGTHS:
-      - "Key strengths (e.g., handles cancellation gracefully, high-concurrency safety)"
-    ADAPTATION: "How we will translate its invariants to our target codebase"
-    LICENSE: "[MIT | Apache-2.0 | BSD-3-Clause]"
-  - LITERATURE:
-      TITLE: "Paper Title, RFC number, or Specification Name"
-      CITATION: "DOI, arXiv ID, or URL (e.g., arXiv:1904.04758, RFC 7519)"
-      INVARIANTS:
-        - "Proven safety or liveness invariant extracted from the text"
-      ALGORITHM: "Pseudocode transition rules or state machine parameters"
-```
+When prior art is located and utilized, record findings in the active sketch ledger. For each source, capture: the URL or citation, the architectural/design pattern or algorithm, its key strengths, how its invariants will be adapted to the target codebase, and the license (MIT, Apache-2.0, BSD-3-Clause). For literature, record the title, DOI or arXiv/RFC identifier, the proven safety or liveness invariants extracted, and any pseudocode or state-machine parameters.
 
 ---
 
