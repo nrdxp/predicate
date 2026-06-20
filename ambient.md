@@ -150,8 +150,9 @@ context.
 many steps, a resume after a halt — reload the boundary in order rather than
 proceeding on memory:
 
-1. **Governing invariants** — re-read [rules.md](rules.md) and the nearest
-   `AGENTS.md` (nearest ancestor wins for the working directory).
+1. **Governing invariants** — re-read [rules.md](rules.md), plus any
+   project-local agent configuration the working tree provides (e.g. a nearest
+   `AGENTS.md`, if the project keeps one) for project-specific guidance.
 2. **Active ledger** — re-read the workstream's `.ledger/log/` sketchpad (or the
    plan and any relevant decision records) for goals, decisions, and execution
    notes.
