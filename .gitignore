@@ -1,16 +1,11 @@
-# Topology: all transient + durable agent state lives under one mount point,
-# .scratch/{work,worktrees,sketches} (cohesion campaign D5). This single entry
-# covers the disposable working sets, the default worktree substrate, and the
-# durable sketch subrepo once relocated there.
+# Topology: ephemeral working state lives under .scratch/; durable agent history
+# (the flight-recorder subrepo) lives under .ledger/. Both are gitignored so
+# the parent repo does not track transient artifacts or subrepo internals.
 .scratch/
-
-# Transition guards: legacy root locations pending the physical move under
-# .scratch/. Remove each line only once its directory has been relocated, so the
-# live subrepo / worktree is never accidentally un-ignored mid-migration.
-.sketches/
-.worktrees/
+.ledger/
 
 # Unrelated tooling and caches.
 .antigravitycli/
 .prior_art_cache/
 __pycache__/
+.grepai
