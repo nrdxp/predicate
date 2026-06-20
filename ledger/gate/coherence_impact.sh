@@ -48,6 +48,19 @@ fails=0
 gate="$root/ledger/gate"
 gates="$root/gates"
 
+# Load project config if present; a downstream repo can override LINK_TARGETS
+# (bash array) to match its own authoritative surface layout.
+# Absent config → predicate defaults (mirrors check_orphans' ORPHAN_TARGETS list so
+# that both gates apply the same frozen-history exclusion without duplicating it).
+# shellcheck source=/dev/null
+[ -f "$root/.ledger/config.sh" ] && source "$root/.ledger/config.sh"
+# Default: same authoritative surfaces as check_orphans.sh ORPHAN_TARGETS.
+# docs/plans/, docs/chronicle.md, and .scratch/.ledger working trees are
+# intentionally omitted — they record frozen history, not live doctrine.
+if [ -z "${LINK_TARGETS+set}" ]; then
+  LINK_TARGETS=(skills templates ambient.md README.md AGENTS.md rules.md docs/authoring.md docs/getting-started.md)
+fi
+
 # --- contract: every ledger artifact still satisfies its Nickel contract -----
 if [ -x "$gate/ledger-validate.sh" ] && [ -d "$root/ledger" ]; then
   artifacts=$(find "$root/ledger/examples" "$root/ledger/contracts" \
@@ -86,12 +99,20 @@ fi
 # --- links: markdown link syntax still resolves ------------------------------
 # The link gate ships with the doc-audit skill (its script survived the skill's
 # merge into documentation); fall back to a gates/ copy if one is promoted.
+# Scans LINK_TARGETS only (authoritative surfaces), matching the exclusion used
+# by check_orphans.sh — frozen history (docs/plans/, docs/chronicle.md, and
+# the .scratch/.ledger working trees) is naturally excluded by not being listed.
 link_gate=""
 for cand in "$gates/check_docs.py" "$root/skills/doc-audit/scripts/check_docs.py"; do
   [ -f "$cand" ] && { link_gate="$cand"; break; }
 done
 if [ -n "$link_gate" ]; then
-  if python3 "$link_gate" "$root" >/dev/null 2>&1; then
+  link_fail=0
+  for t in "${LINK_TARGETS[@]}"; do
+    [ -e "$root/$t" ] || continue
+    python3 "$link_gate" "$root/$t" >/dev/null 2>&1 || link_fail=1
+  done
+  if [ "$link_fail" -eq 0 ]; then
     echo "PASS  links: markdown link syntax resolves"
   else
     echo "FAIL  links: a markdown link no longer resolves"
