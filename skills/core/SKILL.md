@@ -8,11 +8,11 @@ description: |
   - Prompt contains: /core, core workflow, absorb, clarify, execution invariants, commit boundary, verify assertion.
 ---
  
-# C.O.R.E. Protocol v3.0: Closed-Loop Stochastic Trajectory Control (C-LTC)
- 
+# C.O.R.E. Protocol: Micro-Execution under the Verification Dual
+
 **Context → Obstacles → Resolution → Execution**
  
-This workflow defines the C.O.R.E. micro-execution phase. The objective is to guide sequence token generation through a series of discrete state transitions (Context, Obstacles, Resolution, Execution) and apply local closed-loop verification feedback loops to force trajectory convergence before committing.
+This workflow defines the C.O.R.E. micro-execution phase. It guides a localized plan segment through a series of discrete state transitions (Context, Obstacles, Resolution, Execution), closing each step against the [Verification Dual](../../rules.md) before committing: every step carries a deterministic evaluator (the symbolic path — test, compiler, linter) that must reach $\Delta E = 0$, and each commit boundary meets the [Commit Gate](../../rules.md) (§3). C.O.R.E. is the task-scale instance of the Dual's symbolic path: drive a candidate edit to its evaluator's fixed point, then authorize the change through the ledger gate.
  
 ---
  
@@ -27,14 +27,6 @@ This workflow defines the C.O.R.E. micro-execution phase. The objective is to gu
 # 1. TRAJECTORY METADATA
 STATUS: [ABSORB | CLARIFY | PLAN | EXECUTE]
 CONTROL_MODE: [MANUAL | AUTOMATIC] # MANUAL: halt at boundaries; AUTOMATIC: autocommit and continue if tests pass.
-UNCERTAINTY: [0.0-1.0]              # Residual entropy / uncertainty. Must be 0.0 to transition to PLAN/EXECUTE.
-STABILITY:
-  SPEC: [0.0-1.0]                   # Conformance to modal specifications
-  MODEL: [0.0-1.0]                  # Conformance to state-space models
-  TEST: [0.0-1.0]                   # Conformance to test invariants (TDD pass rate)
-REASONING:                          # Required if UNCERTAINTY > 0.0 or any STABILITY < 1.0
-  UNCERTAINTY: "Why uncertainty remains and what parameter is missing"
-  STABILITY: "Why stability deviates from 1.0"
  
 # 2. CONTEXT (The Initial Boundary Condition)
 CTX:
@@ -89,21 +81,21 @@ Each pass:
 - Audit the generated diff against code simplicity (Hickey complecting check), volatility alignment (Lowy temporal check), test completeness, and style guidelines.
 - **One-Shot Skeptical Audit**: If a plan step converges in exactly 1 iteration (`LOOPS: 1`), you must perform an explicit adversarial audit of the diff. Validate that the baseline failure check was genuine, analyze whether any hidden assumptions were left unverified, and run spatial/temporal checks to ensure no structural complexity was introduced. Document this audit in the `REVIEW` block under `SKEPTICAL_AUDIT`.
 - **Deterministic grounding (no additive drift).** A correction enters this loop only when it is grounded — it maps to a reproducible evaluator failure (linter, compiler, failed assertion) or a localized, in-scope specification contract, verified by actually running the tool. Subjective or stylistic critiques do not spawn corrections; they would only accrete complexity the loop is meant to shed. Self-correction is additively biased, so each pass must also *prune* — fold, merge, or delete anything a prior pass added that no longer serves the goal. This bound is what makes the loop a contraction ($q < 1$) rather than a divergent accumulation; it is the [Cutting Imperative](../../rules.md) applied to the diff.
-- Update the **Dynamic Sketchpad** rubric ledger (including goals/evaluators), constraint ledger, unknowns ledger, and standards checklists in `.sketches/[topic].md` to track compliance states in real-time. Log any dynamic shifts or refinements to the rubric goals for human reporting.
+- Update the active sketch (rubric and evaluators, constraint ledger, unknowns ledger, and standards checklists) in the `.ledger/log/[topic].md` flight recorder to track compliance states in real-time, per [the Sketch Principle](../../ambient.md#the-sketch-principle). Log any dynamic shifts or refinements to the rubric goals for human reporting.
 - If the quality score is less than 1.0 or any standard/constraint is violated, formulate a corrective refactor, apply it, re-run verification, and **re-enter this loop**. The boundary is reached only when a pass produces no grounded correction.
  
 ### 3. Commit Gates
 At each commit boundary (or phase completion):
-- **Commit Hygiene Invariant:** Ensure the conventional commit message is validated and satisfies the constant `commit-hygiene` constraint before executing any commit in either repository.
+- **Commit Gate Invariant:** Every commit passes the [Commit Gate](../../rules.md) (§3) — the conventional message validates mechanically (`commit-hygiene`) and the [ledger gate](../../ledger/gate/README.md) (`ledger/gate/ledger-validate.sh`) authorizes the change — before executing any commit in any repository.
 - If `CONTROL_MODE: AUTOMATIC` (and credentials/command permissions are active):
-  1. Record the updated Dynamic Sketchpad ledger (rubric, constraints, unknowns, standards, commit ID) in `.sketches/[topic].md`, and commit it within the `.sketches/` subrepo.
+  1. Record the updated active sketch (rubric, constraints, unknowns, standards, commit ID) in `.ledger/log/[topic].md`, and commit it within the `.ledger/` sub-repository.
   2. Output the `REVIEW` block, `JUSTIFICATION` block, and conventional commit message.
   3. Execute `git add [modified files]` and `git commit -m "[message]"` directly.
   4. Automatically proceed to the remaining PLAN steps without halting.
 - If `CONTROL_MODE: MANUAL` (or not specified):
   1. Output in this order, then **HALT**:
      - REVIEW block (structured output of self-review findings: SCORE, ITERATIONS, and FINDINGS per the REVIEW Block Format)
-     - Sketch update instructions (re-stating the Dynamic Sketchpad ledger updates, compiling any rubric adjustments or goal additions)
+     - Sketch update instructions (re-stating the active sketch updates, compiling any rubric adjustments or goal additions)
      - JUSTIFICATION block
      - Conventional commit message conforming to [commit-hygiene](../commit-hygiene/SKILL.md)
      - REMAINING STEPS
@@ -135,13 +127,13 @@ REVIEW:
  
 ## Prime Directives
  
-1. **STATE_OVER_SCRIPT:** Define the desired state declaratively in YAML. The PLAN must specify atomic TDD steps and verification constraints.
-2. **AMBIGUITY_GATE:** If context is missing, conflicting, or weak (UNCERTAINTY > 0.0), token generation for implementation is forbidden. Transition to CLARIFY, populate OBSTACLES, and halt.
-3. **VERIFICATION_FIRST:** Every PLAN step requires a testable assertion. A task is incomplete without verification.
-4. **TOKEN_MINIMALISM:** Eradicate conversational filler. Output only the CORE-YAML grammar during planning.
+1. **STATE_OVER_SCRIPT:** Define the desired state declaratively in the plan grammar. The PLAN must specify atomic TDD steps and verification constraints.
+2. **AMBIGUITY_GATE:** If context is missing, conflicting, or weak, token generation for implementation is forbidden ([Halt over assumption](../../rules.md)). Transition to CLARIFY, populate OBSTACLES, and halt until they are resolved.
+3. **VERIFICATION_FIRST:** Every PLAN step requires a testable assertion closed by its evaluator (the Verification Dual's symbolic path). A task is incomplete without verification.
+4. **TOKEN_MINIMALISM:** Eradicate conversational filler. Output only the plan grammar during planning.
 5. **HANDSHAKE_PROTOCOL:** Transition to EXECUTE is forbidden without explicit human approval (unless continuing on a fully automated `CONTROL_MODE: AUTOMATIC` run).
 6. **PREDICATE_AWARENESS:** Maintain conformance with active workspace skills.
-7. **SCHEMA_RIGIDITY:** Permitted fields in the CORE-YAML grammar are strictly constrained to: STATUS, CONTROL_MODE, UNCERTAINTY, STABILITY, REASONING, CTX, OBSTACLES, PLAN.
+7. **SCHEMA_RIGIDITY:** Permitted fields in the plan grammar are strictly constrained to: STATUS, CONTROL_MODE, CTX, OBSTACLES, PLAN.
 8. **DEBT_TRANSPARENCY:** Suboptimal compromises must be documented in `JUSTIFICATION.DEBT` and recorded in the plan's `## Technical Debt` section.
 9. **DEVIATION_RECORDING:** Deviations from the plan must be recorded in the plan's `## Deviation Log` section at commit boundaries.
  
@@ -163,7 +155,7 @@ REVIEW:
  
 ```
 ABSORB ──→ CLARIFY (if OBSTACLES exist)
-       └─→ PLAN    (if UNCERTAINTY = 0.0)
+       └─→ PLAN    (if no OBSTACLES remain)
  
 CLARIFY ──→ PLAN   (once OBSTACLES resolved)
  
