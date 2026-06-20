@@ -77,7 +77,7 @@ The campaign maintains two stores with different mutability and durability:
 | Store | Role | Git status |
 | :--- | :--- | :--- |
 | `.scratch/<topic>/` | **Controller's live state** — the current boundary conditions, mutable and realigned as the campaign evolves | Ignored, never committed |
-| `.sketches/` | **Flight recorder** — the trace from which the trajectory is reconstructed | Committed in the sketches subrepo |
+| `.ledger/log/` | **Flight recorder** — the trace from which the trajectory is reconstructed | Committed in the `.ledger/` subrepo |
 
 ```
 .scratch/<topic>/
@@ -110,44 +110,38 @@ The campaign maintains two stores with different mutability and durability:
 
 ## Grammar
 
+The controller's session state — the live topic, phase, and context:
+
 ```yaml
-# 1. METADATA
+# METADATA
 TOPIC: "topic-slug"
 STATUS: [ABSORB | CLARIFY | SURVEY | PLAN | ORCHESTRATE | DISPATCH | RECONCILE | CLOSE | HALT]
 
-# 2. CONTEXT
+# CONTEXT
 CTX:
   IBC_PATH: "path/to/approved/campaign/IBC"  # The boundary this campaign launches from
   GOAL: "Verbatim objective from the IBC"
   MODE: [INTERACTIVE | AUTONOMOUS]
   SCRATCH_PATH: ".scratch/<topic>"
-
-# 3. FINDINGS LEDGER (populated by SURVEY)
-FINDINGS:
-  - ID: F1
-    SEVERITY: [CRITICAL | HIGH | MEDIUM | LOW]
-    STATEMENT: "Evidence-grounded finding"
-    EVIDENCE: "Tool output, file:line, failing check"
-    STATUS: [OPEN | PLANNED | MITIGATED | ACCEPTED_RISK]
-
-# 4. CAMPAIGN DAG (populated by PLAN/ORCHESTRATE)
-DAG:
-  - ID: P1
-    IBC: "prompts/P1-<slug>.md"
-    TIER: "model class, e.g. flash-class worker"
-    DISCIPLINE: "/refine | /core | ..."   # Exactly one (boundary S7)
-    DEPENDS_ON: []                         # Upstream node IDs
-    MITIGATES: [F1]                        # Findings this node addresses
-    STATUS: [PENDING | DISPATCHED | LANDED | ACCEPTED | REWORK | INVALIDATED]
-
-# 5. RECONCILE LOG (appended each reconciliation)
-RECONCILE_LOG:
-  - ROUND: 1
-    JUDGED: { P1: [ACCEPT | REWORK | ESCALATE], ... }
-    FRESHNESS: { P4: [FRESH | STALE], ... }
-    REALIGNMENTS: ["What changed in PLAN/ORCHESTRATION/prompts and why"]
-    CHECKPOINT_COMMIT: "sketches subrepo hash"
 ```
+
+The three persistent campaign artifacts — the findings ledger, the campaign
+DAG, and the reconcile log — are **not** redefined here. Their schemas are the
+locked Nickel contracts under [`ledger/contracts/`](../../ledger/contracts), and
+`nickel export` over each artifact is the gate that enforces them:
+
+| Artifact | Contract | Load-bearing invariant |
+| :--- | :--- | :--- |
+| Findings ledger (SURVEY) | [`findings.ncl`](../../ledger/contracts/findings.ncl) | a resolved finding (`'mitigated`/`'accepted_risk`) MUST name the `evaluator` that closed it |
+| Campaign DAG (PLAN/ORCHESTRATE) | [`dag.ncl`](../../ledger/contracts/dag.ncl) | each node's `discipline` is one of the enum `[\| 'core, 'refine, 'doc \|]`; the graph is acyclic, referentially whole, and concurrent nodes carry disjoint `file_surface` or a `serialize` marker |
+| Reconcile log (RECONCILE) | [`reconcile_log.ncl`](../../ledger/contracts/reconcile_log.ncl) | an `'accept` judgment MUST name the `evaluator` that justified it |
+
+The `evaluator` field and the `discipline` enum are the campaign's two
+load-bearing couplings to these contracts: SURVEY and RECONCILE depend on the
+Verification Dual being unforgeable (no resolution or acceptance without a named
+evaluator), and ORCHESTRATE depends on `discipline` resolving to exactly one
+surviving worker workflow. Read the contracts directly for field shapes; do not
+restate them here.
 
 ---
 
@@ -192,7 +186,7 @@ Ingest the approved campaign $\text{IBC}^*$.
   emit the rejection report and transition to `CLARIFY`/`HALT` — rejecting
   the frame early is a success condition, not a failure.
 - Initialize `.scratch/<topic>/` and ensure `.scratch/` is git-ignored.
-- Open the campaign sketch in `.sketches/` (flight recorder) and commit.
+- Open the campaign sketch in `.ledger/log/` (flight recorder) and commit.
 
 ### 2. CLARIFY
 
@@ -259,7 +253,12 @@ deterministic team-execution model — the Kahn-derived layer schedule, a
 worktree per node branched from the layer's start tip, the conflict-free set
 dispatched in parallel with the rest serialized, each reconciled node merged
 into the shared branch and the tip advanced per layer — is the
-[orchestration protocol](../../docs/orchestration-protocol.md). The narrative:
+[orchestration protocol](../../docs/orchestration-protocol.md). That protocol
+is the *mechanics*; the runnable workflow that drives DISPATCH ⇄ RECONCILE as an
+automaton is the **orchestration skill** (`skills/orchestration/SKILL.md`),
+which packages the protocol's evaluator commands and exit-code routing into a
+loop a cheap-tier runner can execute. This skill is built downstream — until it
+lands, the architect drives the protocol by hand. The narrative:
 
 - Workers run autonomously (e.g. under a `/goal`-style runner) inside
   their assigned discipline workflow, committing to the repository per
@@ -321,7 +320,7 @@ front — is what kills cross-node drift at the boundary instead of letting it
 accumulate to `CLOSE`.
 
 Finally: append the `RECONCILE_LOG` round, write the **sketch
-checkpoint**, and commit it in the sketches subrepo. Reserved-predicate
+checkpoint**, and commit it in the `.ledger/` subrepo. Reserved-predicate
 breaches and appetite exhaustion route to the human (`HALT`).
 
 ### 8. CLOSE
