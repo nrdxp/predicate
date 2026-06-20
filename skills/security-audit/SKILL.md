@@ -7,9 +7,11 @@ description: |
   - Prompt contains: /security-audit, security audit, taint analysis, threat model, vulnerability.
 ---
 
-# Security Audit Protocol v1.0
+# Security Audit Protocol
 
 A structured, risk-centric framework for software security assessment. Designed for iterative human engagement with explicit checkpoints at each phase.
+
+> **Adversarial path anchor.** This lens is invoked on the Verification Dual's adversarial path ([rules.md](../../rules.md) §2 Invariant 1): when no deterministic evaluator can close a security-correctness condition, context-free agents using this protocol supply the decorrelated review. See [skills/refine/SKILL.md](../refine/SKILL.md) AUDIT §"Sibling Skills Consultation" for the wiring point.
 
 > **Core Principle:** The goal is not to maximize bug count, but to identify **business risk**, **architectural flaws**, and **exploitable logic errors**.
 
@@ -46,25 +48,12 @@ Before beginning, internalize these cognitive framings:
 
 ### 0.2 Define Trust Model
 
-```yaml
-TRUST_MODEL:
-  UNTRUSTED_SOURCES: # Data entry points
-    - "API endpoints"
-    - "CLI arguments"
-    - "User file uploads"
-    - "Environment variables (if user-controlled)"
-  TRUSTED_COMPONENTS:
-    - "Internal services with mTLS"
-    - "Signed configuration files"
-  CROWN_JEWELS: # What must be protected
-    - "Database credentials"
-    - "Private keys"
-    - "PII / User data"
-    - "Payment processing"
-  TRUST_BOUNDARIES: # Where data crosses zones
-    - "External API → Internal handler"
-    - "User input → Database query"
-```
+Establish the security context before analyzing code. Identify and document:
+
+- **Untrusted sources** (data entry points): API endpoints, CLI arguments, user file uploads, environment variables (if user-controlled).
+- **Trusted components**: internal services with mTLS, signed configuration files.
+- **Crown jewels** (what must be protected): database credentials, private keys, PII / user data, payment processing.
+- **Trust boundaries** (where data crosses zones): external API → internal handler, user input → database query.
 
 ### 0.3 Map Attack Surface
 
