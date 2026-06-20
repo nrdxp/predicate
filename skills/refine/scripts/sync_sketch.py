@@ -13,29 +13,29 @@ def run_git(args, cwd):
     return res.stdout.strip()
 
 def main():
-    # Find repository root by searching directories upwards for .git or .sketches
+    # Find repository root by searching directories upwards for .git or .ledger
     script_dir = os.path.dirname(os.path.abspath(__file__))
     current = os.path.abspath(script_dir)
     repo_root = None
     while True:
-        if os.path.exists(os.path.join(current, ".sketches")) or os.path.exists(os.path.join(current, ".git")):
+        if os.path.exists(os.path.join(current, ".ledger")) or os.path.exists(os.path.join(current, ".git")):
             repo_root = current
             break
         parent = os.path.dirname(current)
         if parent == current:
             break
         current = parent
-        
+
     if not repo_root:
         repo_root = os.path.abspath(os.path.join(script_dir, "..", "..", ".."))
-        
-    sketches_dir = os.path.join(repo_root, ".sketches")
-    
+
+    sketches_dir = os.path.join(repo_root, ".ledger", "log")
+
     if not os.path.exists(sketches_dir):
-        print(f"Error: .sketches directory not found at {sketches_dir}", file=sys.stderr)
+        print(f"Error: .ledger/log directory not found at {sketches_dir}", file=sys.stderr)
         sys.exit(1)
-        
-    # Find modified or untracked .md files in .sketches using -z for robust parsing
+
+    # Find modified or untracked .md files in .ledger/log using -z for robust parsing
     res = subprocess.run(["git", "status", "--porcelain", "-z"], cwd=sketches_dir, capture_output=True, text=True)
     if res.returncode != 0:
         print(f"Git error in {sketches_dir}: {res.stderr.strip()}", file=sys.stderr)
@@ -66,7 +66,7 @@ def main():
         i += 1
                     
     if not modified_files:
-        print("No modified sketch files found in .sketches sub-repository.")
+        print("No modified sketch files found in .ledger/log sub-repository.")
         return
 
     for active_sketch in modified_files:
@@ -78,13 +78,13 @@ def main():
         loop = "0"
         
         try:
-            # Security Checks: Avoid symlinks outside .sketches and non-regular files (FIFOs/pipes)
+            # Security Checks: Avoid symlinks outside .ledger/log and non-regular files (FIFOs/pipes)
             real_sketches_dir = os.path.realpath(sketches_dir)
             real_file_path = os.path.realpath(full_path)
-            
+
             # 1. Path traversal / symlink escape check
             if not real_file_path.startswith(real_sketches_dir + os.sep) and real_file_path != real_sketches_dir:
-                print(f"Warning: Skipping {active_sketch} as it resolves outside .sketches boundary.", file=sys.stderr)
+                print(f"Warning: Skipping {active_sketch} as it resolves outside .ledger/log boundary.", file=sys.stderr)
                 continue
                 
             # 2. Regular file check (prevents hanging on Named Pipes / FIFOs)
@@ -141,7 +141,7 @@ def main():
                 
         # Commit
         commit_out = run_git(["commit", "-m", commit_msg, "--", active_sketch], cwd=sketches_dir)
-        print(f"Successfully committed sketch {active_sketch} in .sketches:")
+        print(f"Successfully committed sketch {active_sketch} in .ledger/log:")
         print(commit_out)
 
 
