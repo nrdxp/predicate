@@ -108,6 +108,8 @@ The skill is the authority; this table only routes. Load by moment, not by mass:
 | Crafting a prompt for an expensive or autonomous walk | [boundary](skills/boundary/SKILL.md) | S1–S7 sufficiency; human dispatch gate |
 | Multi-workstream orchestration across tiers | [campaign](skills/campaign/SKILL.md) | Survey → orchestrate → reconcile; premise freshness; architect judges |
 | Designing non-trivial algorithms or protocols | [prior-art](skills/prior-art/SKILL.md) | Tiered search; shallow clones to `.prior_art_cache/`; cleanup before commit |
+| Specifying invariants and behavioral contracts | [spec](skills/spec/SKILL.md) | Normative constraints; permitted transitions; forbidden states |
+| Building a formal model of a domain | [form](skills/form/SKILL.md) | Mathematical lenses; construct, validate, and connect the model |
 | Auditing structural simplicity | [hickey](skills/hickey/SKILL.md) / [lowy](skills/lowy/SKILL.md) | Decomplect concerns / align boundaries to volatility |
 
 ---
