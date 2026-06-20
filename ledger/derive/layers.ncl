@@ -4,11 +4,13 @@
 # already settled in layers < k. Nodes within a layer have no path between them,
 # so they may run concurrently (subject to the conflict gate in contracts/dag.ncl).
 #
-# This derivation imports the validated example DAG, so it only ever computes over
-# a graph that already passed `Dag` + `DagNoConflict`. `nickel export` of this
-# file emits the layering as JSON; re-running on the same DAG reproduces it
-# deterministically (the evaluator for C-P3.4).
-let dag = import "../../.ledger/state/dag.ncl" in
+# This derivation imports the shipped positive-control fixture DAG, so it only
+# ever computes over a graph that already passed `Dag` + `DagNoConflict`.
+# `nickel export` of this file emits the layering as JSON; re-running on the
+# same DAG reproduces it deterministically (the evaluator for C-P3.4).
+# Real campaigns bind their own DAG path — see skills/orchestration/demo/layers.ncl
+# for the live-campaign pattern where the import is repointed to the active DAG.
+let dag = import "../fixtures/dag_valid.ncl" in
 let nodes = dag.nodes in
 let n_count = std.array.length nodes in
 
