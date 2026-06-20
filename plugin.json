@@ -6,5 +6,6 @@
     "name": "nrdxp"
   },
   "repository": "https://github.com/nrdxp/predicate",
-  "license": "MIT"
+  "license": "MIT",
+  "bootstrap": "bootstrap/install.sh"
 }
