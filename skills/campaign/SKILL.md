@@ -50,14 +50,25 @@ whose premises reference world state that sibling executions mutate**.
 When worker P3 lands an unexpected fix, the premises baked into pending
 prompts P4–P9 may now describe a world that no longer exists. An open-loop
 dependency graph drifts exactly like an open-loop token walk, only at a
-coarser timescale. Hence the central invariant:
+coarser timescale. Hence two central invariants that are examined together
+at every `RECONCILE` boundary:
 
 > **Premise Freshness:** before dispatching any pending node, re-verify
 > its IBC's premises (S1 tripwires) against current `HEAD`. A stale
 > premise marks the node `INVALIDATED`; its IBC is realigned before
 > dispatch.
 
-This check is mechanical and cheap — it SHOULD itself run on a cheap tier.
+> **Goal Supremacy / Mutable DAG:** execution yields exponentially more
+> context than planning — the higher-level goal reigns over the
+> pre-specified DAG skeleton, not the reverse. At every `RECONCILE`
+> boundary the architect MUST reconsider whether the DAG still serves the
+> goal. DAG amendments — adding, editing, or removing nodes — are the
+> **norm**, not a deviation; staying faithful to an arbitrary initial
+> structure while overlooking what execution revealed is the failure mode
+> this guards against. Each amendment is a new boundary and requires
+> **human approval** before any affected node is re-dispatched.
+
+Both checks are mechanical and cheap — they SHOULD themselves run on a cheap tier.
 
 ### The Architect as Final Judge
 
@@ -333,10 +344,18 @@ and the DAG is complete:
    the targeted-loop scope.
 2. Run one final adversarial sweep (MBSS) over the campaign's cumulative
    diff to catch cross-node integration drift no single worker could see.
-3. Produce the campaign report from `REVIEW.md` → outcomes: findings
+3. **Emit a retrospective to the flight recorder** (`.ledger/log/`) before
+   presenting the report to the human. The retrospective captures the
+   hard-won context that survives context loss and compaction. It MUST
+   include: original goal and what actually landed; execution-model and
+   intellectual-capital lessons (surprises, realignments, what the initial
+   DAG missed); open watch-items or residual risks; a durability map
+   (which artifacts are durable, which scratch is disposable). Commit it
+   in the `.ledger/` subrepo tagged `log: close <topic> retrospective`.
+4. Produce the campaign report from `REVIEW.md` → outcomes: findings
    table with mitigation evidence, DAG execution trace, reconcile rounds,
    realignments, residual risks.
-4. **HALT for human final acceptance.** Scratch MAY then be discarded;
+5. **HALT for human final acceptance.** Scratch MAY then be discarded;
    the sketch and git history carry the durable record.
 
 ---
@@ -347,9 +366,17 @@ and the DAG is complete:
    human-approved $\text{IBC}^*$, and every emitted worker IBC satisfies
    sufficiency conditions S1–S7. An insufficient boundary is not
    dispatched, ever.
-2. **PREMISE_FRESHNESS:** Never dispatch a pending node without
-   re-verifying its premises against current `HEAD`. Open-loop dispatch
-   of a stale DAG is a protocol violation.
+2. **PREMISE_FRESHNESS + GOAL_SUPREMACY:** At every `RECONCILE` boundary,
+   re-verify two things: (a) every pending node's premises against current
+   `HEAD` (stale premise → `INVALIDATED`); (b) whether the DAG as a whole
+   still serves the goal. DAG amendments are normal and human-approved —
+   open-loop dispatch of a stale or goal-misaligned DAG is a protocol
+   violation.
+8. **RETROSPECTIVE_AT_CLOSE:** Before final human acceptance, emit a
+   retrospective to the flight recorder (`.ledger/log/`). Every campaign's
+   hard-won context — what landed vs the goal, execution-model lessons,
+   open watch-items, durability map — must survive context loss. The
+   retrospective is a `CLOSE` step, not an afterthought.
 3. **ARCHITECT_AS_JUDGE:** No worker output is accepted without a
    `RECONCILE` judgment grounded in re-run evaluators. Worker
    self-certification is void.
