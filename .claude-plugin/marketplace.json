@@ -1,0 +1,20 @@
+{
+  "name": "predicate",
+  "owner": {
+    "name": "nrdxp"
+  },
+  "description": "Predicate catalogs itself: the rulesets, skills, and workflows live in this checkout.",
+  "plugins": [
+    {
+      "name": "predicate",
+      "source": ".",
+      "description": "Reusable agent rulesets (rules), skills, and workflows for agentic coding assistants.",
+      "version": "0.1.0",
+      "author": {
+        "name": "nrdxp"
+      },
+      "homepage": "https://github.com/nrdxp/predicate",
+      "license": "MIT"
+    }
+  ]
+}
