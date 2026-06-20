@@ -26,7 +26,7 @@ cd "$root"
 here="ledger/gate"
 gate="$here/ledger-validate.sh"
 hygiene="skills/commit-hygiene/scripts/check_commit_msg.py"
-campaign_dag="ledger/examples/dag.ncl"
+campaign_dag="ledger/fixtures/dag_valid.ncl"
 
 # A representative, hygienic commit message — both paths validate the same one,
 # since message hygiene is DAG-independent but part of every boundary transcript.

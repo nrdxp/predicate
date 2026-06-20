@@ -16,7 +16,7 @@ set -euo pipefail
 root="$(git rev-parse --show-toplevel)"
 cd "$root"
 gate="ledger/gate/ledger-validate.sh"
-dag="ledger/examples/dag.ncl"
+dag="ledger/fixtures/dag_valid.ncl"
 
 fail=0
 

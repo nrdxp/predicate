@@ -19,9 +19,12 @@ it does not, and the diagnostic names the broken invariant.
 | Path | Holds |
 | :--- | :--- |
 | `contracts/` | The contracts. One file per artifact kind. |
-| `examples/` | One clean instance per contract — each exports `0`. |
-| `fixtures/` | Boundary controls. Negative instances export non-zero; two positive controls (a valid `'doc` discipline, a `serialize`-discharged conflict) export `0` — proving the contracts admit legitimate boundary cases as well as reject broken ones. |
+| `fixtures/` | Boundary controls. Negative instances export non-zero; positive controls (a valid `'doc` discipline, a `serialize`-discharged conflict, `dag_valid.ncl` for gate demos) export `0` — proving the contracts admit legitimate boundary cases as well as reject broken ones. |
 | `derive/` | Derivations computed *from* an artifact (not hand-authored). |
+
+Project-state instances (live campaign DAGs, findings, reconciliation records) live in
+`.ledger/state/` and are not tracked by the parent repository. The shipped layer here
+contains only contracts, derivations, and synthetic fixtures — no project state.
 
 ## Contracts
 
@@ -63,19 +66,16 @@ The contract files under `contracts/` hold contract *definitions*, not
 data, so they are checked with `typecheck`, not `export` (exporting a
 record of contract definitions tries to serialize functions and bare
 type annotations, which is not meaningful). The instances under
-`examples/`, `fixtures/`, and `derive/` are checked with `export`.
+`fixtures/` and `derive/` are checked with `export`.
 
 ```bash
 # contract definitions typecheck cleanly
 for f in contracts/*.ncl; do nix run nixpkgs#nickel -- typecheck "$f"; done
 
-# every clean example exports 0
-for f in examples/*.ncl; do nix run nixpkgs#nickel -- export "$f" >/dev/null; done
-
-# negative fixtures export non-zero; the two positive controls export 0
+# negative fixtures export non-zero; positive controls export 0
 for f in fixtures/*.ncl; do
   case "$f" in
-    *_doc_discipline.ncl|*_serialize.ncl)
+    *_doc_discipline.ncl|*_serialize.ncl|*_valid.ncl)
       nix run nixpkgs#nickel -- export "$f" >/dev/null 2>&1 || echo "UNEXPECTED FAIL: $f" ;;
     *)
       nix run nixpkgs#nickel -- export "$f" >/dev/null 2>&1 && echo "UNEXPECTED PASS: $f" ;;
