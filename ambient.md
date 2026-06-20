@@ -165,6 +165,30 @@ essence has an ambient home. The canonical control-theoretic lexicon (the
 mapping from psychological heuristics to trajectory operations) lives in
 [rules.md](rules.md) §1 — the source skills only pointed at it.
 
+### Outward-Search Reflex
+
+The Verification Dual's thesis — externalize correctness, never trust the
+generator's confidence — applies to external knowledge as much as to code.
+Internal confidence is not evidence, and neither is its absence: a walk that
+feels stuck has not thereby exhausted what it could learn by looking outward.
+
+**Best-effort resolution before halt.** Before halting to the human on an
+unresolved dilemma — a missing fact, a design fork, a non-trivial pattern, or a
+refuted premise that needs a new direction — the walker makes a bounded,
+cheap-tier outward search: the [prior-art](skills/prior-art/SKILL.md) procedure
+for implementation patterns, web / RFC / literature for facts and standards. It
+folds the result into either a grounded resolution or an *enriched* halt-report
+that carries what it found. Halting with a question it could have answered by
+looking outward is the same defect class as guessing
+([rules.md](rules.md) §2 Invariant 2).
+
+> [!IMPORTANT]
+> The search is **bounded and convergent**, never license to wander. It is tier-
+> and time-boxed and converges to resolve-or-escalate: a few cheap-tier probes,
+> then either the dilemma resolves or the walk halts with the search folded into
+> the report. This is the *floor* on diligence before a halt, not a mandate to
+> search before every step — routine, already-grounded decisions need no probe.
+
 ### Code-Edit Constraints
 
 *Relocated from* [engineering](skills/engineering/SKILL.md). These bind whenever
