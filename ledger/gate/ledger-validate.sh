@@ -38,6 +38,20 @@ here="$(cd "$(dirname "$(realpath "${BASH_SOURCE[0]}")")" && pwd)"
 
 # --- portable nickel runner (AC7) -----------------------------------------
 # Resolve once; every nickel call below goes through "$@" expansion of it.
+#
+# Import-path seam (downstream consumers): this script is installed at
+# <plugin>/ledger/gate/ledger-validate.sh, so <plugin>/ledger/contracts is
+# two directory levels up from $here. NICKEL_IMPORT_FLAGS holds the -I flag
+# injected after the `export` subcommand at each call site (Nickel requires
+# -I to follow the subcommand, not precede it). This lets a downstream .ncl
+# file import predicate contracts by LOGICAL NAME — `import "dag.ncl"` —
+# without vendoring or absolute paths. Predicate's own artifacts use relative
+# imports (import "../contracts/dag.ncl") and are unaffected: Nickel resolves
+# relative imports against the importing file first; -I only adds a fallback
+# search dir.
+plugin="$(cd "$here/../.." && pwd)"
+NICKEL_IMPORT_FLAGS=(-I "$plugin/ledger/contracts")
+
 resolve_nickel() {
   if command -v nickel >/dev/null 2>&1; then
     NICKEL=(nickel)
@@ -61,7 +75,7 @@ cmd_structure() {
     exit 2
   fi
   resolve_nickel
-  "${NICKEL[@]}" export "$artifact" >/dev/null
+  "${NICKEL[@]}" export "${NICKEL_IMPORT_FLAGS[@]}" "$artifact" >/dev/null
 }
 
 # authorize <dag.ncl> [path ...]: validate the DAG, then check paths.
@@ -83,7 +97,7 @@ cmd_authorize() {
   # want to propagate from authorized.py).
   local tmp
   tmp="$(mktemp)"
-  "${NICKEL[@]}" export "$dag" >"$tmp"
+  "${NICKEL[@]}" export "${NICKEL_IMPORT_FLAGS[@]}" "$dag" >"$tmp"
 
   local rc=0
   if [[ "$#" -gt 0 ]]; then

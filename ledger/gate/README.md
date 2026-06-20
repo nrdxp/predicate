@@ -26,6 +26,35 @@ or to `nix run nixpkgs#nickel --`, so the one command is identical across
 a human shell and a headless CI. If neither is reachable the gate halts
 non-zero — a gate that cannot run is not a gate that passes.
 
+## Downstream import convention
+
+A downstream repo that writes its own Nickel artifacts can import predicate
+contracts by **logical name** — no vendoring, no absolute paths, no relative
+traversal into the plugin tree.
+
+```nickel
+# downstream_dag.ncl — lives in the consuming repo, NOT in predicate
+let c = import "dag.ncl" in
+{ nodes = [ ... ] } | c.Dag | c.DagNoConflict
+```
+
+The gate runner resolves `"dag.ncl"` because it injects
+`-I <plugin>/ledger/contracts` after the `export` subcommand at every Nickel
+call site. `<plugin>` is the real directory of the installed predicate tree,
+derived from `$here` (the script's own realpath) two levels up —
+`<plugin>/ledger/gate/` → `<plugin>/ledger/` → `<plugin>`. This is the same
+`$plugin`-relative pattern used by `coherence_impact.sh` (P21).
+
+**Internal contracts keep relative imports.** Predicate's own fixtures import
+with `import "../contracts/dag.ncl"`. Nickel resolves relative imports against
+the importing file first; `-I` is only a fallback search dir. Existing
+self-hosted artifacts are unaffected — additive only.
+
+| Consumer | Import form | Resolved by |
+| :--- | :--- | :--- |
+| Predicate internal | `import "../contracts/dag.ncl"` | Nickel's file-relative resolution |
+| Downstream repo | `import "dag.ncl"` | `-I <plugin>/ledger/contracts` injection |
+
 ## Commands
 
 ```bash
