@@ -7,6 +7,11 @@ merged branch. The procedure runs identically whether a human, an agent, or an
 external tool drives it — that identity is the operational meaning of the
 campaign's automatability acceptance test.
 
+> This procedure is packaged as the runnable
+> [`skills/orchestration`](../skills/orchestration/SKILL.md) skill, which lifts
+> the pseudocode below to a state-machine table and wires its steps to concrete
+> repo commands. This document remains the spec; the skill is the driver.
+
 "Machine-executable" constrains the **protocol**, not every check it dispatches.
 The protocol is deterministic: given a DAG and a current state, the next action
 (what to run, what to dispatch, when) is computed, never improvised. Some
