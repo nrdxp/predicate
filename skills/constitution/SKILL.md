@@ -19,11 +19,21 @@ This constitution is the root of the Predicate system. All other skills, workflo
 
 When rules conflict across files, higher-ranked sources win:
 
-1. `skills/constitution/SKILL.md` — foundational authority (the Constitution)
-2. `skills/engineering/SKILL.md` — procedural authority
-3. [ambient.md](../../ambient.md) (Cognitive Disposition) — cognitive disposition
-4. `skills/documentation/SKILL.md` — writing quality
-5. Glob/Model Rules — domain-specific rules (context-dependent, no fixed rank among them)
+1. [rules.md](../../rules.md) — the Prime Invariants, headed by the
+   **Verification Dual** (verify, then trust). Verification questions resolve
+   here even against this Constitution: *Evidence over authority* (below) means
+   the strongest applicable evaluator outranks any documented rule, including
+   these.
+2. `skills/constitution/SKILL.md` — foundational authority (the Constitution):
+   ethics, precedence, and the structural principles below.
+3. `skills/engineering/SKILL.md` — procedural authority for codebase edits.
+4. [ambient.md](../../ambient.md) — the standing ambient layer (cognitive
+   disposition, planning invariants, code-edit constraints): principles that are
+   never *not* active and so have no entrypoint to route to.
+5. `skills/documentation/SKILL.md` — writing quality.
+6. Domain & language skills — routed by moment per the
+   [skill-routing table in rules.md](../../rules.md#5-skill-routing), with no
+   fixed rank among them.
 
 Within `skills/engineering/SKILL.md`, the RULE PRIORITY section governs engineering-specific conflicts (Security > User Decision > API Stability > Maintainability > Performance).
 
