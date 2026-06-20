@@ -1,4 +1,4 @@
-# Closed-Loop Stochastic Trajectory Control Ruleset (C-LTC v2.0)
+# The Verification Dual — Master Ruleset
 
 Master constraints for all autoregressive sequence generations in this workspace — the ambient boundary condition every walker inherits, from a cheap worker running a refinement loop to an architect running a campaign.
 

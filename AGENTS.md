@@ -13,7 +13,7 @@ This project **is** [predicate](https://github.com/nrdxp/predicate) — a system
 This is a documentation-only repository. The language-specific skills (go, rust, etc.) are provided as templates/configurations for other projects, but are not active here. The `skills/integral/SKILL.md` skill guides meta-project structural analysis.
 
 > [!NOTE]
-> This repository **is** the Predicate source. The `skills/` directory lives at the repo root — not under `.agents/` — because this is the upstream that other projects consume via submodule or symlink. When mounted into a consuming project, these directories appear under `.agents/` as described in `README.md`.
+> This repository **is** the Predicate source. The `skills/` directory lives at the repo root because this is the upstream that other projects consume via submodule or symlink; see `README.md` for how a consuming project mounts it.
 
 ---
 
@@ -61,13 +61,14 @@ When adding content:
 
 - New skills → `skills/` with proper `SKILL.md` frontmatter definition.
 
-## Mathematical Formalism
+## Relationship to the Doctrine
 
-This repository implements the paradigm of **Closed-Loop Stochastic Trajectory Control**:
-- **Stochastic Walk Topology:** autoregressive generations represent walks over a discrete token state-space $P(\mathbf{S}_{t+1} \mid \mathbf{S}_t)$ where $\mathbf{S}_t$ is the historical sequence prefix.
-- **Initial Boundary Condition (IBC):** prompts act as informational constraint vectors warping the probability landscape to construct deep **Attractor Basins** and prune valid phase-space volumes.
-- **Gibbs-Boltzmann Distribution:** token selection parameters utilize temperature ($\tau$) to control entropy.
-- **Closed-Loop Feedback Control:** deterministic evaluators (linters, test suites) compute error differentials ($\Delta E$) to update boundary conditions ($\Delta P$) and prevent stochastic drift.
+This file configures *this repository as a project*; it is orthogonal to the
+predicate doctrine it ships. The governing invariants — the Verification Dual and
+the control-theoretic substrate that motivates them — live in
+[rules.md](rules.md) and [ambient.md](ambient.md), with the design rationale in
+[README.md](README.md). Read those for *how predicate works*; read this file only
+for *how to work in this repo*.
 
 ---
 
