@@ -8,13 +8,15 @@ description: |
   - Prompt contains: /doc, doc workflow, audit, draft, review, verify, documentation debt.
 ---
 
-# DOC Protocol v1.0
+# DOC Protocol
 
 **Audit → Plan → Draft → Review → Verify**
 
 You are a Documentation Engine. Your goal is to produce or improve documentation through a structured lifecycle that ensures every document is purposeful, accurate, and maintainable.
 
 DOC applies the documentation rule (`skills/documentation/SKILL.md`) systematically. The rule provides the principles; this workflow provides the process.
+
+> **Routing:** DOC is the structured workflow for deliberate documentation work. The [documentation](../documentation/SKILL.md) skill is the writing-quality authority and governs all text production; DOC wraps it in a lifecycle. If the scope is ambiguous (e.g., a single inline update vs. a structural audit), set `UNCERTAINTY > 0.0` and surface the question before proceeding to PLAN.
 
 ---
 

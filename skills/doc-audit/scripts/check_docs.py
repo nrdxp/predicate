@@ -14,12 +14,6 @@ def check_local_link(current_file, link_path):
     if link_path.startswith("file://"):
         link_path = link_path.replace("file://", "")
         
-    # Map .agents/ or .agent/ links to root of current repo for self-testing
-    if link_path.startswith(".agents/") or link_path.startswith(".agent/"):
-        clean_path = re.sub(r'^\.agents?/', '', link_path)
-        if os.path.exists(clean_path):
-            return True
-        
     if os.path.isabs(link_path):
         return os.path.exists(link_path)
     else:

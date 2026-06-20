@@ -8,9 +8,9 @@ description: |
   - Prompt contains keywords: doc, documentation, spelling, grammar, headers, links, table alignment, Divio, tone, voice, clarity.
 ---
 
-# Documentation Ruleset v1.0
+# Documentation
 
-This skill governs how you write. Section 1 applies to **all text you produce** — code comments, commit messages, chat responses, documentation. Section 2 applies when you are **producing or editing a standalone document** (README, guide, reference page, explanation, specification).
+This skill governs how you write. Section 1 applies to **all text you produce** — code comments, chat responses, documentation. (Commit messages are governed by [commit-hygiene](../commit-hygiene/SKILL.md), which owns that jurisdiction in the §5 routing table.) Section 2 applies when you are **producing or editing a standalone document** (README, guide, reference page, explanation, specification).
 
 ---
 
@@ -63,7 +63,7 @@ Do not pad text with words that add no information.
 
 ## Section 2: Documentation Production
 
-> **Activation scope:** Apply this section when producing or editing a **standalone document** — any file whose primary purpose is to communicate information to a reader (README, guide, reference, spec, tutorial, explanation). Code comments and commit messages are governed by Section 1 alone.
+> **Activation scope:** Apply this section when producing or editing a **standalone document** — any file whose primary purpose is to communicate information to a reader (README, guide, reference, spec, tutorial, explanation). Code comments are governed by Section 1. Commit messages defer to [commit-hygiene](../commit-hygiene/SKILL.md).
 
 ### 7. Document Classification (Divio Model)
 

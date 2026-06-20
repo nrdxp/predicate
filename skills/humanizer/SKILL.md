@@ -250,6 +250,8 @@ Avoiding AI patterns is only half the job. Sterile, voiceless writing is just as
 
 ## STYLE PATTERNS
 
+> **Scope:** Rules §13–§14 apply to **reader-facing prose** (READMEs, guides, tutorials, explanations). They do not apply to normative corpus files (rules, specs, skill definitions) where em dashes and selective boldface are used by design.
+
 ### 13. Em Dash Overuse
 
 **Problem:** LLMs use em dashes (—) more than humans, mimicking "punchy" sales writing.
