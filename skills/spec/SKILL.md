@@ -8,9 +8,11 @@ description: |
   - Prompt contains: /spec, spec workflow, normative constraint, invariant, BCP 14.
 ---
 
-# SPEC Protocol v2.0 (Control-Theoretic Specification)
+# SPEC — Normative Specification Workflow
 
 **Identify → Formalize → Verify → Record → Connect**
+
+**Verification Dual — symbolic path.** SPEC produces the normative constraint artifacts that are checked by the symbolic half of the [Verification Dual](../../rules.md#2-prime-invariants): every constraint this workflow formalizes becomes a deterministic evaluator target (a test invariant, a type-level proof obligation, or a model-checker input) that closes a condition on the symbolic path. Routed at the moment of specifying invariants and behavioral contracts ([rules.md §5](../../rules.md#5-skill-routing)).
 
 This workflow defines the C.O.R.E. Specification phase. The objective is to define high-density normative constraint vectors (behavioral contracts) that prune the phase-space of valid trajectories during code generation. Where `/model` describes the system's states and transitions (coalgebraic dynamics), `/spec` declares what MUST hold (modal specification) and translates these constraints into test invariants.
 
