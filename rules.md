@@ -37,14 +37,14 @@ Six invariants, in precedence order. Every other rule in this workspace elaborat
 2. **Halt over assumption.** Ambiguous requirements, conflicting constraints, refuted premises, or evaluator output with no usable diagnostics all freeze the walk. Guessing a corrective edit from ambiguous feedback is forbidden. Rejecting a flawed frame early is a success condition, not a failure.
 3. **The Cutting Imperative.** Unjustified code, stale docs, and redundant skills are excess phase-space volume — drift surface. "Cut complexity" is the *same* invariant as "narrow the basin," applied to artifacts rather than tokens. A standing **maturity flag** sets the default stance: **`molten`** (pre-1.0) flips the default from "amend only" to *refactor and cut freely*; **`stable`** (post-1.0) restores amend-by-default with cuts justified per change. **This project's default is `molten`.** Treating a work-in-progress, mostly-machine-authored repository as a human-vetted immutable structure to be amended only is a defect, not caution.
 4. **The history is the deliverable.** The durable interface between agent work and human judgment is `git log`. A reviewer must be able to reconstruct what changed and why from history alone. Enforced at the Commit Gate (§3) — never by recall.
-5. **Track state; reconstruct, don't recall.** An active workstream keeps its ledger in a `.sketches/` Dynamic Sketchpad (rubric, constraints, unknowns, commits — every touch a commit); otherwise track the same in the reasoning context. At every gate, re-read the governing invariant and the active ledger rather than trusting memory of them.
+5. **Track state; reconstruct, don't recall.** An active workstream keeps its ledger in a `.ledger/log/` Dynamic Sketchpad (rubric, constraints, unknowns, commits — every touch a commit); otherwise track the same in the reasoning context. At every gate, re-read the governing invariant and the active ledger rather than trusting memory of them.
 6. **Tier economy.** Route every task to the cheapest walker whose capability bounds it. No expensive or autonomous walk launches without a sufficient, human-approved boundary ([boundary](skills/boundary/SKILL.md) S1–S7). Boundary mass scales inversely with walker capability: a weak walker gets one disciplining workflow and the load-bearing rules only.
 
 ---
 
 ## 3. The Commit Gate
 
-Every `git commit`, in every repository (the main repository, the independent `.sketches/` sub-repository, and any worktree), passes this gate. Hygiene enforced as a memory fails under context pressure; this is a gate with an evaluator.
+Every `git commit`, in every repository (the main repository, the independent `.ledger/` sub-repository, and any worktree), passes this gate. Hygiene enforced as a memory fails under context pressure; this is a gate with an evaluator.
 
 1. **Validate the message mechanically.** The message must pass the [commit-hygiene](skills/commit-hygiene/SKILL.md) validator with exit `0`:
    ```bash
@@ -61,7 +61,7 @@ Every `git commit`, in every repository (the main repository, the independent `.
    - Does the body give the *why*, derivable by a stranger with no access to this conversation? No internal workflow or agent references.
    - Diff free of complected concerns ([hickey](skills/hickey/SKILL.md)) and volatility leaks ([lowy](skills/lowy/SKILL.md))?
 4. **Run the full verification surface** for the repository at the gate — complete test suite and linters.
-5. **Record the boundary in the active sketch ledger** and commit that update in the `.sketches/` sub-repository; only then execute the main-repository commit.
+5. **Record the boundary in the active sketch ledger** and commit that update in the `.ledger/` sub-repository; only then execute the main-repository commit.
 
 **Hard rails — no exceptions, all repositories:**
 - **Never `git push`.** Remotes belong to the human.
@@ -117,7 +117,7 @@ The skill is the authority; this table only routes. Load by moment, not by mass:
 Tier assignment is a control variable: error-correction iterations belong in the cheapest space that can host them, while expensive walks launch from saturated boundaries and run as close to one-shot as the task allows.
 
 - **Architect-class walkers** map state-spaces (exhaustive survey), emit boundaries, and judge landed work. **Worker-class walkers** execute saturated IBCs under exactly one disciplining workflow. **Mechanical work** (retrieval, freshness checks, link audits) defaults to the cheapest tier.
-- **Working set vs flight recorder:** campaign live state (review, plan, orchestration, prompts) lives in the git-ignored `.scratch/<topic>/` — mutable, never committed. The committed `.sketches/` ledger is the flight recorder, checkpointed at every reconciliation boundary so any campaign can be regenerated from sketch + git alone.
+- **Working set vs flight recorder:** campaign live state (review, plan, orchestration, prompts) lives in the git-ignored `.scratch/<topic>/` — mutable, never committed. The committed `.ledger/log/` ledger is the flight recorder, checkpointed at every reconciliation boundary so any campaign can be regenerated from sketch + git alone.
 
 ---
 

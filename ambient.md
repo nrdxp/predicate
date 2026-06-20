@@ -62,13 +62,13 @@ trust.
 > for genuinely independent perspectives. This is not failure; some questions are
 > too important for correlated single-agent walks.
 
-**Sketch Commit Discipline.** When a workstream keeps a ledger in the `.sketches/`
+**Sketch Commit Discipline.** When a workstream keeps a ledger in the `.ledger/log/`
 flight recorder, **every touch is a commit**: commit after every state
 transition, after every significant finding or change in direction, and before
 any halt. This makes the ledger a linear changelog of decisions, findings, and
 pivots — the agentic history of the thought process. Descriptive messages, never
 "update sketch". Commit hygiene is a constant constraint on these commits as on
-all others ([rules.md](rules.md) §3). The `.sketches/` substrate itself is the
+all others ([rules.md](rules.md) §3). The `.ledger/log/` substrate itself is the
 flight recorder described under [the sketch principle](#the-sketch-principle).
 
 **Strategic Escalation.** Divergence from a plan is *tactical* when it changes
@@ -106,7 +106,7 @@ ceremony:
   Premature precision is the failure mode, not low fidelity.
 
 > [!NOTE]
-> The flight-recorder **substrate** — the `.sketches/` subtree (its own
+> The flight-recorder **substrate** — the `.ledger/log/` subtree (its own
 > git-ignored history) and the tooling that syncs it — is **not** relocated. It
 > survives independently as the durable record that lets any walk reconstruct
 > full context from a single file. The substrate is load-bearing; only this
@@ -152,7 +152,7 @@ proceeding on memory:
 
 1. **Governing invariants** — re-read [rules.md](rules.md) and the nearest
    `AGENTS.md` (nearest ancestor wins for the working directory).
-2. **Active ledger** — re-read the workstream's `.sketches/` sketchpad (or the
+2. **Active ledger** — re-read the workstream's `.ledger/log/` sketchpad (or the
    plan and any relevant decision records) for goals, decisions, and execution
    notes.
 3. **Active skills** — re-read the foundational and currently relevant skills so
