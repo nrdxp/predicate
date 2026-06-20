@@ -333,3 +333,5 @@ go test -race ./...    # Detect race conditions
 - **Channels for coordination** — share by communicating
 - **`defer` for cleanup** — runs at function exit, LIFO
 - **No naked returns** — be explicit in non-trivial functions
+
+> These idioms refine but are subordinate to the [Code-Edit Constraints](../../ambient.md#code-edit-constraints).

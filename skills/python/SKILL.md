@@ -513,3 +513,5 @@ uv run ...            # Fast dependency management and execution
 - **`*` separator** — force keyword-only args when order is ambiguous
 - **Never shadow builtins** — `id`, `type`, `list`, `dict`, etc.
 - **Never `except: pass`** — catch specific, handle or propagate
+
+> These idioms refine but are subordinate to the [Code-Edit Constraints](../../ambient.md#code-edit-constraints).

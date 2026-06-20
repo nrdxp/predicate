@@ -272,3 +272,5 @@ fn make_iter() -> impl Iterator<Item = u32> {
 - **Use `clippy`** — `cargo clippy -- -D warnings`
 - **Format with `rustfmt`** — `cargo fmt`
 - **Document public APIs** — `///` with examples
+
+> These idioms refine but are subordinate to the [Code-Edit Constraints](../../ambient.md#code-edit-constraints).

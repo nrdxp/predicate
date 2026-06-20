@@ -485,3 +485,5 @@ Formatting is not a debate. Pick `prettier` or `biome` and enforce it in CI.
 - **`??`** — not `||` for defaults
 - **Spread to copy** — never mutate the original
 - **Annotate boundaries** — infer the rest
+
+> These idioms refine but are subordinate to the [Code-Edit Constraints](../../ambient.md#code-edit-constraints).
