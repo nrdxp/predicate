@@ -63,18 +63,22 @@ fi
 
 # --- contract: every ledger artifact still satisfies its Nickel contract -----
 if [ -x "$gate/ledger-validate.sh" ] && [ -d "$root/ledger" ]; then
-  artifacts=$(find "$root/ledger/examples" "$root/ledger/contracts" \
+  artifacts=$(find "$root/ledger/fixtures" "$root/ledger/contracts" \
     -name '*.ncl' 2>/dev/null | sort)
   contract_fail=0
   for a in $artifacts; do
-    # contracts/ are libraries (imported, not exported standalone); only the
-    # examples export as artifacts. Skip pure contract libs.
+    # contracts/ are schema libraries (imported, not exported standalone); skip.
     case "$a" in */contracts/*) continue ;; esac
+    # fixtures/ contains both positive-control and negative-control instances.
+    # Negative-control files declare "non-zero" in their header comments
+    # (they intentionally fail export to prove the contract bites). Skip them;
+    # only positive-control fixtures must export cleanly.
+    grep -q "non-zero" "$a" && continue
     "$gate/ledger-validate.sh" structure "$a" >/dev/null 2>&1 \
       || { echo "FAIL  contract: $a no longer exports"; contract_fail=1; }
   done
   if [ "$contract_fail" -eq 0 ]; then
-    echo "PASS  contract: every ledger example still exports"
+    echo "PASS  contract: every ledger fixture still exports"
   else
     fails=$((fails + 1))
   fi
