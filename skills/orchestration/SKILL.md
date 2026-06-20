@@ -142,9 +142,17 @@ The protocol's pseudocode (`DRIVE` / `RUN_LAYER` / `RECONCILE_AND_MERGE` /
 state, each exit-code rule is a transition. The runner walks the table; it never
 chooses the next action — the table + the exit code compute it.
 
+The `DERIVE` state writes the active-dag pointer (`$root/.ledger/active-dag`,
+one line = the bound `DAG` path, relative-to-`$root` or absolute) once the
+structural gate exits 0 — from that point every worker-worktree commit and
+integration-branch commit enforces authority against the active plan (the commit
+gate's authority overlay, `hooks/pre-commit §4`, reads line 1 of this file).
+`CLOSE` — and any campaign-ending halt — clears it (`rm -f $root/.ledger/active-dag`)
+so post-campaign ordinary commits revert to structural-only.
+
 | State | Lifts (protocol) | Action (the wired command) | Transition |
 | :--- | :--- | :--- | :--- |
-| `DERIVE` | `DRIVE` head, "Derived schedule" | `nickel export DAG` (structural gate); then `nickel export LAYERS` → `{layer_count, layers}` | export rc≠0 → **HALT** (the DAG is malformed; not a driver decision). rc 0 → create `shared_branch` from HEAD, `tip := HEAD`, `k := 0` → `RUN_LAYER` |
+| `DERIVE` | `DRIVE` head, "Derived schedule" | `nickel export DAG` (structural gate); then `nickel export LAYERS` → `{layer_count, layers}`; on rc 0: `printf '%s\n' "$DAG" > $root/.ledger/active-dag` | export rc≠0 → **HALT** (the DAG is malformed; not a driver decision). rc 0 → create `shared_branch` from HEAD, `tip := HEAD`, `k := 0` → `RUN_LAYER` |
 | `RUN_LAYER` | `RUN_LAYER` step 1 (`PARTITION`) | read `layers[k]`; split into `serial` (nodes with `serialize=true`) and `parallel := layer \ serial` — a *read of the validated DAG*, not a fresh conflict computation (`DagNoConflict` already proved the parallel set disjoint) | → `DISPATCH` for the parallel set |
 | `DISPATCH` | `RUN_LAYER` step 2, `DISPATCH` | per node: `git worktree add .scratch/worktrees/<id> -b node/<id> <base>`; hand the worker ONLY `PROMPTS/<id>-*.md` + its discipline; `STATUS := DISPATCHED` | all dispatched → `AWAIT` |
 | `AWAIT` | `RUN_LAYER` step 2, `AWAIT` | workers run autonomously, commit in their worktree under their discipline's commit gate, never push; collect each return | a worker FREEZE (surface-exceed) → `SURFACE_EXCEED`; FREEZE (refuted premise) → `REALIGN`; any other reserved halt → **[HUMAN SEAM]**; all returned → `RECONCILE` |
@@ -154,7 +162,7 @@ chooses the next action — the table + the exit code compute it.
 | `BOUNDARY` | `LAYER_BOUNDARY` | (1) **cumulative-diff coherence gate**: `coherence_impact.sh --removed <cut-set>` over the layer's cumulative diff. (2) **DAG vs goal re-examination** ([campaign §Goal Supremacy](../campaign/SKILL.md)): does the remaining DAG still serve the goal? If amendments (add/edit/remove nodes) are warranted, surface them as **[HUMAN SEAM]** — a node addition is a boundary the human signs off on before any affected node is re-dispatched. | coherence rc 1 → `ESCALATE`. rc 0, no DAG amendment → advance the tip. rc 0, amendment needed → **[HUMAN SEAM]**: halt, surface the amendment; on approval re-export `DAG + LAYERS`, then advance the tip. |
 | `CHECKPOINT` | `RECONCILE_AND_MERGE` (6) | append a RECONCILE_LOG round (judged verdicts, freshness, realignments) to the active sketch; commit it in the recorder (`git -C <recorder> commit`) | more nodes in layer → `RECONCILE`; layer done → `BOUNDARY`; `BOUNDARY` rc 0 and `k+1 < layer_count` → `tip := shared_branch HEAD`, `k++` → `RUN_LAYER`; last layer → `CLOSE`. `BOUNDARY` rc 1 → `ESCALATE` → architect realigns the plan/DAG (PLAN), then re-dispatch |
 | `REALIGN` | `REALIGN` | rewrite the node's premises/surface to current HEAD; if topology/surfaces change, re-export DAG + LAYERS (schedule may change); `STATUS := PENDING`; log it | → `DISPATCH` (or `RUN_LAYER` if the schedule changed) |
-| `CLOSE` | `CLOSE` | assert every finding MITIGATED/accepted + every node ACCEPTED; run the full deterministic surface over `shared_branch`; ONE final decorrelated MBSS sweep over the cumulative diff; **emit the retrospective** to `.ledger/log/` (commit `log: close <topic> retrospective` in the recorder — content per [campaign §CLOSE](../campaign/SKILL.md)); produce the campaign report | → **[HUMAN SEAM]**: HALT for human final acceptance + any push |
+| `CLOSE` | `CLOSE` | assert every finding MITIGATED/accepted + every node ACCEPTED; run the full deterministic surface over `shared_branch`; ONE final decorrelated MBSS sweep over the cumulative diff; **emit the retrospective** to `.ledger/log/` (commit `log: close <topic> retrospective` in the recorder — content per [campaign §CLOSE](../campaign/SKILL.md)); produce the campaign report; `rm -f $root/.ledger/active-dag` | → **[HUMAN SEAM]**: HALT for human final acceptance + any push |
 
 `sort` is node-id order throughout: a fixed reconcile order makes the run
 **replayable** — re-running from a checkpoint reproduces the same sequence.
