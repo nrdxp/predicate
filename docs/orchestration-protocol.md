@@ -79,6 +79,7 @@ DRIVE(dag):
   tip := HEAD
   for k in 0 .. layer_count - 1:
       RUN_LAYER(layers[k], dag, tip, shared_branch)
+      LAYER_BOUNDARY(layers[k], dag, tip, shared_branch)   # cumulative-diff gate
       tip := shared_branch HEAD          # advance the tip per layer
   CLOSE(dag, shared_branch)
 ```
@@ -86,7 +87,10 @@ DRIVE(dag):
 Each layer branches from the **previous layer's merged tip**, so a node always
 sees its dependencies' landed work. This is why premise-freshness (below) is
 checked per boundary and not once up front: each merge mutates the world the
-next layer's premises were written against.
+next layer's premises were written against. `LAYER_BOUNDARY` runs once per layer
+edge, *after* every node in the layer has merged and *before* the tip advances —
+the cumulative-diff coherence gate (below) that no single per-node reconcile can
+see.
 
 ### RUN_LAYER
 
@@ -233,6 +237,48 @@ Realignment edits are deterministic *mechanics* (rewrite premises to match HEAD,
 re-export, re-derive). The *content* of a premise rewrite can require judgment;
 when it does and the judgment is not covered by a declared sovereignty gate,
 that is a **[HUMAN SEAM]**.
+
+---
+
+## LAYER_BOUNDARY — the per-layer cumulative-diff coherence gate
+
+`RECONCILE_AND_MERGE` step (3) judges *one node's* landing. But file-surface
+disjointness — what `DagNoConflict` proves and what the per-node surface-honesty
+check confirms — is **not** semantic independence: a **cut or rename** in one
+node can orphan a reference living in a *surviving* file that no node in the
+layer declares, invisible to every per-node gate. (The cohesion campaign learned
+this: removing a workflow left dangling references that surfaced only at CLOSE.)
+So once every node in a layer has merged, before the tip advances, the boundary
+runs a coherence gate over the **layer's cumulative diff** for the campaign's
+whole cut-set:
+
+```
+LAYER_BOUNDARY(layer, dag, tip, shared_branch):
+  # run only at a QUIESCENT edge — every node in `layer` merged, no worktree
+  # mid-write — because index-sensitive evaluators give false failures otherwise.
+  cut_set := workflows this layer removed or renamed (from the merged diff)
+
+  ledger/gate/coherence_impact.sh <repo-root> $(printf -- '--removed %s ' $cut_set)
+      # coherence_impact internally runs the contract export, the orphan gate
+      # (check_orphans over the cut_set), and the markdown-link gate over the
+      # cumulative surface — one call, three machine-checks.
+      exit 0  -> the layer is semantically coherent; advance the tip.
+      exit 1  -> INCOHERENT: a cut/rename orphaned a cross-node reference. This
+                 fault is NOT localizable to a single node (the broken ref and
+                 the cut that broke it live in different nodes' surfaces), so it
+                 does NOT route to single-node REWORK. It routes to
+                 ESCALATE -> PLAN: the architect realigns the plan/DAG for the
+                 cross-node coupling (re-export, re-derive, re-dispatch the
+                 affected nodes). [HUMAN SEAM] if the realignment needs a
+                 decision-rights call beyond the IBC's declared sovereignty gates.
+```
+
+This is a **boundary** gate (cumulative diff, whole cut-set), distinct from the
+per-node check: it catches cross-node orphaning a single node's reconcile cannot
+see, and it catches it *here* rather than at CLOSE. Because the fault is a
+plan-level cross-node coupling, the architect corrective (ESCALATE → PLAN) is the
+right resolution — exactly how a campaign handles a coupling its node decomposition
+under-modeled.
 
 ---
 

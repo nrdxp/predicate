@@ -106,17 +106,29 @@ rule, not a convenience:
 
 1. **The git log of the recorder is the index — the timeline.** Read
    `git -C <recorder> log --oneline -- log/` and the live `git log` (project
-   tree). The log says *what happened, when, with what status* — which layers
-   landed, which nodes are ACCEPTED, where the run halted.
-2. **Open ONLY the active campaign's sketch.** From the log, identify the single
-   in-flight episode (the campaign matching `TOPIC` / the current branch) and
-   full-read *that* sketch alone. Reconstruct `STATUS`, `tip`, `shared_branch`,
-   and the RECONCILE_LOG cursor from it + git.
-3. **Never exhaustively read prior sketches.** A *completed* campaign's flight
+   tree). The recorder's campaign-lifecycle commits are subject-tagged: an
+   episode opens with a `log: open <topic> …` commit and closes with a
+   `log: close <topic> …` commit (the convention the sketch discipline writes).
+   The log says *what happened, when, with what status* — which layers landed,
+   which nodes are ACCEPTED, where the run halted.
+2. **Discriminate CLOSED from in-flight by the log, not by reading the sketch.**
+   A topic is **closed** iff its `log:` history contains a `close` commit for it
+   with no later `open`:
+   `git -C <recorder> log --grep='^log: \(open\|close\) <topic>' --format='%s'`
+   — if the most recent matching subject is a `close`, the episode is finished
+   (index entry only); if it is an `open` (or the topic has an open with no
+   close), the episode is **in-flight**. This is the field the gate keys on; the
+   sketch is never opened to decide it.
+3. **Open ONLY the active campaign's sketch.** For the single in-flight episode
+   (the topic whose latest `log:` marker is `open`, matching `TOPIC` / the
+   current branch), full-read *that* sketch alone. Reconstruct `STATUS`, `tip`,
+   `shared_branch`, and the RECONCILE_LOG cursor from it + git.
+4. **Never exhaustively read prior sketches.** A *completed* campaign's flight
    recorder reads as in-flight to a naive walker — absorbing a finished goal's
-   sketch as if it were live is a **context-pollution defect**. The log metadata
-   *gates* whether a sketch is even opened: a sketch whose log shows it CLOSED is
-   an index entry, not working context. Only the in-flight episode is loaded.
+   sketch as if it were live is a **context-pollution defect**. The log marker
+   (step 2) *gates* whether a sketch is even opened: a sketch whose latest `log:`
+   marker is `close` is an index entry, not working context. Only the in-flight
+   episode is loaded.
 
 The log is the map; exactly one sketch is the territory. (Prime Invariant 5,
 "reconstruct, don't recall.")
@@ -139,8 +151,8 @@ chooses the next action — the table + the exit code compute it.
 | `SURFACE_EXCEED` | `SURFACE_EXCEED` | `authorized.py --collision-check --path <req> --against-surfaces <concurrent surfaces>` | rc 0 (WIDEN) → widen node surface, re-export DAG (must pass `Dag ∘ DagNoConflict`), resume worker → `AWAIT`. rc 3 (SERIALIZE) → mark `serialize=true`, re-export, re-schedule into `serial` → `RUN_LAYER` |
 | `RECONCILE` | `RECONCILE_AND_MERGE` (1)-(5) | for each LANDED node in **node-id order**, run the boundary checks (below); compute `VERDICT` | `ACCEPT` → `MERGE`; `REWORK` → emit corrective delta IBC, re-dispatch from current tip, `STATUS := PENDING` → `DISPATCH`; `ESCALATE` → `REALIGN` or **[HUMAN SEAM]** |
 | `MERGE` | `RECONCILE_AND_MERGE` (5) ACCEPT | `git merge --no-ff node/<id>` into `shared_branch`; `STATUS := ACCEPTED`; mark mitigated findings | → `CHECKPOINT` |
-| `BOUNDARY` | `RECONCILE` (3)+(4) **at the layer edge** | the **cumulative-diff coherence boundary check** (below): orphan gate for every cut/renamed workflow + `coherence_impact.sh` over the layer's cumulative diff; premise-freshness for every PENDING node | machine-check rc 1 → `REWORK` the offending node. rc 0 → advance |
-| `CHECKPOINT` | `RECONCILE_AND_MERGE` (6) | append a RECONCILE_LOG round (judged verdicts, freshness, realignments) to the active sketch; commit it in the recorder (`git -C <recorder> commit`) | more nodes in layer → `RECONCILE`; layer done → `BOUNDARY`; `BOUNDARY` clean and `k+1 < layer_count` → `tip := shared_branch HEAD`, `k++` → `RUN_LAYER`; last layer → `CLOSE` |
+| `BOUNDARY` | `LAYER_BOUNDARY` | the **cumulative-diff coherence gate** (below): `coherence_impact.sh --removed <cut-set>` over the layer's cumulative diff — it runs the contract export, the orphan gate, and the link gate internally | rc 0 → advance the tip. rc 1 → `ESCALATE` (a cut/rename orphaned a cross-node ref; not localizable to one node) |
+| `CHECKPOINT` | `RECONCILE_AND_MERGE` (6) | append a RECONCILE_LOG round (judged verdicts, freshness, realignments) to the active sketch; commit it in the recorder (`git -C <recorder> commit`) | more nodes in layer → `RECONCILE`; layer done → `BOUNDARY`; `BOUNDARY` rc 0 and `k+1 < layer_count` → `tip := shared_branch HEAD`, `k++` → `RUN_LAYER`; last layer → `CLOSE`. `BOUNDARY` rc 1 → `ESCALATE` → architect realigns the plan/DAG (PLAN), then re-dispatch |
 | `REALIGN` | `REALIGN` | rewrite the node's premises/surface to current HEAD; if topology/surfaces change, re-export DAG + LAYERS (schedule may change); `STATUS := PENDING`; log it | → `DISPATCH` (or `RUN_LAYER` if the schedule changed) |
 | `CLOSE` | `CLOSE` | assert every finding MITIGATED/accepted + every node ACCEPTED; run the full deterministic surface over `shared_branch`; ONE final decorrelated MBSS sweep over the cumulative diff; produce the campaign report | → **[HUMAN SEAM]**: HALT for human final acceptance + any push |
 
@@ -188,31 +200,51 @@ done
 > **cut or rename** orphaned a reference living in a *surviving* file owned by
 > nobody in this layer. This campaign learned it the hard way: removing a
 > workflow left dangling references the conflict gate was structurally blind to,
-> and they surfaced at CLOSE instead of at a boundary. So the per-layer
-> `BOUNDARY` state runs a **semantic/reference-coherence gate over the layer's
-> cumulative diff**, for the campaign's whole cut-set — not merely the per-node
-> surface honesty of RECONCILE step (2).
+> and they surfaced at CLOSE instead of at a boundary. So the `LAYER_BOUNDARY`
+> step ([protocol §LAYER_BOUNDARY](../../docs/orchestration-protocol.md)) runs a
+> **semantic/reference-coherence gate over the layer's cumulative diff**, for the
+> campaign's whole cut-set — not merely the per-node surface honesty of RECONCILE
+> step (2). This is a genuine evolution of the protocol the spec now carries.
 
-At each layer edge, before advancing the tip, `BOUNDARY` runs:
+At each layer edge, before advancing the tip, `BOUNDARY` runs **one** command —
+`coherence_impact.sh` already runs the contract export, the orphan gate
+(`check_orphans` over the cut-set, internally at `coherence_impact.sh:88`), and
+the markdown-link gate, so no separate `check_orphans` call is needed:
 
 ```bash
-# orphan gate: for EVERY workflow this layer removed or renamed, no surviving
-# authoritative file may reference it as if live.
-bash gates/check_orphans.sh <repo-root> <removed-or-renamed-workflow>...
-#   rc 1 -> orphan refs: REWORK the node whose cut left the dangling ref
-
-# coherence-impact over the LAYER's cumulative diff (contract + orphan + links),
-# naming the layer's cut-set so backward-breakage is caught at the boundary.
+# coherence-impact over the LAYER's cumulative diff for the campaign's cut-set.
+# Internally: contract export + orphan gate (over --removed) + link gate.
 bash ledger/gate/coherence_impact.sh <repo-root> --removed <cut-1> --removed <cut-2> ...
-#   rc 1 -> a machine-check failed over the cumulative surface: REWORK
-#   rc 0 -> the layer is semantically coherent; advance the tip
+#   rc 0 -> the layer is semantically coherent; advance the tip.
+#   rc 1 -> INCOHERENT: a cut/rename orphaned a cross-node reference. The fault
+#           is NOT localizable to one node (the broken ref and the cut that broke
+#           it live in DIFFERENT nodes' surfaces), so it does NOT route to
+#           single-node REWORK. It routes to ESCALATE -> PLAN: the architect
+#           realigns the plan/DAG for the cross-node coupling, then re-dispatches
+#           the affected nodes. (This campaign's own cross-node couplings were
+#           resolved exactly this way — an architect plan-fault, not a node fault.)
 ```
 
-This is a **boundary** gate (cumulative diff, whole cut-set), not merely the
-per-node check — it catches cross-node orphaning a single node's reconcile
-cannot see. Because index-sensitive evaluators give false failures while a
-worker has uncommitted changes, `BOUNDARY` runs only at a **quiescent layer
-edge** (all of this layer's worktrees merged or idle).
+This is a **boundary** gate (cumulative diff, whole cut-set), not the per-node
+check — it catches cross-node orphaning a single node's reconcile cannot see.
+Because index-sensitive evaluators give false failures while a worker has
+uncommitted changes, `BOUNDARY` runs only at a **quiescent layer edge** (all of
+this layer's worktrees merged or idle).
+
+---
+
+## Demonstration (the example test)
+
+[`demo/`](demo/) is a recorded end-to-end run of this driver over a small
+synthetic DAG ([`demo/dag.ncl`](demo/dag.ncl): 2 layers, a conflict-free parallel
+pair, one `serialize` edge), with [`demo/layers.ncl`](demo/layers.ncl) the live
+schedule derivation bound to that fixture. [`demo/TRANSCRIPT.md`](demo/TRANSCRIPT.md)
+records every command and its actual gate exit code: schedule derivation →
+worktree dispatch → the `authorized.py` reconcile checks → the `--collision-check`
+serialize/widen routing (rc 3 / rc 0) → `premise_fresh.sh` → `merge --no-ff` →
+the `LAYER_BOUNDARY` coherence gate (GREEN rc 0 and a RED rc 1 → ESCALATE). A
+reviewer reproduces the schedule with the two `nickel export` commands at the top
+of the transcript.
 
 ---
 
@@ -255,10 +287,11 @@ gate*, and surface in `INTERACTIVE`.
 
 The worktree-isolated, dependency-layered, merge-at-boundary execution pattern
 this driver implements is a well-established production pattern, not a novelty.
-The grounding references are recorded in the campaign's active flight recorder
-([`.ledger/log/2026-06-20-predicate-consolidation.md`](../../.ledger/log/2026-06-20-predicate-consolidation.md),
-the OSR1 prior-art block) per the
-[Outward-Search Reflex](../../ambient.md) and the [prior-art](../prior-art/SKILL.md)
+The grounding references are recorded in the **active campaign's flight recorder**
+(the in-flight sketch under the recorder's `log/`, located by the resume
+procedure above — `<recorder>/log/<active-topic>.md`, its OSR1 prior-art block)
+per the [Outward-Search Reflex](../../ambient.md) and the
+[prior-art](../prior-art/SKILL.md)
 procedure: parallel `make -j` and Apache Airflow (DAG-derived independent units
 run concurrently, dependents wait on upstreams) anchor the layering; Bazel's
 per-action `execroot/` sandbox and `git-worktree` (one repo, many isolated
