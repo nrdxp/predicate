@@ -9,6 +9,8 @@ description: |
 
 # AI-Generated Code Audit Workflow
 
+**Verification Dual — adversarial path.** This skill is the applied methodology for the adversarial half of the [Verification Dual](../../rules.md#2-prime-invariants): when no deterministic evaluator can be built for a condition in LLM-generated code, it is closed by decorrelated, context-free agents running this audit protocol from independent attractor basins. Load it whenever the symbolic path is unavailable and an adversarial review of AI-generated code is required.
+
 A 4-layer framework for auditing LLM-generated code. Traditional SAST is insufficient—AI code is syntactically flawless but often logically "hollow."
 
 > **Principle of Zero Trust:** Treat every AI-generated line as a high-risk external contribution.
