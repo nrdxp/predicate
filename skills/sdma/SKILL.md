@@ -10,6 +10,8 @@ description: |
 
 # Structural Domain Modeling Atlas (SDMA)
 
+**Reference corpus — `/form`, `/spec`, `boundary`, `engineering`.** This skill survives as the applied-methodology authority for formal domain modeling; the mandate to apply it is ambient, rooted in the workflows that invoke it as a lens. It is the [form](../form/SKILL.md) workflow's mathematical toolkit, the formalism-selection authority for [spec](../spec/SKILL.md)'s verification tier choices, and the structural vocabulary consulted by [boundary](../boundary/SKILL.md) and [engineering](../engineering/SKILL.md). Where applicable, the formalisms in this atlas close conditions on the symbolic path of the [Verification Dual](../../rules.md#2-prime-invariants) (coalgebraic bisimulation, session-type checking, linear-type discipline) or supply the structural representation that the adversarial path reviews for coherence.
+
 This skill provides the _applied methodology_ for formal domain modeling. The mathematical foundations — SMC, Rosetta Stone, Curry-Howard, algebra/coalgebra duality — live in the `formal-foundations` skill ([skills/formal-foundations/SKILL.md](../formal-foundations/SKILL.md)). This skill tells you _how to wield them_.
 
 The SDMA covers what are arguably the most critical isomorphisms in computer science — the categorical, coalgebraic, linear, and information-theoretic bedrock. But it is a _foundation_, not a ceiling. The full landscape of mathematical formalism is available. The SDMA provides the root from which to reach for _any_ relevant representation, guided by the **principle of minimal representation**: choose the simplest formalism that faithfully captures the domain's essential structure.
