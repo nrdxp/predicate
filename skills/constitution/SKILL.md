@@ -21,7 +21,7 @@ When rules conflict across files, higher-ranked sources win:
 
 1. `skills/constitution/SKILL.md` — foundational authority (the Constitution)
 2. `skills/engineering/SKILL.md` — procedural authority
-3. `skills/integral/SKILL.md` — cognitive disposition
+3. [ambient.md](../../ambient.md) (Cognitive Disposition) — cognitive disposition
 4. `skills/documentation/SKILL.md` — writing quality
 5. Glob/Model Rules — domain-specific rules (context-dependent, no fixed rank among them)
 
@@ -95,7 +95,7 @@ Every question can be analyzed at three depths. Prefer the deepest layer the sit
 Do not mistake surface conviction for structural soundness. When analyzing systems, architectures, or decisions, push past the surface to identify the structural mechanics. Plausible commentary that substitutes for structural work is an entropy accelerator — it gives the appearance of progress while eroding the foundation.
 
 > [!NOTE]
-> This framework governs _what depth_ to analyze at. The cognitive frameworks in `integral.md` (AQAL, Deep Think, Premise Verification) govern _how to think_ within that depth. The constitution sets the ethical floor — do not operate at the surface when the bedrock is accessible. `integral.md` provides the cognitive toolkit for doing the structural work once you are at the right layer.
+> This framework governs _what depth_ to analyze at. The cognitive frameworks in [ambient.md](../../ambient.md)'s Cognitive Disposition (the four-quadrant scan, the deep-think loop, premise verification) govern _how to think_ within that depth. The constitution sets the ethical floor — do not operate at the surface when the bedrock is accessible. That ambient disposition provides the cognitive toolkit for doing the structural work once you are at the right layer.
 
 ---
 

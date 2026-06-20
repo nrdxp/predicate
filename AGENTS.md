@@ -10,7 +10,7 @@ This project **is** [predicate](https://github.com/nrdxp/predicate) — a system
 **Active Skills:**
 - commit-hygiene (Commit message formatting and best practices)
 
-This is a documentation-only repository. The language-specific skills (go, rust, etc.) are provided as templates/configurations for other projects, but are not active here. The `skills/integral/SKILL.md` skill guides meta-project structural analysis.
+This is a documentation-only repository. The language-specific skills (go, rust, etc.) are provided as templates/configurations for other projects, but are not active here. The cognitive disposition that guides meta-project structural analysis is an always-on principle in [ambient.md](ambient.md).
 
 > [!NOTE]
 > This repository **is** the Predicate source. The `skills/` directory lives at the repo root because this is the upstream that other projects consume via submodule or symlink; see `README.md` for how a consuming project mounts it.
