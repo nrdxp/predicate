@@ -94,7 +94,7 @@ commit message cannot be resolved from one of those two sources,
 it is meaningless noise.
 
 - **No Uncommitted Artifacts:** Planning documents, sketches,
-  scratch files, and workstream trackers (`.sketches/`,
+  scratch files, and workstream trackers (`.ledger/`,
   `.scratch/`, agent scratch pads, etc.) are **never committed
   to history**. Referencing labels that originate from these
   artifacts — workstream items like "(P3)", sketch IDs, plan

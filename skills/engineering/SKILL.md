@@ -44,7 +44,10 @@ Invoke clarification under these conditions:
 When in doubt, err toward halting. Wasted clarification is cheaper than trajectory drift.
  
 > [!NOTE]
-> This table applies to general execution. In C.O.R.E. planning, `UNCERTAINTY` is numeric (0.0–1.0) and must equal exactly 0.0 before proceeding.
+> This table applies to general execution. In C.O.R.E. planning, the
+> ambiguity gate uses a qualitative `OBSTACLES` list: the list must be
+> empty before the sequence may advance from CLARIFY to PLAN. There is
+> no numeric uncertainty field in the C.O.R.E. grammar.
 
 ---
 
@@ -74,7 +77,7 @@ Before writing code, understand the existing landscape:
 
 **Pattern Matching:** Mimic existing directory structure and coding style strictly. Do not introduce foreign idioms. When uncertain, search for prior art in the repo (e.g., "How are errors handled elsewhere?") and follow established patterns.
 
-> **Tip:** If MCP tools are available, use them first for structural insight. See `skills/depmap/SKILL.md`.
+> **Tip:** If MCP tools are available, use them first for structural insight before reading individual files.
 
 
 

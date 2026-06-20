@@ -11,7 +11,7 @@ description: |
 
 # Constitution
 
-This constitution is the root of the Predicate system. All other skills, workflows, and specifications operate under its authority. It governs when rules conflict, when situations are novel, or when no specific rule applies.
+This constitution is the foundational ethical and structural authority for the Predicate system, operating under the boundary set by the [Prime Invariants in rules.md](../../rules.md#2-prime-invariants) (headed by the Verification Dual). Within that inherited boundary, it governs when rules conflict, when situations are novel, or when no specific rule applies.
 
 ---
 

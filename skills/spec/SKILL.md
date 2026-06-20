@@ -14,7 +14,7 @@ description: |
 
 **Verification Dual — symbolic path.** SPEC produces the normative constraint artifacts that are checked by the symbolic half of the [Verification Dual](../../rules.md#2-prime-invariants): every constraint this workflow formalizes becomes a deterministic evaluator target (a test invariant, a type-level proof obligation, or a model-checker input) that closes a condition on the symbolic path. Routed at the moment of specifying invariants and behavioral contracts ([rules.md §5](../../rules.md#5-skill-routing)).
 
-This workflow defines the C.O.R.E. Specification phase. The objective is to define high-density normative constraint vectors (behavioral contracts) that prune the phase-space of valid trajectories during code generation. Where `/model` describes the system's states and transitions (coalgebraic dynamics), `/spec` declares what MUST hold (modal specification) and translates these constraints into test invariants.
+This workflow defines the C.O.R.E. Specification phase. The objective is to define high-density normative constraint vectors (behavioral contracts) that prune the phase-space of valid trajectories during code generation. Where `/form` describes the system's states and transitions (coalgebraic dynamics), `/spec` declares what MUST hold (modal specification) and translates these constraints into test invariants.
 
 ---
 
@@ -31,7 +31,7 @@ Without explicit specifications, sequence walks rely on stochastic priors. Every
 ## Scope
 
 > [!IMPORTANT]
-> SPEC produces **normative constraint artifacts** — declarations of what a system MUST, SHOULD, MUST NOT, and MAY do. It is NOT structural modeling (that's `/model`) and NOT implementation (that's `/core`); strategic planning and exploration are the standing [Planning Invariants](../../ambient.md#planning-invariants) and [Sketch Principle](../../ambient.md#the-sketch-principle), not workflows you switch into. If you find yourself describing ontology without constraints, you're in `/model` territory. If you find yourself evaluating approaches rather than declaring constraints, you've left SPEC for strategy.
+> SPEC produces **normative constraint artifacts** — declarations of what a system MUST, SHOULD, MUST NOT, and MAY do. It is NOT structural modeling (that's `/form`) and NOT implementation (that's `/core`); strategic planning and exploration are the standing [Planning Invariants](../../ambient.md#planning-invariants) and [Sketch Principle](../../ambient.md#the-sketch-principle), not workflows you switch into. If you find yourself describing ontology without constraints, you're in `/form` territory. If you find yourself evaluating approaches rather than declaring constraints, you've left SPEC for strategy.
 
 ---
 
@@ -47,7 +47,7 @@ This convention is not ceremonial — it is the single most effective mechanism 
 
 ## Dual-Mode Operation
 
-Like `/model`, SPEC operates in two modes, determined by context:
+Like `/form`, SPEC operates in two modes, determined by context:
 
 ### Create Mode
 
@@ -72,7 +72,7 @@ Like `/model`, SPEC operates in two modes, determined by context:
 
 ## Formalism Selection
 
-SPEC is **notation-agnostic**. The formalism scales with the system's criticality, mirroring how `/model` selects formalisms via the SDMA Decision Matrix (SDMA §6).
+SPEC is **notation-agnostic**. The formalism scales with the system's criticality, mirroring how `/form` selects formalisms via the SDMA Decision Matrix (SDMA §6).
 
 | System Criticality                        | Specification Notation                                              | Verification Method                                |
 | :---------------------------------------- | :------------------------------------------------------------------ | :------------------------------------------------- |
@@ -192,9 +192,9 @@ Link the specification constraints to execution-level verification targets:
 
 - **Generate Test Invariants**: For every named constraint, define a test invariant specification (e.g. mock assertions, property tests, or trace boundaries).
 - **Assemble Verification Suite**: Map these invariants to specific test cases in the project's test suite, creating the deterministic evaluator $V(\mathbf{S})$ for execution.
-- Cross-reference the model in `docs/models/` — the spec constrains the model's state space.
+- Cross-reference any form artifact in `docs/specs/` — the spec constrains the form's state space.
 - Link constraints to downstream execution, ensuring they become non-negotiable step verification assertions when `/core` regulates state against them.
-- If the spec reveals model inadequacies, flag them for `/model` revision.
+- If the spec reveals model inadequacies, flag them for `/form` revision.
 - Update the sketch with specification findings.
 
 ---
@@ -244,7 +244,7 @@ Specification filenames should be descriptive of the domain being constrained, n
 
 Specifications are living artifacts. Rot prevention uses existing pipeline infrastructure:
 
-- **Model changes** → spec re-verification required (surfaced by `/model`'s CONNECT step)
+- **Model changes** → spec re-verification required (surfaced by `/form`'s CONNECT step)
 - **Execution deviates from spec** → ESCALATION fires per the **Strategic Escalation** invariant in [ambient.md](../../ambient.md#planning-invariants)
 - **`/core` discovers spec is wrong** → empirical invalidation: emit an ESCALATION block and HALT for the human to choose the response (re-frame, dialectic, or descope), per the same [Strategic Escalation](../../ambient.md#planning-invariants) invariant
 
@@ -253,7 +253,7 @@ Specifications are living artifacts. Rot prevention uses existing pipeline infra
 ## Position in the Workflow Chain
 
 ```
-explore → frame → /model → /spec → /core
+explore → frame → /form → /spec → /core
 (ambient dispositions)  (what)  (must)  (do)
                           ↑        ↓
                           └─ cross-reference ─┘
@@ -263,8 +263,8 @@ Exploring and framing are standing dispositions — the [Sketch Principle](../..
 
 **Where it fits:**
 
-- **After `/model`**: The natural position. The model defines the ontology; the spec constrains it. Execution then operates within those constraints.
-- **Without `/model`**: Valid. Not every system needs a formal model, but many need behavioral contracts. `/spec` can be invoked with inline type declarations instead of model references.
+- **After `/form`**: The natural position. The form defines the ontology; the spec constrains it. Execution then operates within those constraints.
+- **Without `/form`**: Valid. Not every system needs a formal model, but many need behavioral contracts. `/spec` can be invoked with inline type declarations instead of model references.
 - **During `/core`**: Valid. If `/core` discovers undocumented behavioral requirements, invoking `/spec` mid-execution captures them as normative artifacts rather than ad hoc code comments.
 
 ---
