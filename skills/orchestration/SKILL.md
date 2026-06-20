@@ -259,12 +259,13 @@ The grounding references are recorded in the campaign's active flight recorder
 ([`.ledger/log/2026-06-20-predicate-consolidation.md`](../../.ledger/log/2026-06-20-predicate-consolidation.md),
 the OSR1 prior-art block) per the
 [Outward-Search Reflex](../../ambient.md) and the [prior-art](../prior-art/SKILL.md)
-procedure: parallel `make -j` (DAG-derived independent targets run concurrently,
-dependents serialized), Bazel (action-graph scheduling with per-action sandbox
-isolation), and CI DAG runners (jobs form a `needs:` DAG; independent jobs run in
-fresh isolated workspaces). The driver's contribution is binding that pattern to
-git worktrees as the isolation primitive and the Verification Dual's gates as the
-merge-boundary check.
+procedure: parallel `make -j` and Apache Airflow (DAG-derived independent units
+run concurrently, dependents wait on upstreams) anchor the layering; Bazel's
+per-action `execroot/` sandbox and `git-worktree` (one repo, many isolated
+working trees from a common object store) anchor the per-unit isolation. The
+driver's contribution is binding that pattern to git worktrees as the isolation
+primitive and the Verification Dual's gates as the merge-boundary check (the
+prior art integrates by artifact, not by a coherence-gated `--no-ff` merge).
 
 ---
 
