@@ -27,7 +27,7 @@
     judged | Array Judgment,
     freshness | Array Freshness,
     realignments | Array String,  # what changed in plan/orchestration and why
-    checkpoint_commit | String,   # the .sketches flight-recorder hash
+    checkpoint_commit | String,   # the .ledger/log flight-recorder hash
   },
 
   # The log contract: an array of rounds with the accept-requires-evaluator
