@@ -7,9 +7,11 @@ description: |
   - Prompt contains: /api-audit, API surface, API coherence, type safety.
 ---
 
-# API Coherence Audit Protocol v1.0
+# API Coherence Audit Protocol
 
 A thorough, piecemeal framework for auditing code API surfaces. Designed to maintain agent coherence by working iteratively through the codebase with explicit human checkpoints.
+
+> **Adversarial path anchor.** This lens is invoked on the Verification Dual's adversarial path ([rules.md](../../rules.md) §2 Invariant 1): when no deterministic evaluator can close an API-surface correctness condition, context-free agents using this protocol supply the decorrelated review. See [skills/refine/SKILL.md](../refine/SKILL.md) AUDIT §"Sibling Skills Consultation" for the wiring point.
 
 > **Guiding Principle:** An ideal API is minimal, well-scoped, type-safe, elegantly composable, and monosemic. It leverages language features to make error states unrepresentable.
 
@@ -17,22 +19,7 @@ A thorough, piecemeal framework for auditing code API surfaces. Designed to main
 
 ## Phase 0: Scope Definition
 
-Before beginning, establish the audit scope with the user:
-
-```yaml
-SCOPE:
-  LANGUAGE: "[Target language with version]"
-  TYPE_SYSTEM: "[weak | gradual | strong | dependent]"
-  ENTRY_POINTS: # Public API modules/packages to audit
-    - "path/to/module1"
-    - "path/to/module2"
-  EXCLUSIONS: # Explicitly out of scope
-    - "generated code"
-    - "vendored dependencies"
-  CONSTRAINTS:
-    - "User-defined: e.g., 'No breaking changes'"
-    - "User-defined: e.g., 'Must remain no-std compatible'"
-```
+Before beginning, establish the audit scope with the user. Confirm: target language and version; type system strength; public API entry points; explicit exclusions (generated code, vendored deps); user-defined constraints (e.g., no breaking changes, no-std compatibility).
 
 ## **Checkpoint:** Present scope to user for approval before proceeding.
 
