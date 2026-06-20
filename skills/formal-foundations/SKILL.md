@@ -10,6 +10,8 @@ description: |
 
 # Formal Mathematical Foundations
 
+**Reference corpus — `/form`, `/spec`, `boundary`.** This skill survives as the mathematical-language authority; the mandate to apply it is ambient, rooted in the workflows that invoke it as a lens. It supplies the foundational vocabulary for [form](../form/SKILL.md)'s structural representations, the verification semantics for [spec](../spec/SKILL.md)'s formal tiers, and the theoretical grounding consulted by [boundary](../boundary/SKILL.md). The formalisms here anchor the symbolic path of the [Verification Dual](../../rules.md#2-prime-invariants): types-as-propositions (Curry-Howard), bisimulation as behavioral equivalence, and adjoint functors as the semantic spine of data migration.
+
 **Disposition directive:** Recognize that the structures you encounter in software engineering — types, protocols, state machines, data schemas — are instances of deeper mathematical patterns. This skill equips you with the vocabulary to see those patterns. The `sdma` skill provides the domain-specific toolkit for _applying_ these foundations to concrete problems; this skill provides the _language_.
 
 ---
@@ -189,9 +191,9 @@ The Rosetta Stone in full — the correspondences that unify four fields under o
 
 The `engineering` skill mandates strong typing, composition, and structural soundness. This skill provides the _mathematical justification_ for why those mandates work: types are propositions (Curry-Howard), composition is inference (categorical composition), and structural soundness is a consequence of coherence (pentagon and hexagon identities). When engineering intuition says "this feels wrong," these foundations often reveal _why_ — a violated commutativity condition, a broken adjunction, a misidentified duality.
 
-### Relationship to `integral.md`
+### Relationship to Cognitive Disposition (`ambient.md`)
 
-The integral framework's holonic lens — every component is both a whole and a part — is a natural language description of what category theory formalizes: objects that are simultaneously domains and codomains, algebras that are simultaneously initial and terminal, structures that compose fractally. The formal foundations give the integral intuition _teeth_: instead of "think holistically," you can verify that the diagram commutes.
+The holonic lens in [ambient.md's Cognitive Disposition](../../ambient.md#cognitive-disposition) — every component is both a whole and a part — is a natural language description of what category theory formalizes: objects that are simultaneously domains and codomains, algebras that are simultaneously initial and terminal, structures that compose fractally. The formal foundations give that ambient intuition _teeth_: instead of "think holistically," you can verify that the diagram commutes.
 
 ### Relationship to SDMA
 
