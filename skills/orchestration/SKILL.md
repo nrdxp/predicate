@@ -91,7 +91,7 @@ outside the recorder repo is malformed).
 ## State
 
 The orchestrator's entire state is reconstructable from git + the sketch
-checkpoint (rules.md §5; [protocol §State](../../docs/orchestration-protocol.md)).
+checkpoint (rules.md §2 Prime Invariant 5; [protocol §State](../../docs/orchestration-protocol.md)).
 Per node: `STATUS ∈ {PENDING, DISPATCHED, LANDED, ACCEPTED, REWORK, INVALIDATED}`,
 its `worktree` and `branch`. Globally: `shared_branch` (the integration branch),
 `tip` (the commit the current layer branches from), `layers` (the derived Kahn
@@ -100,7 +100,7 @@ git or the sketch.
 
 ### Resume = log-first temporal hygiene
 
-Resuming a partial campaign is **reconstruction, not recall** (rules.md §5,
+Resuming a partial campaign is **reconstruction, not recall** (rules.md §7,
 sharpened for episodic memory). The procedure is **log-first** and it is a hard
 rule, not a convenience:
 
@@ -282,7 +282,7 @@ everything else is deterministic-or-dispatched. At each seam, `MODE` decides:
 | Final acceptance + push | `CLOSE` | resolve-by-policy is **forbidden** — a release is a sovereignty decision; HALT and escalate regardless | HALT; surface the CLOSE report; the human accepts + pushes (agents never push — rules.md §3) |
 | Non-resolvable reserved halt | `AWAIT`/`DISPATCH` | escalate to the human (a reserved predicate is, by definition, a human call) | surface the worker's freeze report |
 | Decision-rights realignment | `RECONCILE`/`REALIGN` | resolve only if inside the IBC's declared sovereignty gates; else escalate | surface the realignment question |
-| Non-converging adversarial review | `RECONCILE` step (3) | escalate (the dual escalates to human when decorrelated reviewers do not converge — rules.md §1) | surface the divergence |
+| Non-converging adversarial review | `RECONCILE` step (3) | escalate (the dual escalates to human when decorrelated reviewers do not converge — rules.md §2 Invariant 1) | surface the divergence |
 
 Push and final acceptance are **never** resolved by policy in either mode:
 remotes belong to the human (rules.md §3). The other three seams resolve by

@@ -110,7 +110,7 @@ Confirm your agent runner detects and loads the Predicate configuration.
 4. **Verify the commit gate**: Attempt a commit with a non-conforming message; the `commit-msg` hook should reject it. To scan the whole repository for stale workflow references at any time, run the orphan gate directly:
 
    ```bash
-   gates/check_orphans.sh . plan charter sketch
+   <plugin-dir>/gates/check_orphans.sh . plan charter sketch
    ```
 
 ---
