@@ -11,16 +11,13 @@ description: |
 
 A structured approach to reviewing change history with an **explicit purpose**. Never browse history aimlessly — always state what you're looking for.
 
+> **Adversarial path anchor.** This lens is invoked on the Verification Dual's adversarial path ([rules.md](../../rules.md) §2 Invariant 1): when no deterministic evaluator can close a change-coherence condition, context-free agents using this protocol supply the decorrelated review. See [skills/refine/SKILL.md](../refine/SKILL.md) AUDIT §"Sibling Skills Consultation" for the wiring point.
+
 ---
 
 ## Entry: State Your Purpose
 
-Before reviewing history, declare what you're investigating:
-
-```yaml
-PURPOSE: "Why are you reviewing history?"
-SCOPE: [commits | timeframe | file path | keyword]
-```
+Before reviewing history, declare what you're investigating — state your purpose and scope (commits, timeframe, file path, or keyword).
 
 **Examples:**
 
@@ -105,9 +102,9 @@ RECOMMENDATIONS:
 
 ---
 
-## Integration with C.O.R.E.
+## Integration with the Active Workflow
 
-C.O.R.E. v3.0 (Closed-Loop Trajectory Control) requires Dynamic Sketchpad ledger updates and JUSTIFICATION blocks at each COMMIT boundary. Well-formed commits should:
+The active closed-loop execution workflow ([/core](../core/SKILL.md), [/refine](../refine/SKILL.md)) requires ledger updates and JUSTIFICATION blocks at each COMMIT boundary. Well-formed commits should:
 
 - Have atomic scope matching the commit message
 - Document any scope drift, breaking changes, or technical debt
