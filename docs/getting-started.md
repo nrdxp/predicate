@@ -63,6 +63,8 @@ When you are ready, push the `.ledger` subrepo yourself:
 git -C .ledger push -u origin main
 ```
 
+The gates and hooks run with Predicate's own defaults out of the box. To override them for your project, copy `.ledger/config.sh.example` to `.ledger/config.sh` and edit it — the example documents every overridable variable (the commit self-containment pattern, the orphan-scan targets, the removed-workflow set, and more) with Predicate's defaults shown.
+
 ---
 
 ## 3. Configure AGENTS.md (Optional)

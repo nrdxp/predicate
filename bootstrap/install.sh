@@ -120,6 +120,43 @@ install_hooks() {
   ( cd "$project" && bash "$hooks_installer" )
 }
 
+# Write the documented override-surface template. Each variable is the one the
+# parameterized gates/hooks read (sourced from .ledger/config.sh if present);
+# the values shown ARE predicate's own defaults, so the file is both accurate
+# documentation and valid bash. Overwritten on re-run (it is a generated doc,
+# not user state); a maintainer's edits belong in the copied config.sh.
+emit_config_example() {
+  local out="$1"
+  cat >"$out" <<'EOF'
+# .ledger/config.sh.example — gate & hook override surface (generated).
+#
+# Copy to .ledger/config.sh and uncomment/edit a line to override a default.
+# This file is sourced by the predicate gates and git hooks IF .ledger/config.sh
+# exists; absent that file, the gates use the predicate defaults shown below.
+# Leaving config.sh absent keeps every default — that is the intended baseline.
+
+# SELFCONTAINED_PAT — regex of internal references a commit message may not
+# contain (campaign node IDs, layer tags, AC/constraint ids). check_selfcontained.sh.
+# SELFCONTAINED_PAT='\bP[1-9][0-9]*\b|\bnode P[0-9]|\bL[0-9]\b|\bAC-?P?[0-9]+|\bC-P[0-9]+'
+
+# ORPHAN_TARGETS — bash array of files/dirs the orphan gate scans for dead
+# references to removed/demoted workflows. check_orphans.sh.
+# ORPHAN_TARGETS=(skills templates ambient.md README.md AGENTS.md rules.md docs/authoring.md docs/getting-started.md)
+
+# ORPHAN_EXCLUDE — grep -vE pattern suffix; paths matching it are ignored by the
+# orphan scan (e.g. a vendored copy of the plugin). check_orphans.sh.
+# ORPHAN_EXCLUDE='plugins/predicate'
+
+# SKILLS_DIR — directory holding skills, used to build the orphan-reference
+# pattern (matches SKILLS_DIR/<name>/). check_orphans.sh.
+# SKILLS_DIR='skills'
+
+# REMOVED — bash array of demoted/removed workflow names the pre-commit hook
+# checks the staged surface does not reference as if still live. hooks/pre-commit.
+# REMOVED=(plan charter plan-review continue personalization sketch dialectic predicate planning)
+EOF
+}
+
 # --- step 3: init the .ledger subrepo (+ remote, NO push) --------------------
 init_ledger() {
   local ledger="$project/.ledger"
@@ -131,6 +168,13 @@ init_ledger() {
   fi
   # Seed the topology the gates expect (a flight-recorder log dir).
   mkdir -p "$ledger/log" "$ledger/state"
+  # Document the gate/hook override surface. This is an EXAMPLE template, never
+  # an active config: the gates are optional-with-fallback (absent config.sh →
+  # predicate defaults), so emitting an active config.sh would silently freeze
+  # those defaults. The example lets a downstream maintainer discover every
+  # overridable variable (and its predicate default) without reading the gate
+  # scripts; copy it to config.sh and edit to override.
+  emit_config_example "$ledger/config.sh.example"
   # Configure the remote idempotently. The push is a human seam — never here.
   if [ -n "${PREDICATE_LEDGER_REMOTE:-}" ]; then
     if git -C "$ledger" remote | grep -qx origin; then

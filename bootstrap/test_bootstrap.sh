@@ -204,10 +204,39 @@ case_hooks_composed_by_path() {
   [ "$rc" -eq 0 ] && ok "$name" || bad "$name"
 }
 
+# The bootstrap emits a documented .ledger/config.sh.example (a commented
+# override template, NOT an active config) that is itself valid bash.
+case_config_example_emitted() {
+  local name="ledger config.sh.example emitted + valid bash, no active config.sh"
+  local box; box="$(make_sandbox)"
+
+  run_bootstrap "$box" >/dev/null 2>&1
+  local rc=0
+  local example="$box/project/.ledger/config.sh.example"
+  if [ ! -f "$example" ]; then
+    note ".ledger/config.sh.example was not emitted"; rc=1
+  else
+    if ! bash -n "$example" 2>/dev/null; then note "config.sh.example is not valid bash"; rc=1; fi
+    # The template must document the externalized override surface (P3's vars).
+    for var in SELFCONTAINED_PAT ORPHAN_TARGETS ORPHAN_EXCLUDE SKILLS_DIR REMOVED; do
+      grep -qF "$var" "$example" || { note "config.sh.example omits $var"; rc=1; }
+    done
+  fi
+  # It is an EXAMPLE, not an active config: an active config.sh must NOT be
+  # written (the optional-with-fallback design is preserved).
+  if [ -f "$box/project/.ledger/config.sh" ]; then
+    note "an active .ledger/config.sh was written (must stay opt-in)"; rc=1
+  fi
+
+  rm -rf "$box"
+  [ "$rc" -eq 0 ] && ok "$name" || bad "$name"
+}
+
 case_idempotent_append
 case_no_trailing_newline
 case_fresh_home
 case_ledger_init_no_push
+case_config_example_emitted
 case_end_to_end
 case_hooks_composed_by_path
 
