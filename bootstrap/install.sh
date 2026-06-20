@@ -98,24 +98,16 @@ register_plugin() {
 }
 
 # --- step 2: install the git hooks (COMPOSED, never inlined) ------------------
-# install-hooks.sh is worktree-correct WITHIN one repo: run from the project, it
-# links `<project>/hooks/{commit-msg,pre-commit}` into the project's git hooks
-# dir. So the composition gives the project a `hooks/` that resolves to the
-# plugin's tracked hook scripts (a symlink, so plugin updates propagate), then
-# invokes the installer from inside the project. The installer itself is run by
-# path and never modified.
+# install-hooks.sh self-locates the PLUGIN's hooks from its own real path and
+# installs them — as symlinks back to the plugin — into the gated repo's
+# git-common-dir/hooks. So the project's only hook footprint is the untracked
+# .git/hooks/ symlinks; no `hooks/` appears in the project's working tree. We run
+# the installer from inside the project (so it resolves THIS repo's git dir as
+# the destination); the installer is invoked by path and never modified.
 install_hooks() {
   local hooks_installer="$plugin_src/hooks/install-hooks.sh"
   if [ ! -f "$hooks_installer" ]; then
     echo "install: missing $hooks_installer" >&2; exit 1
-  fi
-  local project_hooks="$project/hooks"
-  # Point the project's hooks/ at the plugin's hook sources (idempotent). If a
-  # project already has a real hooks/ dir we don't own, leave it and warn.
-  if [ -L "$project_hooks" ] || [ ! -e "$project_hooks" ]; then
-    ln -sfn "$plugin_src/hooks" "$project_hooks"
-  elif [ ! -f "$project_hooks/commit-msg" ]; then
-    echo "install: $project_hooks exists and lacks the gate hooks; skipping link." >&2
   fi
   ( cd "$project" && bash "$hooks_installer" )
 }

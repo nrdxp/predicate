@@ -39,7 +39,7 @@ From any project you want Predicate to govern, run the bootstrap once. It is a s
 The bootstrap detects your harness (Claude Code or Antigravity) and:
 
 1. **Registers the plugin** into the harness's plugin directory, so its skills load globally.
-2. **Installs the commit gate** by calling `hooks/install-hooks.sh` — the `commit-msg` and `pre-commit` hooks that enforce Conventional Commits form, self-containment, and referential integrity.
+2. **Installs the commit gate** by calling `hooks/install-hooks.sh` — the `commit-msg` and `pre-commit` hooks that enforce Conventional Commits form, self-containment, and referential integrity. The installer links the hooks **as symlinks into your repo's untracked `.git/hooks/`**, each pointing back to the plugin. Nothing is added to your project's tracked tree, and the symlinks are auditable and removable (`rm .git/hooks/{pre-commit,commit-msg}`). The hooks self-locate the gate machinery from their own path back in the plugin, so they keep working with no copy frozen into your project.
 3. **Initializes the `.ledger` subrepo** — the project's flight-recorder for durable agent history — and configures its remote (it never pushes; pushing is left to you).
 4. **Wires the always-on rules** by appending two `@import` lines to your global `CLAUDE.md`:
 
@@ -64,6 +64,18 @@ git -C .ledger push -u origin main
 ```
 
 The gates and hooks run with Predicate's own defaults out of the box. To override them for your project, copy `.ledger/config.sh.example` to `.ledger/config.sh` and edit it — the example documents every overridable variable (the commit self-containment pattern, the orphan-scan targets, the removed-workflow set, and more) with Predicate's defaults shown.
+
+### What lands in your project
+
+Predicate is self-contained: the bootstrap vendors no machinery into your tree. After installing, your project's only Predicate footprint is:
+
+- **Untracked `.git/hooks/{pre-commit,commit-msg}` symlinks** pointing back to the plugin — auditable, and removable with a plain `rm`. No `hooks/` directory appears in your tracked tree.
+- **Its own `.ledger/`** — the flight-recorder subrepo plus the `config.sh.example` override surface.
+- **The two `@import` lines** in your global `CLAUDE.md` (the rules and ambient layers, loaded by reference, not copied).
+
+For any Nickel artifacts of your own that build on Predicate's ledger contracts, import them by the logical convention — `import "dag.ncl"` — rather than a path into the plugin. The gate runner injects the plugin's contract directory on the Nickel import path, so the logical name resolves without your artifact knowing where the plugin lives.
+
+**Runtime floor.** Predicate's gates assume a small, standard toolchain on `PATH`: a coreutils-grade `realpath` (the hooks self-locate the plugin via `realpath`), plus `bash`, `git`, a stdlib-only `python3`, and either `nickel` or `nix` for the ledger checks. These are the only host assumptions.
 
 ---
 

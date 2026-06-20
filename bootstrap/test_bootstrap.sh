@@ -178,10 +178,81 @@ case_end_to_end() {
   if [ ! -e "$common/hooks/commit-msg" ]; then
     note "commit-msg hook not installed by the composed install-hooks step"; rc=1
   fi
+  # The installed hooks are the self-contained model: they live ONLY in the
+  # untracked .git/hooks/, never as a tracked tree artifact.
   # 3. ledger present.
   git -C "$box/project/.ledger" rev-parse --git-dir >/dev/null 2>&1 || { note ".ledger missing"; rc=1; }
   # 4. imports appended.
   grep -qE "^@.*/rules\.md$" "$box/home/.claude/CLAUDE.md" || { note "rules import missing"; rc=1; }
+
+  rm -rf "$box"
+  [ "$rc" -eq 0 ] && ok "$name" || bad "$name"
+}
+
+# ---------------------------------------------------------------------------
+# Case 4 — self-contained footprint: hooks live ONLY as untracked .git/hooks/
+# symlinks back to the plugin; the consumer working tree carries NO predicate
+# machinery; and a real commit fires the gate resolving machinery from the
+# PLUGIN (not the empty consumer $root).
+# ---------------------------------------------------------------------------
+case_self_contained_footprint() {
+  local name="self-contained: hooks are untracked plugin-pointing symlinks, clean consumer tree, gate fires from plugin"
+  local box; box="$(make_sandbox)"
+  local proj="$box/project"
+
+  run_bootstrap "$box" >/dev/null 2>&1
+  local rc=0
+
+  # (a) .git/hooks/{pre-commit,commit-msg} are SYMLINKS whose realpath lands in
+  # the PLUGIN tree (<plugin>/hooks/<hook>) — not in the consumer's $root.
+  local common; common="$(git -C "$proj" rev-parse --git-common-dir 2>/dev/null)"
+  case "$common" in /*) : ;; *) common="$proj/$common" ;; esac
+  for hook in pre-commit commit-msg; do
+    local link="$common/hooks/$hook"
+    if [ ! -L "$link" ]; then
+      note ".git/hooks/$hook is not a symlink (self-contained model installs symlinks)"; rc=1; continue
+    fi
+    local resolved; resolved="$(realpath "$link" 2>/dev/null || true)"
+    if [ "$resolved" != "$plugin_root/hooks/$hook" ]; then
+      note ".git/hooks/$hook resolves to '$resolved' (want '$plugin_root/hooks/$hook')"; rc=1
+    fi
+  done
+
+  # (b) The consumer working tree carries NO predicate machinery: specifically no
+  # `hooks` symlink/dir/file (the dropped project-tree wart) and no vendored gate
+  # tree. The only footprint is .git/hooks/* (untracked) + .ledger/.
+  if [ -e "$proj/hooks" ] || [ -L "$proj/hooks" ]; then
+    note "consumer tree has a 'hooks' entry (the dropped project-tree symlink leaked back)"; rc=1
+  fi
+  for vendored in gates skills ledger; do
+    if [ -e "$proj/$vendored" ]; then
+      note "consumer tree has vendored predicate machinery: $vendored"; rc=1
+    fi
+  done
+
+  # (c) A real commit fires the gate, resolving machinery from the PLUGIN. The
+  # consumer $root is empty of machinery, so a working gate PROVES self-location:
+  # a malformed message is rejected by commit-msg (form checker resolved from the
+  # plugin), and a conforming commit passes. Configure a local identity + disable
+  # signing in THIS throwaway repo only (never predicate's config).
+  git -C "$proj" config user.email fixture@example.invalid
+  git -C "$proj" config user.name 'Fixture Consumer'
+  git -C "$proj" config commit.gpgsign false
+  printf 'hello\n' >"$proj/file.txt"
+  git -C "$proj" add file.txt
+
+  # Malformed message must be BLOCKED by the plugin-resolved commit-msg gate.
+  if git -C "$proj" commit -m 'this is not a conventional commit message at all' >/dev/null 2>&1; then
+    note "malformed commit was NOT blocked — the commit-msg gate did not fire from the plugin"; rc=1
+    # Undo the erroneous commit so the conforming-commit check below is clean.
+    git -C "$proj" reset --soft HEAD~1 >/dev/null 2>&1 || true
+  fi
+
+  # A conforming commit must PASS (the structural pre-commit layer runs from the
+  # plugin and finds nothing to block on this minimal change).
+  if ! git -C "$proj" commit -m 'feat: add a file' >/dev/null 2>&1; then
+    note "conforming commit was blocked — the gate misfired"; rc=1
+  fi
 
   rm -rf "$box"
   [ "$rc" -eq 0 ] && ok "$name" || bad "$name"
@@ -238,6 +309,7 @@ case_fresh_home
 case_ledger_init_no_push
 case_config_example_emitted
 case_end_to_end
+case_self_contained_footprint
 case_hooks_composed_by_path
 
 printf '\n%d passed, %d failed\n' "$pass" "$fail"
