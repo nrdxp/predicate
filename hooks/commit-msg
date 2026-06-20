@@ -22,9 +22,16 @@ fi
 # worktree (git invokes the hook with cwd = the working tree root, but be explicit).
 root="$(git rev-parse --show-toplevel)"
 
+# Load project config if present; a downstream repo can override COMMIT_HYGIENE_CHECK
+# (path to the Conventional Commits form checker). Absent config → predicate default.
+# shellcheck source=/dev/null
+[ -f "$root/.ledger/config.sh" ] && source "$root/.ledger/config.sh"
+# Path to the Conventional Commits form checker; downstream repos redirect here.
+: "${COMMIT_HYGIENE_CHECK:=$root/skills/commit-hygiene/scripts/check_commit_msg.py}"
+
 rc=0
 
-python3 "$root/skills/commit-hygiene/scripts/check_commit_msg.py" --file "$msg_file"
+python3 "$COMMIT_HYGIENE_CHECK" --file "$msg_file"
 hygiene_rc=$?
 if [ "$hygiene_rc" -ne 0 ]; then rc=1; fi
 

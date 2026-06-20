@@ -21,9 +21,18 @@ set -u
 
 root="$(git rev-parse --show-toplevel)"
 
+# Load project config if present; a downstream repo can override REMOVED (bash
+# array of demoted workflows) and DOC_AUDIT_CHECK (path to the doc-link checker).
+# Absent config → predicate defaults below.
+# shellcheck source=/dev/null
+[ -f "$root/.ledger/config.sh" ] && source "$root/.ledger/config.sh"
 # The removed/demoted workflows the orphan gate polices. Kept in sync with the
 # cohesion campaign's cut set; a name here must have no live skills/<name>/ dir.
-REMOVED=(plan charter plan-review continue personalization sketch dialectic predicate planning)
+if [ -z "${REMOVED+set}" ]; then
+  REMOVED=(plan charter plan-review continue personalization sketch dialectic predicate planning)
+fi
+# Path to the doc-link checker; downstream repos can redirect to their own script.
+: "${DOC_AUDIT_CHECK:=$root/skills/doc-audit/scripts/check_docs.py}"
 
 rc=0
 
@@ -58,7 +67,7 @@ for f in "${staged[@]}"; do
   case "$f" in
     *.md)
       if [ -f "$root/$f" ]; then
-        ( cd "$root" && python3 "$root/skills/doc-audit/scripts/check_docs.py" "$f" )
+        ( cd "$root" && python3 "$DOC_AUDIT_CHECK" "$f" )
         doc_rc=$?
         if [ "$doc_rc" -ne 0 ]; then rc=1; fi
       fi
