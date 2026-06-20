@@ -5,7 +5,7 @@
   "author": {
     "name": "nrdxp"
   },
+  "homepage": "https://github.com/nrdxp/predicate",
   "repository": "https://github.com/nrdxp/predicate",
-  "license": "MIT",
-  "bootstrap": "bootstrap/install.sh"
+  "license": "MIT"
 }
