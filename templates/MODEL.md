@@ -1,10 +1,10 @@
 # MODEL: [Domain Name]
 
 <!--
-  MODEL documents are formal domain model artifacts produced by the /model workflow.
+  MODEL documents are formal domain model artifacts produced by the /form workflow.
   They formalize a domain's structure using the Structural Domain Modeling Atlas (SDMA).
 
-  See: skills/model/SKILL.md for the full protocol specification.
+  See: skills/form/SKILL.md for the full protocol specification.
   See: skills/sdma/SKILL.md for the applied modeling toolkit.
   See: skills/formal-foundations/SKILL.md for the mathematical foundations.
 -->

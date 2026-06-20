@@ -5,10 +5,10 @@ description: |
   Trigger when:
   - Creating new formal models or applying mathematical lenses to analyze existing specifications.
   - Navigating phases: Identify, Select, Construct, Validate, Record, Connect.
-  - Prompt contains: /model, model workflow, categorical, coalgebraic, linear logic, information-theoretic, validation.
+  - Prompt contains: /form, form workflow, categorical, coalgebraic, linear logic, information-theoretic, validation.
 ---
 
-# MODEL Protocol v2.0 (Control-Theoretic Modeling)
+# FORM Protocol v2.0 (Control-Theoretic Modeling)
 
 **Identify → Select → Construct → Validate → Record → Connect**
 
@@ -20,14 +20,14 @@ This workflow defines the C.O.R.E. Modeling phase. The objective is to define th
 
 Formal models are the bridge between empirical observations and proof. An olog, a coalgebra, a session type specification — each makes implicit relationships explicit and mathematically verifiable. Without formal models, sequence trajectories are guided by anthropomorphic verbal descriptions that cannot be checked or formally composed.
 
-MODEL provides the procedure for constructing these structural representations. The `sdma` skill defines a foundational toolkit of categorical, coalgebraic, and information-theoretic isomorphisms. The principle of **minimal representation** governs selection: choose the simplest mathematical formalism that faithfully captures the domain's structure, and use it to map the state space for subsequent verification loops.
+FORM provides the procedure for constructing these structural representations. The `sdma` skill defines a foundational toolkit of categorical, coalgebraic, and information-theoretic isomorphisms. The principle of **minimal representation** governs selection: choose the simplest mathematical formalism that faithfully captures the domain's structure, and use it to map the state space for subsequent verification loops.
 
 ---
 
 ## Scope
 
 > [!IMPORTANT]
-> MODEL produces formal model documents — either creating new ones from `templates/MODEL.md` or scrutinizing existing documents (protocol specs, whitepapers, design docs) through the SDMA lens. It is structural analysis, not planning, exploration, or implementation: strategic planning and exploration are the standing [Planning Invariants](../../ambient.md#planning-invariants) and [Sketch Principle](../../ambient.md#the-sketch-principle), and implementation is `/core`. If you find yourself writing code or redesigning architecture, you've left MODEL territory.
+> FORM produces formal model documents — either creating new ones from `templates/MODEL.md` or scrutinizing existing documents (protocol specs, whitepapers, design docs) through the SDMA lens. It is structural analysis, not planning, exploration, or implementation: strategic planning and exploration are the standing [Planning Invariants](../../ambient.md#planning-invariants) and [Sketch Principle](../../ambient.md#the-sketch-principle), and implementation is `/core`. If you find yourself writing code or redesigning architecture, you've left FORM territory.
 
 ---
 
@@ -245,16 +245,16 @@ The sketch captures the _modeling journey_; the model document captures the _out
 
 ## Position in the Workflow Chain
 
-MODEL is a domain-specific structural-analysis tool, not a pipeline stage:
+FORM is a domain-specific structural-analysis tool, not a pipeline stage:
 
 ```
 explore (ambient Sketch Principle)  →  understand the problem space
                                         ↓
-/model   →  formalize domain understanding (can be invoked from any phase)
+/form    →  formalize domain understanding (can be invoked from any phase)
          ↓
 /spec    →  declare normative constraints over the model (→ what MUST hold)
          ↓
 /core    →  regulate state (guided by model, constrained by spec)
 ```
 
-MODEL can be invoked standalone or from within any other workflow. A model produced while exploring informs the strategy that follows; a model produced during `/core` validates implementation decisions. The formal model is a structural analysis tool available at any point. Strategy itself is governed by the ambient [Planning Invariants](../../ambient.md#planning-invariants), not a discrete planning workflow.
+FORM can be invoked standalone or from within any other workflow. A model produced while exploring informs the strategy that follows; a model produced during `/core` validates implementation decisions. The formal model is a structural analysis tool available at any point. Strategy itself is governed by the ambient [Planning Invariants](../../ambient.md#planning-invariants), not a discrete planning workflow.
