@@ -51,11 +51,13 @@ Every `git commit`, in every repository (the main repository, the independent `.
    python3 skills/commit-hygiene/scripts/check_commit_msg.py --message "<msg>"
    ```
    (≤50-char header, Conventional Commits type, blank-line separation, ≤72-char body lines.)
-2. **Validate the ledger and authorize the change.** The same [ledger gate](ledger/gate/README.md) that runs at dispatch runs here, so an autonomous walk meets the identical gate a human does. It exits `0` only when the change is both *structurally valid* (its Nickel artifact exports) and *authorized* — every staged path falls under some campaign DAG node's `file_surface`. **Not in the IBC → not authorized:** a staged path no node covers fails the gate.
+2. **Validate the artifact (always) and authorize the change (campaign-time).** The gate composes two layers with *different activation*:
+   - **Structural — always.** Artifact-local and campaign-independent: a staged Nickel artifact must export (satisfy its contract), staged markdown must have valid local links, and no staged file may orphan a removed workflow. These ask only "does this artifact satisfy its own contract?", need no plan to be meaningful, and so run on every commit.
+   - **Authority — iff a campaign is in flight.** Per-commit and campaign-*dependent*: every staged path must fall under some campaign DAG node's `file_surface`. **Not in the IBC → not authorized.** This is meaningless without a plan, so it activates *only* when an active campaign DAG is declared via the pointer file `.ledger/active-dag` (written by the [orchestration](skills/orchestration/SKILL.md) driver while a campaign runs, absent otherwise). The driver names the DAG; the hook reads the pointer and, present, runs:
    ```bash
    ledger/gate/ledger-validate.sh commit-gate <dag>.ncl
    ```
-   The runner resolves `nickel` directly or via `nix run nixpkgs#nickel --`, so the one command is portable across human and headless shells. A direct `/core` task is a degenerate one-node DAG, so the authorization property holds universally without extra ceremony.
+   The runner resolves `nickel` directly or via `nix run nixpkgs#nickel --`, so the one command is portable across human and headless shells. An **ordinary commit** (no pointer) gets the structural layer alone — nothing in the authority layer blocks it; authority is the campaign-time overlay, enforced exactly when a plan exists to give it meaning.
 3. **Emit the boundary audit** — in output, not silently:
    - One cohesive logical change? (If the message needs "and", split it.)
    - Does the body give the *why*, derivable by a stranger with no access to this conversation? No internal workflow or agent references.

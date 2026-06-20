@@ -3,7 +3,11 @@
 # enforced rather than remembered. Any failing check exits non-zero and BLOCKS
 # the commit.
 #
-# Three checks, each gating what THIS commit stages:
+# The gate composes TWO layers with DIFFERENT activation (rules.md §3):
+#
+#   STRUCTURAL (always; artifact-local, campaign-INDEPENDENT) — checks 1-3.
+#     They ask only "does this artifact satisfy its own contract?" and need no
+#     campaign to be meaningful, so they run on every commit:
 #   1. ORPHANS    no staged authoritative file may reference a removed/demoted
 #                 workflow as if it were live. The orphan gate is a repo-wide
 #                 referential-truth scan; here it is SCOPED to the staged set so
@@ -14,6 +18,13 @@
 #   2. DOC LINKS  staged markdown has valid local links (check_docs.py).
 #   3. LEDGER     a staged Nickel ledger artifact satisfies its contract
 #                 (ledger-validate.sh structure) — a malformed .ncl cannot land.
+#
+#   AUTHORITY (iff a campaign is in flight; per-commit, campaign-DEPENDENT) —
+#     check 4. "Not in the IBC -> not authorized": do the staged paths fall
+#     under some node's file_surface in the ACTIVE campaign DAG? This is
+#     meaningless without a campaign plan, so it runs ONLY when one is declared
+#     via the active-DAG pointer (see check 4). An ordinary commit (no pointer)
+#     runs the structural layer alone — nothing in the authority layer blocks it.
 #
 # A check whose inputs aren't staged is skipped (no-op), so unrelated commits
 # pass cleanly.
@@ -102,6 +113,44 @@ for f in "${staged[@]}"; do
       ;;
   esac
 done
+
+# --- 4. AUTHORITY (iff an active campaign DAG is declared) -----------------
+# The authority overlay is campaign-DEPENDENT: it is meaningless without a plan,
+# so it runs ONLY when a campaign is in flight. The active-DAG pointer is a file
+# in the GATED repo's $root/.ledger/active-dag, written by the orchestration
+# driver when a campaign is in flight and absent otherwise. Its sole content is
+# the $root-relative (or absolute) path to the active campaign DAG artifact.
+#
+# Pointer ABSENT  -> ordinary commit: structural layer alone, authority skipped.
+# Pointer PRESENT -> authority enforced: every staged path must fall under some
+#                    DAG node's file_surface (ledger-validate.sh commit-gate).
+pointer="$root/.ledger/active-dag"
+if [ -f "$pointer" ]; then
+  # Resolve the named DAG. The pointer is data of the GATED repo, so a relative
+  # path is interpreted against $root (the FILE under inspection); the machinery
+  # that reads it stays $plugin-relative (P21).
+  dag="$(head -n1 "$pointer" | tr -d '[:space:]')"
+  case "$dag" in
+    /*) dag_path="$dag" ;;          # absolute, used as-is
+    *)  dag_path="$root/$dag" ;;    # $root-relative
+  esac
+  if [ -z "$dag" ] || [ ! -r "$dag_path" ]; then
+    echo "pre-commit: active-dag pointer names an unreadable DAG: ${dag:-<empty>}" >&2
+    echo "  ($pointer -> $dag_path)" >&2
+    rc=1
+  else
+    # The authority half: structure-validate the DAG, then authorize the staged
+    # set against it. ledger-validate.sh resolves its own machinery ($plugin).
+    bash "$plugin/ledger/gate/ledger-validate.sh" commit-gate "$dag_path"
+    auth_rc=$?
+    if [ "$auth_rc" -ne 0 ]; then
+      echo "pre-commit: AUTHORITY check failed against active DAG: $dag" >&2
+      echo "  A staged path falls under no node's file_surface" \
+           "(not in the IBC -> not authorized)." >&2
+      rc=1
+    fi
+  fi
+fi
 
 if [ "$rc" -ne 0 ]; then
   echo "pre-commit: staged-surface gate failed — commit blocked." >&2
