@@ -86,7 +86,6 @@ The exact parameter bounds are initialized in the `ABSORB` phase based on task c
 # 1. METADATA
 TOPIC: "topic-slug"            # Topic slug for the refinement session
 STATUS: [ABSORB | CLARIFY | AUDIT | ITERATE | SWEEP | REVIEW | REPORT | HALT]
-UNCERTAINTY: [0.0-1.0]       # Residual uncertainty. Must be 0.0 to proceed to AUDIT.
 
 # 2. CONTEXT
 CTX:
@@ -175,13 +174,15 @@ TRACE:
         "path/to/file": "sha256_hash"
       VERIFICATION: "Compiler/linter/test outputs"
       COMMITS:
-``## State Transitions & Definitions
+```
+
+## State Transitions & Definitions
 
 ```
-ABSORB ──→ CLARIFY   (if UNCERTAINTY > 0.0)
-       └─→ AUDIT     (if UNCERTAINTY = 0.0)
+ABSORB ──→ CLARIFY   (if goal/scope ambiguity exists)
+       └─→ AUDIT     (if no ambiguity remains)
 
-CLARIFY ─→ AUDIT     (once uncertainty resolved)
+CLARIFY ─→ AUDIT     (once ambiguity resolved)
         └─→ HALT     (if ambiguity cannot be resolved in autonomous mode)
  
 AUDIT  ──→ ITERATE   (if ledger has PENDING items)
@@ -205,7 +206,7 @@ REVIEW ──→ ITERATE   (if review findings require code/doc modifications; r
 ### 1. ABSORB
 Ingest the target artifact, the optimization goals, and any relevant specs or test suites. Setup the tracking ledger in the active sketch file.
 - **Mode Selection:** Set `CTX.MODE` to `AUTONOMOUS` if executing under a long-running background worker (e.g. `/goal`), otherwise default to `INTERACTIVE`.
-- **Ambiguity Gate:** If there is ambiguity in the goal or scope, set `UNCERTAINTY` > 0.0 and transition to `CLARIFY`.
+- **Ambiguity Gate:** If there is ambiguity in the goal or scope, transition to `CLARIFY` and do not proceed to `AUDIT` until it is resolved ([Halt over assumption](../../rules.md)).
 - **Architectural Documentation Mapping:** Locate and map all relevant design/architectural documents (e.g., `README.md`, ADRs, docs in `docs/`) and log their relative paths in `CTX.ARCHITECTURAL_DOCS`.
 - **Worktree Setup:** 
   Initialize a dedicated git worktree at `.worktrees/refine-<topic>` based on the active HEAD and create a private branch attempt:
@@ -225,8 +226,8 @@ Log these parameters and their complexity rationale in the sketch.
 
 ### 2. CLARIFY
 Halt sequence generation. Surface obstacles or questions regarding the target artifacts or goals.
-- **Interactive Mode:** Wait for human validation before resolving, setting `UNCERTAINTY` to `0.0`, and transitioning to `AUDIT`.
-- **Autonomous Mode:** Formulate a conservative, logical hypothesis/assumption that maximizes system safety and preserves existing behavior. Record this hypothesis under an `ASSUMPTIONS` section in the sketchpad, reset `UNCERTAINTY` to `0.0`, and proceed with execution. Only trigger a hard `HALT` if the ambiguity prevents compilation, linting, or test execution (e.g., a missing library or fatal syntax error).
+- **Interactive Mode:** Wait for human validation before resolving the ambiguity and transitioning to `AUDIT`.
+- **Autonomous Mode:** Formulate a conservative, logical hypothesis/assumption that maximizes system safety and preserves existing behavior. Record this hypothesis under an `ASSUMPTIONS` section in the sketchpad and proceed with execution. Only trigger a hard `HALT` if the ambiguity prevents compilation, linting, or test execution (e.g., a missing library or fatal syntax error).
 
 ### 3. AUDIT
 Exhaustively analyze the artifact across four dimensions to identify how to achieve its **minimal representation** (optimal articulation of the problem space without superfluous complexity). 
@@ -271,7 +272,7 @@ For each ledger item:
    - **For non-code artifacts (e.g. documentation, specifications):** Apply rigorous linting, link checking, style alignment audits (e.g. [documentation](../documentation/SKILL.md)), and structural completeness checks. Verify baseline deficiency before correction.
 2. Commit the change using conventional commits conforming to [commit-hygiene](../commit-hygiene/SKILL.md) inside the worktree directory, and record the conventional commit hash and message in `TRACE.LOOPS[CURRENT_LOOP].COMMITS`.
 3. Update the ledger item status to `RESOLVED` with evidence.
-4. Update the sketch ledger in the main repository and commit within the `.sketches/` subrepo. To automate updating and committing sketch files, you can use the synchronization script from the main repo root:
+4. Update the active sketch in `.ledger/log/` and commit it within the `.ledger/` sub-repository. To automate updating and committing sketch files, you can use the synchronization script from the main repo root:
    ```bash
    ./skills/refine/scripts/sync_sketch.py [optional custom message]
    ```
@@ -404,11 +405,11 @@ Before generating the final report, execute a post-mortem review of the refineme
 2. **ATOMIC_REFINEMENTS:** Every refinement commit must be logically atomic. Do not bundle unrelated refactorings or style updates into a single transaction.
 3. **ORTHOGONAL_SWEEPS:** Every sweep MUST execute Multi-Boundary Subagent Sweeps (MBSS) in parallel. Spawning specialized, isolated review subagents approved by an independent Meta-Auditor is mandatory. Self-auditing, self-certification, or skipping subagent execution is strictly forbidden, regardless of refiner confidence or change size.
 4. **DETERMINISTIC_GROUNDING:** Banish subjective criticisms. Every item entered in the refinement ledger must map directly to a verified failure of a linter, compiler, test assertion, or specification contract. Reject any finding without a concrete failure trace.
-5. **SKETCH_SYNCHRONIZATION:** The active sketchpad ledger in `.sketches/` must be updated and committed in the subrepo at every loop boundary. Do not bundle multiple loops of code modifications and sketch pad updates into a single commit. Automate commits using `./skills/refine/scripts/sync_sketch.py`.
+5. **SKETCH_SYNCHRONIZATION:** The active sketch in `.ledger/log/` must be updated and committed in the `.ledger/` sub-repository at every loop boundary. Do not bundle multiple loops of code modifications and sketch pad updates into a single commit. Automate commits using `./skills/refine/scripts/sync_sketch.py`.
 6. **COMMIT_HYGIENE:** All commits must strictly conform to [commit-hygiene](../commit-hygiene/SKILL.md).
 7. **OSCILLATION_BREAKING:** Detect and break limit cycles autonomously using target file hash matches. If in autonomous mode, check out a new attempt branch from the last stable commit in the isolated worktree and perturb prompt parameters before retrying. In interactive mode, halt immediately.
 8. **EXIT_GATE_INVARIANCE:** Transitions to `REPORT` are strictly forbidden unless initiated from a passing `REVIEW` state where all maintainers have approved all items in the `REVIEW_LEDGER`, followed by the human final merge decision.
-9. **GIT_HISTORY_INVARIANCE:** History-altering git commands (such as `reset`, `rebase`, or `commit --amend` on any commit in any user-facing branch) are strictly forbidden across both the main repository and the `.sketches/` sub-repository. Backtracking via attempt branches preserves the linear history of all attempts and satisfies global history invariance.
+9. **GIT_HISTORY_INVARIANCE:** History-altering git commands (such as `reset`, `rebase`, or `commit --amend` on any commit in any user-facing branch) are strictly forbidden across both the main repository and the `.ledger/` sub-repository. Backtracking via attempt branches preserves the linear history of all attempts and satisfies global history invariance.
 10. **PREMISE_CHALLENGING:** Never refine a design without challenging its core premises and assumptions first. If the design is fundamentally flawed or over-engineered, halt execution immediately instead of polishing a "turd."
 11. **TIGHT_WORKTREE_LIFECYCLE:** The git worktree MUST be cleaned up and removed using `git worktree remove --force .worktrees/refine-<topic>` on any exit path (`REPORT` or `HALT`), leaving the host repository clean and undisturbed.
 12. **HOSTILE_MAINTAINER_REVIEW:** You are required to submit changesets to a panel of independent, critical maintainer subagents representing codebase owners. They review code design, simplicity, and documentation. All comments in `REVIEW_LEDGER` must be resolved (via commits or justified rebuttals) and marked `APPROVED` before presenting the PR to the human.
