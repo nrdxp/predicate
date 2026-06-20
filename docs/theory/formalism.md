@@ -23,7 +23,7 @@ If we are to build robust engineering frameworks, our mathematical mapping must 
 * **The Critique:** Is a single generation pass a "relaxation" process? No. Relaxation implies a bidirectional energy-minimization process. An LLM's inner loop is an **Open-Loop Stochastic Walk**. Because errors compound exponentially in open-loop systems, hallucination (stochastic drift) is mathematically inevitable over long horizons.
 * **The Rigorous Truth:** True "Stochastic Relaxation" occurs in the **Outer Loop**. When you use a deterministic system (a Python compiler, a JSON schema validator, or a human) to evaluate the output, calculate an error gradient, and update the prompt ($P_{t+1} = P_t \oplus \Delta E$), you have built a **Closed-Loop Feedback Controller**. You are executing derivative-free stochastic optimization to find the optimal prompt boundary.
 
-**Conclusion:** The formal paradigm is rigorously validated. We can definitively abandon anthropomorphic "Prompt Engineering" in favor of **Closed-Loop Stochastic Trajectory Control**.
+**Conclusion:** The formal paradigm is rigorously validated. This validation is the *substrate* beneath Predicate's doctrine, not its headline. The [Verification Dual](../../rules.md) is the discipline a practitioner works in; closed-loop stochastic trajectory control is the physics that discipline rests on. The math earns the doctrine — it does not replace it.
 
 ---
 
