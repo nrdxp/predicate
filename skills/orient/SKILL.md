@@ -49,7 +49,7 @@ invariants are defined in
 
 ### Phase 1 — ESTABLISH *(mechanical, automated — no human input)*
 
-Run `bootstrap init`: install git hooks into `.git/hooks` (untracked,
+Run `bootstrap/install.sh init --project <dir>`: install git hooks into `.git/hooks` (untracked,
 auditable, removable), initialize the `.ledger` sub-repository, wire
 project config. Idempotent — safe to re-run on an already-oriented
 project.
