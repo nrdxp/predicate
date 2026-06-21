@@ -277,7 +277,7 @@ Unknowns and requirements both move forward via the same carrier stack:
 | Carrier | Role | Cadence |
 | :--- | :--- | :--- |
 | **AGENTS.md** | Persistent anchor — goal, R/I/C, unknowns | Slow-changing; synced at reconcile |
-| **Nickel context-map** | Live carrier — active requirements + unknowns with `grounding`, `last_validated`, `signpost` markers; fail-loud on omission/staleness | Per-walk |
+| **Nickel context-map** | Live carrier — active requirements + unknowns with `grounding`, `last_validated`, `signpost` markers; fail-loud on omission (`last_validated` is tracked but staleness enforcement is not yet implemented) | Per-walk |
 | **Flight log (`.ledger/log/`)** | Narrative/history — decisions, findings, pivots and their why | Append-only |
 | **`.scratch` + sync** | Volatile draft; promotes validated changes → AGENTS.md | Ephemeral |
 
