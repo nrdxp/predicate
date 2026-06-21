@@ -85,17 +85,48 @@ cmd_structure() {
   # root than the artifact being validated (e.g. a worktree commit).
   local abs_artifact
   abs_artifact="$(realpath "$artifact")"
-  case "$abs_artifact" in
-    */ledger/contracts/*.ncl)
-      # Contract definitions hold types/functions — not serializable — so
-      # typecheck only.  Set -I to the artifact's own directory so sibling
-      # contracts in the SAME tree are importable without absolute paths.
-      "${NICKEL[@]}" typecheck -I "$(dirname "$abs_artifact")" "$artifact" >/dev/null
-      ;;
-    *)
-      "${NICKEL[@]}" export "${NICKEL_IMPORT_FLAGS[@]}" "$artifact" >/dev/null
-      ;;
-  esac
+  # Detect declared polarity: a line matching `# EXPECT: fail` (leading
+  # whitespace allowed) marks a negative-control fixture that is DEFINED to
+  # fail validation.  Everything else defaults to polarity "pass".
+  local polarity="pass"
+  if grep -qE '^\s*#\s*EXPECT:\s*fail' "$artifact"; then
+    polarity="fail"
+  fi
+
+  local run_rc=0
+  # Run the nickel check; suppress stderr for negative controls (expected noise),
+  # keep it visible for pass-polarity so failures are diagnosable.
+  _run_nickel_check() {
+    case "$abs_artifact" in
+      */ledger/contracts/*.ncl)
+        # Contract definitions hold types/functions — not serializable — so
+        # typecheck only.  Set -I to the artifact's own directory so sibling
+        # contracts in the SAME tree are importable without absolute paths.
+        "${NICKEL[@]}" typecheck -I "$(dirname "$abs_artifact")" "$artifact" >/dev/null
+        ;;
+      *)
+        "${NICKEL[@]}" export "${NICKEL_IMPORT_FLAGS[@]}" "$artifact" >/dev/null
+        ;;
+    esac
+  }
+  if [[ "$polarity" == "fail" ]]; then
+    _run_nickel_check 2>/dev/null || run_rc=$?
+  else
+    _run_nickel_check || run_rc=$?
+  fi
+
+  if [[ "$polarity" == "fail" ]]; then
+    if [[ "$run_rc" -ne 0 ]]; then
+      # Negative control behaved as declared — gate passes.
+      return 0
+    else
+      echo "ledger-validate: EXPECT: fail but artifact validated (rc 0) — regression in negative control: $artifact" >&2
+      return 1
+    fi
+  else
+    # Default polarity "pass": forward the nickel exit code directly.
+    return "$run_rc"
+  fi
 }
 
 # authorize <dag.ncl> [path ...]: validate the DAG, then check paths.
