@@ -81,12 +81,32 @@ The conditioning layer is in active design. Components:
 - Consumed downstream as an installed plugin via `bootstrap/`, not a submodule or
   symlink.
 
-## Arsenal
+## Structure — what is core vs context-sensitive
 
-Predicate's own skills are routed by moment — the routing table is
-[rules.md](rules.md) §5. The host harness's *other* installed skills, tools, and
-MCP servers are part of the working arsenal: at the start of non-trivial work,
-survey for a capability that would change the approach; do not enumerate.
+**Always-on substrate** (never not active): [rules.md](rules.md) (the Prime
+Invariants), [ambient.md](ambient.md) (standing principles),
+[skills/constitution/SKILL.md](skills/constitution/SKILL.md) (authority
+hierarchy), and the Commit Gate ([rules.md](rules.md) §3).
+
+**The `boundary → campaign` spine** — predicate's coordination process; full
+detail in [README.md](README.md). On top, the tier-aware workflows: `/boundary`
+(the IBC contract) and `/campaign` with its deterministic driver `/orchestration`
+(architect survey → orchestrate → reconcile). Below, the single-walk workflows
+invoked by moment: `/core`, `/refine`, `/form`, `/doc`, `/chronicle`.
+
+**Enforcement machinery** (intrinsic, not skills): [ledger/](ledger/) (Nickel
+contracts that make campaign artifacts machine-valid), [gates/](gates/)
+(referential-truth and self-containment checks), [hooks/](hooks/) (the commit
+gate). The Verification Dual's symbolic path is machinery, not an agent's memory.
+
+**Context-sensitive arsenal** (invoked by moment, per task): the language skills
+(`go`, `rust`, `python`, `typescript`, `quarto`), the audit skills
+(`security-audit`, `api-audit`, `ai-audit`, `git-review`, `doc-audit`), the
+analysis lenses (`hickey`, `lowy`, `sdma`, `spec`, `formal-foundations`), and
+`prior-art`. Routing table: [rules.md](rules.md) §5. The host harness's *other*
+installed skills, tools, and MCP servers extend this arsenal — at the start of
+non-trivial work, survey for a capability that would change the approach; do not
+enumerate.
 
 ## Version
 
