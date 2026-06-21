@@ -20,14 +20,15 @@
   # `serialize` marker may ride alongside and are ignored by the contract.
   #
   # `discipline` enumerates the surviving worker workflows: 'core (feature/TDD),
-  # 'refine (polish), and 'doc (documentation). An out-of-enum tag fails the
+  # 'refine (polish), 'doc (documentation), 'form (formal domain modeling),
+  # and 'spec (normative specification). An out-of-enum tag fails the
   # contract — but ONLY because `Dag` applies this contract per element (below);
   # a defined-but-unapplied contract enforces nothing.
   Node = {
     id | String,
     depends_on | Array String,
     file_surface | Array String,   # paths/globs this node may touch
-    discipline | [| 'core, 'refine, 'doc |],
+    discipline | [| 'core, 'refine, 'doc, 'form, 'spec |],
     mitigates | Array String,      # finding ids this node addresses
     ..                             # open: title/rationale/serialize ride along
   },
@@ -37,7 +38,7 @@
     # Per-element node conformance: annotate each node with the `Node` contract
     # so the field shapes and the `discipline` enum are actually enforced. A
     # contract defined but never applied is inert; checking it over each element
-    # is what makes `discipline | [| 'core, 'refine, 'doc |]` a real gate. The
+    # is what makes `discipline | [| 'core, 'refine, 'doc, 'form, 'spec |]` a real gate. The
     # annotation form `(n | Node)` under `std.deep_seq` raises the violation
     # EAGERLY — `std.contract.apply` alone stays lazy and the bad node slips
     # through `nickel export`. deep_seq descends into the annotated fields so an
