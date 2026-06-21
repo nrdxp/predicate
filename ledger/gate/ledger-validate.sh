@@ -63,7 +63,10 @@ resolve_nickel() {
   fi
 }
 
-# structure <artifact.ncl>: export-validate one artifact.
+# structure <artifact.ncl>: validate one artifact.
+# Contract definitions (ledger/contracts/) hold contracts/functions — not
+# serializable — so they are typechecked rather than exported. Instances
+# (ledger/fixtures/, ledger/state/, etc.) are export-validated as before.
 cmd_structure() {
   local artifact="${1:-}"
   if [[ -z "$artifact" ]]; then
@@ -75,7 +78,17 @@ cmd_structure() {
     exit 2
   fi
   resolve_nickel
-  "${NICKEL[@]}" export "${NICKEL_IMPORT_FLAGS[@]}" "$artifact" >/dev/null
+  # Resolve to absolute path so the contracts/ prefix check is reliable
+  # regardless of how the caller spells the path.
+  local abs_artifact
+  abs_artifact="$(realpath "$artifact")"
+  local contracts_dir
+  contracts_dir="$(realpath "$plugin/ledger/contracts")"
+  if [[ "$abs_artifact" == "$contracts_dir"/* ]]; then
+    "${NICKEL[@]}" typecheck "${NICKEL_IMPORT_FLAGS[@]}" "$artifact" >/dev/null
+  else
+    "${NICKEL[@]}" export "${NICKEL_IMPORT_FLAGS[@]}" "$artifact" >/dev/null
+  fi
 }
 
 # authorize <dag.ncl> [path ...]: validate the DAG, then check paths.
