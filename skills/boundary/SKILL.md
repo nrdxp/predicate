@@ -223,3 +223,78 @@ APPROVE ─→ DISPATCH  (human approves IBC*; expensive walk launches)
    the Grounded Critique Invariant in [rules.md](../../rules.md).
 5. **HUMAN_DISPATCH_GATE:** $\text{IBC}^*$ MUST receive human approval
    before an expensive or autonomous walk launches from it.
+
+---
+
+## AGENTS.md — the project-scope boundary
+
+AGENTS.md is the **persistent project-scope boundary**: the durable anchor a
+zero-context agent orients from before any walk begins. It is the slow-changing
+record of goal, requirements, constraints, and known-unknowns that the per-
+dispatch IBC (S1–S7 above) is projected from.
+
+### Invariants (soundness — violation makes the file actively harmful)
+
+- **Self-contained entrypoint.** A zero-context agent orients from this file
+  plus its in-repo links. No assumed external knowledge; every pointer resolves
+  in-repo or carries a URL.
+- **Authoritative ⇒ true.** The *goal* is the desired end state (it steers the
+  walk, not a status report). Factual/status claims are true, or marked **WIP**.
+  Never conflate the two.
+- **Single source.** Reference authorities ([rules.md](../../rules.md),
+  [ambient.md](../../ambient.md), specs); never copy their text.
+- **Agent-guiding only.** If removing a line changes no agent action, cut it.
+
+### Required content
+
+- **Goal** — the desired end state; why this exists.
+- **Requirements / Invariants / Constraints** — the project's own (referenced
+  if authoritative elsewhere).
+- **Unknowns** — first-class, treated like requirements: the live
+  known-unknowns, so the agent knows where the map is incomplete rather than
+  assuming false certainty. Each unknown carries a **signpost** — what would
+  resolve or invalidate it.
+- **Operational entrypoint** — what to read first; build/test/validate; arsenal.
+- **Structure** — what is core vs context-sensitive.
+- **Alignment-to-parent** (non-root only) — how this component serves the
+  parent goal (the defeater substrate).
+
+### Anti-rot constraints
+
+- **Minimal surface area** — every line is a liability kept true; brevity is
+  anti-drift.
+- **Freeform within the contract** — required content present; everything else
+  is project-specific. A contract, not a template.
+- **Stable / synced** — absorbs only reconciled truth; volatile context lives
+  in `.scratch` and is promoted deliberately at reconcile boundaries.
+- **Nesting-aware** — a subdirectory earns its own AGENTS.md only when it has
+  a goal *distinct from and serving* the root; do not proliferate.
+
+### Carrier roles
+
+Unknowns and requirements both move forward via the same carrier stack:
+
+| Carrier | Role | Cadence |
+| :--- | :--- | :--- |
+| **AGENTS.md** | Persistent anchor — goal, R/I/C, unknowns | Slow-changing; synced at reconcile |
+| **Nickel context-map** | Live carrier — active requirements + unknowns with `grounding`, `last_validated`, `signpost` markers; fail-loud on omission/staleness | Per-walk |
+| **Flight log (`.ledger/log/`)** | Narrative/history — decisions, findings, pivots and their why | Append-only |
+| **`.scratch` + sync** | Volatile draft; promotes validated changes → AGENTS.md | Ephemeral |
+
+---
+
+## Boundary Cadence
+
+Boundary-setting is the **recurring self-conditioning operation**, not a
+pre-flight checklist run once per campaign. It operates at three cadences:
+
+- **Macro** (per-dispatch IBC) — the S1–S7 sufficiency conditions above; the
+  human dispatch gate; the expensive walk launches from $\text{IBC}^*$.
+- **Meso** (per-step reconstruction) — at the start of every step in a long
+  walk, re-read the governing invariants and the active ledger rather than
+  trusting accumulated context. Procedure in
+  [ambient.md](../../ambient.md#boundary-reconstruction).
+- **Micro** (per-decision query-shaping) — a standing disposition: before
+  generating any substantive output, verify that the operative constraints are
+  present in context. This is not a machinery step; it is the boundary skill
+  applied as an attentional prior.
