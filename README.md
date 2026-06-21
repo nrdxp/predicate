@@ -141,7 +141,13 @@ The Dual rests on a control-theoretic model of generation. The math is still the
 
 Predicate models the agent's prompt as an **Initial Boundary Condition (IBC)** that warps this probability landscape, carving a deep attractor basin to guide token selection. The Dual is the discipline that keeps the walk inside that basin: the symbolic path is the closed feedback loop made deterministic, and the adversarial path is the same loop run by decorrelated reviewers where no deterministic loop can exist.
 
-The full first-principles derivation — the Markov-chain assumption, the Boltzmann engine, phase-space constriction, and closed-loop control — lives in [docs/theory/formalism.md](docs/theory/formalism.md).
+The formalism also covers the *prevention* half — three phenomena the doctrine acts on but the four core mappings leave implicit:
+
+* **Attention-dilution:** the IBC's attractor hold decays as context grows ($I(\mathbf{c}_0; x_t)$ is non-increasing in $t$), which is why the [boundary-reconstruction reflex](ambient.md#boundary-reconstruction) re-injects the highest-precedence invariants at each long-horizon step rather than trusting accumulated context.
+* **Design-space constriction:** the same phase-space-contraction operator that prunes valid trajectories per token also prunes valid designs per discovered constraint. The `molten`/`stable` maturity flag tracks the rate of that contraction — high rate means the basin is still moving; rate approaching zero means it has settled.
+* **Basin-nesting:** goals are nested basins ($B_{\text{task}} \subset B_{\text{component}} \subset B_{\text{project}} \subset \cdots$); a move can satisfy the innermost constraint while exiting a parent basin — the formal definition of a defeater and the trigger for [Strategic Escalation](ambient.md#planning-invariants).
+
+The full first-principles derivation — the Markov-chain assumption, the Boltzmann engine, phase-space constriction, closed-loop control, and the prevention-half extension — lives in [docs/theory/formalism.md](docs/theory/formalism.md).
 
 ---
 
