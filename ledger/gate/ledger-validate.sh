@@ -78,17 +78,24 @@ cmd_structure() {
     exit 2
   fi
   resolve_nickel
-  # Resolve to absolute path so the contracts/ prefix check is reliable
-  # regardless of how the caller spells the path.
+  # Resolve to absolute path so the path-pattern check is reliable regardless
+  # of how the caller spells the path.  Classification is keyed on the
+  # ARTIFACT'S own resolved path — not on the plugin's contracts/ dir — so
+  # the check works when the script lives in a different worktree or repo
+  # root than the artifact being validated (e.g. a worktree commit).
   local abs_artifact
   abs_artifact="$(realpath "$artifact")"
-  local contracts_dir
-  contracts_dir="$(realpath "$plugin/ledger/contracts")"
-  if [[ "$abs_artifact" == "$contracts_dir"/* ]]; then
-    "${NICKEL[@]}" typecheck "${NICKEL_IMPORT_FLAGS[@]}" "$artifact" >/dev/null
-  else
-    "${NICKEL[@]}" export "${NICKEL_IMPORT_FLAGS[@]}" "$artifact" >/dev/null
-  fi
+  case "$abs_artifact" in
+    */ledger/contracts/*.ncl)
+      # Contract definitions hold types/functions — not serializable — so
+      # typecheck only.  Set -I to the artifact's own directory so sibling
+      # contracts in the SAME tree are importable without absolute paths.
+      "${NICKEL[@]}" typecheck -I "$(dirname "$abs_artifact")" "$artifact" >/dev/null
+      ;;
+    *)
+      "${NICKEL[@]}" export "${NICKEL_IMPORT_FLAGS[@]}" "$artifact" >/dev/null
+      ;;
+  esac
 }
 
 # authorize <dag.ncl> [path ...]: validate the DAG, then check paths.
