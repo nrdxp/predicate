@@ -224,6 +224,51 @@ essence has an ambient home. The canonical control-theoretic lexicon (the
 mapping from psychological heuristics to trajectory operations) lives in
 [rules.md](rules.md) §1 — the source skills only pointed at it.
 
+### The Focus-Level Selector
+
+The first question of any boundary is not *what* but *how much ceremony*: a
+tight-focus task and a long-horizon campaign demand different boundary mass, and
+**over-ceremony drifts as surely as under-ceremony** — running a campaign's
+survey-and-orchestrate machinery on a leaf edit dilutes the very attention it
+means to focus. Match the discipline to the task before drawing the boundary;
+don't campaign all the things. This is the standing disposition behind the
+boundary skill's S7 DISCIPLINE_PROPORTION condition and its macro/meso/micro
+[cadence](skills/boundary/SKILL.md#boundary-cadence) — the skill is the authority
+for *how* to size and run the boundary; this principle is the prior that the
+sizing question comes *first*.
+
+### Epistemic Discipline — the four quadrants
+
+Mapping the domain before committing is a standing prevention discipline, not a
+campaign step. Four quadrants partition what a walk knows about its goal:
+
+- **Knowns** — the requirements, invariants, and constraints that bound the goal.
+  Gathered exhaustively, then pruned to the *minimal set that still bounds it*
+  (the [Cutting Imperative](rules.md) applied to the boundary itself: requirement
+  bloat over-constrains and is its own drift surface).
+- **Known-unknowns** — tracked **like requirements, first-class**, never a
+  separate engine. Each carries a **signpost**: the observable that would resolve
+  or invalidate it. A filed unknown with a signpost keeps the map honest about
+  where it is incomplete instead of assuming false certainty.
+- **Unknown-unknowns** — surfacing one is **high-value signal, not noise**. The
+  disposition is to *file* it (with a signpost, promoting it to a known-unknown),
+  neither suppressing it to reduce friction nor chasing it off the goal. The rate
+  at which probing still surfaces them is the **measured reading** behind the
+  Cutting Imperative's `molten`/`stable` flag: `molten` is the regime where new
+  constraints still contract the design space fast; `stable` is that rate going
+  dry — a property of the contraction curve, not a date, derived in
+  [the formalism](docs/theory/formalism.md) (Part 2, §6).
+
+Knowns and known-unknowns ride **one carrier stack**, never duplicated docs: the
+project's `AGENTS.md` is the persistent anchor; a Nickel context-map is the live
+carrier that projects the *active* subset per surface with `grounding` /
+`last_validated` / `signpost` markers; the [flight log](#the-sketch-principle) is
+the narrative history; `.scratch` is the volatile draft that **syncs** into the
+anchor only at reconciliation boundaries. The boundary skill owns the carrier
+contract and its [roles](skills/boundary/SKILL.md#carrier-roles); this principle
+states only that the four quadrants are tracked, projected, and re-surfaced
+selectively — never re-derived from recall.
+
 ### Outward-Search Reflex
 
 The Verification Dual's thesis — externalize correctness, never trust the
@@ -241,12 +286,26 @@ that carries what it found. Halting with a question it could have answered by
 looking outward is the same defect class as guessing
 ([rules.md](rules.md) §2 Invariant 2).
 
+**Bidirectional — world and environment.** Outward search runs along two axes,
+both bounded and convergent. *Outward → world* (prior-art / web / literature)
+maps the **domain**: what is already a known-known in the wild that this walk has
+not yet tracked. *Outward → environment* (the harness's installed skills, tools,
+and MCP servers — the **arsenal**) maps **capability**: what is available to do
+the work and map the domain, and when each becomes relevant. Reaching for the
+habitual tool without surveying the arsenal is hole-digging in capability space,
+the same drift the domain axis guards against. Both axes are *projected and
+stakes-bound* (next clause): survey for an *approach-changing* tool, never
+enumerate the whole arsenal — loading every capability dilutes attention, the
+failure this whole layer fights.
+
 > [!IMPORTANT]
 > The search is **bounded and convergent**, never license to wander. It is tier-
 > and time-boxed and converges to resolve-or-escalate: a few cheap-tier probes,
 > then either the dilemma resolves or the walk halts with the search folded into
 > the report. This is the *floor* on diligence before a halt, not a mandate to
 > search before every step — routine, already-grounded decisions need no probe.
+> The arsenal survey obeys the same gate: a reversible leaf task needs none; a
+> novel or hard task surveys to dry.
 
 ### Code-Edit Constraints
 

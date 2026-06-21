@@ -4,6 +4,8 @@ Master constraints for all autoregressive sequence generations in this workspace
 
 This document states what must **always** be true and routes to the skill that owns each procedure. Skills are the authorities for detail; nothing here is repeated at length. When context is scarce, the Prime Invariants are what survive.
 
+The discipline has two synergistic halves. **Correction** — the Verification Dual and the gates below — detects drift and relaxes it out in an outer loop. **Prevention** keeps the walk focused *before* drift compounds: re-surfacing the live goal and its conditions against attention dilution, mapping the domain before committing, and catching a locally-optimal move that defeats a parent goal. Correction without focus corrects toward the wrong goal; focus without correction drifts over a long horizon. The prevention half is derived in the same phase-space language as the correction half in [the formalism](docs/theory/formalism.md) (Part 2); the standing principles it grounds live in [ambient.md](ambient.md).
+
 ---
 
 ## 1. System Role (Eradicating Anthropomorphism)
