@@ -51,7 +51,7 @@ root="$(git rev-parse --show-toplevel)"
 # The removed/demoted workflows the orphan gate polices. Kept in sync with the
 # cohesion campaign's cut set; a name here must have no live skills/<name>/ dir.
 if [ -z "${REMOVED+set}" ]; then
-  REMOVED=(plan charter plan-review continue personalization sketch dialectic predicate planning)
+  REMOVED=(plan charter plan-review continue personalization sketch dialectic planning)
 fi
 # Path to the doc-link checker — predicate MACHINERY, so it lives under $plugin.
 # Downstream repos can still redirect to their own script via config.
