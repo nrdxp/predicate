@@ -1,77 +1,93 @@
-# Project Agent Configuration
+# AGENTS.md — Predicate
 
-## Predicate System
+This repository **is** Predicate, the upstream. `skills/`, `rules.md`, and
+`ambient.md` live at the root because other projects consume them as an installed
+plugin — see [README.md](README.md) and
+[docs/getting-started.md](docs/getting-started.md).
 
-This project **is** [predicate](https://github.com/nrdxp/predicate) — a system for portable, composable agent configuration.
+## Goal
 
-> [!IMPORTANT]
-> You **must** review [skills/constitution/SKILL.md](skills/constitution/SKILL.md) and follow its protocol before beginning work.
+Predicate is a self-hosting, harness-agnostic framework that **keeps AI coding
+agents anchored to the true goal across long-horizon work.** It has two
+synergistic halves:
 
-**Active Skills:**
-- commit-hygiene (Commit message formatting and best practices)
+- **Correction** — externalize correctness to the strongest evaluator (the
+  **Verification Dual**: *verify, then trust* — no condition closed by an agent's
+  say-so). Authority: [rules.md](rules.md).
+- **Prevention** *(WIP)* — externalize the goal, requirements, unknowns, and
+  available tools as a durable, selectively-projected **conditioning layer**, so a
+  walk stays focused *before* drift compounds.
 
-This is a documentation-only repository. The language-specific skills (go, rust, etc.) are provided as templates/configurations for other projects, but are not active here. The cognitive disposition that guides meta-project structural analysis is an always-on principle in [ambient.md](ambient.md).
+Correction without prevention corrects toward the wrong goal; prevention without
+correction drifts anyway over a long horizon. Together they bound drift.
 
-> [!NOTE]
-> This repository **is** the Predicate source. The `skills/` directory lives at the repo root because this is the upstream that other projects consume via submodule or symlink; see `README.md` for how a consuming project mounts it.
+## Formal substrate
 
----
+An LLM is an autoregressive stochastic walk over a token state-space; in
+open-loop generation error compounds, so drift is a statistical inevitability
+over long horizons. Predicate closes the loop — an external deterministic
+evaluator computes an error differential and updates the boundary condition
+toward a fixed point (ΔE → 0). The formalism is non-entropic: it is the anchor
+the doctrine rests on, not the doctrine. Full treatment:
+[docs/theory/formalism.md](docs/theory/formalism.md); lexicon in
+[rules.md](rules.md) §1. *(WIP: extends to model attention-dilution and
+design-space constriction as the conditioning layer lands.)*
 
-## Project Overview
+## Requirements (for predicate to be useful)
 
-Predicate is a framework for configuring AI coding agents with reusable, portable skills. Under this unified architecture, all rules, workflows, and tools are represented as modular agent skills loaded semantically.
+- **Self-hosting** — predicate governs its own development.
+- **Harness-agnostic** — every capability degrades to a harness-native primitive
+  (`git` / `bash` / `python` / `nickel`); a harness convenience may accelerate a
+  step but never replaces the primitive path when it is absent or fails.
+- **Machine-checkable where possible** — artifacts *and process* are bound by
+  evaluators (footprints), not by an agent's memory of the rules.
+- **Composable** — co-exists with whatever other plugins / skills / MCP servers
+  the host harness has installed.
 
-**Purpose:** Replace ad-hoc system prompts with version-controlled, shareable agent configuration.
+## Invariants (soundness)
 
----
+The six Prime Invariants, in precedence order, are authoritative in
+[rules.md](rules.md) §2 — read the source, not a copy here: Verification Dual ·
+Halt over assumption · Cutting Imperative · History is the deliverable ·
+Reconstruct don't recall · Tier economy.
 
-## Repository Structure
+## Constraints (engineering)
 
-| Directory     | Purpose                             |
-| :------------ | :---------------------------------- |
-| `skills/`     | Encapsulated agent skills (rules, workflows, tools) |
-| `templates/`  | Project templates (AGENTS.md)       |
-| `docs/`       | Guides, plans, and ADRs             |
+- **Maturity: `molten`** (pre-1.0) — refactor and cut freely; design over
+  stability ([README.md](README.md)).
+- **Context economy** — every artifact is drift surface; cut what is not
+  load-bearing.
 
----
+## Building toward the goal (WIP — the prevention half)
 
-## Build & Commands
+The conditioning layer is in active design. Components:
+- The contract + check for an effective AGENTS.md (this file is its first
+  instance).
+- A project **initialization workflow** that maps a repository and authors its
+  AGENTS.md hierarchy.
+- A **defeater register**: each load-bearing assumption carries an explicit
+  invalidating condition + a monitored signpost ("did serving a sub-goal defeat
+  its parent goal?").
+- Nested AGENTS.md as the goal hierarchy (ecosystem ⊃ project ⊃ component), the
+  substrate for projection and defeater checks.
 
-This is a documentation-only repository. No build required.
+## How to work in this repo
 
-- Validate markdown: `markdownlint .` (if installed)
-- Check links: `python3 skills/doc-audit/scripts/check_docs.py .`
+- Read [skills/constitution/SKILL.md](skills/constitution/SKILL.md) before
+  starting.
+- Documentation/skills repository; no build. Validate links with
+  `python3 skills/doc-audit/scripts/check_docs.py .`. Every commit passes the
+  Commit Gate ([rules.md](rules.md) §3).
+- Consumed downstream as an installed plugin via `bootstrap/`, not a submodule or
+  symlink.
 
----
+## Arsenal
 
-## Code Style
-
-- **Markdown:** Follow GitHub Flavored Markdown
-- **Tables:** Align columns for readability
-- **Lists:** Use `-` for unordered lists
-- **Headers:** Use `##` sections with `---` separators
-
----
-
-## Contributing
-
-See [README.md](README.md#contributing) for contribution guidelines.
-
-When adding content:
-
-- New skills → `skills/` with proper `SKILL.md` frontmatter definition.
-
-## Relationship to the Doctrine
-
-This file configures *this repository as a project*; it is orthogonal to the
-predicate doctrine it ships. The governing invariants — the Verification Dual and
-the control-theoretic substrate that motivates them — live in
-[rules.md](rules.md) and [ambient.md](ambient.md), with the design rationale in
-[README.md](README.md). Read those for *how predicate works*; read this file only
-for *how to work in this repo*.
-
----
+Predicate's own skills are routed by moment — the routing table is
+[rules.md](rules.md) §5. The host harness's *other* installed skills, tools, and
+MCP servers are part of the working arsenal: at the start of non-trivial work,
+survey for a capability that would change the approach; do not enumerate.
 
 ## Version
 
-Pre-1.0: Breaking changes expected. Design over stability.
+Pre-1.0 (`molten`): breaking changes expected.
