@@ -38,6 +38,10 @@ root="$(cd "$here/../.." && pwd)"
 validate="$here/ledger-validate.sh"
 check_docs="$root/skills/doc-audit/scripts/check_docs.py"
 recorder_close_check="$here/recorder_close_check.sh"
+adherence_audit="$here/adherence_audit.sh"
+check_orphans="$root/gates/check_orphans.sh"
+check_selfcontained="$root/gates/check_selfcontained.sh"
+sync_sketch="$root/skills/refine/scripts/sync_sketch.py"
 
 # The MAIN tree: where the hook machinery and the active-dag pointer live. When
 # this harness runs from a linked worktree, the main tree is the parent of the
@@ -134,6 +138,80 @@ git "${git_id[@]}" -C "$rec_without" init -q
 : > "$rec_without/log.md"
 git "${git_id[@]}" -C "$rec_without" add log.md
 git "${git_id[@]}" -C "$rec_without" commit -q -m "log: open demo-topic"
+
+# adherence_audit.sh fixtures (Deliverable A1, the isolation gate). The gate reads
+# the CURRENT-DIRECTORY repo's history (it calls git with no -C), so each case cd's
+# into the throwaway repo before invoking. Check 1 of the gate also requires the
+# integration branch to be named campaign/*, so both repos use that name and only
+# the MERGE DISCIPLINE differs between them — isolating the core check.
+#   adh_merge:  baseline -> node/x branch -> --no-ff merge into campaign/demo
+#               => merges>0, direct==0 => rc 0 (isolation maintained).
+#   adh_direct: baseline -> DIRECT commits on campaign/demo (no merges)
+#               => merges==0 => rc 1 (the flat-campaign bypass the gate catches).
+adh_merge="$fixdir/adh_merge"
+adh_direct="$fixdir/adh_direct"
+mkdir -p "$adh_merge" "$adh_direct"
+git "${git_id[@]}" -C "$adh_merge" init -q -b master
+: > "$adh_merge/f"; git "${git_id[@]}" -C "$adh_merge" add f
+git "${git_id[@]}" -C "$adh_merge" commit -q -m "feat: baseline"
+adh_merge_base="$(git -C "$adh_merge" rev-parse HEAD)"
+git "${git_id[@]}" -C "$adh_merge" checkout -q -b campaign/demo
+git "${git_id[@]}" -C "$adh_merge" checkout -q -b node/x
+: > "$adh_merge/g"; git "${git_id[@]}" -C "$adh_merge" add g
+git "${git_id[@]}" -C "$adh_merge" commit -q -m "feat: node x work"
+git "${git_id[@]}" -C "$adh_merge" checkout -q campaign/demo
+git "${git_id[@]}" -C "$adh_merge" merge --no-ff -q node/x -m "merge: land node/x"
+git "${git_id[@]}" -C "$adh_direct" init -q -b master
+: > "$adh_direct/f"; git "${git_id[@]}" -C "$adh_direct" add f
+git "${git_id[@]}" -C "$adh_direct" commit -q -m "feat: baseline"
+adh_direct_base="$(git -C "$adh_direct" rev-parse HEAD)"
+git "${git_id[@]}" -C "$adh_direct" checkout -q -b campaign/demo
+: > "$adh_direct/g"; git "${git_id[@]}" -C "$adh_direct" add g
+git "${git_id[@]}" -C "$adh_direct" commit -q -m "feat: direct mainline work"
+
+# check_orphans.sh fixtures (Deliverable A2). A throwaway doc tree with a
+# .ledger/config.sh that scopes ORPHAN_TARGETS to the single fixture doc, so the
+# gate greps only our content (its default targets — skills/ ambient.md … — do not
+# exist here). Three docs share one root, swapped per case by overwriting doc.md.
+orph_root="$fixdir/orph"
+mkdir -p "$orph_root/.ledger"
+printf 'ORPHAN_TARGETS=(doc.md)\n' > "$orph_root/.ledger/config.sh"
+# Live reference to a removed workflow (the "/plan " invocation form).
+printf 'Run the /plan workflow to begin.\n' > "$orph_root/doc_orphan.md"
+# Clean doc — no removed-workflow names at all.
+printf 'Prose with no removed workflow names whatsoever.\n' > "$orph_root/doc_clean.md"
+# P30 regression: predicate's OWN namespace, exercised in every reference form the
+# gate matches (/predicate, `predicate`, "the predicate workflow"). With the CURRENT
+# removed set (which no longer contains "predicate") it must NOT flag — the bug
+# P30 fixed was flagging the project's own namespace. The fixture is load-bearing:
+# the same content WOULD flag if "predicate" were wrongly in the removed set.
+printf 'Invoke /predicate-core, see the `predicate` plugin; the predicate workflow lives in skills/predicate/.\n' \
+  > "$orph_root/doc_p30.md"
+
+# sync_sketch.py fixture (Deliverable B). The script resolves its repo root by
+# walking UP from its OWN script path (not cwd) for .git/.ledger, then operates on
+# <root>/.ledger/log. To sandbox it we mirror its install path inside a throwaway
+# tree and copy the real script in, so repo_root resolves to the throwaway and the
+# only side effect — a commit — lands in the throwaway .ledger/log sub-repo.
+sync_box="$fixdir/sync_box"
+mkdir -p "$sync_box/.ledger/log" "$sync_box/skills/refine/scripts"
+git "${git_id[@]}" -C "$sync_box" init -q                 # outer root marker (.git)
+cp "$sync_sketch" "$sync_box/skills/refine/scripts/sync_sketch.py"
+git "${git_id[@]}" -C "$sync_box/.ledger/log" init -q     # the recorder sub-repo
+: > "$sync_box/.ledger/log/.gitkeep"
+git "${git_id[@]}" -C "$sync_box/.ledger/log" add .gitkeep
+git "${git_id[@]}" -C "$sync_box/.ledger/log" commit -q -m "init: recorder"
+# An untracked sketch with the frontmatter the script parses (TOPIC/STATUS/LOOP).
+cat > "$sync_box/.ledger/log/2026-06-22-demo-topic.md" <<'MD'
+```yaml
+TOPIC: demo-topic
+STATUS: ACTIVE
+CURRENT_LOOP: 3
+```
+
+# Demo sketch
+body
+MD
 
 # ---------------------------------------------------------------------------
 # Worktree scratch. We create throwaway DETACHED worktrees off HEAD under the
@@ -250,6 +328,57 @@ expect "recorder without close entry -> rc 1" 1 \
 # USAGE: empty topic -> rc 2.
 expect "empty topic -> usage error rc 2" 2 \
   bash "$recorder_close_check" "" "$rec_with"
+
+echo "== adherence_audit.sh: isolation via merge-history (the isolation gate) =="
+# The gate reads the CURRENT-DIRECTORY repo's history, so each case cd's into the
+# throwaway repo first. MERGE-based campaign history -> isolation OK (rc 0).
+expect "merge-history campaign -> isolation OK (rc 0)" 0 \
+  bash -c 'cd "$1" && bash "$2" "$3" "$4"' _ \
+    "$adh_merge" "$adherence_audit" "$adh_merge_base" campaign/demo
+# DIRECT commits on the campaign branch -> isolation bypass detected (rc 1).
+expect "direct-history campaign -> bypass detected (rc 1)" 1 \
+  bash -c 'cd "$1" && bash "$2" "$3" "$4"' _ \
+    "$adh_direct" "$adherence_audit" "$adh_direct_base" campaign/demo
+
+echo "== check_orphans.sh: live refs to removed workflows =="
+# Live "/plan " reference with plan in the removed list -> flagged (rc 1).
+cp "$orph_root/doc_orphan.md" "$orph_root/doc.md"
+expect "live ref to removed 'plan' -> flagged (rc 1)" 1 \
+  bash "$check_orphans" "$orph_root" plan
+# Clean doc -> no orphans (rc 0).
+cp "$orph_root/doc_clean.md" "$orph_root/doc.md"
+expect "clean doc -> no orphans (rc 0)" 0 \
+  bash "$check_orphans" "$orph_root" plan
+# P30 regression: predicate's own namespace, current removed set (no 'predicate')
+# -> NOT flagged (rc 0). Guards against re-flagging the project's own namespace.
+cp "$orph_root/doc_p30.md" "$orph_root/doc.md"
+expect "predicate: namespace, current removed set -> not flagged (rc 0)" 0 \
+  bash "$check_orphans" "$orph_root" core sketch dialectic
+
+echo "== check_selfcontained.sh: commit-message self-containment =="
+# An internal node-ID reference (P30) is unresolvable from the repo alone -> fail.
+expect "message with internal ref (P30) -> violation (rc 1)" 1 \
+  bash "$check_selfcontained" "fix: address the P30 finding"
+# A self-contained message naming only repo-visible concepts -> pass.
+expect "self-contained message -> clean (rc 0)" 0 \
+  bash "$check_selfcontained" "fix: correct the merge-discipline diagnostic"
+
+echo "== sync_sketch.py: auto-commit a modified sketch to the recorder =="
+# Run the sandboxed copy; it must stage+commit the untracked frontmatter sketch
+# into the throwaway .ledger/log with a docs(sketch): sync … message, leaving the
+# sub-repo clean. We assert the script's rc 0 AND that the commit actually landed.
+expect "sync commits the modified sketch -> rc 0" 0 \
+  python3 "$sync_box/skills/refine/scripts/sync_sketch.py"
+# Post-condition: the recorder sub-repo is clean (the sketch was committed, not
+# left dangling) and the head subject is the generated sync message.
+sync_clean="$(git -C "$sync_box/.ledger/log" status --porcelain)"
+sync_subj="$(git -C "$sync_box/.ledger/log" log -1 --format='%s')"
+if [ -z "$sync_clean" ] && printf '%s' "$sync_subj" | grep -q '^docs(sketch): sync demo-topic'; then
+  echo "PASS  (0) sync left recorder clean with a docs(sketch) commit"
+else
+  echo "FAIL  sync post-condition: status='$sync_clean' subject='$sync_subj'"
+  fails=$((fails + 1))
+fi
 
 if [ "$fails" -ne 0 ]; then
   echo "FAIL: $fails gate case(s) mismatched"; exit 1
