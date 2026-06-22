@@ -1,6 +1,8 @@
 # Predicate
 
-Modular rules, skills, and workflows to configure and constrain AI coding assistants.
+Modular rules, skills, and workflows that keep AI coding assistants anchored to the true goal across long-horizon work.
+
+Predicate is built from two synergistic halves: **correction** relaxes drift back out in an outer loop once it appears, and **prevention** keeps the walk focused *before* drift compounds. Correction without prevention corrects toward the wrong goal; prevention without correction drifts anyway over a long horizon. Together they bound drift.
 
 See the [Getting Started Guide](docs/getting-started.md) to integrate Predicate into your project.
 
@@ -35,9 +37,20 @@ Predicate packages all agent assets as **skills**:
 
 ---
 
-## Philosophy: The Verification Dual
+## Architecture: correction + prevention
 
-Prompt engineering is a fragile way to program. Autoregressive language models do not "think" or "reason"; they execute a stochastic walk across a discrete token state-space. Over long generations, errors compound. Without external constraints, an agent will eventually drift off course, write unverified code, or introduce regressions.
+Prompt engineering is a fragile way to program. Autoregressive language models do not "think" or "reason"; they execute a stochastic walk across a discrete token state-space. Over long generations, errors compound, and the boundary condition that set the agent on course fades as context accumulates. Without external structure, an agent will eventually drift off course, write unverified code, or introduce regressions.
+
+A drifting walk fails in two distinct ways, so Predicate answers each with its own half:
+
+* **Correction** detects drift *after* it appears and relaxes it back out — an outer feedback loop scored by the strongest available evaluator. This is the **Verification Dual**.
+* **Prevention** keeps the walk in its basin *before* drift compounds — externalizing the goal, requirements, unknowns, and available tools as a durable, selectively re-surfaced **conditioning layer**.
+
+The two are not ranked; they are peers that cover different failure modes. Correction relaxes error away from a fixed attractor; prevention keeps that attractor felt as the context grows. The intro to [rules.md](rules.md) and the project goal in [AGENTS.md](AGENTS.md) state the same architecture; the halves below expand each at the level of a newcomer.
+
+---
+
+### The correction half: the Verification Dual
 
 Predicate's core invariant is the **Verification Dual: verify, then trust.** No condition is ever closed by an agent's say-so. Every condition that must hold is closed by the strongest applicable evaluator, and exactly one of two complementary paths closes it:
 
@@ -48,9 +61,7 @@ Both paths iterate to a fixed point against error feedback toward $\Delta E = 0$
 
 The full ruleset lives in [rules.md](rules.md): six **Prime Invariants** in precedence order, the ambient boundary condition every walker inherits. The Dual is the first; the others are **Halt over assumption** (ambiguity freezes the walk — guessing is forbidden), **The Cutting Imperative** (below), **The history is the deliverable** (`git log` is the durable interface to human judgment), **Track state; reconstruct, don't recall**, and **Tier economy** (route every task to the cheapest walker whose capability bounds it).
 
----
-
-### The Cutting Imperative and the maturity flag
+#### The Cutting Imperative and the maturity flag
 
 Unjustified code, stale docs, and redundant skills are excess phase-space volume — drift surface. "Cut complexity" is the *same* invariant as "narrow the basin," applied to artifacts rather than tokens. A standing **maturity flag** sets the default stance:
 
@@ -61,7 +72,32 @@ Unjustified code, stale docs, and redundant skills are excess phase-space volume
 
 ---
 
-### The ambient layer
+### The prevention half: the conditioning layer
+
+Correction assumes the walk still knows what it is correcting *toward*. That assumption decays. The attractor basin an agent's prompt carves at $t=0$ does not hold its grip: self-attention spreads a fixed probability mass across an ever-growing context, so the mutual information between the original goal and the next token is non-increasing as the prefix lengthens. The goal does not stay felt on its own — it has to be re-supplied. Prevention is the discipline of keeping it felt.
+
+The mechanism is a **conditioning layer**: the goal, requirements, unknowns, and available tools are externalized into durable carriers and projected back into the walk *selectively* — only the highest-precedence, currently-relevant subset, because re-injecting everything would re-dilute the very mass it means to concentrate. Three failure modes the conditioning layer guards against, each a force the boundary prompt alone does not contain:
+
+* **The basin's hold decays with length.** The restoring operator is **selective re-surfacing** — placing the load-bearing invariant back into the recent context to re-deepen the basin at the current step. This is the [boundary-reconstruction reflex](ambient.md#boundary-reconstruction) that [rules.md](rules.md) §7 mandates at the start of every long-horizon step: reload the governing invariants and the active ledger rather than trusting accumulated context.
+* **The design space narrows as constraints are discovered.** Each surfaced constraint is an irreversible cut to the set of valid designs, exactly as each emitted token cuts the set of valid trajectories. The same `molten`/`stable` maturity flag the Cutting Imperative declares is, from this angle, a reading of that contraction's *rate*: high rate (still discovering constraints) means `molten`; the rate going dry means `stable` — a measured curve, not a date.
+* **A locally-optimal move can defeat a parent goal.** Goals are nested basins — task ⊂ component ⊂ project ⊂ ecosystem. A move can satisfy the innermost constraint while exiting an outer one (a green test bought by weakening the property; an expedient hack). That is a **defeater**, and the trigger for **Strategic Escalation**: tactical drift stays inside the parent basin and is recorded; strategic drift exits it and halts the walk.
+
+These three are derived in the same phase-space language as the correction half in [the formalism](docs/theory/formalism.md) (Part 2); the standing principles they ground live in [ambient.md](ambient.md). The discipline rests on a few concrete pieces a newcomer should know:
+
+* **The carrier stack.** Knowns and known-unknowns ride one stack of carriers, never duplicated docs. The project's **`AGENTS.md` is the persistent goal-anchor** — a nested hierarchy (ecosystem ⊃ project ⊃ component) holding the goal, requirements, invariants, and the structural map; [this repository's own AGENTS.md](AGENTS.md) is the first instance. A live Nickel context-map projects the *active* subset per surface with freshness and signpost markers; the [flight recorder](#the-flight-recorder) is the narrative history; `.scratch` is the volatile draft that syncs into the anchor only at reconciliation boundaries.
+* **Epistemic discipline — the four quadrants.** A walk maps what it knows about its goal before committing: *knowns* (pruned to the minimal set that still bounds the goal — requirement bloat is its own drift surface), *known-unknowns* (tracked first-class like requirements, each with a **signpost**: the observable that would resolve it), and *unknown-unknowns* (surfacing one is high-value signal — file it with a signpost rather than suppress or chase it). The rate of new discovery is the measured reading behind the maturity flag above.
+* **The focus-level selector.** The first question of any boundary is not *what* but *how much ceremony*. Over-ceremony drifts as surely as under-ceremony — running a campaign's survey-and-orchestrate machinery on a leaf edit dilutes the attention it means to focus. Match the discipline to the task before drawing the boundary.
+* **Bidirectional outward search.** Before halting on a gap, a walk looks outward along two axes: *toward the world* (prior art, RFCs, literature) to map the domain, and *toward the environment* (the harness's installed skills, tools, and MCP servers — the arsenal) to map capability. Reaching for the habitual tool without surveying the arsenal is hole-digging in capability space.
+
+A project enters this layer through the [`/orient`](skills/orient/SKILL.md) workflow, which maps a repository and authors its `AGENTS.md` hierarchy so every subsequent walk is anchored and gated. The prevention half is in active design (`WIP`); see [AGENTS.md](AGENTS.md) for what has landed and what is still being built.
+
+---
+
+### The machinery beneath the halves
+
+Both halves rest on shared substrate — the standing principles every walk inherits, the coordination spine that routes work, the enforcement that makes the Dual intrinsic, the flight recorder that makes history durable, and the control-theoretic model both halves are derived in.
+
+#### The ambient layer
 
 A **skill** is an authority you invoke for a moment (`/core`, `/campaign`, `/refine`). Beneath the skills sits the **ambient layer** — standing principles that are never *not* active and so have no entrypoint to route to. They live in [ambient.md](ambient.md), presumed read alongside [rules.md](rules.md), and bind every walk whether or not a skill is invoked. When an ambient principle and an invoked skill speak to the same situation, the skill is the procedural authority for *how*; the ambient principle states the standing constraint on *whether and why*.
 
@@ -78,7 +114,7 @@ Several of these were historically packaged as invokable skills only because pas
 
 ---
 
-### The `boundary → campaign` spine
+#### The `boundary → campaign` spine
 
 Predicate's coordination spine runs from contract to orchestration. Below it sit the single-walk execution workflows; above it sit the two tier-aware workflows that govern work across heterogeneous model classes.
 
@@ -103,7 +139,7 @@ The *what* of the execution layer is prose in the campaign skill; the *how* is s
 
 ---
 
-### Enforcement: the ledger, gates, and hooks
+#### Enforcement: the ledger, gates, and hooks
 
 The Verification Dual's symbolic path is not a convention an agent is asked to remember — it is machinery. Three layers make it intrinsic:
 
@@ -115,7 +151,7 @@ The Commit Gate runs in every repository, including the independent `.ledger/` s
 
 ---
 
-### The flight recorder
+#### The flight recorder
 
 Exploration before commitment is the always-on **sketch principle** (an ambient layer principle, above). Its durable substrate is the **flight recorder** at `.ledger/log/`. The principle and the substrate are distinct: the disposition is ambient, the recorder is load-bearing infrastructure.
 
@@ -128,9 +164,9 @@ Every modification is committed to the flight recorder immediately (Sketch Commi
 
 ---
 
-### The control-theoretic substrate
+#### The control-theoretic substrate
 
-The Dual rests on a control-theoretic model of generation. The math is still the foundation; it is the *substrate* beneath the doctrine, not the headline.
+Both halves rest on one control-theoretic model of generation. The math is the *substrate* beneath the doctrine, not the headline.
 
 1. **Stochastic walks:** Token generation is a walk across a transition graph: $P(\mathbf{S}\_{t+1} \mid \mathbf{S}\_t)$, where the prefix sequence $\mathbf{S}\_t$ defines the state at step $t$.
 2. **Entropy control:** Token selection uses the Gibbs-Boltzmann distribution:
@@ -139,13 +175,7 @@ The Dual rests on a control-theoretic model of generation. The math is still the
 3. **Closed-loop feedback:** An open-loop agent will eventually drift. Predicate closes the loop by running external, deterministic validators (compilers, linters, test runners). It captures the validator's output as an error differential ($\Delta E$) and injects corrective prompt feedback ($\Delta \mathbf{S}\_{k+1}$) to drive the system toward a zero-error state:
    $$\mathbf{S}\_{k+1} = \mathbf{S}\_k \oplus \Delta \mathbf{S}\_{k+1}$$
 
-Predicate models the agent's prompt as an **Initial Boundary Condition (IBC)** that warps this probability landscape, carving a deep attractor basin to guide token selection. The Dual is the discipline that keeps the walk inside that basin: the symbolic path is the closed feedback loop made deterministic, and the adversarial path is the same loop run by decorrelated reviewers where no deterministic loop can exist.
-
-The formalism also covers the *prevention* half — three phenomena the doctrine acts on but the four core mappings leave implicit:
-
-* **Attention-dilution:** the IBC's attractor hold decays as context grows ($I(\mathbf{c}_0; x_t)$ is non-increasing in $t$), which is why the [boundary-reconstruction reflex](ambient.md#boundary-reconstruction) re-injects the highest-precedence invariants at each long-horizon step rather than trusting accumulated context.
-* **Design-space constriction:** the same phase-space-contraction operator that prunes valid trajectories per token also prunes valid designs per discovered constraint. The `molten`/`stable` maturity flag tracks the rate of that contraction — high rate means the basin is still moving; rate approaching zero means it has settled.
-* **Basin-nesting:** goals are nested basins ($B_{\text{task}} \subset B_{\text{component}} \subset B_{\text{project}} \subset \cdots$); a move can satisfy the innermost constraint while exiting a parent basin — the formal definition of a defeater and the trigger for [Strategic Escalation](ambient.md#planning-invariants).
+Predicate models the agent's prompt as an **Initial Boundary Condition (IBC)** that warps this probability landscape, carving a deep attractor basin to guide token selection. This grounds **both** halves in one model. Correction is the outer loop: the symbolic path is the closed feedback loop made deterministic, and the adversarial path is the same loop run by decorrelated reviewers where no deterministic loop can exist. Prevention is the same phase-space operators lifted onto phenomena the four core mappings leave implicit — the basin's hold decaying with context length, the design space contracting per discovered constraint, and goals nesting as containment so a local move can defeat a parent. The prevention half above states these at the level of practice; [the formalism](docs/theory/formalism.md) Part 2 derives them.
 
 The full first-principles derivation — the Markov-chain assumption, the Boltzmann engine, phase-space constriction, closed-loop control, and the prevention-half extension — lives in [docs/theory/formalism.md](docs/theory/formalism.md).
 
