@@ -42,6 +42,7 @@ adherence_audit="$here/adherence_audit.sh"
 check_orphans="$root/gates/check_orphans.sh"
 check_selfcontained="$root/gates/check_selfcontained.sh"
 sync_sketch="$root/skills/refine/scripts/sync_sketch.py"
+check_commit_msg="$root/skills/commit-hygiene/scripts/check_commit_msg.py"
 
 # The MAIN tree: where the hook machinery and the active-dag pointer live. When
 # this harness runs from a linked worktree, the main tree is the parent of the
@@ -379,6 +380,19 @@ else
   echo "FAIL  sync post-condition: status='$sync_clean' subject='$sync_subj'"
   fails=$((fails + 1))
 fi
+
+echo "== check_commit_msg.py: conventional-commit gate + merge exemption =="
+# Git's auto-generated merge subjects are exempt — else every real merge fails
+# the gate and pushes people toward --no-verify; a non-merge bad header still
+# fails, so the exemption is not an escape hatch.
+expect "merge subject -> exempt (rc 0)" 0 \
+  python3 "$check_commit_msg" --message "Merge branch 'x' into y"
+expect "merge PR subject -> exempt (rc 0)" 0 \
+  python3 "$check_commit_msg" --message "Merge pull request #1 from a/b"
+expect "bad non-merge header -> violation (rc 1)" 1 \
+  python3 "$check_commit_msg" --message "garbage header with no type"
+expect "good conventional header -> clean (rc 0)" 0 \
+  python3 "$check_commit_msg" --message "feat: add a thing"
 
 if [ "$fails" -ne 0 ]; then
   echo "FAIL: $fails gate case(s) mismatched"; exit 1
