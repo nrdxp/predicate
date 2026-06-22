@@ -1,3 +1,4 @@
+# EXPECT: fail
 # Prefix-conflict fixture: A and B are concurrent (neither depends on the other)
 # and their surfaces are "docs/" and "docs/x.md" — the file lies BENEATH the
 # directory, so they genuinely collide. Exact-string overlap wrongly read these

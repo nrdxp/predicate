@@ -1,3 +1,4 @@
+# EXPECT: fail
 # Unbounded-autonomous fixture: mode 'autonomous with an empty goal. An
 # autonomous campaign with no goal is the unbounded walk tier economy forbids ->
 # the CampaignIBC contract MUST make `nickel export` exit non-zero (baseline

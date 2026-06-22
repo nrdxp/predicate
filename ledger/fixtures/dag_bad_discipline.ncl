@@ -1,3 +1,4 @@
+# EXPECT: fail
 # Bad-discipline fixture: a node declares an out-of-enum `discipline` ('bogus).
 # Before the contract applied `Node` per element, this exported cleanly (the
 # enum was inert). With per-element conformance forced in `Dag`, `nickel export`

@@ -1,3 +1,4 @@
+# EXPECT: fail
 # Unbounded-walk fixture: a worker IBC with an empty acceptance array. Without a
 # definition of done the walk is unbounded -> the WorkerIBC contract MUST make
 # `nickel export` exit non-zero (baseline delta-E0 != 0).

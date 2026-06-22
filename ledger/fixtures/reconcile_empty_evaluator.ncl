@@ -1,3 +1,4 @@
+# EXPECT: fail
 # Ungrounded-acceptance fixture (C-P3.3 for the reconcile log): P3 is judged
 # 'accept but its evaluator is "". Accepting landed work without naming the gate
 # that justified it is ungrounded -> the ReconcileLog contract MUST make

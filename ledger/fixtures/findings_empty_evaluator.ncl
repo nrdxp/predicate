@@ -1,3 +1,4 @@
+# EXPECT: fail
 # Empty-evaluator fixture (C-P3.3): F1 is marked 'mitigated but its evaluator is
 # "". A resolved finding with no closing gate is ungrounded -> the Findings
 # contract MUST make `nickel export` exit non-zero (baseline delta-E0 != 0).

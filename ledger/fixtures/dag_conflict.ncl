@@ -1,3 +1,4 @@
+# EXPECT: fail
 # Undeclared-conflict fixture: B and C are concurrent (neither depends on the
 # other) AND both touch "shared/" with no serialize marker -> DagNoConflict MUST
 # make `nickel export` exit non-zero (baseline delta-E0 != 0).
