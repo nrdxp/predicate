@@ -199,6 +199,13 @@ mkdir -p "$sync_box/.ledger/log" "$sync_box/skills/refine/scripts"
 git "${git_id[@]}" -C "$sync_box" init -q                 # outer root marker (.git)
 cp "$sync_sketch" "$sync_box/skills/refine/scripts/sync_sketch.py"
 git "${git_id[@]}" -C "$sync_box/.ledger/log" init -q     # the recorder sub-repo
+# sync_sketch.py commits with a BARE `git` (no -c identity flags), so it relies on
+# the recorder repo resolving an identity itself. A fresh CI runner has no global
+# git identity -> the script's commit exits 128. Pin a local identity on the
+# sandbox recorder so the script under test commits without ambient config.
+git -C "$sync_box/.ledger/log" config user.name  test-gates
+git -C "$sync_box/.ledger/log" config user.email test@gates
+git -C "$sync_box/.ledger/log" config commit.gpgsign false
 : > "$sync_box/.ledger/log/.gitkeep"
 git "${git_id[@]}" -C "$sync_box/.ledger/log" add .gitkeep
 git "${git_id[@]}" -C "$sync_box/.ledger/log" commit -q -m "init: recorder"
@@ -229,11 +236,24 @@ auth_wt="$main/.scratch/worktrees/test-gates-auth-$$" # authority-from-worktree
 pointer_preexisting=0
 [ -e "$pointer" ] && pointer_preexisting=1
 
+# The .ledger/ parent is gitignored (the flight-recorder subrepo is not in this
+# repo's tree), so a fresh checkout has no .ledger/ dir and the pointer write
+# below fails. Create it if absent; track that WE created it so teardown removes
+# only what we made, never a real local .ledger/.
+ledger_dir="$(dirname "$pointer")"
+ledger_dir_created=0
+[ -d "$ledger_dir" ] || { mkdir -p "$ledger_dir" && ledger_dir_created=1; }
+
 cleanup() {
   # Pointer teardown FIRST and unconditional — the highest-risk leak. Only remove
   # what we created: leave a pre-existing pointer untouched.
   if [ "$pointer_preexisting" -eq 0 ]; then
     rm -f "$pointer"
+  fi
+  # Remove the .ledger/ dir only if WE created it and it is now empty (rmdir is a
+  # no-op on a non-empty dir, so a real .ledger/ is never clobbered).
+  if [ "$ledger_dir_created" -eq 1 ]; then
+    rmdir "$ledger_dir" 2>/dev/null || true
   fi
   for w in "$xr_wt" "$auth_wt"; do
     [ -e "$w" ] && { git -C "$main" worktree remove --force "$w" 2>/dev/null || rm -rf "$w"; }
