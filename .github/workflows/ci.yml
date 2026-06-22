@@ -1,0 +1,42 @@
+name: CI
+
+# Run the gate test-system on every push and pull request, so a regression in
+# any enforcement gate fails CI — the machine check that the tests actually run.
+on:
+  push:
+  pull_request:
+
+jobs:
+  gates:
+    name: gate suites + doc audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # `nickel` is the only non-standard dependency; the gate machinery
+      # resolves it via `nickel` XOR `nix run nixpkgs#nickel`. Installing it
+      # onto PATH via Nix lets the suites use it directly (no per-call flake
+      # eval). python3, bash, and git are preinstalled on ubuntu-latest.
+      - uses: DeterminateSystems/nix-installer-action@main
+      - name: install nickel
+        run: nix profile install nixpkgs#nickel
+
+      - name: gate test suites
+        run: |
+          set -euo pipefail
+          bash ledger/gate/test_reconcile.sh
+          bash ledger/gate/test_surface_protocol.sh
+          bash ledger/gate/test_gates.sh
+
+      - name: gate demonstrations (smoke)
+        run: |
+          set -euo pipefail
+          bash ledger/gate/demo_scale_invariant.sh
+          bash ledger/gate/demo_unauthorized.sh
+
+      - name: doc audit (links + anchors)
+        run: python3 skills/doc-audit/scripts/check_docs.py .
+
+      # NOTE: bootstrap/test_bootstrap.sh is intentionally NOT run here. It
+      # performs a real `claude plugin install` (Claude CLI + network + auth),
+      # which is not CI-appropriate; run it manually when changing bootstrap.
