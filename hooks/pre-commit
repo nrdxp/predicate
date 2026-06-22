@@ -117,22 +117,29 @@ done
 # --- 4. AUTHORITY (iff an active campaign DAG is declared) -----------------
 # The authority overlay is campaign-DEPENDENT: it is meaningless without a plan,
 # so it runs ONLY when a campaign is in flight. The active-DAG pointer is a file
-# in the GATED repo's $root/.ledger/active-dag, written by the orchestration
-# driver when a campaign is in flight and absent otherwise. Its sole content is
-# the $root-relative (or absolute) path to the active campaign DAG artifact.
+# in the main tree's .ledger/active-dag, written by the orchestration driver
+# when a campaign is in flight and absent otherwise. Its content is the path to
+# the active campaign DAG artifact (main-tree-relative, or absolute).
+#
+# CRITICAL: the pointer is resolved from the COMMON git dir, not the worktree
+# $root. A linked worktree has no .ledger of its own — it lives only in the main
+# tree — so keying the pointer off $root makes a worker committing from a
+# worktree never find it, and the authority overlay silently never fires (the
+# very commits a campaign produces would go un-authorized).
 #
 # Pointer ABSENT  -> ordinary commit: structural layer alone, authority skipped.
 # Pointer PRESENT -> authority enforced: every staged path must fall under some
 #                    DAG node's file_surface (ledger-validate.sh commit-gate).
-pointer="$root/.ledger/active-dag"
+ledger_root="$(cd "$(dirname "$(git rev-parse --git-common-dir)")" 2>/dev/null && pwd || echo "$root")"
+pointer="$ledger_root/.ledger/active-dag"
 if [ -f "$pointer" ]; then
-  # Resolve the named DAG. The pointer is data of the GATED repo, so a relative
-  # path is interpreted against $root (the FILE under inspection); the machinery
-  # that reads it stays $plugin-relative (P21).
+  # Resolve the named DAG against the MAIN tree (the pointer and the DAG both
+  # live there, not in the worktree); the machinery that reads it stays
+  # $plugin-relative (P21).
   dag="$(head -n1 "$pointer" | tr -d '[:space:]')"
   case "$dag" in
-    /*) dag_path="$dag" ;;          # absolute, used as-is
-    *)  dag_path="$root/$dag" ;;    # $root-relative
+    /*) dag_path="$dag" ;;                # absolute, used as-is
+    *)  dag_path="$ledger_root/$dag" ;;   # relative to the main tree
   esac
   if [ -z "$dag" ] || [ ! -r "$dag_path" ]; then
     echo "pre-commit: active-dag pointer names an unreadable DAG: ${dag:-<empty>}" >&2
