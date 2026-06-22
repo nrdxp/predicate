@@ -37,6 +37,7 @@ here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 root="$(cd "$here/../.." && pwd)"
 validate="$here/ledger-validate.sh"
 check_docs="$root/skills/doc-audit/scripts/check_docs.py"
+recorder_close_check="$here/recorder_close_check.sh"
 
 # The MAIN tree: where the hook machinery and the active-dag pointer live. When
 # this harness runs from a linked worktree, the main tree is the parent of the
@@ -115,6 +116,24 @@ cat > "$fixdir/bad_anchor.md" <<'MD'
 
 See [section](target.md#no-such-anchor-zzz) for details.
 MD
+
+# Recorder fixtures for recorder_close_check.sh (Deliverable B). Two THROWAWAY git
+# repos, NEVER the real .ledger: one with a `log: close demo-topic …` commit
+# (positive), one with no such commit (negative). They nest under $fixdir, so the
+# existing `rm -rf "$fixdir"` in cleanup() tears them down. git is run with an
+# isolated identity so the harness needs no global git config to commit.
+rec_with="$fixdir/recorder_with"
+rec_without="$fixdir/recorder_without"
+git_id=(-c user.name=test-gates -c user.email=test@gates -c commit.gpgsign=false)
+mkdir -p "$rec_with" "$rec_without"
+git "${git_id[@]}" -C "$rec_with" init -q
+: > "$rec_with/log.md"
+git "${git_id[@]}" -C "$rec_with" add log.md
+git "${git_id[@]}" -C "$rec_with" commit -q -m "log: close demo-topic retrospective"
+git "${git_id[@]}" -C "$rec_without" init -q
+: > "$rec_without/log.md"
+git "${git_id[@]}" -C "$rec_without" add log.md
+git "${git_id[@]}" -C "$rec_without" commit -q -m "log: open demo-topic"
 
 # ---------------------------------------------------------------------------
 # Worktree scratch. We create throwaway DETACHED worktrees off HEAD under the
@@ -219,6 +238,18 @@ expect "dangling #anchor -> broken (non-0)" 1 \
 # A link whose #anchor matches a heading slug -> valid (rc 0).
 expect "good #anchor -> valid (0)" 0 \
   python3 "$check_docs" "$fixdir/good_anchor.md"
+
+echo "== recorder_close_check.sh: CLOSE-retrospective recorded =="
+# POSITIVE: recorder history has a `log: close demo-topic …` commit -> rc 0.
+expect "recorder with close entry -> rc 0" 0 \
+  bash "$recorder_close_check" demo-topic "$rec_with"
+# NEGATIVE: recorder history has no such close commit -> rc 1 (the discipline
+# the gate exists to catch: a CLOSE whose retrospective was never recorded).
+expect "recorder without close entry -> rc 1" 1 \
+  bash "$recorder_close_check" demo-topic "$rec_without"
+# USAGE: empty topic -> rc 2.
+expect "empty topic -> usage error rc 2" 2 \
+  bash "$recorder_close_check" "" "$rec_with"
 
 if [ "$fails" -ne 0 ]; then
   echo "FAIL: $fails gate case(s) mismatched"; exit 1
