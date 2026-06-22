@@ -95,4 +95,4 @@ Refine the `/refine` workflow skill (`skills/refine/SKILL.md`), the refinement r
 
 ## References
 
-- Sketch: [.sketches/2026-06-09-refine-worktree-hostile-maintainer.md](file:///var/home/nrd/git/github.com/nrdxp/predicate/.sketches/2026-06-09-refine-worktree-hostile-maintainer.md)
+- Sketch: `2026-06-09-refine-worktree-hostile-maintainer.md` (in the flight recorder, `.ledger/log/` — the `.sketches/` tree was renamed to `.ledger/`)
