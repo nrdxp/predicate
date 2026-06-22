@@ -307,6 +307,16 @@ failure this whole layer fights.
 > The arsenal survey obeys the same gate: a reversible leaf task needs none; a
 > novel or hard task surveys to dry.
 
+**Establish the universe before claiming coverage.** The *outward → environment*
+axis applies to the project's own structure: any claim of exhaustive scope — a
+sweep, survey, audit, or "all of X" — must first establish the actual universe
+it covers (`git ls-files` for structure, semantic search for intent) and cite it,
+never the handful of directories already in working memory. The set you remember
+is a sample, not the population; coverage asserted over it is self-attestation,
+the failure this layer fights. Coverage is *deposited evidence* — the enumerated
+universe, cited — not a confidence claim. The adversarial reviewer audits the
+universe itself: was it established, or assumed?
+
 ### Code-Edit Constraints
 
 *Relocated from* [engineering](skills/engineering/SKILL.md). These bind whenever
