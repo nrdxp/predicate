@@ -141,14 +141,24 @@ cmd_authorize() {
     echo "ledger-validate: no such DAG: $dag" >&2
     exit 2
   fi
-  resolve_nickel
-  # Export once; reuse the validated JSON for the authorization predicate so
-  # the structural gate and the authority gate read the same graph. mktemp +
-  # explicit cleanup (not a RETURN trap, which would clobber the exit code we
-  # want to propagate from authorized.py).
-  local tmp
-  tmp="$(mktemp)"
-  "${NICKEL[@]}" export "${NICKEL_IMPORT_FLAGS[@]}" "$dag" >"$tmp"
+  # Authority needs only the node file_surfaces, NOT the DagNoConflict proof —
+  # which is an ORCHESTRATOR-level check (validate the plan once at amendment),
+  # not a per-commit one. Evaluating that contract on every worker commit is
+  # ~O(n^2..n^3) and OOM-killable on a large DAG (it was silently killing worker
+  # commits). So read a fresh JSON cache (<dag>.json, regenerated at amendment);
+  # fall back to a live export only when the cache is missing or older than the
+  # DAG, and refresh the cache from that export for next time.
+  local cache="${dag%.ncl}.json"
+  local tmp created=0
+  if [[ -f "$cache" && ! "$dag" -nt "$cache" ]]; then
+    tmp="$cache"
+  else
+    resolve_nickel
+    tmp="$(mktemp)"
+    created=1
+    "${NICKEL[@]}" export "${NICKEL_IMPORT_FLAGS[@]}" "$dag" >"$tmp"
+    cp -f "$tmp" "$cache" 2>/dev/null || true
+  fi
 
   local rc=0
   if [[ "$#" -gt 0 ]]; then
@@ -160,7 +170,7 @@ cmd_authorize() {
     git diff --cached --name-only \
       | python3 "$here/authorized.py" --dag "$tmp" || rc=$?
   fi
-  rm -f "$tmp"
+  [[ "$created" -eq 1 ]] && rm -f "$tmp"
   return "$rc"
 }
 
