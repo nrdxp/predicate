@@ -167,6 +167,42 @@ so post-campaign ordinary commits revert to structural-only.
 `sort` is node-id order throughout: a fixed reconcile order makes the run
 **replayable** — re-running from a checkpoint reproduces the same sequence.
 
+### JIT per-layer IBC authoring
+
+The `DISPATCH` state hands each dispatched worker `PROMPTS/<id>-*.md` — but
+not all IBCs are authored at the initial ORCHESTRATE pass. The rule:
+
+- **Layer 0 IBCs** (nodes with no dependencies) are authored at the campaign's
+  ORCHESTRATE step and approved in batch before the driver starts.
+- **Later-layer IBCs** are authored **just-in-time at `DISPATCH` for that
+  layer**, with the node's S1 premises re-verified against the layer's current
+  `tip` (the integration-branch HEAD after the preceding `BOUNDARY` step).
+
+**Why.** A later-layer IBC authored at ORCHESTRATE time makes S1 claims about
+a world that does not yet exist — the upstream nodes have not landed. By the
+time the driver reaches layer k, the integration branch carries k-1 layers
+of accepted work; the JIT IBC describes *that* world, not the pre-campaign
+snapshot. This is what makes the Premise Freshness invariant
+([campaign §Premise Freshness](../campaign/SKILL.md)) mechanically honest at
+the IBC-authoring boundary, not only at the RECONCILE freshness-check.
+
+**What the driver does.** At `BOUNDARY`, after `tip` is advanced and before
+`k++`:
+
+1. For each node in `layers[k+1]` (the next layer), author or finalize its
+   IBC with S1 premises verified against the new `tip` (cheapest tier — this
+   is a mechanical freshness check, not an architect judgment).
+2. Gate each authored IBC: `nickel export` with `-I ledger/contracts` against
+   `worker_ibc.ncl` (`Worker ∘ WorkerIBC`) must exit 0. An insufficient IBC
+   is not dispatched.
+3. In `INTERACTIVE` mode, surface next-layer IBCs to the human before
+   `k++` advances to `RUN_LAYER` for that layer.
+
+The routing table (`ORCHESTRATION.md`) records tier assignments for all layers
+upfront; only the full IBC text is deferred. A driver resuming from a
+checkpoint re-reads the routing table and re-authors any pending IBCs against
+the reconstructed `tip`.
+
 ### RECONCILE — the per-node boundary checks (the wired commands)
 
 For each LANDED node (in node-id order), the `RECONCILE` state runs, in order

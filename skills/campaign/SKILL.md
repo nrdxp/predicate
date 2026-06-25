@@ -257,6 +257,22 @@ Manufacture the worker boundaries.
 - In `INTERACTIVE` mode the human approves the routing table and prompt
   set (the boundary skill's HUMAN_DISPATCH_GATE, applied in batch).
 
+> [!NOTE]
+> **JIT per-layer IBC authoring.** Not all worker IBCs are emitted upfront.
+> Layer 0 (the earliest, dependency-free layer) IBCs are authored here, at
+> the initial ORCHESTRATE pass, and approved in batch. IBCs for **later
+> layers** are authored JIT — at the `DISPATCH` step for that layer, with
+> premises (S1) re-verified against the current integration-branch `HEAD`
+> (the `tip` advanced by the preceding RECONCILE round). Authoring a
+> later-layer IBC before its prerequisite nodes land means the S1 premises
+> describe a world that does not yet exist; re-verifying at dispatch time is
+> what makes the "Premise Freshness" invariant mechanically sound rather than
+> aspirational. The routing table (`ORCHESTRATION.md`) records the node-to-
+> tier mapping for all layers upfront; only the full IBC text is deferred.
+> Each JIT-authored IBC still passes the WorkerIBC contract before dispatch
+> (`nickel export` gate); the contract is the sufficiency check, and it runs
+> at the point of authoring, not at ORCHESTRATE.
+
 ### 6. DISPATCH
 
 Launch workers on fresh nodes whose dependencies are `ACCEPTED`. The
