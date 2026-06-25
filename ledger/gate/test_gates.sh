@@ -233,6 +233,7 @@ walk_pointer="$main/.ledger/active-walk"
 xr_wt="$main/.scratch/worktrees/test-gates-xr-$$"   # cross-root artifact worktree
 auth_wt="$main/.scratch/worktrees/test-gates-auth-$$" # authority-from-worktree
 proc_wt="$main/.scratch/worktrees/test-gates-proc-$$" # process-gate walk-activation worktree
+b1_wt="$main/.scratch/worktrees/test-gates-b1-$$"   # B1 .ncl path-scoping regression
 
 # Was a pointer already present before we started? If so a real campaign may own
 # it; we must NOT remove it on teardown. (Defensive: we also refuse to run.)
@@ -265,7 +266,7 @@ cleanup() {
   if [ "$ledger_dir_created" -eq 1 ]; then
     rmdir "$ledger_dir" 2>/dev/null || true
   fi
-  for w in "$xr_wt" "$auth_wt" "$proc_wt"; do
+  for w in "$xr_wt" "$auth_wt" "$proc_wt" "$b1_wt"; do
     [ -e "$w" ] && { git -C "$main" worktree remove --force "$w" 2>/dev/null || rm -rf "$w"; }
   done
   git -C "$main" worktree prune 2>/dev/null || true
@@ -362,6 +363,39 @@ expect "process-gate unknown contract class -> rc 2" 2 \
   bash "$process_gate" validate \
     "$root/ledger/fixtures/process_gate_honest.ncl" unknown-class
 
+# A-B1 regression: the gate must apply the class contract EXTERNALLY — a deposit
+# that does not self-bind its contract cannot bypass the footprint-presence check.
+# Two dodge patterns must FAIL (rc 1):
+#   dodge-bare: a bare { workflow, steps=[] } record with no contract import at all.
+#   dodge-wrap: a file that imports the contract but puts the data in a wrapper
+#               field with no contract annotation, so the binding is never applied.
+# The gate must catch both — the external application closes the bypass.
+cat > "$fixdir/process_gate_dodge_bare.ncl" <<'NCL'
+# DODGE: bare record, no contract import or binding, steps=[].
+# A-B1 regression: gate must reject this (rc 1) — steps=[] omits all required steps.
+{
+  workflow = "boundary-dodge",
+  steps = [],
+}
+NCL
+cat > "$fixdir/process_gate_dodge_wrap.ncl" <<'NCL'
+# DODGE: file wraps data in a field with no contract annotation, steps=[].
+# A-B1 regression: gate must reject this (rc 1) — no .steps at top level,
+# so the contract fires "missing field steps" or footprint-presence fails.
+{
+  instance = {
+    workflow = "boundary-dodge",
+    steps = [],
+  },
+}
+NCL
+expect "A-B1 dodge-bare (steps=[], no binding) -> rc 1" 1 \
+  bash "$process_gate" validate \
+    "$fixdir/process_gate_dodge_bare.ncl" boundary
+expect "A-B1 dodge-wrap (wrapped, no annotation, steps=[]) -> rc 1" 1 \
+  bash "$process_gate" validate \
+    "$fixdir/process_gate_dodge_wrap.ncl" boundary
+
 echo "== process-gate.sh: walk-activation overlay from a worktree =="
 # The process overlay fires in the pre-commit hook ONLY when .ledger/active-walk
 # is present. We:
@@ -422,6 +456,48 @@ if git -C "$main" worktree add --detach "$proc_wt" HEAD >/dev/null 2>&1; then
   git -C "$main" worktree prune 2>/dev/null || true
 else
   echo "FAIL  (env) could not create process-gate worktree at $proc_wt"; fails=$((fails + 1))
+fi
+
+echo "== pre-commit check 3 (B1 regression): .ncl path scoping =="
+# B1 regression: the structural .ncl check must be SCOPED to predicate-owned
+# paths (ledger/, .ledger/, conditioning/). A downstream user's own .ncl file
+# at the repo root (e.g. a function library) is not a predicate artifact; the
+# hook must skip it silently. Conversely, a malformed .ncl under ledger/ must
+# still be blocked (the predicate path scoping only skips non-predicate paths;
+# it does not weaken validation of predicate's own artifacts).
+#
+# Both cases run from a linked worktree via the hook directly (same pattern as
+# the authority and process-gate regressions), with no active-dag or active-walk
+# pointer, so only the structural layer fires.
+if git -C "$main" worktree add --detach "$b1_wt" HEAD >/dev/null 2>&1; then
+
+  # (a) Root-level lib.ncl (non-predicate path): hook must PASS (rc 0).
+  # A function library that exports a non-serializable value (fun ...) is valid
+  # Nickel but would fail ledger-validate.sh structure ("non serializable term").
+  # After the B1 fix, the hook skips it — no misleading error, rc 0.
+  printf '{ add = fun x y => x + y }\n' > "$b1_wt/lib.ncl"
+  ( cd "$b1_wt" && git add lib.ncl ) >/dev/null 2>&1
+  expect "B1: root lib.ncl (non-predicate) skipped by hook -> rc 0" 0 \
+    bash -c 'cd "$1" && bash "$2"' _ "$b1_wt" "$hook"
+
+  # Reset, then write a malformed ledger/fixtures/ .ncl to confirm predicate paths
+  # are still validated (B1 fix must not weaken ledger validation).
+  ( cd "$b1_wt" && git reset -q HEAD . && rm -f lib.ncl ) >/dev/null 2>&1
+  # (b) Malformed ledger/ .ncl: hook must BLOCK (rc 1).
+  # A ledger/ .ncl that is a function library (non-serializable) is not a valid
+  # ledger artifact — the structural check must block it.
+  printf '{ add = fun x y => x + y }\n' > "$b1_wt/ledger/fixtures/b1_malformed_probe.ncl"
+  ( cd "$b1_wt" && git add ledger/fixtures/b1_malformed_probe.ncl ) >/dev/null 2>&1
+  expect "B1: malformed ledger/ .ncl still blocked by hook -> rc 1" 1 \
+    bash -c 'cd "$1" && bash "$2"' _ "$b1_wt" "$hook"
+
+  # Teardown.
+  ( cd "$b1_wt" && git reset -q HEAD . \
+      && rm -f ledger/fixtures/b1_malformed_probe.ncl ) >/dev/null 2>&1
+  git -C "$main" worktree remove --force "$b1_wt" 2>/dev/null || rm -rf "$b1_wt"
+  git -C "$main" worktree prune 2>/dev/null || true
+else
+  echo "FAIL  (env) could not create B1 worktree at $b1_wt"; fails=$((fails + 1))
 fi
 
 echo "== check_docs.py: anchor (#fragment) validation =="

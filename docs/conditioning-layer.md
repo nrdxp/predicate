@@ -163,14 +163,14 @@ in
 ```
 
 `compose.ncl` evaluates to a **record keyed by role identifier**. Each value is a
-`String` guarded by `HasCore`. Callers access a role's prompt via a wrapper or the
-Nickel customize-mode `--override` flag:
+`String` guarded by `HasCore`. Callers access a role's prompt via the `--field`
+flag (which selects a single field of the record output):
 
 ```bash
 nickel export --format text \
   -I conditioning/ \
-  conditioning/compose.ncl \
-  -- --override 'role="architect"'
+  --field architect \
+  conditioning/compose.ncl
 ```
 
 **Callers must not:**
@@ -255,8 +255,8 @@ the architect character. The install regenerates the prompt from source on every
 run, so the installed copy is always current.
 
 ```bash
-PROMPT=$(nickel export --format text -I conditioning/ conditioning/compose.ncl \
-           -- --override 'role="architect"')
+PROMPT=$(nickel export --format text -I conditioning/ \
+           --field architect conditioning/compose.ncl)
 # install.sh writes PROMPT to the best available persistent surface
 ```
 
@@ -265,8 +265,8 @@ dispatching a worker node at a specific discipline tier. Generation is on-launch
 (no stale installed copy):
 
 ```bash
-PROMPT=$(nickel export --format text -I conditioning/ conditioning/compose.ncl \
-           -- --override 'role="refine-worker"')
+PROMPT=$(nickel export --format text -I conditioning/ \
+           --field 'refine-worker' conditioning/compose.ncl)
 
 # Claude Code (Tier 1):
 claude --append-system-prompt "$PROMPT" --model <tier> \
