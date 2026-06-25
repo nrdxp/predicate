@@ -24,26 +24,19 @@ here="$(cd "$(dirname "$(realpath "${BASH_SOURCE[0]}")")" && pwd)"
 root="$(cd "$here/../.." && pwd)"
 scopes="$here/scopes.ncl"
 
-# --- portable nickel runner (mirrors ledger-validate.sh) --------------------
-resolve_nickel() {
-  if command -v nickel >/dev/null 2>&1; then
-    NICKEL=(nickel)
-  elif command -v nix >/dev/null 2>&1; then
-    NICKEL=(nix run nixpkgs#nickel --)
-  else
-    echo "check_scopes: neither 'nickel' nor 'nix' on PATH; cannot evaluate scopes.ncl" >&2
-    exit 2
-  fi
+# --- require nickel on PATH -------------------------------------------------
+command -v nickel >/dev/null 2>&1 || {
+  echo "check_scopes: nickel not on PATH — install it or enter the project shell (nix-shell / nix develop)" >&2
+  exit 2
 }
 
 # --- extract declared gate names from scopes.ncl via nickel export ----------
 declared_gates() {
-  resolve_nickel
   if [[ ! -f "$scopes" ]]; then
     echo "check_scopes: scopes.ncl not found at $scopes" >&2
     exit 2
   fi
-  "${NICKEL[@]}" export "$scopes" 2>/dev/null \
+  nickel export "$scopes" 2>/dev/null \
     | python3 -c '
 import json, sys
 data = json.load(sys.stdin)

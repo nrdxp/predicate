@@ -8,8 +8,24 @@ exported. One command is the gate, with no out-of-band validation step a
 headless orchestrator could skip:
 
 ```bash
-nix run nixpkgs#nickel -- export <file>.ncl
+nickel export <file>.ncl
 ```
+
+## Getting nickel on PATH
+
+Predicate invokes `nickel` directly — it must be on your PATH. The
+project ships a `shell.nix` at the repo root that pins nickel 1.14.0:
+
+```bash
+nix-shell          # drops you into a shell with nickel available
+# or, with flakes:
+nix develop
+```
+
+Every ledger script and gate requires `nickel` on PATH and exits with a
+clear error (`exit 2`) if it is absent, pointing at the project shell as
+the fix. There is no per-call `nix run nixpkgs#nickel` fallback — the
+shell is the single, pinned, zero-cost source of truth.
 
 Exit `0` means the artifact satisfies its contract. A non-zero exit means
 it does not, and the diagnostic names the broken invariant.
@@ -70,15 +86,15 @@ type annotations, which is not meaningful). The instances under
 
 ```bash
 # contract definitions typecheck cleanly
-for f in contracts/*.ncl; do nix run nixpkgs#nickel -- typecheck "$f"; done
+for f in contracts/*.ncl; do nickel typecheck "$f"; done
 
 # negative fixtures export non-zero; positive controls export 0
 for f in fixtures/*.ncl; do
   case "$f" in
     *_doc_discipline.ncl|*_serialize.ncl|*_valid.ncl)
-      nix run nixpkgs#nickel -- export "$f" >/dev/null 2>&1 || echo "UNEXPECTED FAIL: $f" ;;
+      nickel export "$f" >/dev/null 2>&1 || echo "UNEXPECTED FAIL: $f" ;;
     *)
-      nix run nixpkgs#nickel -- export "$f" >/dev/null 2>&1 && echo "UNEXPECTED PASS: $f" ;;
+      nickel export "$f" >/dev/null 2>&1 && echo "UNEXPECTED PASS: $f" ;;
   esac
 done
 ```
