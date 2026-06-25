@@ -187,36 +187,46 @@ fi
 #
 # Pointer ABSENT  -> ordinary commit (human or walk with no procedure deposits):
 #                    checks 1-4 only, PROCESS layer skipped.
-# Pointer PRESENT -> PROCESS enforced: every staged .ncl file that applies a
-#                    procedure contract is validated against that contract.
-#                    Skip/shrink → fail. The contract class (boundary|refine) is
-#                    read from the pointer's first line.
+# Pointer PRESENT -> PROCESS enforced: the declared deposit-path (line 2 of the
+#                    pointer, pinned at register time) is validated against the
+#                    class contract (line 1) IFF it is in the staged set.
+#                    Non-deposit .ncl files (contracts, DAGs, fixtures) are never
+#                    validated by this gate — only the declared deposit is.
+#                    A malformed/legacy pointer (no line 2) passes silently:
+#                    a walk that declared no deposit has nothing to validate.
 walk_pointer="$ledger_root/.ledger/active-walk"
 if [ -f "$walk_pointer" ]; then
-  walk_class="$(head -n1 "$walk_pointer" | tr -d '[:space:]')"
+  walk_class="$(sed -n '1p' "$walk_pointer" | tr -d '[:space:]')"
+  walk_deposit="$(sed -n '2p' "$walk_pointer" | tr -d '[:space:]')"
   if [ -z "$walk_class" ]; then
     echo "pre-commit: active-walk pointer is empty; cannot run process gate" >&2
     rc=1
+  elif [ -z "$walk_deposit" ]; then
+    # Legacy or malformed pointer (no deposit-path line): pass silently.
+    # A walk that declared no deposit has nothing to process-validate.
+    : # no-op
   else
-    # For every staged .ncl file, invoke the process gate. The gate validates
-    # only files that apply the named procedure contract (the `nickel export`
-    # call in process-gate.sh validate fires the contract); non-procedure .ncl
-    # files export cleanly without the contract and pass silently.
+    # Validate ONLY the declared deposit-path, and only if it is staged.
+    deposit_staged=0
     for f in "${staged[@]}"; do
-      case "$f" in
-        *.ncl)
-          if [ -f "$root/$f" ]; then
-            bash "$plugin/ledger/gate/process-gate.sh" validate "$root/$f" "$walk_class"
-            proc_rc=$?
-            if [ "$proc_rc" -ne 0 ]; then
-              echo "pre-commit: PROCESS gate failed for $f (class: $walk_class)" >&2
-              echo "  A staged procedure deposit omits a required step or has bad shape." >&2
-              rc=1
-            fi
-          fi
-          ;;
-      esac
+      [ "$f" = "$walk_deposit" ] && deposit_staged=1 && break
     done
+    if [ "$deposit_staged" -eq 1 ]; then
+      if [ -f "$root/$walk_deposit" ]; then
+        bash "$plugin/ledger/gate/process-gate.sh" validate "$root/$walk_deposit" "$walk_class"
+        proc_rc=$?
+        if [ "$proc_rc" -ne 0 ]; then
+          echo "pre-commit: PROCESS gate failed for $walk_deposit (class: $walk_class)" >&2
+          echo "  The procedure deposit omits a required step or has bad shape." >&2
+          rc=1
+        fi
+      else
+        echo "pre-commit: declared deposit path not found in working tree: $walk_deposit" >&2
+        rc=1
+      fi
+    fi
+    # If the deposit is not staged this commit, the process gate is a no-op:
+    # other .ncl files (contracts, DAGs, fixtures) are never process-validated.
   fi
 fi
 

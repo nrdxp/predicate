@@ -20,14 +20,16 @@
 #       Export-validate the instance against the named contract.
 #       Exit 0 = pass; 1 = fail (skip/shrink/bad shape); 2 = env/usage error.
 #
-#   process-gate.sh register <contract: boundary|refine> [pointer-path]
+#   process-gate.sh register <contract: boundary|refine> <deposit-path> [pointer-path]
 #       Write the active-walk pointer and print a teardown trap command to
 #       STDOUT that the calling shell MUST eval:
-#           eval "$(bash process-gate.sh register boundary)"
-#       The printed trap expression removes the pointer on EXIT, HUP, INT, and
-#       TERM — ensuring abnormal-exit cannot leak the pointer (A8/F3). The
-#       pointer path defaults to .ledger/active-walk in the main git tree; an
-#       explicit path is used for testing.
+#           eval "$(bash process-gate.sh register boundary .scratch/topic/deposit.ncl)"
+#       The deposit-path (relative to the repo root) is REQUIRED and pinned at
+#       register time — the gate validates ONLY that path, so a walk cannot later
+#       dodge by renaming its deposit. The printed trap expression removes the
+#       pointer on EXIT, HUP, INT, and TERM — ensuring abnormal-exit cannot leak
+#       the pointer (A8/F3). The pointer path defaults to .ledger/active-walk in
+#       the main git tree; an explicit path is used for testing.
 #
 #   process-gate.sh deregister [pointer-path]
 #       Remove the active-walk pointer unconditionally (CLOSE teardown). Safe
@@ -35,20 +37,26 @@
 #
 # Pointer format
 # ──────────────
-# The pointer file is a one-line text file whose content is the contract class:
-#   boundary   → validate against ledger/contracts/boundary_procedure.ncl
-#   refine     → validate against ledger/contracts/refine_procedure.ncl
+# The pointer file is a TWO-LINE text file:
+#   line 1: the contract class (boundary|refine)
+#   line 2: the deposit-path (repo-root-relative path to the procedure deposit)
+# Example:
+#   boundary
+#   .scratch/topic/boundary_deposit.ncl
 #
 # Walk wiring
 # ───────────
 # A walk that authors procedure deposits:
-#   1. Calls `eval "$(bash process-gate.sh register <class>)"` at startup.
-#      This writes the pointer and installs a teardown trap in the caller's
-#      shell. If the caller's shell exits for any reason (including SIGKILL's
-#      parent reaping, ^C, or a crash), the trap fires and removes the pointer.
-#   2. Authors and stages procedure instance .ncl files during the run.
-#   3. The pre-commit hook sees the pointer, finds staged .ncl files, calls
-#      `process-gate.sh validate <instance> <class>` for each.
+#   1. Calls `eval "$(bash process-gate.sh register <class> <deposit-path>)"` at
+#      startup. This writes the two-line pointer (class + deposit-path) and
+#      installs a teardown trap in the caller's shell. If the caller's shell exits
+#      for any reason (including SIGKILL's parent reaping, ^C, or a crash), the
+#      trap fires and removes the pointer.
+#   2. Authors and stages the procedure deposit at the declared deposit-path.
+#   3. The pre-commit hook sees the pointer, reads class and deposit-path, and
+#      validates ONLY that deposit-path (iff it is staged) against the class
+#      contract via `process-gate.sh validate`. Non-deposit .ncl files (contracts,
+#      DAGs, fixtures) are never validated by the process gate.
 #   4. At CLOSE, calls `bash process-gate.sh deregister` explicitly, then
 #      removes the eval'd trap with `trap - EXIT HUP INT TERM`.
 #
@@ -161,15 +169,15 @@ cmd_validate() {
   return "$rc"
 }
 
-# --- register <contract-class> [pointer-path] --------------------------------
-# Write the active-walk pointer and print a trap teardown expression to STDOUT.
-# The caller MUST eval the output:
-#   eval "$(bash process-gate.sh register boundary)"
+# --- register <contract-class> <deposit-path> [pointer-path] -----------------
+# Write the active-walk pointer (two lines: class + deposit-path) and print a
+# trap teardown expression to STDOUT. The caller MUST eval the output:
+#   eval "$(bash process-gate.sh register boundary .scratch/topic/deposit.ncl)"
 # This installs a trap in the caller's shell that removes the pointer on exit.
 cmd_register() {
-  local class="${1:-}" pointer="${2:-}"
-  if [[ -z "$class" ]]; then
-    echo "usage: process-gate.sh register <contract: boundary|refine> [pointer-path]" >&2
+  local class="${1:-}" deposit_path="${2:-}" pointer="${3:-}"
+  if [[ -z "$class" || -z "$deposit_path" ]]; then
+    echo "usage: process-gate.sh register <contract: boundary|refine> <deposit-path> [pointer-path]" >&2
     exit 2
   fi
 
@@ -190,8 +198,10 @@ cmd_register() {
   ledger_dir="$(dirname "$pointer")"
   mkdir -p "$ledger_dir"
 
-  # Write the pointer: one line, the contract class.
-  printf '%s\n' "$class" > "$pointer"
+  # Write the pointer: two lines — class (line 1) and deposit-path (line 2).
+  # The deposit-path is pinned at register time so the gate validates exactly
+  # the declared deposit; a walk cannot later dodge by renaming its deposit.
+  printf '%s\n%s\n' "$class" "$deposit_path" > "$pointer"
 
   # Emit the teardown trap expression the caller eval's. The trap removes the
   # pointer on EXIT, HUP, INT, and TERM — covering normal exit, hangup,
