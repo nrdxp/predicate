@@ -111,12 +111,25 @@ commit-gate sequence under the campaign DAG and the one-node DAG, and
 asserts the two gate transcripts are byte-identical — a `/core` task
 passes exactly the gates a node does.
 
+## Project-local gates
+
+A consuming project can declare its own idiosyncratic checks in
+`.ledger/gates/` — project data, not shipped predicate machinery. The runner
+`project-gates.sh` is invoked as tier 6 of `hooks/pre-commit` on every
+commit, discovers all executable files in that directory, runs them in
+sorted name order with the project root as `$1`, and exits non-zero iff any
+fail. A project with no `.ledger/gates/` directory is a clean no-op.
+
+See [`docs/gates.md`](../../docs/gates.md) — the `project_local` scope
+section — for the full interface contract and a worked example.
+
 ## Files
 
 | File | Holds |
 | :--- | :--- |
 | `ledger-validate.sh` | The gate: portable runner + structure + authority. |
 | `authorized.py` | The authorization predicate over an exported DAG JSON. |
+| `project-gates.sh` | Project-local gate runner: discovers `.ledger/gates/` executables and runs them in sorted order. |
 | `gate-set.sh` | The scale-invariance check: proves `/core` gates ⊇ node gates by `comm -23`. |
 | `gate-sets/` | The two gate sets as data — `node.txt`, `core.txt`. |
 | `demo_unauthorized.sh` | Reproducible demo: an unauthorized staged change exits non-zero (baseline ΔE₀ ≠ 0); an authorized path passes. |

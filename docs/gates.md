@@ -13,7 +13,7 @@ a new gate with no declared scope breaks the build (fails on omission).
 
 ---
 
-## The five scopes
+## The six scopes
 
 ### `universal`
 
@@ -85,6 +85,50 @@ This is the **process overlay** in `hooks/pre-commit`:
   process-validated. A human commit — which never writes the pointer — meets
   checks 1–4 only.
 
+### `project_local`
+
+Fires on **every** `git commit`, regardless of whether a campaign or walk
+is active. Applies to **both humans and agents**.
+
+This is the **project-local tier** in `hooks/pre-commit` — check 6:
+
+- **Project-local gates** (`hook/pre-commit:project-local`) — the consuming
+  project declares its own idiosyncratic checks in `.ledger/gates/`. The runner
+  discovers every executable file in that directory, runs them in sorted name
+  order with the project root as `$1`, and exits non-zero iff any fail.
+  Implemented by `ledger/gate/project-gates.sh`.
+
+**Opt-in, zero-predicate-idiosyncrasy.** A project with no `.ledger/gates/`
+directory incurs zero overhead — the runner's own no-op-when-absent property
+IS the activation guard. Predicate's shipped machinery contains no knowledge
+of any consuming project's rules; those live entirely in the gate scripts
+the project deposits in `.ledger/gates/`.
+
+**Gate script interface.** Each file in `.ledger/gates/` must be executable.
+When the runner invokes it:
+
+- `$1` = absolute path to the gated project root
+- Exit `0` = pass; non-`0` = fail
+- Diagnostics go to stderr, naming the failing condition
+
+Authors control execution order by naming files with a numeric prefix
+(`01-lint.sh`, `02-validate.sh`, …) — no manifest file is required.
+Non-executable files in the same directory (e.g. a `README.md`) are silently
+skipped.
+
+**Example — a simple project-local gate:**
+
+```bash
+# .ledger/gates/01-no-fixme.sh — blocks commits that introduce FIXME markers
+#!/usr/bin/env bash
+root="$1"
+if git -C "$root" diff --cached -U0 | grep -q '^+.*FIXME'; then
+  echo "project-gate: FIXME marker in staged diff" >&2
+  exit 1
+fi
+exit 0
+```
+
 ### `orchestration`
 
 **Not on the commit path.** These scripts are run by the orchestration driver
@@ -126,9 +170,11 @@ source. If the table and the manifest ever disagree, the manifest wins.
 | `hook/pre-commit:ledger-structure` | predicate_artifact | staged `*.ncl` files | human + agent |
 | `hook/pre-commit:authority` | campaign | iff `.ledger/active-dag` present | agent only |
 | `hook/pre-commit:process` | walk | iff `.ledger/active-walk` present + deposit staged | agent only |
+| `hook/pre-commit:project-local` | project_local | every commit; no-op when `.ledger/gates/` absent | human + agent |
 | `ledger/gate/ledger-validate.sh` | predicate_artifact | commit-time (structure); orchestration (authorize/commit-gate) | human + agent |
 | `ledger/gate/authorized.py` | campaign | called by ledger-validate.sh authorize | agent only |
 | `ledger/gate/process-gate.sh` | walk | walk-activated, validates procedure deposits | agent only |
+| `ledger/gate/project-gates.sh` | project_local | every commit; discovers + runs `.ledger/gates/` executables | human + agent |
 | `ledger/gate/check_scopes.sh` | orchestration | CI gate-scope step; fails on omission | agent only |
 | `ledger/gate/gate-set.sh` | orchestration | CI; scale-invariance proof | agent only |
 | `ledger/gate/adherence_audit.sh` | orchestration | RECONCILE + CLOSE; accidental-flat-commit / drift detector | agent only |

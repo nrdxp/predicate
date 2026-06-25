@@ -31,6 +31,7 @@ let Scope = [|
   'predicate_artifact,
   'campaign,
   'walk,
+  'project_local,
   'orchestration,
 |] in
 
@@ -95,6 +96,13 @@ let GateEntry = {
       applies_to  = "agent only",
     } | GateEntry,
 
+    {
+      gate        = "hook/pre-commit:project-local",
+      scope       = 'project_local,
+      fires_when  = "every commit; invokes ledger/gate/project-gates.sh which runs all executable scripts in <project-root>/.ledger/gates/ sorted by name; no-op when .ledger/gates/ is absent",
+      applies_to  = "human + agent",
+    } | GateEntry,
+
     # ── LEDGER/GATE SCRIPTS ──────────────────────────────────────────────────
 
     {
@@ -116,6 +124,13 @@ let GateEntry = {
       scope       = 'walk,
       fires_when  = "walk-activated (iff .ledger/active-walk present); validates procedure deposits against Nickel contracts at commit time",
       applies_to  = "agent only",
+    } | GateEntry,
+
+    {
+      gate        = "ledger/gate/project-gates.sh",
+      scope       = 'project_local,
+      fires_when  = "every commit via hook/pre-commit:project-local; discovers and runs executable scripts in <project-root>/.ledger/gates/; no-op when directory is absent",
+      applies_to  = "human + agent",
     } | GateEntry,
 
     {
@@ -227,6 +242,13 @@ let GateEntry = {
       gate        = "ledger/gate/demo_unauthorized.sh",
       scope       = 'orchestration,
       fires_when  = "CI smoke and manual; stages an unauthorized path (expects non-zero), then confirms an authorized path passes",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
+      gate        = "ledger/gate/test_project_gates.sh",
+      scope       = 'orchestration,
+      fires_when  = "CI gate-test step; exercises project-gates.sh runner (runner unit tests) and the hook tier-6 integration (standalone consuming-project repo)",
       applies_to  = "agent only",
     } | GateEntry,
 

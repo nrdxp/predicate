@@ -86,7 +86,8 @@ actual_gates() {
       "hook/pre-commit:doc-links" \
       "hook/pre-commit:ledger-structure" \
       "hook/pre-commit:authority" \
-      "hook/pre-commit:process"
+      "hook/pre-commit:process" \
+      "hook/pre-commit:project-local"
 
     # 4. Skill scripts invoked from hooks or CI
     printf '%s\n' \

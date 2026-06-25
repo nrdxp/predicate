@@ -251,6 +251,24 @@ if [ -f "$walk_pointer" ]; then
   fi
 fi
 
+# --- 6. PROJECT-LOCAL GATES -------------------------------------------------
+# A consuming project can declare its own idiosyncratic gates in its
+# .ledger/gates/ directory — project data, parallel to the flight log and
+# state, owned entirely by the consuming repo.  The runner discovers every
+# executable file therein, runs them in sorted name order (passing $root as
+# $1), and exits non-zero iff any fail.
+#
+# A project with no .ledger/gates/ is a clean no-op.  Unlike tiers 4 and 5,
+# no activation pointer is needed: the runner's own no-op-when-absent
+# property IS the activation guard.  Predicate's own shipped machinery is
+# zero-knowledge of what any project-local gate checks.
+bash "$plugin/ledger/gate/project-gates.sh" "$root"
+proj_rc=$?
+if [ "$proj_rc" -ne 0 ]; then
+  echo "pre-commit: PROJECT-LOCAL gate(s) failed — see diagnostics above." >&2
+  rc=1
+fi
+
 if [ "$rc" -ne 0 ]; then
   echo "pre-commit: staged-surface gate failed — commit blocked." >&2
   echo "  (Hooks enforce the commit gate; bypassing with --no-verify defeats it.)" >&2
