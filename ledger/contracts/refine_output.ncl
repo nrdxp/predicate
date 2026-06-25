@@ -39,13 +39,21 @@
     std.is_string value && std.string.length value > 0
   ),
 
+  # Value-restricted tag-or-string for MaintainerJudgment.verdict.
+  # A YAML deposit sends verdict: approved as the string "approved", not the
+  # tag 'approved.  Accepting both preserves the allowed-set restriction while
+  # allowing pure-data YAML deposits to validate.
+  MaintainerVerdict = std.contract.from_predicate (fun v =>
+    v == 'approved || v == "approved" || v == 'pending || v == "pending"
+  ),
+
   # ── MaintainerJudgment ───────────────────────────────────────────────────────
   # One maintainer's verdict. `role` is the persona slug (e.g.
   # "maintainer-architecture"); `verdict` must be 'approved (any 'pending means
   # the report was premature).
   MaintainerJudgment = {
     role    | NonEmptyString,
-    verdict | [| 'approved, 'pending |],
+    verdict | MaintainerVerdict,
   },
 
   # ── RefineReport — the output record shape ────────────────────────────────────
@@ -77,7 +85,7 @@
     let converged = value.consecutive_clean_sweeps > 0 in
     let all_approved =
       std.array.all
-        (fun j => j.verdict == 'approved)
+        (fun j => j.verdict == 'approved || j.verdict == "approved")
         value.maintainer_judgments
     in
     let has_maintainers =

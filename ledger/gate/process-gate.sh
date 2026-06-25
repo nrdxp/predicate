@@ -16,8 +16,9 @@
 #
 # Usage
 # ─────
-#   process-gate.sh validate <instance.ncl> <contract: boundary|refine>
-#       Export-validate the instance against the named contract.
+#   process-gate.sh validate <instance.yaml> <contract: boundary|refine>
+#       Export-validate the deposit (YAML or bare NCL) against the named
+#       contract via `nickel export --apply-contract`.
 #       Exit 0 = pass; 1 = fail (skip/shrink/bad shape); 2 = env/usage error.
 #
 #   process-gate.sh register <contract: boundary|refine> <deposit-path> [pointer-path]
@@ -66,15 +67,17 @@
 # runner resolves `nickel` directly; no `nix run` fallback. If `nickel` is
 # absent the gate exits 2 rather than silently passing (a gate that cannot run
 # is not a gate that passes).
-# Import-path seam: contracts are located via -I <plugin>/ledger/contracts,
-# NEVER project-relative — downstream users have predicate installed elsewhere.
+# Contract resolution: the apply-contract shims (*_apply.ncl) live under
+# $plugin/ledger/contracts/ and import sibling contract files using relative
+# imports.  Nickel resolves these relative to the shim file's directory, so no
+# -I flag is needed — and NEVER pass a project-relative path, as downstream
+# users have predicate installed elsewhere.
 set -u
 
 # Resolve the PLUGIN root from this script's own real path (symlink-safe).
 # All sibling machinery is located relative to $plugin.
 here="$(cd "$(dirname "$(realpath "${BASH_SOURCE[0]}")")" && pwd)"
 plugin="$(cd "$here/../.." && pwd)"
-NICKEL_IMPORT_FLAGS=(-I "$plugin/ledger/contracts")
 
 # --- nickel runner -----------------------------------------------------------
 # nickel must be on PATH (project shell.nix).  No nix-run fallback.
@@ -89,14 +92,19 @@ resolve_nickel() {
   fi
 }
 
-# --- contract name → contract file -------------------------------------------
-# Map a short contract class name to the Nickel contract file that validates a
-# procedure instance.
-contract_file_for() {
+# --- contract class → apply-contract shim file --------------------------------
+# Map a short contract class name to the ledger/contracts/*_apply.ncl shim that
+# evaluates to the procedure contract.  These shim files are what Nickel receives
+# as `--apply-contract`: they import the real contract file and project the single
+# exported contract symbol, so the result is a contract value (not a record).
+#
+# Using absolute paths (resolved via $plugin) means Nickel resolves sibling
+# imports from the shim file's own directory — no -I flag is required.
+apply_contract_file_for() {
   local class="$1"
   case "$class" in
-    boundary) echo "$plugin/ledger/contracts/boundary_procedure.ncl" ;;
-    refine)   echo "$plugin/ledger/contracts/refine_procedure.ncl" ;;
+    boundary) echo "$plugin/ledger/contracts/boundary_apply.ncl" ;;
+    refine)   echo "$plugin/ledger/contracts/refine_apply.ncl" ;;
     *)
       echo "process-gate: unknown contract class '$class' (must be 'boundary' or 'refine')" >&2
       return 2
@@ -104,37 +112,30 @@ contract_file_for() {
   esac
 }
 
-# --- contract name → contract symbol -----------------------------------------
-# Map a short contract class name to the exported Nickel symbol (field name)
-# that is the procedure contract inside the contract file.
-contract_symbol_for() {
-  local class="$1"
-  case "$class" in
-    boundary) echo "BoundaryProcedure" ;;
-    refine)   echo "RefineProcedure" ;;
-    *)
-      echo "process-gate: unknown contract class '$class'" >&2
-      return 2
-      ;;
-  esac
-}
-
-# --- validate <instance.ncl> <contract-class> --------------------------------
-# Export-validate the procedure instance against the named contract. The gate
-# APPLIES the class contract externally — the instance cannot self-weaken by
-# omitting its contract import or binding. Exit 0 = pass; 1 = fail; 2 = error.
+# --- validate <instance.yaml|ncl> <contract-class> ----------------------------
+# Export-validate the procedure deposit against the named contract. The gate
+# APPLIES the class contract externally via `--apply-contract` — the deposit
+# cannot self-weaken by omitting a contract import or binding. Exit 0 = pass;
+# 1 = fail (skip/shrink/bad shape); 2 = env/usage error.
 #
-# Validation strategy (gate-locus principle): the Nickel export IS the gate.
-# The gate writes a temp wrapper that imports the instance and FORCES the class
-# contract: `(import "$abs_instance") | cf.Symbol`. This ensures the gate is
-# not fooled by a deposit that exports as a bare record with no contract binding
-# (e.g. steps=[]) or that imports the contract but never applies it. The
-# upstream-pinned required-step set lives in the contract, not the instance —
-# so a skip/shrink attack cannot succeed even if the instance omits the binding.
+# Validation strategy (gate-locus principle, D5): the deposit is pure-data
+# (YAML or bare NCL record) with NO Nickel execution model embedded in it.
+# `nickel export <deposit> --apply-contract <shim>` reads the deposit as Nickel
+# values and then applies the class contract from the shim — entirely outside
+# the deposit.  This closes two attack vectors by construction:
+#   A-B1 (self-binding): a YAML deposit cannot import Nickel or apply contracts.
+#   Import-DoS: a YAML deposit cannot execute arbitrary imports.
+# A bare NCL dodge (steps=[]) is also caught: the contract is applied
+# externally regardless of whether the deposit contains any binding.
+#
+# The apply-contract shim (*_apply.ncl) lives in ledger/contracts/ and imports
+# its sibling contract file (boundary_procedure.ncl / refine_procedure.ncl)
+# relative to its own directory, so no -I flag is needed when the shim is
+# passed as an absolute path.
 cmd_validate() {
   local instance="${1:-}" class="${2:-}"
   if [[ -z "$instance" || -z "$class" ]]; then
-    echo "usage: process-gate.sh validate <instance.ncl> <contract: boundary|refine>" >&2
+    echo "usage: process-gate.sh validate <instance.yaml> <contract: boundary|refine>" >&2
     exit 2
   fi
   if [[ ! -f "$instance" ]]; then
@@ -142,34 +143,20 @@ cmd_validate() {
     exit 2
   fi
 
-  # Resolve the contract file and symbol for the class; exit 2 on unknown class.
-  local _cf _sym
-  _cf="$(contract_file_for "$class")" || exit 2
-  _sym="$(contract_symbol_for "$class")" || exit 2
+  # Resolve the apply-contract shim for the class; exit 2 on unknown class.
+  local _apply_cf
+  _apply_cf="$(apply_contract_file_for "$class")" || exit 2
 
   resolve_nickel
 
-  # Resolve instance to absolute path so the temp wrapper's import is stable
-  # regardless of the caller's working directory.
+  # Resolve the deposit to an absolute path so nickel finds it regardless of
+  # the caller's working directory.
   local abs_instance
   abs_instance="$(realpath "$instance")"
 
-  # Write a temp wrapper .ncl that imports the instance and APPLIES the class
-  # contract. Both paths are absolute so no -I is needed for resolution: Nickel
-  # resolves relative imports inside the contract file from its own directory
-  # (which is $plugin/ledger/contracts/), so sibling contracts resolve correctly.
-  local tmp
-  tmp="$(mktemp --suffix=.ncl)"
-  # Trap HUP/INT/TERM so the temp file is removed even on a mid-function signal.
-  # shellcheck disable=SC2064
-  trap "rm -f '$tmp'" HUP INT TERM
-  printf 'let cf = import "%s" in\n(import "%s") | cf.%s\n' \
-    "$_cf" "$abs_instance" "$_sym" > "$tmp"
-
   local rc=0
-  "${NICKEL[@]}" export "${NICKEL_IMPORT_FLAGS[@]}" "$tmp" >/dev/null || rc=$?
-  rm -f "$tmp"
-  trap - HUP INT TERM
+  "${NICKEL[@]}" export "$abs_instance" \
+    --apply-contract "$_apply_cf" >/dev/null || rc=$?
   return "$rc"
 }
 
@@ -186,7 +173,7 @@ cmd_register() {
   fi
 
   # Validate the class name before writing anything.
-  contract_file_for "$class" >/dev/null || exit 2
+  apply_contract_file_for "$class" >/dev/null || exit 2
 
   # Default pointer location: .ledger/active-walk in the MAIN git tree.
   # A linked worktree has no .ledger/ of its own — the pointer lives in the

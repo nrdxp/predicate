@@ -62,56 +62,75 @@ let core_steps_mod = import "core_steps.ncl" in
   #
   # The record is OPEN (`..`) so human-facing prose (title, rationale, the step's
   # creative interior) rides alongside untouched — that is the altitude line.
+  # ── KindContract ─────────────────────────────────────────────────────────────
+  # Value-restricted tag-or-string for Step.kind.
+  # A YAML deposit sends kind: leaf as the string "leaf", not the tag 'leaf.
+  # Accepting both (string OR tag) preserves the value restriction while
+  # allowing pure-data YAML deposits to validate.  A bare enum type annotation
+  # [| 'leaf, 'invoke |] only accepts tags; std.enum.TagOrString accepts any
+  # string and loses the restriction.  This contract implements the minimal fix:
+  # string ∈ {"leaf","invoke"} OR matching enum tag.
+  KindContract = std.contract.from_predicate (fun v =>
+    v == 'leaf || v == "leaf" || v == 'invoke || v == "invoke"
+  ),
+
   Step = std.contract.custom (fun _label value =>
     let has = fun f => std.record.has_field f value in
     # I-C3 / I-C4 — XOR by discriminant. Each branch checks BOTH the required
     # payload of its kind AND the absence of the other kind's payload, so a step
     # cannot smuggle both (it must be split). All field forcings happen inside the
     # branch so a malformed payload fails eagerly under the per-step deep_seq.
-    value.kind
-    |> match {
-      'leaf =>
-        if has "class" || has "ref"
-        then 'Error { message = "a 'leaf step must not carry an invoke payload (class/ref); split it into two states" }
-        else if !(has "evidence")
-        then 'Error { message = "a 'leaf step must deposit non-empty `evidence`" }
-        else
-          # Force the leaf payload shapes: evidence is a non-empty array of
-          # P-GROUND Evidence; cites is an array of paths. deep_seq makes the
-          # nested Evidence contract (and its NonEmptyString fields) fire.
-          let _ev_nonempty =
-            (value.evidence
-              | std.contract.from_predicate (fun v =>
-                  std.is_array v && std.array.length v > 0))
-          in
-          let _ev_conformance =
-            std.array.fold_left
-              (fun acc e => std.deep_seq (e | deposit.Evidence) acc)
-              null
-              value.evidence
-          in
-          let _cites = (value.cites | Array String) in
-          std.deep_seq _ev_nonempty (
-            std.seq _ev_conformance (
-              std.deep_seq _cites ('Ok value)
-            )
-          ),
-      'invoke =>
-        if has "evidence"
-        then 'Error { message = "an 'invoke step must not carry a leaf payload (evidence); split it into two states" }
-        else if !(has "class")
-        then 'Error { message = "an 'invoke step must name a `class` from the sub-procedure registry" }
-        else if !(has "ref")
-        then 'Error { message = "an 'invoke step must deposit a `ref` resolving to the sub-procedure footprint (I-C2)" }
-        else
-          # I-C3: class ∈ the gated upstream registry (forbidden state otherwise).
-          # I-C2: ref is a real P-GROUND DepositRef (composition by ref, not assertion).
-          let _class = (value.class | sub_procedures.SubProcedure) in
-          let _ref = (value.ref | deposit.DepositRef) in
-          std.deep_seq _class (
-            std.deep_seq _ref ('Ok value)
-          ),
-    }
+    #
+    # The kind field may arrive as a tag ('leaf/'invoke) from a .ncl deposit or
+    # as a string ("leaf"/"invoke") from a YAML deposit.  Both are accepted by
+    # KindContract; the branching below compares directly against both forms.
+    let kind = value.kind in
+    let is_leaf   = kind == 'leaf   || kind == "leaf"   in
+    let is_invoke = kind == 'invoke || kind == "invoke" in
+    if !(is_leaf || is_invoke)
+    then 'Error { message = "Step.kind must be 'leaf or 'invoke (or string \"leaf\"/\"invoke\" from YAML deposits)" }
+    else if is_leaf then
+      if has "class" || has "ref"
+      then 'Error { message = "a 'leaf step must not carry an invoke payload (class/ref); split it into two states" }
+      else if !(has "evidence")
+      then 'Error { message = "a 'leaf step must deposit non-empty `evidence`" }
+      else
+        # Force the leaf payload shapes: evidence is a non-empty array of
+        # P-GROUND Evidence; cites is an array of paths. deep_seq makes the
+        # nested Evidence contract (and its NonEmptyString / EvidenceMethod
+        # fields) fire eagerly — including for YAML string evidence.method values.
+        let _ev_nonempty =
+          (value.evidence
+            | std.contract.from_predicate (fun v =>
+                std.is_array v && std.array.length v > 0))
+        in
+        let _ev_conformance =
+          std.array.fold_left
+            (fun acc e => std.deep_seq (e | deposit.Evidence) acc)
+            null
+            value.evidence
+        in
+        let _cites = (value.cites | Array String) in
+        std.deep_seq _ev_nonempty (
+          std.seq _ev_conformance (
+            std.deep_seq _cites ('Ok value)
+          )
+        )
+    else # is_invoke
+      if has "evidence"
+      then 'Error { message = "an 'invoke step must not carry a leaf payload (evidence); split it into two states" }
+      else if !(has "class")
+      then 'Error { message = "an 'invoke step must name a `class` from the sub-procedure registry" }
+      else if !(has "ref")
+      then 'Error { message = "an 'invoke step must deposit a `ref` resolving to the sub-procedure footprint (I-C2)" }
+      else
+        # I-C3: class ∈ the gated upstream registry (forbidden state otherwise).
+        # I-C2: ref is a real P-GROUND DepositRef (composition by ref, not assertion).
+        let _class = (value.class | sub_procedures.SubProcedure) in
+        let _ref = (value.ref | deposit.DepositRef) in
+        std.deep_seq _class (
+          std.deep_seq _ref ('Ok value)
+        )
   ),
 
   # ── the COMBINATOR ───────────────────────────────────────────────────────────
