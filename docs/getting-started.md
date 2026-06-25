@@ -71,6 +71,18 @@ block, so re-running is a no-op and your existing `CLAUDE.md` content is preserv
 untouched. The imports point at your **checkout** (not the version-pinned plugin
 cache), so they survive cache clears and auto-propagate a `git pull`.
 
+**System-prompt conditioning.** In addition to `@import`-based loading, Predicate
+ships a conditioning layer (`conditioning/`) that generates a structured system
+prompt for each role. The generator (`conditioning/compose.ncl`) composes
+`invariant-core ++ persona(role)` and enforces a contract (`HasCore`) that makes
+it structurally impossible for any harness adapter or persona to drop the
+always-on law. The `install` phase can inject this as a persistent system prompt
+where the harness supports it (Claude Code `--append-system-prompt`, `agy
+--system-prompt`), or fall back to the `@import` surface if not. The orchestrator
+uses the same generator when dispatching workers, selecting the appropriate role
+at launch time. See [conditioning-layer.md](conditioning-layer.md) for the
+composition contract and the harness-agnostic injection ladder.
+
 > The `install` phase touches only your global config. It installs **no** git
 > hooks and creates **no** `.ledger` — those are per-project, and belong to `init`.
 
@@ -87,14 +99,20 @@ cd /path/to/your/project
 
 It performs the per-repository setup:
 
-1. **Installs the commit gate** by calling `hooks/install-hooks.sh` — the
-   `commit-msg` and `pre-commit` hooks that enforce Conventional Commits form,
-   self-containment, and referential integrity. The installer links the hooks
-   **as symlinks into your repo's untracked `.git/hooks/`**, each pointing back to
-   the plugin checkout. Nothing is added to your project's tracked tree, and the
-   symlinks are auditable and removable (`rm .git/hooks/{pre-commit,commit-msg}`).
-   The hooks self-locate their gate machinery from their own path back in the
-   checkout, so they keep working with no copy frozen into your project.
+1. **Installs the three-tier commit gate** by calling `hooks/install-hooks.sh` — the
+   `commit-msg` and `pre-commit` hooks. `commit-msg` enforces Conventional Commits
+   form plus self-containment (no internal campaign references a stranger reading
+   `git log` could not resolve). `pre-commit` runs three tiers: the structural tier
+   always runs (referential integrity, markdown link validity, Nickel contract
+   satisfaction); the authority tier runs only when a campaign DAG is active
+   (staged paths must be authorized by the DAG); and the process tier fires only
+   when an agent walk is registered (procedure deposits are validated against their
+   contract class). The installer links the hooks **as symlinks into your repo's
+   untracked `.git/hooks/`**, each pointing back to the plugin checkout. Nothing is
+   added to your project's tracked tree, and the symlinks are auditable and
+   removable (`rm .git/hooks/{pre-commit,commit-msg}`). The hooks self-locate their
+   gate machinery from their own path back in the checkout, so they keep working
+   with no copy frozen into your project.
 2. **Initializes the `.ledger` subrepo** — the project's flight-recorder for
    durable agent history — and configures its remote (it never pushes; pushing is
    left to you).
@@ -143,12 +161,18 @@ where the plugin lives.
 
 ---
 
-## 3. Configure AGENTS.md (Optional)
+## 3. Configure AGENTS.md (Optional for basic use)
 
 The `install` phase wires rules loading for you, so an `AGENTS.md` is not required
-for skills to load. It remains useful for *project-specific* context the global
-rules cannot know — build commands, an architecture overview, and explicit skill
-routing.
+for skills to load — basic use works without one. It remains useful for
+*project-specific* context the global rules cannot know — build commands, an
+architecture overview, and explicit skill routing.
+
+It is also the **anchor the prevention layer builds on**: the
+[`/orient`](../skills/orient/SKILL.md) workflow maps a repository and authors a
+nested `AGENTS.md` hierarchy (ecosystem ⊃ project ⊃ component) holding the goal,
+requirements, and invariants so every subsequent walk is anchored against drift.
+Optional to start; load-bearing once you adopt the prevention half.
 
 Create an `AGENTS.md` in your project root and fill in:
 
@@ -198,7 +222,13 @@ Confirm your agent runner detects and loads the Predicate configuration.
 
 ## Next Steps
 
-- **Custom content:** See [docs/authoring.md](authoring.md) for writing your own
+- **Custom content:** See [authoring.md](authoring.md) for writing your own
   custom skills.
+- **Architecture overview:** See [predicate-architecture.md](predicate-architecture.md) for the
+  correction/prevention architecture, the gate tiers, and the contract surface.
+- **Conditioning layer:** See [conditioning-layer.md](conditioning-layer.md) for the
+  system-prompt-as-law mechanism and how the invariant-core is injected.
+- **Primitives:** See [primitives.md](primitives.md) for the five cross-cutting primitives
+  (P-GROUND, P-ARSENAL, P-COMPOSE, P-INTENT, P-TRACK) that the machinery composes on.
 - **Forking:** Fork the Predicate repository and point your global clone at your
   fork to maintain custom organizational skills.

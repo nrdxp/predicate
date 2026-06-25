@@ -4,20 +4,27 @@ Modular rules, skills, and workflows that keep AI coding assistants anchored to 
 
 Predicate is built from two synergistic halves: **correction** relaxes drift back out in an outer loop once it appears, and **prevention** keeps the walk focused *before* drift compounds. Correction without prevention corrects toward the wrong goal; prevention without correction drifts anyway over a long horizon. Together they bound drift.
 
+> **Two terms used throughout.** A **walk** is a single agent generation run, and the agent performing it is a **walker** — Predicate treats generation as a trajectory that can drift, not as a mind that thinks. An **IBC** (Initial Boundary Condition) is the prompt contract that sets a walker on course: the goal, constraints, and acceptance criteria a walk is launched against.
+
 See the [Getting Started Guide](docs/getting-started.md) to integrate Predicate into your project.
+
+### What it looks like in practice
+
+The doctrine below is heavy; the daily experience is not. A concrete example: you ask the agent to fix a bug and invoke the `core` workflow (`predicate:core`). Instead of editing the implementation directly, the agent first writes a test that captures the bug and runs it to confirm it *fails* (a baseline failure — proof the test actually exercises the bug). Only then does it write the fix, re-running the test until it passes. When it commits, the `commit-msg` hook rejects the message if it does not follow Conventional Commits form or references context a stranger could not resolve. None of that is the agent remembering to be careful — each step is a gate that *blocks* until satisfied. The rest of this document explains why those gates are shaped the way they are.
 
 ## Repository structure
 
 ```
 predicate/
-├── rules.md     # The master ruleset: the Verification Dual and the Prime Invariants every walker inherits
-├── ambient.md   # Always-on principles that are not workflows (no entrypoint)
-├── skills/      # Encapsulated agent skills (rules, workflows, tools)
-├── ledger/      # Nickel contracts that make campaign artifacts machine-valid
-├── gates/       # Standalone evaluator scripts (orphan, self-containment)
-├── hooks/       # Git hooks that enforce the Commit Gate at commit time
-├── templates/   # Project templates (IBC.md, ADR.md, etc.)
-└── docs/        # Guides, the orchestration protocol, ADRs, and theory
+├── rules.md        # The master ruleset: the Verification Dual and the Prime Invariants every walker inherits
+├── ambient.md      # Always-on principles that are not workflows (no entrypoint)
+├── conditioning/   # System-prompt generator: invariant-core ++ role persona, gated by injection-rule contract
+├── skills/         # Encapsulated agent skills (rules, workflows, tools)
+├── ledger/         # Nickel contracts that make campaign artifacts machine-valid
+├── gates/          # Standalone evaluator scripts (orphan, self-containment)
+├── hooks/          # Git hooks that enforce the three-tier Commit Gate at commit time
+├── templates/      # Project templates (IBC.md, ADR.md, etc.)
+└── docs/           # Guides, the orchestration protocol, ADRs, and theory
 ```
 
 Two directories are runtime-only and gitignored by the parent repository: `.scratch/`
@@ -84,12 +91,21 @@ The mechanism is a **conditioning layer**: the goal, requirements, unknowns, and
 
 These three are derived in the same phase-space language as the correction half in [the formalism](docs/theory/formalism.md) (Part 2); the standing principles they ground live in [ambient.md](ambient.md). The discipline rests on a few concrete pieces a newcomer should know:
 
-* **The carrier stack.** Knowns and known-unknowns ride one stack of carriers, never duplicated docs. The project's **`AGENTS.md` is the persistent goal-anchor** — a nested hierarchy (ecosystem ⊃ project ⊃ component) holding the goal, requirements, invariants, and the structural map; [this repository's own AGENTS.md](AGENTS.md) is the first instance. A live Nickel context-map projects the *active* subset per surface with freshness and signpost markers; the [flight recorder](#the-flight-recorder) is the narrative history; `.scratch` is the volatile draft that syncs into the anchor only at reconciliation boundaries.
+* **The system-prompt-as-law conditioning layer.** The most direct expression of prevention is structural: every agent's system prompt is generated — never hand-authored — as `invariant-core ++ persona(role)`, where `invariant-core` is the minimal, always-on law (`conditioning/core.ncl`) and the persona overlay is a thin, discipline-proportioned role delta (`conditioning/personas/<role>.ncl`). The generator (`conditioning/compose.ncl`) enforces an **injection-rule contract** (`HasCore`): `nickel export` fails with a contract violation if the core is absent from the composed string. No persona or harness adapter can accidentally drop the law — the contract makes it structurally impossible. See [docs/conditioning-layer.md](docs/conditioning-layer.md) for the full composition model, the injection-rule contract, and the harness-agnostic delivery ladder.
+* **The five cross-cutting primitives.** The prevention layer's machinery is not five ad-hoc mechanisms but five composable primitives the rest of the system builds on. Each does one concrete job:
+  * **P-GROUND** — records a *deposit*: a typed footprint a procedure step writes (evidence, cited paths, references to other deposits) so provenance is composed rather than asserted.
+  * **P-ARSENAL** — *selects* from available capabilities (skills, tools, MCP servers) by surveying for an approach-changing one rather than enumerating the whole set.
+  * **P-COMPOSE** — *combines* parts into a whole through one combinator, e.g. the `core ++ persona` system-prompt generator above — the anti-spaghetti guarantee that there is one composition law, not N hand-authored variants.
+  * **P-INTENT** — *recovers purpose*: runs the letter of an instruction against its spirit and surfaces only on genuine divergence, not reflexively.
+  * **P-TRACK** — *tracks state*: maintains the four-quadrant requirements/invariants/unknowns tracker with signposted known-unknowns (the next bullet).
+
+  See [docs/primitives.md](docs/primitives.md) for the full spec.
+* **The carrier stack.** Knowns and known-unknowns ride one stack of carriers, never duplicated docs. The project's **`AGENTS.md` is the persistent goal-anchor** of the prevention layer — a nested hierarchy (ecosystem ⊃ project ⊃ component) holding the goal, requirements, invariants, and the structural map; [this repository's own AGENTS.md](AGENTS.md) is the first instance. (An `AGENTS.md` is *optional* for basic use — skills load without one — but it is the anchor the prevention half builds on once you adopt it; see the [Getting Started Guide](docs/getting-started.md).) A live Nickel context-map projects the *active* subset per surface with freshness and signpost markers; the [flight recorder](#the-flight-recorder) is the narrative history; `.scratch` is the volatile draft that syncs into the anchor only at reconciliation boundaries.
 * **Epistemic discipline — the four quadrants.** A walk maps what it knows about its goal before committing: *knowns* (pruned to the minimal set that still bounds the goal — requirement bloat is its own drift surface), *known-unknowns* (tracked first-class like requirements, each with a **signpost**: the observable that would resolve it), and *unknown-unknowns* (surfacing one is high-value signal — file it with a signpost rather than suppress or chase it). The rate of new discovery is the measured reading behind the maturity flag above.
 * **The focus-level selector.** The first question of any boundary is not *what* but *how much ceremony*. Over-ceremony drifts as surely as under-ceremony — running a campaign's survey-and-orchestrate machinery on a leaf edit dilutes the attention it means to focus. Match the discipline to the task before drawing the boundary.
 * **Bidirectional outward search.** Before halting on a gap, a walk looks outward along two axes: *toward the world* (prior art, RFCs, literature) to map the domain, and *toward the environment* (the harness's installed skills, tools, and MCP servers — the arsenal) to map capability. Reaching for the habitual tool without surveying the arsenal is hole-digging in capability space.
 
-A project enters this layer through the [`/orient`](skills/orient/SKILL.md) workflow, which maps a repository and authors its `AGENTS.md` hierarchy so every subsequent walk is anchored and gated. The prevention half is in active design (`WIP`); see [AGENTS.md](AGENTS.md) for what has landed and what is still being built.
+A project enters this layer through the [`/orient`](skills/orient/SKILL.md) workflow, which maps a repository and authors its `AGENTS.md` hierarchy so every subsequent walk is anchored and gated.
 
 ---
 
@@ -145,9 +161,15 @@ The Verification Dual's symbolic path is not a convention an agent is asked to r
 
 * **The Nickel ledger ([ledger/](ledger/README.md)).** Every state artifact a campaign produces — its boundary, its DAG, its findings, its reconciliation record — is a [Nickel](https://nickel-lang.org) contract. The contracts make the artifacts' invariants *intrinsic*: a malformed artifact cannot be exported. The DAG contract enforces acyclicity, referential integrity, and that concurrent nodes declare disjoint file surfaces; the findings and reconcile-log contracts enforce one principle — *a condition is only closed once the evaluator that closes it is named.*
 * **The gates ([gates/](gates/)).** Standalone evaluator scripts that close conditions a generic doc check cannot: `check_orphans.sh` is the referential-truth gate (a reference that *names* a removed or demoted workflow as if it were live fails it), and `check_selfcontained.sh` rejects commit messages with references a stranger reading `git log` could not resolve.
-* **The git hooks ([hooks/](hooks/)).** `hooks/install-hooks.sh` wires a `commit-msg` hook (Conventional Commits form plus self-containment) and a `pre-commit` hook (staged markdown links valid, staged Nickel artifact satisfies its contract, no staged file references a removed workflow as live). The installer is worktree-aware, so one install covers the main checkout and every linked worktree. A violation *blocks* the commit — the Commit Gate enforced as a gate, not a memory.
+* **The git hooks ([hooks/](hooks/)).** `hooks/install-hooks.sh` wires a `commit-msg` hook (Conventional Commits form plus self-containment) and a `pre-commit` hook that enforces three tiers of staged-surface checks. The installer is worktree-aware, so one install covers the main checkout and every linked worktree. A violation *blocks* the commit — the Commit Gate enforced as a gate, not a memory.
 
-The Commit Gate runs in every repository, including the independent `.ledger/` sub-repository and every worktree. The message must pass the [commit-hygiene](skills/commit-hygiene/SKILL.md) validator. The staged surface is then checked in two layers with different activation (see [rules.md](rules.md) §3): the **structural layer** always runs — staged markdown links must be valid, staged Nickel artifacts must satisfy their contracts, and no staged file may orphan a removed workflow; the **authority layer** runs only when a campaign is in flight, signalled by the `.ledger/active-dag` pointer — when that pointer is present, every staged path must fall under some campaign node's declared `file_surface`. An ordinary commit with no pointer gets the structural layer alone. The full test suite and linters must also run.
+The Commit Gate runs in every repository, including the independent `.ledger/` sub-repository and every worktree. The message must pass the [commit-hygiene](skills/commit-hygiene/SKILL.md) validator. The staged surface is then checked in **three tiers** with different activation (see `hooks/pre-commit` and [rules.md](rules.md) §3):
+
+1. **Structural (always).** Artifact-local and campaign-independent: staged markdown links must be valid, staged Nickel artifacts must satisfy their contracts, and no staged file may orphan a removed workflow. These ask only "does this artifact satisfy its own contract?" and run on every commit.
+2. **Authority (iff a campaign is in flight).** Per-commit and campaign-dependent: when an active campaign DAG is declared via the `.ledger/active-dag` pointer, every staged path must fall under some campaign node's declared `file_surface` — not in the IBC means not authorized. An ordinary commit with no pointer gets the structural tier alone.
+3. **Process (iff a walk is active).** Walk-activated and procedure-dependent: when an agent walk declares its run-state via the `.ledger/active-walk` pointer, every staged Nickel file that applies a procedure contract is validated against that contract — an omitted or malformed procedure step blocks the commit. A human commit never writes this pointer; humans pass only tiers 1 and 2.
+
+The full test suite and linters must also pass. See [docs/predicate-architecture.md](docs/predicate-architecture.md) for the architecture overview, including the gate tiers and the contract surface.
 
 ---
 
