@@ -2,12 +2,17 @@
 # Process-adherence gate — deterministic audit of whether the campaign execution
 # protocol was actually followed, from git history alone.
 #
-# This gate exists because the Verification Dual's "externalize the check" principle
-# applies to the PROCESS, not just the output: a rationalizing agent cannot be stopped
-# by self-imposed rules — only by a machine check it does not control. A campaign that
+# This gate exists because process adherence is not self-certifying: a campaign that
 # ran flat on the integration branch (direct commits, no worktree isolation) is
 # indistinguishable by its CONTENT from a correctly-isolated one; it is distinguishable
 # by its HISTORY. This gate reads the history.
+#
+# SCOPE AND THREAT MODEL: this gate catches ACCIDENTAL flat-commits and drift — a
+# well-intentioned agent that forgot to work in a worktree. It does NOT bind a
+# determined forger: the branch-reachability witness is agent-mintable — an agent
+# controlling its own git refs can launder a flat commit by minting a node/* ref
+# after the fact. The threat model is keeping WELL-INTENTIONED agents honest;
+# adversary-hardening is an OS-layer concern, not a git-history concern.
 #
 # Usage:
 #   adherence_audit.sh <baseline-ref> [<integration-ref=HEAD>]
@@ -24,9 +29,9 @@
 #   (2) WORKTREE ISOLATION (the core check) — every non-merge commit reachable via
 #       first-parent in baseline..integration must trace to at least one node/* branch
 #       (i.e. be reachable from a node/* tip). A commit reachable from a node/* branch
-#       was authored in an isolated worktree; a commit on NO node/* branch is a true
-#       direct-flat bypass — the author committed straight to the integration branch
-#       without worktree isolation.
+#       is taken as a worktree-isolation witness; a commit on NO node/* branch signals
+#       an accidental flat-commit — the author likely committed straight to the
+#       integration branch without worktree isolation.
 #
 #       Detection is MERGE-STRATEGY AGNOSTIC: octopus merges (which legitimately make
 #       a node branch the first parent), fast-forwards, and standard --no-ff merges
@@ -154,10 +159,10 @@ else
 
   if [[ "${#bypasses[@]}" -eq 0 ]]; then
     echo "PASS  worktree-isolation: all ${direct_count} first-parent commit(s) trace to a node/* branch"
-    echo "      Isolation verified by branch reachability (merge strategy: irrelevant)."
+    echo "      No accidental flat-commits detected (branch-reachability witness present; merge strategy: irrelevant)."
   else
     echo "FAIL  worktree-isolation: ${#bypasses[@]} commit(s) not reachable from any node/* branch" >&2
-    echo "      These commits were authored directly on the integration branch — true isolation bypasses:" >&2
+    echo "      These commits appear to be accidental flat-commits (no node/* branch witness):" >&2
     for c in "${bypasses[@]}"; do
       echo "        $c  $(git log -1 --format='%s' "$c")" >&2
     done

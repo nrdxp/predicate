@@ -99,8 +99,10 @@ Orchestration gates include:
   `demo_unauthorized.sh`.
 - Completeness checker: `check_scopes.sh`.
 - Scale-invariance proof: `gate-set.sh`.
-- Campaign-process gates: `adherence_audit.sh` (merge-discipline check at
-  CLOSE), `coherence_impact.sh` (bidirectional coherence at each node landing),
+- Campaign-process gates: `adherence_audit.sh` (accidental-flat-commit / drift
+  detector at RECONCILE and CLOSE — catches well-intentioned agents that forgot
+  worktree isolation; not hardened against agents that can mint node/* refs),
+  `coherence_impact.sh` (bidirectional coherence at each node landing),
   `premise_fresh.sh` (S1 tripwire freshness before dispatch),
   `recorder_close_check.sh` (CLOSE retrospective recorded in flight log).
 - Tracker-freshness gate: `tracker_fresh.sh` / `tracker_fresh.py` (context-map
@@ -129,7 +131,7 @@ source. If the table and the manifest ever disagree, the manifest wins.
 | `ledger/gate/process-gate.sh` | walk | walk-activated, validates procedure deposits | agent only |
 | `ledger/gate/check_scopes.sh` | orchestration | CI gate-scope step; fails on omission | agent only |
 | `ledger/gate/gate-set.sh` | orchestration | CI; scale-invariance proof | agent only |
-| `ledger/gate/adherence_audit.sh` | orchestration | campaign CLOSE; merge-discipline check | agent only |
+| `ledger/gate/adherence_audit.sh` | orchestration | RECONCILE + CLOSE; accidental-flat-commit / drift detector | agent only |
 | `ledger/gate/coherence_impact.sh` | orchestration | RECONCILE step; coherence check | agent only |
 | `ledger/gate/premise_fresh.sh` | orchestration | before node dispatch; tripwire freshness | agent only |
 | `ledger/gate/recorder_close_check.sh` | orchestration | campaign CLOSE; flight-log check | agent only |
