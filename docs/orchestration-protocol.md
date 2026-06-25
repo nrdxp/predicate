@@ -198,7 +198,7 @@ RECONCILE_AND_MERGE(node, dag, shared_branch):
   # ── (5) VERDICT ───────────────────────────────────────────────────────────
   VERDICT:
     ACCEPT  (all of 1–4 clean, reviews converged-pass):
-        merge node/<node-id> into shared_branch (no-ff)
+        merge node/<node-id> into shared_branch (any strategy: standard, octopus, or fast-forward)
         node.STATUS := ACCEPTED; mark its mitigated findings
     REWORK  (an evaluator, surface, or coherence check failed):
         emit a corrective delta IBC naming the failing evaluator's output;

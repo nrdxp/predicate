@@ -27,6 +27,7 @@ jobs:
           bash ledger/gate/test_reconcile.sh
           bash ledger/gate/test_surface_protocol.sh
           bash ledger/gate/test_gates.sh
+          bash ledger/gate/test_adherence.sh
 
       - name: contract typecheck (all ledger/contracts/*.ncl)
         run: bash ledger/gate/test_contract_typecheck.sh

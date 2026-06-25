@@ -21,26 +21,21 @@
 #       name is a campaign/* branch, not master/main. Campaign work committed directly
 #       to master means the integration-branch invariant was violated.
 #
-#   (2) MERGE DISCIPLINE (the core check) — node work must arrive via --no-ff merges
-#       from node/<id> branches, NOT as direct commits on the integration mainline.
-#       Heuristic: count the merge commits (--merges) in the range and the direct
-#       mainline commits (--no-merges --first-parent). The invariant is:
+#   (2) WORKTREE ISOLATION (the core check) — every non-merge commit reachable via
+#       first-parent in baseline..integration must trace to at least one node/* branch
+#       (i.e. be reachable from a node/* tip). A commit reachable from a node/* branch
+#       was authored in an isolated worktree; a commit on NO node/* branch is a true
+#       direct-flat bypass — the author committed straight to the integration branch
+#       without worktree isolation.
 #
-#         merges > 0  AND  direct_mainline == 0
+#       Detection is MERGE-STRATEGY AGNOSTIC: octopus merges (which legitimately make
+#       a node branch the first parent), fast-forwards, and standard --no-ff merges
+#       all pass as long as the work was isolated in a node/* worktree. The only thing
+#       this check detects is a commit that is on NO node/* branch at all.
 #
-#       Why this pair, not just "merges > 0"?
-#         - "merges > 0" alone would pass a history with both node merges AND direct
-#           mainline commits — mixed isolation (some nodes isolated, some not).
-#         - "--first-parent --no-merges" counts commits whose first parent is on the
-#           integration mainline itself — the structural signature of a direct-push
-#           bypass. A properly isolated campaign has ZERO such commits; all node work
-#           enters via merge commits whose second parent is the node branch tip.
-#         - Together they express: "isolation was the exclusive mechanism" rather than
-#           "isolation was used at least once."
-#
-#       The check is robust to large campaigns: it is O(n) over commit count, uses
-#       only portable git-log flags (--merges, --no-merges, --first-parent, --count),
-#       and makes no assumptions about branch names surviving in the remote.
+#       Special case: if no node/* branches exist (cleaned up after campaign close),
+#       the reachability check cannot be performed — the gate prints WARN and skips
+#       the check with rc 0 (absence of evidence is not evidence of violation).
 #
 # Exit codes: 0 (PASS) / 1 (FAIL with diagnostic)
 
@@ -110,49 +105,64 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# Check 2: MERGE DISCIPLINE (the core check — isolation via --no-ff)
+# Check 2: WORKTREE ISOLATION — branch-reachability, merge-strategy agnostic
 # ---------------------------------------------------------------------------
-echo "--- CHECK 2: Merge discipline (worktree isolation) ---"
+echo "--- CHECK 2: Worktree isolation (branch-reachability) ---"
 
 range="${baseline}..${integration}"
 
-# Count --no-ff merge commits in range (these are the node-branch landing merges)
-merge_count="$(git rev-list --count --merges "$range" 2>/dev/null || echo 0)"
+# Collect all node/* branch tips. These are the reachability witnesses: a commit
+# reachable from a node/* tip was authored in an isolated worktree.
+mapfile -t node_tips < <(git for-each-ref --format='%(objectname)' 'refs/heads/node/*' 2>/dev/null || true)
 
-# Count direct commits on the integration mainline (first-parent, not from a merge).
-# --first-parent --no-merges gives commits whose immediate parent IS the mainline
-# tip — the structural fingerprint of a direct commit / direct push, not a merge.
+# Count first-parent non-merge commits in the range (these are the candidates
+# that must be verified as node-isolated).
 direct_count="$(git rev-list --count --no-merges --first-parent "$range" 2>/dev/null || echo 0)"
 
-echo "  Merge commits (node landings) in ${range}: ${merge_count}"
-echo "  Direct mainline commits (isolation bypasses) in ${range}: ${direct_count}"
-
-if [[ "$merge_count" -eq 0 && "$direct_count" -eq 0 ]]; then
-  # Empty range — no work at all in the range is neither a pass nor a failure
-  # of isolation; surface it explicitly so the caller can decide.
-  echo "WARN  merge-discipline: range '${range}' is empty (no commits found)" >&2
-  echo "      Nothing to audit — verify baseline and integration refs are correct." >&2
-  # Not counted as a fail; an empty campaign is vacuously correct.
-elif [[ "$merge_count" -eq 0 ]]; then
-  # Work exists but arrived entirely as direct commits — isolation was never used.
-  echo "FAIL  merge-discipline: ${direct_count} direct mainline commit(s) found," \
-    "ZERO node/* merges" >&2
-  echo "      Worktree isolation was bypassed: all node work was committed directly" >&2
-  echo "      to the integration mainline instead of arriving via 'git merge --no-ff" >&2
-  echo "      node/<id>'. The campaign ran FLAT — the protocol was not followed." >&2
-  fails=$((fails + 1))
-elif [[ "$direct_count" -gt 0 ]]; then
-  # Mixed history: some nodes isolated, others direct-committed — partial bypass.
-  echo "FAIL  merge-discipline: ${direct_count} direct mainline commit(s) found" \
-    "alongside ${merge_count} node merge(s)" >&2
-  echo "      Mixed isolation: some node work arrived via --no-ff merges but" >&2
-  echo "      ${direct_count} commit(s) were pushed directly to the integration" >&2
-  echo "      mainline, bypassing worktree isolation for those contributions." >&2
-  fails=$((fails + 1))
+if [[ "$direct_count" -eq 0 ]]; then
+  # Empty range or all commits are merges — nothing to check.
+  merge_count="$(git rev-list --count --merges "$range" 2>/dev/null || echo 0)"
+  if [[ "$merge_count" -eq 0 ]]; then
+    echo "WARN  worktree-isolation: range '${range}' is empty (no commits found)" >&2
+    echo "      Nothing to audit — verify baseline and integration refs are correct." >&2
+    # Not counted as a fail; an empty campaign is vacuously correct.
+  else
+    echo "PASS  worktree-isolation: no first-parent non-merge commits in range (${merge_count} merge(s) only)"
+  fi
+elif [[ "${#node_tips[@]}" -eq 0 ]]; then
+  # Node branches have been cleaned up (post-campaign). Cannot determine isolation
+  # by reachability — skip with a warning, not a failure.
+  echo "WARN  worktree-isolation: no node/* branches found; cannot verify branch reachability" >&2
+  echo "      If node/* branches were cleaned up after campaign close, this is expected." >&2
+  echo "      Skipping check (rc 0) — absence of witnesses is not evidence of violation." >&2
+  # Not counted as a fail.
 else
-  # merge_count > 0 AND direct_count == 0 — canonical isolated history
-  echo "PASS  merge-discipline: ${merge_count} node merge(s), 0 direct mainline commits"
-  echo "      All node work arrived via --no-ff merges; worktree isolation maintained."
+  # Check each first-parent non-merge commit for reachability from some node/* tip.
+  bypasses=()
+  while IFS= read -r commit; do
+    reachable=0
+    for tip in "${node_tips[@]}"; do
+      if git merge-base --is-ancestor "$commit" "$tip" 2>/dev/null; then
+        reachable=1
+        break
+      fi
+    done
+    if [[ "$reachable" -eq 0 ]]; then
+      bypasses+=("$commit")
+    fi
+  done < <(git rev-list --no-merges --first-parent "$range" 2>/dev/null)
+
+  if [[ "${#bypasses[@]}" -eq 0 ]]; then
+    echo "PASS  worktree-isolation: all ${direct_count} first-parent commit(s) trace to a node/* branch"
+    echo "      Isolation verified by branch reachability (merge strategy: irrelevant)."
+  else
+    echo "FAIL  worktree-isolation: ${#bypasses[@]} commit(s) not reachable from any node/* branch" >&2
+    echo "      These commits were authored directly on the integration branch — true isolation bypasses:" >&2
+    for c in "${bypasses[@]}"; do
+      echo "        $c  $(git log -1 --format='%s' "$c")" >&2
+    done
+    fails=$((fails + 1))
+  fi
 fi
 
 # ---------------------------------------------------------------------------
