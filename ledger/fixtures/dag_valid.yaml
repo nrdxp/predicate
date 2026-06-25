@@ -1,0 +1,26 @@
+# Positive-control YAML DAG fixture — same topology as dag_valid.ncl, authored
+# as a pure YAML instance.  Validate with:
+#   nickel export ledger/fixtures/dag_valid.yaml \
+#     --apply-contract ledger/contracts/dag_apply.ncl
+# Both Dag (acyclicity, referential integrity, id-uniqueness) and DagNoConflict
+# (disjoint file_surface) must pass — exit 0.
+#
+# Node P1 covers ledger/ (including ledger/gate/), satisfying the authority check
+# in demo_unauthorized.sh and the staged-change path in demo_scale_invariant.sh.
+# No node covers src/, so rogue src/ changes are denied.
+nodes:
+  - id: P1
+    depends_on: []
+    file_surface: ["ledger/"]
+    discipline: core
+    mitigates: []
+  - id: P2
+    depends_on: ["P1"]
+    file_surface: ["skills/"]
+    discipline: doc
+    mitigates: []
+  - id: P3
+    depends_on: ["P1"]
+    file_surface: ["gates/"]
+    discipline: core
+    mitigates: []
