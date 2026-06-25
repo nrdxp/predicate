@@ -127,6 +127,53 @@ draft MUST conform to the AGENTS.md contract in
 Component AGENTS.md files MUST include the alignment-to-parent section
 (how this component serves the root goal).
 
+#### AGENTS.md as R/I/U Hierarchy — the P-TRACK persistent anchor
+
+Each AGENTS.md (root and component) MUST include a **Requirements /
+Invariants / Unknowns** hierarchy for the construct it governs (P-TRACK
+I-T1–I-T2, primitives-spec.md §P-TRACK §"The AGENTS.md fusion"). This
+makes AGENTS.md the *persistent anchor* that every subsequent walk
+hydrates its live tracker from, rather than reconstructing from scratch.
+
+**Required sections per construct AGENTS.md:**
+
+```markdown
+## Requirements
+Each item: statement, grounding (source/evidence), signpost (what defeats it).
+Pruned to the minimal bounding set — requirement bloat is drift surface.
+
+## Invariants
+Each item: statement, grounding, signpost (what would violate it).
+Constraints that must hold throughout; distinguished from requirements by
+"must hold" vs "must be satisfied."
+
+## Unknowns
+Each item: statement, grounding (why it is not yet resolved), signpost
+(the observable that would resolve or invalidate it).
+Treated first-class like requirements — filed with a signpost, never
+merely noted.
+
+## Spec Pointers
+Pointers to full specification sources for this construct: doc paths,
+ADR links, contract file paths. Kept minimal — one pointer per
+authoritative source, never prose summaries of the specs themselves.
+```
+
+**Authoring discipline:**
+- Items MUST carry `grounding` and `signpost` (mirrors the
+  `context_map.ncl` Item contract; `last_validated` is filled in by
+  the walk that hydrates, not the orient author).
+- The Unknowns section tracks *known-unknowns* with signposts; when
+  a walk surfaces an *unknown-unknown*, it files it here (promoting
+  it to a known-unknown with a signpost) via the promotion combinator.
+- Do not copy spec text into AGENTS.md — point to the spec. The pointer
+  is durable; the prose diverges and must be cut.
+
+**Nest depth:** add an R/I/U hierarchy to a component AGENTS.md only
+when the component has a genuinely distinct sub-goal (Phase 5 NEST
+criterion). A root-only project has one R/I/U hierarchy in its root
+AGENTS.md covering all constructs.
+
 ### Phase 7 — RECONCILE *(HUMAN SEAM — the sync gate)*
 
 **This phase halts.** The persistent layer mutates only through this
@@ -159,6 +206,90 @@ are re-presented** so they are never silently dropped.
 
 ---
 
+## Hydration Protocol — live tracker hydrates from AGENTS.md
+
+When a walk begins on an **oriented project** (AGENTS.md hierarchy
+exists), it MUST hydrate its live `context_map` tracker from the
+relevant construct's AGENTS.md, not from scratch. (P-TRACK I-T1–I-T2;
+primitives-spec.md §P-TRACK §"The AGENTS.md fusion".)
+
+**Hydration steps:**
+
+1. **Locate the governing construct AGENTS.md.** For a root-scoped task:
+   the root `AGENTS.md`. For a component-scoped task: the component
+   `AGENTS.md` (if it exists) plus the root for alignment.
+2. **Read the R/I/U sections.** Extract each item from the
+   Requirements, Invariants, and Unknowns sections.
+3. **Populate the context-map items.** For each extracted item, set:
+   - `id`: a stable identifier (e.g. `R1`, `I2`, `U3`)
+   - `statement`: the item text
+   - `kind`: `'requirement`, `'invariant`, or `'unknown`
+   - `grounding`: the grounding from AGENTS.md (or the AGENTS.md
+     pointer itself if none is recorded: `"AGENTS.md#requirements"`)
+   - `last_validated`: today's date (ISO 8601) — the hydration date
+   - `signpost`: the signpost from AGENTS.md
+   - `hydration_source`: `"<path>#<section>"` (e.g. `"AGENTS.md#requirements"`)
+     — records that this item came from the persistent anchor
+4. **Export and verify.** The populated context-map MUST pass
+   `nickel export` against `context_map.ncl` (`ContextMap` contract)
+   before the walk proceeds.
+5. **Start from scratch only when unoriented.** An unoriented project
+   (no AGENTS.md) initializes an empty context-map and populates it
+   during the walk. This is the fallback, not the default.
+
+**Hydration is the first step of every walk** on an oriented project,
+before any task work. A walk that skips hydration and starts from scratch
+on an oriented project violates I-T1 (absence = all-unknown-unknown). The
+`tracker_fresh.sh` gate enforces this: a stale `last_validated` on a
+`hydration_source` item signals the anchor has drifted.
+
+---
+
+## Reorientation — ongoing disposition, triggered by staleness
+
+**Reorientation is not a scheduled re-run; it is a disposition triggered
+by staleness.** (P-TRACK I-T3; primitives-spec.md §P-TRACK §"reorientation
+as an ONGOING disposition".)
+
+A staleness trigger fires when:
+
+- The `tracker_fresh.sh` gate reports `STALE` on any context-map item
+  (a `last_validated` is behind the HEAD commit date).
+- A landed change **contradicts a tracked R/I** in the context-map —
+  a requirement is now wrong, an invariant is now broken, or a
+  known-unknown has been resolved. This is premise-freshness lifted to
+  the persistent tracker.
+- A walk surfaces an **unknown-unknown** that, once filed, contradicts
+  an existing Requirement or Invariant in AGENTS.md.
+
+**On a staleness trigger:**
+
+1. Run `tracker_fresh.sh <context-map-instance.ncl>` to identify stale
+   items and their `hydration_source` pointers.
+2. For each stale `hydration_source`: read the corresponding AGENTS.md
+   section and compare against the current state.
+3. If drift is **tactical** (the item's signpost has not fired; the
+   item is still valid, just needs its `last_validated` updated):
+   update `last_validated` in the context-map and continue.
+4. If drift is **strategic** (the item's signpost HAS fired — a
+   requirement is contradicted by reality, or an unknown is resolved):
+   this is a **Strategic Escalation** (ambient.md §Planning Invariants).
+   Emit an ESCALATION block, update the live tracker and the AGENTS.md
+   persistent anchor via `/orient` refresh, and halt for human review.
+
+**Reorientation scope.** A tactical re-validation (step 3) does not
+require re-running the full eight-phase workflow — it is a targeted
+tracker update. A strategic reorientation (step 4) re-runs at minimum
+MAP (diff-scoped) and ELICIT, and presents the corrected R/I/U sections
+at RECONCILE for human confirmation before writing back to AGENTS.md.
+
+**Staleness is not an error.** A stale item is a signal, not a failure.
+The failure is ignoring the signal — carrying a stale, unverified
+requirement forward into task work (rules.md §7: reconstruct, don't
+recall).
+
+---
+
 ## Tier Economy
 
 | Phase | Tier | Rationale |
@@ -184,3 +315,11 @@ are re-presented** so they are never silently dropped.
   AGENTS.md references.
 - [`ambient.md`](../../ambient.md) — the always-on principles the
   AGENTS.md hierarchy anchors to.
+- [`ledger/gate/tracker_fresh.sh`](../../ledger/gate/tracker_fresh.sh) —
+  the freshness gate; checks whether context-map `last_validated` fields
+  are current against HEAD. Fresh→0, Stale→1.
+- [`ledger/contracts/context_map.ncl`](../../ledger/contracts/context_map.ncl) —
+  the live tracker carrier contract; `hydration_source` field records the
+  AGENTS.md anchor a hydrated item came from.
+- [`ledger/contracts/tracker_freshness.ncl`](../../ledger/contracts/tracker_freshness.ncl) —
+  the Nickel functional core: `is_fresh` and `stale_items` predicates.
