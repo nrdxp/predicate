@@ -25,9 +25,9 @@
 #   refine_procedure = procedure (CoreSteps @ refine_required)
 #                    ∘ RefineOutput (output contract: the refine walk emits a REPORT)
 #
-# BARE imports (resolved via the gate's -I ledger/contracts):
-#   procedure.ncl    — the proven combinator (CoreSteps, procedure)
-#   refine_output.ncl — the output contract (RefineReport, RefineOutput)
+# Relative imports (resolved from this file's own directory: skills/refine/).
+#   ../../ledger/contracts/procedure.ncl — the proven combinator (CoreSteps, procedure)
+#   ./refine_output.ncl                  — the output contract (RefineReport, RefineOutput)
 #
 # Contracts exported:
 #   RefineRequired    — the refine-specific required-step ids
@@ -36,12 +36,12 @@
 #   RefineOutputAlias — alias for refine_output.RefineOutput (output shape)
 #
 # Verification:
-#   nickel typecheck -I ledger/contracts ledger/contracts/refine_procedure.ncl
-#   nickel export   -I ledger/contracts ledger/fixtures/refine_procedure_honest.ncl
-#   nickel export   -I ledger/contracts ledger/fixtures/refine_procedure_skip.ncl    # must fail
-#   nickel export   -I ledger/contracts ledger/fixtures/refine_procedure_fake.ncl    # passes; flagged for review
-let proc_mod   = import "procedure.ncl" in
-let output_mod = import "refine_output.ncl" in
+#   nickel typecheck skills/refine/refine_procedure.ncl
+#   nickel export ledger/fixtures/refine_procedure_honest.ncl
+#   nickel export ledger/fixtures/refine_procedure_skip.ncl    # must fail
+#   nickel export ledger/fixtures/refine_procedure_fake.ncl    # passes; flagged for review
+let proc_mod   = import "../../ledger/contracts/procedure.ncl" in
+let output_mod = import "./refine_output.ncl" in
 {
   # ── Refine-specific required steps ───────────────────────────────────────────
   # Pinned UPSTREAM in this contract (F-REQ). Maps to the 8 named states in

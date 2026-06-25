@@ -3,7 +3,7 @@
 # Footprint-presence bites: the upstream-pinned required set includes "sweep",
 # no step in the instance carries that id, so `nickel export` exits non-zero.
 # EXPECT: fail
-let r = import "../contracts/refine_procedure.ncl" in
+let r = import "../../skills/refine/refine_procedure.ncl" in
 {
   instance | r.RefineProcedure = {
     workflow = "refine-skips-sweep",

@@ -3,7 +3,7 @@
 # Footprint-presence bites: the upstream-pinned required set includes "attack",
 # no step in the instance carries that id, so `nickel export` exits non-zero.
 # EXPECT: fail
-let b = import "../contracts/boundary_procedure.ncl" in
+let b = import "../../skills/boundary/boundary_procedure.ncl" in
 {
   instance | b.BoundaryProcedure = {
     workflow = "boundary-skip-attack",

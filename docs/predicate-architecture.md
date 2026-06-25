@@ -130,7 +130,7 @@ and `ledger/contracts/core_steps.ncl`.
 
 ## The state machine as a checked artifact
 
-`ledger/contracts/state_machine.ncl` is the formal model. It is not a diagram;
+`skills/orchestration/state_machine.ncl` is the formal model. It is not a diagram;
 it is the core orchestrator formalized as **states + transitions + per-transition
 guard-contracts**, where each guard is a wired Nickel contract that must pass
 before a state can be exited. Running `nickel export` over the state machine
@@ -277,7 +277,7 @@ that bind every layer:
 
 | Contract | Purpose | Gate |
 | :--- | :--- | :--- |
-| `ledger/contracts/state_machine.ncl` | The topology itself — states, transitions, exit-guards | `nickel export` fixture |
+| `skills/orchestration/state_machine.ncl` | The topology itself — states, transitions, exit-guards | `nickel export` fixture |
 | `ledger/contracts/dag.ncl` | DAG validity (`Dag ∘ DagNoConflict`) | `nickel export` at `PLAN` |
 | `ledger/contracts/discovery.ncl` | DISCOVERY step set + deposit shapes | shared by campaign + boundary procedures |
 | `ledger/contracts/findings.ncl` | SURVEY output — each finding names its evaluator | exit-guard for `SURVEY → PLAN` |

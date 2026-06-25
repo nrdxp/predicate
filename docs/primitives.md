@@ -319,7 +319,7 @@ Requirement or Invariant — premise-freshness lifted to the persistent tracker 
 the tracker must be updated before the next step. This is an ongoing disposition,
 not a manual re-run.
 
-Verified at: `ledger/contracts/context_map.ncl`, `ledger/contracts/tracker_freshness.ncl`.
+Verified at: `ledger/contracts/context_map.ncl`, `skills/orient/tracker_freshness.ncl`.
 
 ---
 
@@ -356,4 +356,4 @@ authors the sets that judge it.
 | `ledger/contracts/procedure.ncl` | P-COMPOSE | The generic procedure combinator |
 | `ledger/contracts/core_steps.ncl` | P-COMPOSE | Universal core steps injected into every procedure |
 | `ledger/contracts/context_map.ncl` | P-TRACK | Live R/I/U tracker schema |
-| `ledger/contracts/tracker_freshness.ncl` | P-TRACK | Freshness gate on the tracker |
+| `skills/orient/tracker_freshness.ncl` | P-TRACK | Freshness gate on the tracker |

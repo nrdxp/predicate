@@ -13,7 +13,7 @@
 # FLAGGED FOR REVIEW: a reviewer will find that every leaf says "done" with
 # 'review method and a single-char location, and the IBC* goal is one word.
 # EXPECT: pass (contract) — flagged: review must judge substance
-let b  = import "../contracts/boundary_procedure.ncl" in
+let b  = import "../../skills/boundary/boundary_procedure.ncl" in
 let wi = import "../contracts/worker_ibc.ncl" in
 {
   steps_instance | b.BoundaryProcedure = {
