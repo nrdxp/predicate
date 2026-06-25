@@ -99,9 +99,22 @@ for f in "${staged[@]}"; do
 done
 
 # --- 3. LEDGER STRUCTURE (staged .ncl) -------------------------------------
+# SCOPED to predicate-owned paths: ledger/, .ledger/, conditioning/.
+# A downstream repo's own .ncl files (e.g. a function library at the repo
+# root, or any path outside predicate's artifact directories) are NOT
+# predicate artifacts — structure-validating them with ledger-validate.sh
+# would produce a misleading "ledger artifact failed structure validation"
+# error for code that is perfectly valid Nickel but non-serializable. Only
+# predicate's own directories carry ledger artifacts and procedure instances;
+# everything else is the consuming repo's concern, not the ledger gate's.
 for f in "${staged[@]}"; do
   case "$f" in
     *.ncl)
+      # Only validate .ncl files under predicate-owned directories.
+      case "$f" in
+        ledger/*|.ledger/*|conditioning/*) : ;;  # predicate artifact → validate
+        *) continue ;;                            # user's own .ncl → skip silently
+      esac
       if [ -f "$root/$f" ]; then
         bash "$plugin/ledger/gate/ledger-validate.sh" structure "$root/$f"
         led_rc=$?

@@ -82,9 +82,8 @@ resolve_nickel() {
 }
 
 # --- contract name → contract file -------------------------------------------
-# Map a short contract class name to the Nickel contract field that validates a
-# procedure instance. The field is the exported Procedure contract in each
-# procedure module.
+# Map a short contract class name to the Nickel contract file that validates a
+# procedure instance.
 contract_file_for() {
   local class="$1"
   case "$class" in
@@ -97,17 +96,33 @@ contract_file_for() {
   esac
 }
 
+# --- contract name → contract symbol -----------------------------------------
+# Map a short contract class name to the exported Nickel symbol (field name)
+# that is the procedure contract inside the contract file.
+contract_symbol_for() {
+  local class="$1"
+  case "$class" in
+    boundary) echo "BoundaryProcedure" ;;
+    refine)   echo "RefineProcedure" ;;
+    *)
+      echo "process-gate: unknown contract class '$class'" >&2
+      return 2
+      ;;
+  esac
+}
+
 # --- validate <instance.ncl> <contract-class> --------------------------------
-# Export-validate the procedure instance against the named contract. The
-# instance is a .ncl file that must export successfully when the contract
-# module is in scope (via -I). Exit 0 = pass; 1 = fail; 2 = env/usage error.
+# Export-validate the procedure instance against the named contract. The gate
+# APPLIES the class contract externally — the instance cannot self-weaken by
+# omitting its contract import or binding. Exit 0 = pass; 1 = fail; 2 = error.
 #
 # Validation strategy (gate-locus principle): the Nickel export IS the gate.
-# `nickel export -I ledger/contracts <instance.ncl>` loads the instance, which
-# imports and applies the procedure contract (e.g. `| b.BoundaryProcedure`).
-# A skipped step causes `nickel export` to exit non-zero — the contract's
-# footprint-presence check fires. A shrunk required-set cannot happen because
-# the contract is upstream-pinned. Skip/shrink → fail without any shell logic.
+# The gate writes a temp wrapper that imports the instance and FORCES the class
+# contract: `(import "$abs_instance") | cf.Symbol`. This ensures the gate is
+# not fooled by a deposit that exports as a bare record with no contract binding
+# (e.g. steps=[]) or that imports the contract but never applies it. The
+# upstream-pinned required-step set lives in the contract, not the instance —
+# so a skip/shrink attack cannot succeed even if the instance omits the binding.
 cmd_validate() {
   local instance="${1:-}" class="${2:-}"
   if [[ -z "$instance" || -z "$class" ]]; then
@@ -119,18 +134,30 @@ cmd_validate() {
     exit 2
   fi
 
-  # Verify the contract class is known before touching nickel.
-  local _cf
+  # Resolve the contract file and symbol for the class; exit 2 on unknown class.
+  local _cf _sym
   _cf="$(contract_file_for "$class")" || exit 2
+  _sym="$(contract_symbol_for "$class")" || exit 2
 
   resolve_nickel
+
+  # Resolve instance to absolute path so the temp wrapper's import is stable
+  # regardless of the caller's working directory.
+  local abs_instance
+  abs_instance="$(realpath "$instance")"
+
+  # Write a temp wrapper .ncl that imports the instance and APPLIES the class
+  # contract. Both paths are absolute so no -I is needed for resolution: Nickel
+  # resolves relative imports inside the contract file from its own directory
+  # (which is $plugin/ledger/contracts/), so sibling contracts resolve correctly.
+  local tmp
+  tmp="$(mktemp --suffix=.ncl)"
+  printf 'let cf = import "%s" in\n(import "%s") | cf.%s\n' \
+    "$_cf" "$abs_instance" "$_sym" > "$tmp"
+
   local rc=0
-  # Export the instance. The instance's own `import` + contract application
-  # (e.g. `| b.BoundaryProcedure`) is what makes the gate fire: a skipped step
-  # or a bad shape causes nickel export to exit non-zero. We pass -I so the
-  # instance can import the procedure contract by bare name; relative imports
-  # (used in the contracts themselves) resolve against the file's own directory.
-  "${NICKEL[@]}" export "${NICKEL_IMPORT_FLAGS[@]}" "$instance" >/dev/null || rc=$?
+  "${NICKEL[@]}" export "${NICKEL_IMPORT_FLAGS[@]}" "$tmp" >/dev/null || rc=$?
+  rm -f "$tmp"
   return "$rc"
 }
 
