@@ -158,7 +158,7 @@ so post-campaign ordinary commits revert to structural-only.
 | `AWAIT` | `RUN_LAYER` step 2, `AWAIT` | workers run autonomously, commit in their worktree under their discipline's commit gate, never push; collect each return | a worker FREEZE (surface-exceed) → `SURFACE_EXCEED`; FREEZE (refuted premise) → `REALIGN`; any other reserved halt → **[HUMAN SEAM]**; all returned → `RECONCILE` |
 | `SURFACE_EXCEED` | `SURFACE_EXCEED` | `authorized.py --collision-check --path <req> --against-surfaces <concurrent surfaces>` | rc 0 (WIDEN) → widen node surface, re-export DAG (must pass `Dag ∘ DagNoConflict`), resume worker → `AWAIT`. rc 3 (SERIALIZE) → mark `serialize=true`, re-export, re-schedule into `serial` → `RUN_LAYER` |
 | `RECONCILE` | `RECONCILE_AND_MERGE` (1)-(5) | for each LANDED node in **node-id order**, run the boundary checks (below); compute `VERDICT`. **Process-adherence gate (first node only):** `bash ledger/gate/adherence_audit.sh <baseline> <shared_branch>` — rc 1 → **HALT** (isolation bypass detected; surface diagnostic to human before any merge proceeds) | `ACCEPT` → `MERGE`; `REWORK` → emit corrective delta IBC, re-dispatch from current tip, `STATUS := PENDING` → `DISPATCH`; `ESCALATE` → `REALIGN` or **[HUMAN SEAM]** |
-| `MERGE` | `RECONCILE_AND_MERGE` (5) ACCEPT | merge the accepted node branch(es) into `shared_branch` with the strategy the situation calls for: individual `--no-ff` for sequential or distinct-concern landings; an **octopus** merge when a concurrent layer of one parallel job lands together. The invariant is a *merge-based* history, not the specific strategy — the adherence audit accepts any merge commits and only rejects **direct** first-parent commits. `STATUS := ACCEPTED`; mark mitigated findings | → `CHECKPOINT` |
+| `MERGE` | `RECONCILE_AND_MERGE` (5) ACCEPT | merge the accepted node branch(es) into `shared_branch` with the strategy the situation calls for: a standard merge or `--no-ff` for sequential/distinct-concern landings; an **octopus** merge when a concurrent sibling layer lands together (the octopus legitimately makes a node branch the first parent — this is correct, not a bypass). Any merge strategy is valid; the adherence audit verifies worktree isolation by **branch reachability** (every non-merge first-parent commit traces to a node/* branch), not by merge shape. `STATUS := ACCEPTED`; mark mitigated findings | → `CHECKPOINT` |
 | `BOUNDARY` | `LAYER_BOUNDARY` | (1) **cumulative-diff coherence gate**: `coherence_impact.sh --removed <cut-set>` over the layer's cumulative diff. (2) **DAG vs goal re-examination** ([campaign §Goal Supremacy](../campaign/SKILL.md)): does the remaining DAG still serve the goal? If amendments (add/edit/remove nodes) are warranted, surface them as **[HUMAN SEAM]** — a node addition is a boundary the human signs off on before any affected node is re-dispatched. | coherence rc 1 → `ESCALATE`. rc 0, no DAG amendment → advance the tip. rc 0, amendment needed → **[HUMAN SEAM]**: halt, surface the amendment; on approval re-export `DAG + LAYERS`, then advance the tip. |
 | `CHECKPOINT` | `RECONCILE_AND_MERGE` (6) | append a RECONCILE_LOG round (judged verdicts, freshness, realignments) to the active sketch; commit it in the recorder (`git -C <recorder> commit`) | more nodes in layer → `RECONCILE`; layer done → `BOUNDARY`; `BOUNDARY` rc 0 and `k+1 < layer_count` → `tip := shared_branch HEAD`, `k++` → `RUN_LAYER`; last layer → `CLOSE`. `BOUNDARY` rc 1 → `ESCALATE` → architect realigns the plan/DAG (PLAN), then re-dispatch |
 | `REALIGN` | `REALIGN` | rewrite the node's premises/surface to current HEAD; if topology/surfaces change, re-export DAG + LAYERS (schedule may change); `STATUS := PENDING`; log it | → `DISPATCH` (or `RUN_LAYER` if the schedule changed) |
@@ -285,7 +285,7 @@ pair, one `serialize` edge), with [`demo/layers.ncl`](demo/layers.ncl) the live
 schedule derivation bound to that fixture. [`demo/TRANSCRIPT.md`](demo/TRANSCRIPT.md)
 records every command and its actual gate exit code: schedule derivation →
 worktree dispatch → the `authorized.py` reconcile checks → the `--collision-check`
-serialize/widen routing (rc 3 / rc 0) → `premise_fresh.sh` → `merge --no-ff` →
+serialize/widen routing (rc 3 / rc 0) → `premise_fresh.sh` → the node branch merge →
 the `LAYER_BOUNDARY` coherence gate (GREEN rc 0 and a RED rc 1 → ESCALATE). A
 reviewer reproduces the schedule with the two `nickel export` commands at the top
 of the transcript.
@@ -295,8 +295,9 @@ of the transcript.
 ## Outputs (the driver's deliverables)
 
 - A merged `campaign/<TOPIC>` integration branch — every ACCEPTED node arriving
-  via a merge (strategy per situation; never a direct commit), in
-  layer-then-node-id order, branched from the advancing tip.
+  via a merge into `shared_branch` (any strategy — octopus, fast-forward, or
+  standard merge; isolation is verified by branch reachability, not merge shape),
+  in layer-then-node-id order, branched from the advancing tip.
 - An appended **RECONCILE_LOG** in the recorder (`state/reconcile_log.ncl` /
   the sketch): one round per boundary — judged verdicts, freshness results,
   realignments, the gate that justified each ACCEPT.
@@ -343,7 +344,7 @@ per-action `execroot/` sandbox and `git-worktree` (one repo, many isolated
 working trees from a common object store) anchor the per-unit isolation. The
 driver's contribution is binding that pattern to git worktrees as the isolation
 primitive and the Verification Dual's gates as the merge-boundary check (the
-prior art integrates by artifact, not by a coherence-gated `--no-ff` merge).
+prior art integrates by artifact, not by a coherence-gated isolation check).
 
 ---
 
