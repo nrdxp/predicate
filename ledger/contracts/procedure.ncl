@@ -40,6 +40,7 @@
 #   INSTANCE / FIXTURE: nickel export (with -I pointing to this directory)
 let deposit = import "deposit.ncl" in
 let sub_procedures = import "sub_procedures.ncl" in
+let core_steps_mod = import "core_steps.ncl" in
 {
   NonEmptyString = std.contract.from_predicate (fun value =>
     std.is_string value && std.string.length value > 0
@@ -161,20 +162,15 @@ let sub_procedures = import "sub_procedures.ncl" in
     ),
 
   # ── CoreSteps — the universal core lifted by the promotion pass ───────────────
-  # The PROMOTION pass (primitives-spec.md §P-COMPOSE) lifts skill-buried-but-
-  # universal concerns OUT of single skills INTO the combinator core, so EVERY
-  # procedure inherits them — not just the skill that happened to emphasise one.
-  # Canonical hits:
-  #   "track"             — P-TRACK's un-skippable R/I/U re-surfacing (made a
-  #                          required core deposit so no walk passes without a fresh
-  #                          tracker — resolves the "most important invariant
-  #                          unenforced" gap).
-  #   "adversarial-review" — emphasised in /refine but a PREMISE of the whole
-  #                          system (the Verification Dual's soft path); lifts to
-  #                          the core so every procedure invokes it.
+  # Single source of truth: imported from core_steps.ncl (the file produced by
+  # the promotion-sweep pass).  The list itself, its rationale, and the full sweep
+  # record of what was evaluated and why each candidate was or was not promoted
+  # all live there.  Do NOT duplicate the list here — procedure.ncl is the
+  # combinator; core_steps.ncl is the registry.
+  #
   # These ride at the FRONT of the composition: procedure(skill) = CoreSteps ∘
   # skill-specific-required. A skill's full required-set is `CoreSteps @ skill_req`.
-  CoreSteps = ["track", "adversarial-review"],
+  CoreSteps = core_steps_mod.CoreSteps,
 
   # The always-on core contract every skill composes with. A concrete skill's
   # Procedure is `procedure (CoreSteps @ skill_specific_required)` — the core is
