@@ -10,6 +10,12 @@
 # the goal MUST be non-empty (S0 — one objective per IBC) and there MUST be at
 # least one acceptance criterion (without a definition of done the walk is
 # unbounded). `nickel export` exits non-zero on either violation.
+#
+# The `discipline` enum is imported from `discipline.ncl` — the single canonical
+# definition shared with `dag.ncl`, so an IBC and a DAG node can never disagree
+# on the surviving control loops (T1.1). All five disciplines are admitted here;
+# the IBC names exactly ONE (S7).
+let disciplines = import "discipline.ncl" in
 {
   # A falsifiable premise (S1): a statement plus the check that refutes it.
   Premise = {
@@ -37,7 +43,7 @@
   Worker = {
     id | String,
     tier | String,                # architect | worker + model class
-    discipline | [| 'core, 'refine |],   # S7: exactly ONE control loop
+    discipline | disciplines.Discipline,   # S7: exactly ONE control loop (shared enum)
     depends_on | Array String,    # upstream IBC IDs (premise-freshness keys)
     goal | String,                # S0: the singular objective
     non_goals | Array String,     # forbidden regions

@@ -10,11 +10,24 @@ The DAG is read as the JSON `nickel export` produces from a `Dag`-validated
 artifact (the same export that is the structural gate), so authorization can
 only ever run over a graph that already passed its contract.
 
-A node's `file_surface` entry covers a changed path when:
+Locus (gate-locus / D-DUP): this script is a THIN SHIM. The path-containment
+PREDICATE — exact match and directory-subtree prefixing — lives in ONE place,
+`ledger/contracts/authorized.ncl`, the same definition `dag.ncl` imports for its
+conflict gate. The Python here only (a) gathers the effectful inputs (staged
+paths from git or stdin, the DAG JSON), (b) hands the (surface, path) pairs to
+that Nickel predicate via a single `nickel export`, and (c) routes on the
+verdict. Functional core (Nickel), imperative shell (this file).
+
+Shell-glob matching is the ONE honest Python fallback: Nickel's containment
+predicate decides exact/prefix containment; a surface carrying a glob
+metacharacter (`*?[`) that the containment predicate does NOT cover is then
+tested by `fnmatch` here. So a node's `file_surface` entry covers a changed path
+when:
   - the entry equals the path, or
   - the entry ends in "/" and is a prefix of the path (a directory surface),
   - the entry is a directory and the path lies beneath it (no trailing "/"),
   - the entry contains a shell glob and fnmatch accepts the path.
+The first three are decided by `authorized.ncl`; the last is the fnmatch fallback.
 
 Usage:
   authorized.py --dag <exported.json> --path skills/foo.py [--path ...]
@@ -27,65 +40,183 @@ Exit codes: 0 = every path authorized, 1 = one or more paths unauthorized,
 import argparse
 import fnmatch
 import json
+import os
+import shutil
+import subprocess
 import sys
+import tempfile
+
+# The single Nickel home for the containment predicate. Resolved relative to THIS
+# script's real path so the shim finds it wherever it is invoked from (a worktree,
+# a consuming repo through a symlink): <plugin>/ledger/gate/authorized.py, so the
+# contract is one dir up and over in <plugin>/ledger/contracts/authorized.ncl.
+_AUTHORIZED_NCL = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
+    "contracts",
+    "authorized.ncl",
+)
+
+_HAS_GLOB = "*?["
+
+
+def _has_glob(token: str) -> bool:
+    """True if a surface token carries a shell-glob metacharacter."""
+    return any(ch in token for ch in _HAS_GLOB)
+
+
+def _nickel_cmd() -> list:
+    """Resolve a portable nickel runner: direct `nickel` XOR `nix run …`.
+
+    Mirrors ledger-validate.sh so the shim is identical in a human shell and a
+    headless orchestrator. Exits 2 if neither is reachable — a gate that cannot
+    evaluate its own predicate is not a gate that passes.
+    """
+    if shutil.which("nickel"):
+        return ["nickel"]
+    if shutil.which("nix"):
+        return ["nix", "run", "nixpkgs#nickel", "--"]
+    sys.stderr.write(
+        "authorized.py: neither 'nickel' nor 'nix' on PATH; "
+        "cannot evaluate the containment predicate\n"
+    )
+    sys.exit(2)
+
+
+def _nickel_pairs(predicate: str, pairs: list) -> list:
+    """Evaluate one containment PREDICATE over many (a, b) pairs in ONE export.
+
+    `predicate` is "covers" or "tokens_overlap" — a function exported by
+    authorized.ncl. Returns a list of bools aligned with `pairs`. A single
+    `nickel export` decides the whole batch, so the cost is one process per mode,
+    not one per pair. Exits 2 on any nickel/parse failure (a predicate that
+    cannot be evaluated must not silently pass).
+    """
+    if not pairs:
+        return []
+    # The pair list is handed to Nickel as DATA: written to a sidecar .json and
+    # `import`ed (Nickel imports JSON natively as a value), so no JSON-vs-Nickel
+    # record-syntax mismatch (`:` vs `=`) can arise. The driver imports the
+    # shared predicate by absolute path and maps it over the imported pairs.
+    tmp_ncl = None
+    tmp_json = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            "w", suffix=".json", delete=False, encoding="utf-8"
+        ) as jf:
+            json.dump([list(p) for p in pairs], jf)
+            tmp_json = jf.name
+        driver = (
+            f'let auth = import "{_AUTHORIZED_NCL}" in\n'
+            f'let pairs = import "{tmp_json}" in\n'
+            f"std.array.map "
+            f"(fun pr => auth.{predicate} (std.array.at 0 pr) (std.array.at 1 pr)) "
+            f"pairs\n"
+        )
+        with tempfile.NamedTemporaryFile(
+            "w", suffix=".ncl", delete=False, encoding="utf-8"
+        ) as fh:
+            fh.write(driver)
+            tmp_ncl = fh.name
+        proc = subprocess.run(
+            _nickel_cmd() + ["export", tmp_ncl],
+            capture_output=True,
+            text=True,
+        )
+        if proc.returncode != 0:
+            sys.stderr.write(
+                "authorized.py: containment predicate failed to evaluate:\n"
+                + proc.stderr
+            )
+            sys.exit(2)
+        result = json.loads(proc.stdout)
+    except (OSError, json.JSONDecodeError) as exc:
+        sys.stderr.write(f"authorized.py: containment evaluation error: {exc}\n")
+        sys.exit(2)
+    finally:
+        for tmp in (tmp_ncl, tmp_json):
+            if tmp:
+                try:
+                    os.unlink(tmp)
+                except OSError:
+                    pass
+    if not isinstance(result, list) or len(result) != len(pairs):
+        sys.stderr.write("authorized.py: malformed containment verdict\n")
+        sys.exit(2)
+    return result
+
+
+# --- containment cache -----------------------------------------------------
+# Each mode primes the cache once (one nickel export per predicate) so the
+# predicate functions below are pure cache lookups. This keeps `covers` /
+# `tokens_collide` callable inside the existing nested loops without one nickel
+# process per pair.
+_COVERS_CACHE: dict = {}
+_OVERLAP_CACHE: dict = {}
+
+
+def prime_covers(pairs: list) -> None:
+    """Evaluate `covers` for every (surface, path) pair, caching the verdicts."""
+    fresh = [p for p in pairs if p not in _COVERS_CACHE]
+    for pr, verdict in zip(fresh, _nickel_pairs("covers", fresh)):
+        _COVERS_CACHE[pr] = verdict
+
+
+def prime_overlap(pairs: list) -> None:
+    """Evaluate `tokens_overlap` for every (a, b) pair, caching the verdicts."""
+    fresh = [p for p in pairs if p not in _OVERLAP_CACHE]
+    for pr, verdict in zip(fresh, _nickel_pairs("tokens_overlap", fresh)):
+        _OVERLAP_CACHE[pr] = verdict
 
 
 def covers(surface: str, path: str) -> bool:
-    """True if a file_surface entry covers a changed path."""
+    """True if a file_surface entry covers a changed path.
+
+    Containment (exact / directory-prefix) is decided by authorized.ncl; a glob
+    surface the containment predicate did not cover is the fnmatch fallback.
+    """
     if not surface:
         return False
-    if surface == path:
+    key = (surface, path)
+    if key not in _COVERS_CACHE:
+        prime_covers([key])
+    if _COVERS_CACHE[key]:
         return True
-    # Directory surface: trailing slash, or an entry that names a dir prefix.
-    prefix = surface if surface.endswith("/") else surface + "/"
-    if path.startswith(prefix):
-        return True
-    # Glob surface (e.g. "templates/*.md").
-    if any(ch in surface for ch in "*?[") and fnmatch.fnmatch(path, surface):
+    # Glob fallback: the one irreducible authorization-time concern Nickel's
+    # containment predicate deliberately leaves to fnmatch.
+    if _has_glob(surface) and fnmatch.fnmatch(path, surface):
         return True
     return False
-
-
-def authorizing_node(nodes: list, path: str):
-    """Return the id of the first node whose surface covers path, else None."""
-    for node in nodes:
-        for surface in node.get("file_surface", []):
-            if covers(surface, path):
-                return node.get("id")
-    return None
 
 
 def tokens_collide(a: str, b: str) -> bool:
     """True if two surface TOKENS path-contain one another (either direction).
 
     Mirrors the Nickel contract's `tokens_overlap`: a directory token contains
-    files beneath it, so "docs/" collides with "docs/x.md". Glob tokens are
-    compared by fnmatch in either direction. This is the surface-vs-surface
-    collision test the surface-exceed protocol's collision-check runs; `covers`
-    is the surface-vs-concrete-path test the authorization gate runs.
+    files beneath it, so "docs/" collides with "docs/x.md". Containment is
+    decided by authorized.ncl; glob tokens are compared by fnmatch (either
+    direction) as the Python fallback. This is the surface-vs-surface collision
+    test the surface-exceed protocol's collision-check runs; `covers` is the
+    surface-vs-concrete-path test the authorization gate runs.
     """
     if not a or not b:
         return False
-    if a == b:
+    key = (a, b)
+    if key not in _OVERLAP_CACHE:
+        prime_overlap([key])
+    if _OVERLAP_CACHE[key]:
         return True
-
-    def dir_contains(parent: str, child: str) -> bool:
-        prefix = parent if parent.endswith("/") else parent + "/"
-        return child.startswith(prefix)
-
-    if dir_contains(a, b) or dir_contains(b, a):
+    # Glob fallback (either direction).
+    if _has_glob(a) and fnmatch.fnmatch(b, a):
         return True
-    a_glob = any(ch in a for ch in "*?[")
-    b_glob = any(ch in b for ch in "*?[")
-    if a_glob and fnmatch.fnmatch(b, a):
-        return True
-    if b_glob and fnmatch.fnmatch(a, b):
+    if _has_glob(b) and fnmatch.fnmatch(a, b):
         return True
     return False
 
 
 def surfaces_collide(surfaces_a: list, surfaces_b: list) -> list:
     """Return the (a, b) token pairs that collide between two surface lists."""
+    # Prime the full cross product in one nickel export, then route purely.
+    prime_overlap([(sa, sb) for sa in surfaces_a for sb in surfaces_b])
     return [
         (sa, sb)
         for sa in surfaces_a
@@ -99,6 +230,15 @@ def node_by_id(nodes: list, node_id: str):
     for node in nodes:
         if node.get("id") == node_id:
             return node
+    return None
+
+
+def authorizing_node(nodes: list, path: str):
+    """Return the id of the first node whose surface covers path, else None."""
+    for node in nodes:
+        for surface in node.get("file_surface", []):
+            if covers(surface, path):
+                return node.get("id")
     return None
 
 
@@ -141,6 +281,11 @@ def run_authorize(args: argparse.Namespace) -> int:
         # an empty change set is meaningful.
         print("PASS: no paths to authorize")
         return 0
+
+    # Prime the containment cache once: every (surface, path) pair across the
+    # whole DAG, in a single nickel export, before the routing loop below.
+    all_surfaces = [s for node in nodes for s in node.get("file_surface", [])]
+    prime_covers([(s, p) for p in paths for s in all_surfaces])
 
     unauthorized = []
     for path in paths:
@@ -218,6 +363,9 @@ def run_reconcile_node(args: argparse.Namespace) -> int:
     if not touched:
         print(f"PASS: node {args.reconcile_node} touched nothing")
         return 0
+    # Prime containment for (declared surface, touched path) pairs in one export.
+    declared = node.get("file_surface", [])
+    prime_covers([(s, p) for p in touched for s in declared])
     undeclared = undeclared_paths(node, touched)
     for path in touched:
         if path not in undeclared:

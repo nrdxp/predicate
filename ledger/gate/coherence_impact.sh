@@ -21,12 +21,28 @@
 #   orphans    no surviving file references a removed workflow as if live
 #   links      markdown link syntax still resolves
 #
+# Tracking the adversarial path (T1.4 — the Dual's soft path is not open-looped).
+# Concerns no machine-check can close emit a DISPATCH directive; left as bare
+# stdout those reviews were UNTRACKED — nothing recorded whether the dispatched
+# review ever happened or converged before the orchestrator ACCEPTed the landing,
+# so the Dual's own escape hatch was unenforced. Now each DISPATCH is a TRACKED
+# obligation: when `--dispatch-log <file>` is given, every dispatched concern is
+# appended as a `pending` record (`<concern>\tpending`). The orchestrator MUST
+# resolve each to `converged`/`diverged` (mirroring reconcile_log.ncl's "accept
+# names an evaluator, not a claim") before merge; a `pending` row gates ACCEPT.
+# The script's own exit code stays the MACHINE-surface verdict (0 = all machine-
+# checks passed) — the adversarial obligations are tracked out-of-band in the
+# log, not folded into this exit code — so a clean machine surface with reviews
+# still pending is honestly reported, not silently passed.
+#
 # Usage:
-#   coherence_impact.sh <repo-root> [--removed <workflow> ...]
-# Output: per-check PASS/FAIL, a DISPATCH line per uncovered concern, verdict.
-# Exit:   0 = all machine-checks passed (review dispatches, if any, are advisory
-#         and tracked by the orchestrator), 1 = a machine-check failed (breakage
-#         caught at the boundary), 2 = usage / environment error.
+#   coherence_impact.sh <repo-root> [--removed <workflow> ...] [--dispatch-log <file>]
+# Output: per-check PASS/FAIL, a DISPATCH line per uncovered concern, a tracked
+#         count of pending adversarial reviews, verdict.
+# Exit:   0 = all machine-checks passed (any adversarial-review dispatches are
+#         recorded as PENDING obligations and gate ACCEPT until resolved), 1 = a
+#         machine-check failed (breakage caught at the boundary), 2 = usage /
+#         environment error.
 set -u
 
 root="${1:-}"
@@ -36,9 +52,11 @@ if [ -z "$root" ] || [ ! -d "$root" ]; then
 fi
 shift
 removed=()
+dispatch_log=""
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --removed) shift; removed+=("$1") ;;
+    --dispatch-log) shift; dispatch_log="$1" ;;
     *) echo "coherence_impact: unknown arg: $1" >&2; exit 2 ;;
   esac
   shift || true
@@ -54,6 +72,23 @@ plugin="$(cd "$(dirname "$(realpath "${BASH_SOURCE[0]}")")/../.." && pwd)"
 fails=0
 gate="$plugin/ledger/gate"
 gates="$plugin/gates"
+
+# Adversarial-path tracking (T1.4). Every dispatched decorrelated review is a
+# PENDING obligation, not a fire-and-forget echo: collect them, and when a
+# --dispatch-log is given, append each as a `<concern>\tpending` record the
+# orchestrator must resolve before ACCEPT. dispatch <concern> <human-message>.
+pending_dispatches=0
+# Truncate any stale log so a re-run records THIS landing's obligations, not a
+# prior round's. Created only if a path was given (env error -> exit 2).
+if [ -n "$dispatch_log" ]; then
+  : > "$dispatch_log" || { echo "coherence_impact: cannot write dispatch-log: $dispatch_log" >&2; exit 2; }
+fi
+dispatch() { # concern-id  human-readable-message
+  local concern="$1" msg="$2"
+  echo "DISPATCH  $msg -> decorrelated review (tracked: PENDING)"
+  pending_dispatches=$((pending_dispatches + 1))
+  [ -n "$dispatch_log" ] && printf '%s\tpending\n' "$concern" >> "$dispatch_log"
+}
 
 # Load project config if present; a downstream repo can override LINK_TARGETS
 # (bash array) to match its own authoritative surface layout.
@@ -90,7 +125,7 @@ if [ -x "$gate/ledger-validate.sh" ] && [ -d "$root/ledger" ]; then
     fails=$((fails + 1))
   fi
 else
-  echo "DISPATCH  contract: no ledger gate present -> decorrelated review"
+  dispatch "contract" "contract: no ledger gate present"
 fi
 
 # --- orphans: no surviving file references a removed workflow as if live -----
@@ -103,7 +138,7 @@ if [ "${#removed[@]}" -gt 0 ]; then
       fails=$((fails + 1))
     fi
   else
-    echo "DISPATCH  orphans: no orphan gate present -> decorrelated review"
+    dispatch "orphans" "orphans: no orphan gate present"
   fi
 fi
 
@@ -132,17 +167,24 @@ if [ -n "$link_gate" ]; then
 else
   # Link integrity has an evaluator in principle but none is wired here; the
   # adversarial path covers it explicitly rather than silently skipping.
-  echo "DISPATCH  links: no link gate present -> decorrelated review"
+  dispatch "links" "links: no link gate present"
 fi
 
 # Concerns with no deterministic evaluator at all (semantic coherence: does the
 # landing's MEANING still cohere with the system's doctrine?) always route to
 # the adversarial path — they are why CLOSE had a decorrelated sweep.
-echo "DISPATCH  semantic-coherence: no evaluator can exist -> decorrelated review"
+dispatch "semantic-coherence" "semantic-coherence: no evaluator can exist"
 
 if [ "$fails" -ne 0 ]; then
   echo "INCOHERENT: $fails machine-check(s) failed — breakage caught at the boundary"
   exit 1
 fi
-echo "COHERENT (machine surface): all evaluators passed; review dispatches tracked"
+# Machine surface is clean. Report the adversarial obligations HONESTLY: ACCEPT
+# is gated on the pending decorrelated reviews converging, tracked in the
+# dispatch-log when one was supplied (else the count is the standing signal).
+if [ -n "$dispatch_log" ]; then
+  echo "COHERENT (machine surface): all evaluators passed; $pending_dispatches adversarial review(s) PENDING in $dispatch_log — ACCEPT gated until each is resolved (converged/diverged)"
+else
+  echo "COHERENT (machine surface): all evaluators passed; $pending_dispatches adversarial review(s) PENDING — ACCEPT gated until each converges (pass --dispatch-log to track them)"
+fi
 exit 0

@@ -14,6 +14,14 @@
 # keeping it intrinsic means `nickel export` is the one portable gate; there is
 # no out-of-band step to forget. Acyclicity and referential integrity remain
 # intrinsic in `Dag` as required.
+#
+# Shared definitions (D-DUP / T1.1): the `discipline` enum and the surface-
+# containment predicate both have ONE canonical home, imported rather than
+# inlined, so they cannot drift from the IBC contract or from authorized.py:
+#   discipline.ncl  the 5-value worker-discipline enum (shared with worker_ibc.ncl)
+#   authorized.ncl  tokens_overlap / token_contains (shared with authorized.py)
+let disciplines = import "discipline.ncl" in
+let auth = import "authorized.ncl" in
 {
   # Node contract: a node declares the fields the campaign reasons over. The
   # record is open — human-facing fields (title, rationale) and the optional
@@ -21,14 +29,15 @@
   #
   # `discipline` enumerates the surviving worker workflows: 'core (feature/TDD),
   # 'refine (polish), 'doc (documentation), 'form (formal domain modeling),
-  # and 'spec (normative specification). An out-of-enum tag fails the
-  # contract — but ONLY because `Dag` applies this contract per element (below);
-  # a defined-but-unapplied contract enforces nothing.
+  # and 'spec (normative specification) — defined ONCE in discipline.ncl and
+  # imported here so it cannot drift from worker_ibc.ncl. An out-of-enum tag
+  # fails the contract — but ONLY because `Dag` applies this contract per element
+  # (below); a defined-but-unapplied contract enforces nothing.
   Node = {
     id | String,
     depends_on | Array String,
     file_surface | Array String,   # paths/globs this node may touch
-    discipline | [| 'core, 'refine, 'doc, 'form, 'spec |],
+    discipline | disciplines.Discipline,
     mitigates | Array String,      # finding ids this node addresses
     ..                             # open: title/rationale/serialize ride along
   },
@@ -38,7 +47,7 @@
     # Per-element node conformance: annotate each node with the `Node` contract
     # so the field shapes and the `discipline` enum are actually enforced. A
     # contract defined but never applied is inert; checking it over each element
-    # is what makes `discipline | [| 'core, 'refine, 'doc, 'form, 'spec |]` a real gate. The
+    # is what makes `discipline | disciplines.Discipline` a real gate. The
     # annotation form `(n | Node)` under `std.deep_seq` raises the violation
     # EAGERLY — `std.contract.apply` alone stays lazy and the bad node slips
     # through `nickel export`. deep_seq descends into the annotated fields so an
@@ -129,31 +138,15 @@
     # Two surface TOKENS overlap when one path-contains the other, not merely
     # when they are byte-equal. Exact-string comparison wrongly read "docs/" and
     # "docs/x.md" as disjoint, so two concurrent nodes editing the same tree
-    # passed the gate. A token names a directory subtree, addressed by its
-    # directory prefix (the token with a guaranteed trailing "/"); t1 contains
-    # t2 when t2 equals t1 or t2 begins with t1's directory prefix. Plain string
+    # passed the gate. The containment predicate (`tokens_overlap`) is defined
+    # ONCE in authorized.ncl and imported here, so this conflict gate and the
+    # authorization gate (authorized.py) cannot drift apart (D-DUP). Plain string
     # prefixing, no regex, so glob metacharacters in a token are inert here
     # (globs are an authorization-time concern, handled in authorized.py).
-    let starts_with = fun prefix s =>
-      let lp = std.string.length prefix in
-      std.string.length s >= lp && std.string.substring 0 lp s == prefix
-    in
-    let dir_prefix = fun t =>
-      if std.string.length t > 0
-         && std.string.substring (std.string.length t - 1) (std.string.length t) t == "/"
-      then t
-      else t ++ "/"
-    in
-    let token_contains = fun t1 t2 =>
-      t1 == t2 || starts_with (dir_prefix t1) t2
-    in
-    let tokens_overlap = fun t1 t2 =>
-      token_contains t1 t2 || token_contains t2 t1
-    in
     # surfaces overlap if ANY token pair overlaps under path-containment
     let surfaces_overlap = fun a b =>
       std.array.any
-        (fun s1 => std.array.any (fun s2 => tokens_overlap s1 s2) b.file_surface)
+        (fun s1 => std.array.any (fun s2 => auth.tokens_overlap s1 s2) b.file_surface)
         a.file_surface
     in
     let has_serialize = fun n =>
