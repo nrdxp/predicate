@@ -44,6 +44,15 @@ jobs:
           bash ledger/gate/demo_scale_invariant.sh
           bash ledger/gate/demo_unauthorized.sh
 
+      - name: orchestration demo typecheck (skills/orchestration/demo/*.ncl)
+        run: |
+          set -euo pipefail
+          for f in skills/orchestration/demo/*.ncl; do
+            [ -f "$f" ] || continue
+            echo "checking $f"
+            nickel export -I ledger/contracts "$f" >/dev/null
+          done
+
       - name: doc audit (links + anchors)
         run: python3 skills/doc-audit/scripts/check_docs.py .
 

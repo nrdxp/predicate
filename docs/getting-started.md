@@ -76,11 +76,14 @@ ships a conditioning layer (`conditioning/`) that generates a structured system
 prompt for each role. The generator (`conditioning/compose.ncl`) composes
 `invariant-core ++ persona(role)` and enforces a contract (`HasCore`) that makes
 it structurally impossible for any harness adapter or persona to drop the
-always-on law. The `install` phase can inject this as a persistent system prompt
-where the harness supports it (Claude Code `--append-system-prompt`, `agy
---system-prompt`), or fall back to the `@import` surface if not. The orchestrator
-uses the same generator when dispatching workers, selecting the appropriate role
-at launch time. See [conditioning-layer.md](conditioning-layer.md) for the
+always-on law. The `install` phase persists this via `@import` into CLAUDE.md: it
+writes the generated prompt to `conditioning/generated/` and wires an `@import` of
+that file inside a conditioning managed block (Tier 1, when the CLI supports it),
+or inlines the prompt directly into CLAUDE.md (Tier 2). The
+`--append-system-prompt` flag is the **per-launch** adapter path — used by
+`conditioning/adapters/claude.sh` when an orchestrator spawns a worker, not by
+`install`. The orchestrator uses the same generator at dispatch time, selecting the
+appropriate role. See [conditioning-layer.md](conditioning-layer.md) for the
 composition contract and the harness-agnostic injection ladder.
 
 > The `install` phase touches only your global config. It installs **no** git
