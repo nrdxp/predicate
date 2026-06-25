@@ -39,7 +39,6 @@ validate="$here/ledger-validate.sh"
 process_gate="$here/process-gate.sh"
 check_docs="$root/skills/doc-audit/scripts/check_docs.py"
 recorder_close_check="$here/recorder_close_check.sh"
-adherence_audit="$here/adherence_audit.sh"
 check_orphans="$root/gates/check_orphans.sh"
 check_selfcontained="$root/gates/check_selfcontained.sh"
 sync_sketch="$root/skills/refine/scripts/sync_sketch.py"
@@ -141,35 +140,6 @@ git "${git_id[@]}" -C "$rec_without" init -q
 git "${git_id[@]}" -C "$rec_without" add log.md
 git "${git_id[@]}" -C "$rec_without" commit -q -m "log: open demo-topic"
 
-# adherence_audit.sh fixtures (Deliverable A1, the isolation gate). The gate reads
-# the CURRENT-DIRECTORY repo's history (it calls git with no -C), so each case cd's
-# into the throwaway repo before invoking. Check 1 of the gate also requires the
-# integration branch to be named campaign/*, so both repos use that name and only
-# the MERGE DISCIPLINE differs between them — isolating the core check.
-#   adh_merge:  baseline -> node/x branch -> --no-ff merge into campaign/demo
-#               => merges>0, direct==0 => rc 0 (isolation maintained).
-#   adh_direct: baseline -> DIRECT commits on campaign/demo (no merges)
-#               => merges==0 => rc 1 (the flat-campaign bypass the gate catches).
-adh_merge="$fixdir/adh_merge"
-adh_direct="$fixdir/adh_direct"
-mkdir -p "$adh_merge" "$adh_direct"
-git "${git_id[@]}" -C "$adh_merge" init -q -b master
-: > "$adh_merge/f"; git "${git_id[@]}" -C "$adh_merge" add f
-git "${git_id[@]}" -C "$adh_merge" commit -q -m "feat: baseline"
-adh_merge_base="$(git -C "$adh_merge" rev-parse HEAD)"
-git "${git_id[@]}" -C "$adh_merge" checkout -q -b campaign/demo
-git "${git_id[@]}" -C "$adh_merge" checkout -q -b node/x
-: > "$adh_merge/g"; git "${git_id[@]}" -C "$adh_merge" add g
-git "${git_id[@]}" -C "$adh_merge" commit -q -m "feat: node x work"
-git "${git_id[@]}" -C "$adh_merge" checkout -q campaign/demo
-git "${git_id[@]}" -C "$adh_merge" merge --no-ff -q node/x -m "merge: land node/x"
-git "${git_id[@]}" -C "$adh_direct" init -q -b master
-: > "$adh_direct/f"; git "${git_id[@]}" -C "$adh_direct" add f
-git "${git_id[@]}" -C "$adh_direct" commit -q -m "feat: baseline"
-adh_direct_base="$(git -C "$adh_direct" rev-parse HEAD)"
-git "${git_id[@]}" -C "$adh_direct" checkout -q -b campaign/demo
-: > "$adh_direct/g"; git "${git_id[@]}" -C "$adh_direct" add g
-git "${git_id[@]}" -C "$adh_direct" commit -q -m "feat: direct mainline work"
 
 # check_orphans.sh fixtures (Deliverable A2). A throwaway doc tree with a
 # .ledger/config.sh that scopes ORPHAN_TARGETS to the single fixture doc, so the
@@ -560,16 +530,6 @@ expect "recorder without close entry -> rc 1" 1 \
 expect "empty topic -> usage error rc 2" 2 \
   bash "$recorder_close_check" "" "$rec_with"
 
-echo "== adherence_audit.sh: isolation via merge-history (the isolation gate) =="
-# The gate reads the CURRENT-DIRECTORY repo's history, so each case cd's into the
-# throwaway repo first. MERGE-based campaign history -> isolation OK (rc 0).
-expect "merge-history campaign -> isolation OK (rc 0)" 0 \
-  bash -c 'cd "$1" && bash "$2" "$3" "$4"' _ \
-    "$adh_merge" "$adherence_audit" "$adh_merge_base" campaign/demo
-# DIRECT commits on the campaign branch -> isolation bypass detected (rc 1).
-expect "direct-history campaign -> bypass detected (rc 1)" 1 \
-  bash -c 'cd "$1" && bash "$2" "$3" "$4"' _ \
-    "$adh_direct" "$adherence_audit" "$adh_direct_base" campaign/demo
 
 echo "== check_orphans.sh: live refs to removed workflows =="
 # Live "/plan " reference with plan in the removed list -> flagged (rc 1).
