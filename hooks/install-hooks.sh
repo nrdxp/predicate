@@ -53,8 +53,14 @@ if [ "$mode" = "uninstall" ]; then
       echo "install-hooks: $hook is a real file (not a predicate symlink) — leaving untouched."
       continue
     fi
-    # Resolve symlink via realpath to get the absolute target for comparison.
-    resolved="$(realpath "$dst" 2>/dev/null || true)"
+    # Resolve symlink via realpath -m (no-existence canonicalization) to get the
+    # absolute target for comparison.  Plain `realpath` returns empty for a
+    # dangling link whose parent directory is also missing (e.g. the plugin was
+    # cleaned up), so the old comparison would fail and the symlink would be
+    # orphaned.  `realpath -m` canonicalises the encoded path without requiring
+    # the target to exist, so a dangling-but-ours link still matches $expected
+    # and is correctly removed.
+    resolved="$(realpath -m "$dst" 2>/dev/null)"
     expected="$hooks_src/$hook"
     if [ "$resolved" != "$expected" ]; then
       echo "install-hooks: $hook -> $resolved does not point to this plugin ($expected) — leaving untouched."

@@ -33,7 +33,7 @@
 #   --dry-run         Generate the prompt but print it to stdout; no harness writes.
 #
 # Environment overrides:
-#   NICKEL_CMD        nickel runner (default: nix run nixpkgs#nickel --)
+#   NICKEL_CMD        nickel runner (default: nickel on PATH; shell.nix provides it)
 #   PREDICATE_SRC     path to the predicate checkout (default: auto-resolved via realpath)
 #   HOME              harness config root (honored as-is; testable via override)
 #
@@ -49,13 +49,15 @@ conditioning_dir="$(dirname "$self_path")"
 predicate_src="${PREDICATE_SRC:-$(dirname "$conditioning_dir")}"
 compose_ncl="$conditioning_dir/compose.ncl"
 
-# Nickel runner: prefer the system nickel binary; fall back to nix run.
+# Nickel runner: require nickel on PATH (provided by the project shell.nix).
+# Do NOT fall back to `nix run`; enter the shell first: nix develop / direnv.
 if [ -z "${NICKEL_CMD:-}" ]; then
-  if command -v nickel >/dev/null 2>&1; then
-    NICKEL_CMD="nickel"
-  else
-    NICKEL_CMD="nix run nixpkgs#nickel --"
+  if ! command -v nickel >/dev/null 2>&1; then
+    echo "conditioning/install.sh: 'nickel' is not on PATH." >&2
+    echo "  Enter the project shell first:  nix develop  (or: use direnv with shell.nix)" >&2
+    exit 1
   fi
+  NICKEL_CMD="nickel"
 fi
 
 # Managed-block sentinels (same pattern as bootstrap/install.sh).
@@ -80,6 +82,26 @@ while [ "$#" -gt 0 ]; do
     *) echo "install: unknown argument: $1" >&2; exit 2 ;;
   esac
 done
+
+# ---------------------------------------------------------------------------
+# validate_role — guard BEFORE any Nickel interpolation.
+# The $role string is interpolated into a Nickel expression; an unchecked
+# value lets an attacker break out of the string literal and import arbitrary
+# files (e.g., --role 'x" (import "/etc/passwd") #').
+# Validating against the known set eliminates the injection surface entirely.
+# ---------------------------------------------------------------------------
+validate_role() {
+  local r="$1"
+  case "$r" in
+    architect|core-worker|refine-worker|doc-worker|form-worker|spec-worker|boundary-worker)
+      return 0 ;;
+    *)
+      echo "install: unknown role '${r}'." >&2
+      echo "install: valid roles: architect core-worker refine-worker doc-worker" \
+           "form-worker spec-worker boundary-worker" >&2
+      exit 2 ;;
+  esac
+}
 
 # ---------------------------------------------------------------------------
 # generate_prompt — the functional core call.
@@ -251,6 +273,7 @@ install_generic() {
 # ---------------------------------------------------------------------------
 # main
 # ---------------------------------------------------------------------------
+validate_role "$role"
 echo "install: generating prompt for role='$role' ..."
 prompt="$(generate_prompt "$role")"
 echo "install: generated ${#prompt} chars (HasCore contract passed)."

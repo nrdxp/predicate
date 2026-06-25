@@ -279,6 +279,28 @@ init_ledger() {
   fi
 }
 
+# --- step: ensure .gitignore contains the predicate subrepo entries ----------
+# .ledger/ is an untracked subrepo; without a .gitignore entry, `git add -A`
+# in the consuming repo hits the "embedded gitlink" error.  .scratch/ holds
+# volatile campaign state and must also stay untracked.
+# Appends each missing entry exactly once (idempotent); never clobbers or
+# reorders existing content.
+ensure_gitignore() {
+  local project="$1"
+  local gitignore="$project/.gitignore"
+  local changed=0
+  for entry in '.ledger/' '.scratch/'; do
+    if grep -qxF "$entry" "$gitignore" 2>/dev/null; then
+      echo "init: $entry already in .gitignore (no-op)."
+    else
+      printf '%s\n' "$entry" >>"$gitignore"
+      echo "init: appended $entry to .gitignore."
+      changed=1
+    fi
+  done
+  [ "$changed" -eq 0 ] || echo "init: .gitignore updated."
+}
+
 # --- phase: init (PER-PROJECT) -----------------------------------------------
 phase_init() {
   local project=""
@@ -294,6 +316,7 @@ phase_init() {
   echo "init: project=$project plugin=$plugin_src"
   install_hooks "$project"
   init_ledger "$project"
+  ensure_gitignore "$project"
   echo "init: done. Next (human seam): push the .ledger remote when ready."
 }
 
