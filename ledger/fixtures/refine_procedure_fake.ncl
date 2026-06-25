@@ -17,8 +17,8 @@
 # layer of the Verification Dual must close this.
 #
 # EXPECT: pass (contract) — flagged: review must judge substance
-let r  = import "../contracts/refine_procedure.ncl" in
-let ro = import "../contracts/refine_output.ncl" in
+let r  = import "../../skills/refine/refine_procedure.ncl" in
+let ro = import "../../skills/refine/refine_output.ncl" in
 {
   steps_instance | r.RefineProcedure = {
     workflow = "refine",

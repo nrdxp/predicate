@@ -31,13 +31,17 @@ fi
 fails=0
 total=0
 
-for contract in "$root"/ledger/contracts/*.ncl; do
-  [[ -f "$contract" ]] || continue
+# Run the structure check on one contract file; append to totals.
+check_contract() {
+  local contract="$1"
+  [[ -f "$contract" ]] || return
+  local name
   name="$(basename "$contract")"
   total=$((total + 1))
 
+  local result
   result=$(bash "$validate" structure "$contract" 2>&1)
-  rc=$?
+  local rc=$?
 
   if [[ "$rc" -eq 0 ]]; then
     echo "PASS  $name"
@@ -48,6 +52,25 @@ for contract in "$root"/ledger/contracts/*.ncl; do
     fi
     fails=$((fails + 1))
   fi
+}
+
+# Central substrate contracts (ledger/contracts/).
+echo "-- ledger/contracts/ --"
+for contract in "$root"/ledger/contracts/*.ncl; do
+  check_contract "$contract"
+done
+
+# Skill-owned contracts relocated from ledger/contracts/ (skill colocation).
+# Each skill directory holds its own workflow contracts as first-class files.
+echo "-- skill-owned contracts --"
+for skill_dir in \
+    "$root/skills/boundary" \
+    "$root/skills/refine" \
+    "$root/skills/orchestration" \
+    "$root/skills/orient"; do
+  for contract in "$skill_dir"/*.ncl; do
+    check_contract "$contract"
+  done
 done
 
 echo ""

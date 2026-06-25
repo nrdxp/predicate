@@ -33,19 +33,20 @@
 #
 # Verification:
 #   CONTRACT DEFINITIONS (this file):
-#     nix run nixpkgs#nickel -- typecheck -I ledger/contracts ledger/contracts/state_machine.ncl
+#     nickel typecheck skills/orchestration/state_machine.ncl
 #   INSTANCE / FIXTURE (the exportable topology gate):
-#     nix run nixpkgs#nickel -- export -I ledger/contracts ledger/fixtures/state_machine_topology.ncl
+#     nickel export ledger/fixtures/state_machine_topology.ncl
 {
   # ── Imports (the five existing artifact contracts) ───────────────────────────
-  # Each is imported by name so the contracts are composed, not duplicated.
+  # Each is imported by RELATIVE PATH (resolved from skills/orchestration/) so the
+  # contracts are composed, not duplicated. Shared substrate lives in ledger/contracts/.
   # A change to dag.ncl propagates automatically to this guard.
-  CampaignIBC  = (import "campaign_ibc.ncl").CampaignIBC,
-  Findings     = (import "findings.ncl").Findings,
-  Dag          = (import "dag.ncl").Dag,
-  DagNoConflict = (import "dag.ncl").DagNoConflict,
-  WorkerIBC    = (import "worker_ibc.ncl").WorkerIBC,
-  ReconcileLog = (import "reconcile_log.ncl").ReconcileLog,
+  CampaignIBC  = (import "../../ledger/contracts/campaign_ibc.ncl").CampaignIBC,
+  Findings     = (import "../../ledger/contracts/findings.ncl").Findings,
+  Dag          = (import "../../ledger/contracts/dag.ncl").Dag,
+  DagNoConflict = (import "../../ledger/contracts/dag.ncl").DagNoConflict,
+  WorkerIBC    = (import "../../ledger/contracts/worker_ibc.ncl").WorkerIBC,
+  ReconcileLog = (import "../../ledger/contracts/reconcile_log.ncl").ReconcileLog,
 
   # ── Shared primitives ────────────────────────────────────────────────────────
 

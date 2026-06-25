@@ -12,4 +12,5 @@
 #
 # Imports resolve relative to this file (ledger/contracts/), so no -I flag is
 # needed when this file is passed as an absolute path to --apply-contract.
-(import "boundary_procedure.ncl").BoundaryProcedure
+# boundary_procedure.ncl was relocated to skills/boundary/ (skill colocation).
+(import "../../skills/boundary/boundary_procedure.ncl").BoundaryProcedure

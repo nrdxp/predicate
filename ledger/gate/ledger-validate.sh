@@ -102,6 +102,12 @@ cmd_structure() {
         # contracts in the SAME tree are importable without absolute paths.
         "${NICKEL[@]}" typecheck -I "$(dirname "$abs_artifact")" "$artifact" >/dev/null
         ;;
+      */skills/*/*.ncl)
+        # Skill-owned contract definitions (relocated from ledger/contracts/).
+        # Same treatment as ledger/contracts/: typecheck only; use relative
+        # imports (../../ledger/contracts/…) so no -I is needed.
+        "${NICKEL[@]}" typecheck "$artifact" >/dev/null
+        ;;
       *.yaml)
         # YAML instances (campaign DAGs) carry pure data — validate by applying
         # the Dag ∘ DagNoConflict contract externally via --apply-contract.

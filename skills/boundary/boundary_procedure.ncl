@@ -19,9 +19,9 @@
 # AND the output IBC* shape is well-formed with a non-empty goal and ≥1 acceptance
 # criterion.
 #
-# BARE imports (resolved via the gate's -I ledger/contracts):
-#   procedure.ncl  — the proven combinator (CoreSteps, procedure)
-#   worker_ibc.ncl — the output contract (Worker, WorkerIBC)
+# Relative imports (resolved from this file's own directory: skills/boundary/).
+#   ../../ledger/contracts/procedure.ncl  — the proven combinator (CoreSteps, procedure)
+#   ../../ledger/contracts/worker_ibc.ncl — the output contract (Worker, WorkerIBC)
 #
 # Contracts exported:
 #   BoundaryRequired   — the boundary-specific required-step ids
@@ -29,12 +29,12 @@
 #   BoundaryOutput     — alias for worker_ibc.WorkerIBC (the IBC* output shape)
 #
 # Verification:
-#   nickel typecheck -I ledger/contracts ledger/contracts/boundary_procedure.ncl
-#   nickel export   -I ledger/contracts ledger/fixtures/boundary_procedure_honest.ncl
-#   nickel export   -I ledger/contracts ledger/fixtures/boundary_procedure_skip.ncl     # must fail
-#   nickel export   -I ledger/contracts ledger/fixtures/boundary_procedure_fake.ncl     # passes; flagged for review
-let proc_mod     = import "procedure.ncl" in
-let worker_mod   = import "worker_ibc.ncl" in
+#   nickel typecheck skills/boundary/boundary_procedure.ncl
+#   nickel export ledger/fixtures/boundary_procedure_honest.ncl
+#   nickel export ledger/fixtures/boundary_procedure_skip.ncl     # must fail
+#   nickel export ledger/fixtures/boundary_procedure_fake.ncl     # passes; flagged for review
+let proc_mod     = import "../../ledger/contracts/procedure.ncl" in
+let worker_mod   = import "../../ledger/contracts/worker_ibc.ncl" in
 {
   # ── Boundary-specific required steps ─────────────────────────────────────────
   # Pinned UPSTREAM in this contract (F-REQ). The walk authors `steps` only and

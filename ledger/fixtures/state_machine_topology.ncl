@@ -10,5 +10,5 @@
 # Note: state_machine.ncl itself is verified with `nickel typecheck`
 # (contract definitions, not exportable values). This fixture is the
 # exportable instance — the pattern mirrors deposit.ncl and its consumers.
-let sm = import "../contracts/state_machine.ncl" in
+let sm = import "../../skills/orchestration/state_machine.ncl" in
 (sm.topology | sm.StateMachine)

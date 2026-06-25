@@ -9,8 +9,8 @@
 # > 0, consecutive_clean_sweeps > 0, all maintainer_judgments 'approved.
 # Exports cleanly.
 # EXPECT: pass
-let r   = import "../contracts/refine_procedure.ncl" in
-let ro  = import "../contracts/refine_output.ncl" in
+let r   = import "../../skills/refine/refine_procedure.ncl" in
+let ro  = import "../../skills/refine/refine_output.ncl" in
 {
   # Step-footprint instance (the procedure spine)
   steps_instance | r.RefineProcedure = {

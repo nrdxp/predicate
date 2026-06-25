@@ -321,5 +321,5 @@ recall).
 - [`ledger/contracts/context_map.ncl`](../../ledger/contracts/context_map.ncl) —
   the live tracker carrier contract; `hydration_source` field records the
   AGENTS.md anchor a hydrated item came from.
-- [`ledger/contracts/tracker_freshness.ncl`](../../ledger/contracts/tracker_freshness.ncl) —
+- [`skills/orient/tracker_freshness.ncl`](./tracker_freshness.ncl) —
   the Nickel functional core: `is_fresh` and `stale_items` predicates.

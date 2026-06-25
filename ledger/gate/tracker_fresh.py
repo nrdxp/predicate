@@ -51,7 +51,8 @@ import tempfile
 _SELF_DIR = os.path.dirname(os.path.realpath(__file__))
 _PLUGIN_ROOT = os.path.dirname(os.path.dirname(_SELF_DIR))
 _CONTRACTS_DIR = os.path.join(_PLUGIN_ROOT, "ledger", "contracts")
-_FRESHNESS_NCL = os.path.join(_CONTRACTS_DIR, "tracker_freshness.ncl")
+# tracker_freshness.ncl was relocated to skills/orient/ (skill colocation).
+_FRESHNESS_NCL = os.path.join(_PLUGIN_ROOT, "skills", "orient", "tracker_freshness.ncl")
 _CONTEXT_MAP_NCL = os.path.join(_CONTRACTS_DIR, "context_map.ncl")
 
 

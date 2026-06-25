@@ -12,4 +12,5 @@
 #
 # Imports resolve relative to this file (ledger/contracts/), so no -I flag is
 # needed when this file is passed as an absolute path to --apply-contract.
-(import "refine_procedure.ncl").RefineProcedure
+# refine_procedure.ncl was relocated to skills/refine/ (skill colocation).
+(import "../../skills/refine/refine_procedure.ncl").RefineProcedure

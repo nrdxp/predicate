@@ -5,7 +5,7 @@
 # "approve"). The output field conforms to Worker ∘ WorkerIBC (non-empty goal,
 # ≥1 acceptance criterion). Exports cleanly.
 # EXPECT: pass
-let b  = import "../contracts/boundary_procedure.ncl" in
+let b  = import "../../skills/boundary/boundary_procedure.ncl" in
 let wi = import "../contracts/worker_ibc.ncl" in
 let d  = import "../contracts/discipline.ncl" in
 {
