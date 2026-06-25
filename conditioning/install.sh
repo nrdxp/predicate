@@ -95,14 +95,20 @@ generate_prompt() {
   # hyphenated key safety.
   local wrapper
   wrapper="std.record.get \"${role_arg}\" (import \"${compose_ncl}\")"
-  local prompt
-  if ! prompt="$(echo "$wrapper" | $NICKEL_CMD export --format text 2>&1)"; then
+  # Capture stdout (the prompt) ONLY; route stderr to a temp file. Folding stderr
+  # into the prompt (2>&1) corrupts it with runner noise — e.g. nix's "unpacking
+  # '...' into the Git cache" progress line on first fetch lands inside the prompt.
+  local prompt _err
+  _err="$(mktemp)"
+  if ! prompt="$(echo "$wrapper" | $NICKEL_CMD export --format text 2>"$_err")"; then
     echo "install: FATAL — nickel export failed for role '${role_arg}'." >&2
-    echo "install: compose.ncl output:" >&2
-    echo "$prompt" >&2
+    echo "install: nickel diagnostics:" >&2
+    cat "$_err" >&2
+    rm -f "$_err"
     echo "install: No harness surface was written." >&2
     exit 1
   fi
+  rm -f "$_err"
   printf '%s' "$prompt"
 }
 
