@@ -62,9 +62,10 @@
 #
 # Portability
 # ───────────
-# Nickel resolution mirrors ledger-validate.sh (AC7): direct `nickel` XOR
-# `nix run nixpkgs#nickel --`. Neither available → gate halts non-zero rather
-# than silently passing (a gate that cannot run is not a gate that passes).
+# Nickel must be on PATH (provided by the project shell.nix, v1.14.0). The
+# runner resolves `nickel` directly; no `nix run` fallback. If `nickel` is
+# absent the gate exits 2 rather than silently passing (a gate that cannot run
+# is not a gate that passes).
 # Import-path seam: contracts are located via -I <plugin>/ledger/contracts,
 # NEVER project-relative — downstream users have predicate installed elsewhere.
 set -u
@@ -75,16 +76,15 @@ here="$(cd "$(dirname "$(realpath "${BASH_SOURCE[0]}")")" && pwd)"
 plugin="$(cd "$here/../.." && pwd)"
 NICKEL_IMPORT_FLAGS=(-I "$plugin/ledger/contracts")
 
-# --- portable nickel runner (mirrors ledger-validate.sh AC7) -----------------
+# --- nickel runner -----------------------------------------------------------
+# nickel must be on PATH (project shell.nix).  No nix-run fallback.
 NICKEL=()
 resolve_nickel() {
   if [ ${#NICKEL[@]} -gt 0 ]; then return 0; fi
   if command -v nickel >/dev/null 2>&1; then
     NICKEL=(nickel)
-  elif command -v nix >/dev/null 2>&1; then
-    NICKEL=(nix run nixpkgs#nickel --)
   else
-    echo "process-gate: neither 'nickel' nor 'nix' on PATH; cannot run gate" >&2
+    echo "process-gate: 'nickel' not found on PATH; cannot run gate" >&2
     exit 2
   fi
 }
@@ -160,12 +160,16 @@ cmd_validate() {
   # (which is $plugin/ledger/contracts/), so sibling contracts resolve correctly.
   local tmp
   tmp="$(mktemp --suffix=.ncl)"
+  # Trap HUP/INT/TERM so the temp file is removed even on a mid-function signal.
+  # shellcheck disable=SC2064
+  trap "rm -f '$tmp'" HUP INT TERM
   printf 'let cf = import "%s" in\n(import "%s") | cf.%s\n' \
     "$_cf" "$abs_instance" "$_sym" > "$tmp"
 
   local rc=0
   "${NICKEL[@]}" export "${NICKEL_IMPORT_FLAGS[@]}" "$tmp" >/dev/null || rc=$?
   rm -f "$tmp"
+  trap - HUP INT TERM
   return "$rc"
 }
 

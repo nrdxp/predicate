@@ -206,7 +206,22 @@ if [ -f "$walk_pointer" ]; then
     # A walk that declared no deposit has nothing to process-validate.
     : # no-op
   else
+    # B3 fix: normalize the deposit path before comparing to the staged set.
+    # git diff --cached --name-only emits repo-root-relative paths without
+    # leading ./ or doubled //.  Normalize the pointer value to match:
+    #   1. strip leading ./
+    #   2. collapse // sequences to / (covers ledger//fixtures/... forms)
+    #   3. strip absolute $root/ prefix (pointer may use an absolute path)
+    walk_deposit="${walk_deposit#./}"
+    walk_deposit="$(printf '%s' "$walk_deposit" | sed 's|//|/|g')"
+    if [[ "$walk_deposit" == /* ]]; then
+      walk_deposit="${walk_deposit#"$root/"}"
+    fi
+
     # Validate ONLY the declared deposit-path, and only if it is staged.
+    # B2 fix: if the pointer declares a deposit path but the deposit is NOT
+    # staged, fail closed — a "declared-but-never-delivered" walk must not
+    # silently pass.  The declared deposit MUST be staged in this commit.
     deposit_staged=0
     for f in "${staged[@]}"; do
       [ "$f" = "$walk_deposit" ] && deposit_staged=1 && break
@@ -224,9 +239,15 @@ if [ -f "$walk_pointer" ]; then
         echo "pre-commit: declared deposit path not found in working tree: $walk_deposit" >&2
         rc=1
       fi
+    else
+      # B2: declared deposit not staged → fail closed.  A walk that registers a
+      # deposit path but commits without staging that exact path has not
+      # delivered its declared deposit.  Non-deposit .ncl files (contracts, DAGs,
+      # fixtures) are never process-validated; but the declared deposit must be.
+      echo "pre-commit: declared deposit '$walk_deposit' not staged in this commit" >&2
+      echo "  Active-walk pointer requires the deposit to be staged and pass." >&2
+      rc=1
     fi
-    # If the deposit is not staged this commit, the process gate is a no-op:
-    # other .ncl files (contracts, DAGs, fixtures) are never process-validated.
   fi
 fi
 
