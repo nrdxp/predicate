@@ -1,0 +1,84 @@
+# Process-feedback seed records — amendments made during the process campaign,
+# promoted from conversation recall to first-class durable records.
+#
+# Sourced from: .scratch/process-campaign/follow-ups.md §D (Done this conversation).
+# Contract: skills/record/process_feedback.ncl (ProcessFeedbackStore)
+# Validate: nickel export process_feedback_seed.yaml --apply-contract skills/record/process_feedback_apply.ncl
+# EXPECT: pass
+items:
+  - id: pf-no-ff-unfabrication
+    kind: amendment
+    context: >-
+      The no-ff invariant (requiring --no-ff merge flags to maintain a
+      non-fast-forward merge history) was surfaced as a standing process rule
+      during the campaign. Investigation found it was never specced or
+      established anywhere in predicate: it was fabricated by the agent and
+      treated as canonical. The rule was actively enforced on at least one
+      commit before the fabrication was caught.
+    outcome: >-
+      The rule was removed. Branch-reachability (topological isolation via a
+      dedicated branch per node) is the standing isolation invariant — not
+      merge shape. The incident established a new standing discipline: when
+      an agent invokes a claimed invariant, verify it against actual specs
+      before enforcing it. This is now recorded in memory (no-ff-invariant-
+      fabricated.md) and in this process-feedback record.
+
+  - id: pf-yaml-d5-restoration
+    kind: amendment
+    context: >-
+      Decision D5 (YAML as the instance format for worker deposits, validated
+      externally by a static Nickel contract) was adopted early in the
+      campaign, then vacated by an intermediate path that favored native Nickel
+      deposits. The architect caught the regression: the original defect was
+      unchecked prose, not the YAML format itself. The YAML shift (D5) was
+      re-adopted with full justification. Along the way, "get rid of YAML"
+      was sharpened to "actually CHECK the YAML" — the external contract is
+      the fix, not the format switch.
+    outcome: >-
+      D5 reinstated as PRINCIPLE: the dividing line is artifact type, not role.
+      Instances (data to be filled out — IBCs, DAGs, deposits, debt/feedback
+      records) are YAML validated by Nickel; contracts (the verifiers/schemas)
+      are Nickel authored when defining a domain. This principle governs the
+      RECORD category model: each category's instances are YAML, each category's
+      contract is Nickel. The architect gets no logic exemption: the campaign
+      DAG is an instance, so it is YAML.
+
+  - id: pf-project-local-gates
+    kind: improvement
+    context: >-
+      The initial design of predicate's commit gate assumed all gates and
+      contracts would live in the global predicate layer, applied universally.
+      nrd identified that project-specific checks (idiosyncratic to predicate-
+      self-hosting or downstream consumers) must not be hardcoded into global
+      contracts — the shipped/global gate set must stay general and applicable
+      to any consuming project.
+    outcome: >-
+      A project-local gate mechanism was designed and shipped: .ledger/gates/
+      for gate scripts (executable files, sorted, each receiving the repo root
+      as $1), ledger/gate/project-gates.sh for the runner (zero-footprint when
+      .ledger/gates/ is absent), and a global-vs-project-local axis added to
+      the scope taxonomy (universal / predicate-artifact / campaign / walk /
+      orchestration). This mechanism is also the interface through which a
+      project validates its own RECORD instances (tech-debt + process-feedback)
+      without polluting the global layer.
+
+  - id: pf-skill-contract-relocation
+    kind: improvement
+    context: >-
+      Initially all contracts lived in ledger/contracts/, regardless of which
+      skill owned them. The principle that skills are self-contained install
+      units (a skill = prose SKILL.md + the files/scripts the task needs) was
+      already established for scripts (chronicle, commit-hygiene, etc.) but had
+      not been applied to Nickel contracts. The campaign identified workflow-
+      owned contracts (boundary_procedure, refine_procedure, refine_output,
+      state_machine, tracker_freshness) that properly belong in their skill dirs.
+    outcome: >-
+      The skill-contract relocation principle was established: workflow-owned
+      contracts move INTO their skill dirs (skills/boundary/, skills/refine/,
+      skills/orchestration/, skills/orient/); cross-cutting substrate (dag,
+      worker_ibc, campaign_ibc, findings, reconcile_log, context_map, deposit,
+      discipline, authorized, discovery, procedure, sub_procedures, core_steps,
+      arsenal_registry) stays in ledger/contracts/ as a shared foundation.
+      All new skill contracts, including those created by this IBC
+      (skills/record/tech_debt.ncl, skills/record/process_feedback.ncl),
+      follow this principle.

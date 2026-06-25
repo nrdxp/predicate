@@ -1,32 +1,99 @@
 ---
 name: record
 description: |
-  Ambient record-keeping and promotion procedure for any predicate-enabled walk.
+  Durable categorized record-keeping for any predicate-enabled walk.
   Trigger when:
-  - Classifying a step's output for recording (decision, finding, working detail).
-  - Promoting a scratch artifact to the ledger or to repo/docs.
+  - Classifying a step's output for recording (decision, finding, debt, feedback).
+  - Promoting a scratch artifact to the ledger, to repo/docs, or to a category
+    home (.ledger/tech-debt/, .ledger/process-feedback/).
   - Auditing whether a draft is structurally ready for its destination.
   - Running a zero-context sensibility read before committing to promotion.
+  - Recording a known limitation as a tech-debt entry (not prose in the log).
+  - Recording a friction, miss, improvement, or process amendment.
   - Prompt contains: /record, record-keeping, promote, ledger note, zettelkasten,
-    scratch-to-ledger, zero-context read, over-strip, classification trigger.
+    scratch-to-ledger, zero-context read, over-strip, classification trigger,
+    tech-debt, process-feedback, amendment.
 ---
 
-# Record & Promotion
+# Record — Durable Categorized Records
 
-**Ambient** — applies to every predicate-enabled walk, not campaign-only. Depth
-scales with stakes: a routine finding gets a one-line tracker update; a
-strategic pivot gets a linked ledger note + a zero-context sensibility pass.
+**Ambient** — applies to every predicate-enabled walk, not campaign-only.
+
+The RECORD primitive manages durable artifacts across three complementary
+substrates. What distinguishes it from generic note-taking is the
+**category model**: each category of durable artifact has a defined
+contract (machine-checkable shape), a `.ledger` home, and a trigger
+(when to record into it).
 
 ---
 
-## Core model
+## Category model
 
-Three substrates with distinct roles:
+Each category = **{contract, .ledger home, trigger}**. Categories are
+extensible: adding a fourth later is cheap — add the contract, home,
+and trigger row.
+
+| category | contract | .ledger home | trigger |
+| :--- | :--- | :--- | :--- |
+| **flight-log** | narrative; no formal contract | `.ledger/log/` | at every significant step: decision, pivot, finding |
+| **tech-debt** | `skills/record/tech_debt.ncl` | `.ledger/tech-debt/` | when a limitation is accepted rather than fixed |
+| **process-feedback** | `skills/record/process_feedback.ncl` | `.ledger/process-feedback/` | when friction, a miss, an improvement, or a live process amendment is identified |
+
+### The flight-log category (existing)
+
+Narrative zettelkasten — linked, curated trail of *how the space was
+explored*: decisions, pivots, adjustments. NOT exhaustive; navigable
+graph. See [Recording (continuous)](#recording-continuous) and
+[Promotion](#promotion) for the full flight-log model.
+
+### The tech-debt category (new)
+
+A first-class, machine-shaped entry for a known limitation or deferred
+decision — absorbs the campaign's "accepted limitations / tail" so they
+are trackable and actionable rather than buried in prose log entries.
+
+**Fields:** `id` (unique), `claim` (falsifiable statement), `location`
+(file:line, gate, or component), `severity` (critical|high|medium|low),
+`why_deferred`, `signpost` (what would resolve or invalidate it).
+
+**Instance format:** YAML, validated via:
+```bash
+nickel export <file>.yaml --apply-contract skills/record/tech_debt_apply.ncl
+```
+
+**Trigger:** when you accept a limitation rather than fix it — record
+it here, not in prose. A `signpost` is required so the debt is not just
+named but actionable.
+
+### The process-feedback category (new)
+
+Captures friction, missed signals, improvements, and AMENDMENTS. An
+AMENDMENT is the highest-stakes kind: the agent changed a live process
+rule and it was a good idea. This makes process changes durable rather
+than living only in conversation recall.
+
+**Fields:** `id` (unique), `kind`
+(friction|miss|improvement|amendment), `context` (situation that
+triggered it), `outcome` (what changed or what it means).
+
+**Instance format:** YAML, validated via:
+```bash
+nickel export <file>.yaml --apply-contract skills/record/process_feedback_apply.ncl
+```
+
+**Trigger:** when friction surfaces, a signal is missed, the process
+improved, or a live rule was amended. AMENDMENT kind requires that the
+rule change was nrd-approved or demonstrably beneficial — it is a record
+of accepted change, not a unilateral rewrite.
+
+---
+
+## Three substrates with distinct roles
 
 | substrate | role | character |
 | :-- | :-- | :-- |
 | `scratch` | exhaustive working detail; coherent context being built | default ephemeral; sometimes a draft staged for promotion |
-| `ledger` (`.ledger/log/`) | zettelkasten — linked, curated trail of *how the space was explored*: decisions, pivots, adjustments | NOT exhaustive; navigable graph |
+| `ledger` (`.ledger/`) | all category homes: flight-log, tech-debt, process-feedback | curated, linked, durable; each category in its own home dir |
 | `repo/docs/` | promoted durable artifacts (a design that graduated) | permanent |
 
 **Promotion** is the combinator `promote(from, to)` over `{scratch, ledger, repo}`.
@@ -41,19 +108,17 @@ At each significant step, classify the output and record it — this is a
 
 | what happened | where it goes | minimum record |
 | :-- | :-- | :-- |
-| **decision / pivot / adjustment** | linked ledger note | what, why, which `[[decisions/KUs]]` it changes; link to superseded/resolved notes |
+| **decision / pivot / adjustment** | linked ledger note (flight-log) | what, why, which `[[decisions/KUs]]` it changes; link to superseded/resolved notes |
 | **finding** (new R/I/U item) | update the live R/I/U tracker; ledger note if it pivots direction | tracker entry with grounding + last\_validated + signpost |
+| **accepted limitation** | `.ledger/tech-debt/<id>.yaml` | tech-debt record validated against `tech_debt.ncl` |
+| **process friction / miss / improvement / amendment** | `.ledger/process-feedback/<id>.yaml` | process-feedback record validated against `process_feedback.ncl` |
 | **working detail / draft** | scratch | no ceremony; stage for promotion when ready |
 
-**Linking discipline.** Ledger notes are a zettelkasten: each note links
-(`supersedes`, `resolves`, `blocks`, `see-also`) to the nodes it affects. The
-ledger is a navigable graph, not a flat append log. Every-touch-commit
-([Sketch Commit Discipline](../../ambient.md#planning-invariants)) keeps the
-graph linear and reconstructable.
-
-**Formal side.** The presence check is: is there a ledger note for this pivot?
-The substantive side is: is the trail reconstructable by a future agent from the
-notes alone? — closed by review.
+**Linking discipline (flight-log).** Ledger notes are a zettelkasten: each note
+links (`supersedes`, `resolves`, `blocks`, `see-also`) to the nodes it affects.
+The ledger is a navigable graph, not a flat append log. Every-touch-commit
+([Sketch Commit Discipline](../../ambient.md#planning-invariants)) keeps the graph
+linear and reconstructable.
 
 ---
 
@@ -81,6 +146,8 @@ destination's audience. The over-strip line moves with the destination:
 
 The artifact must conform to its destination's contract before promotion:
 
+- a tech-debt record must pass `nickel export ... --apply-contract tech_debt_apply.ncl`
+- a process-feedback record must pass `nickel export ... --apply-contract process_feedback_apply.ncl`
 - a draft IBC must pass `worker_ibc.ncl` export
 - a DAG node must export cleanly against `dag.ncl`
 - a skill draft must carry valid YAML frontmatter (this file's own gate)
@@ -136,6 +203,39 @@ After promotion:
 2. Write a ledger note recording the promotion: what was promoted, where it
    landed, and why it graduated. This keeps the zettelkasten honest about the
    artifact's provenance.
+
+---
+
+## Project-local validation
+
+A project (predicate-self-hosting + downstream) records its own tech-debt and
+process-feedback through the project-local gate mechanism. Register a gate
+script in `.ledger/gates/` that validates the records:
+
+```bash
+#!/usr/bin/env bash
+# .ledger/gates/10-validate-records.sh
+# Validates all tech-debt and process-feedback YAML instances.
+set -euo pipefail
+root="${1:-}"
+skill_dir="$root/skills/record"
+
+for f in "$root/.ledger/tech-debt"/*.yaml 2>/dev/null; do
+  [[ -f "$f" ]] || continue
+  nickel export "$f" --apply-contract "$skill_dir/tech_debt_apply.ncl" >/dev/null \
+    || { echo "tech-debt record failed: $f" >&2; exit 1; }
+done
+
+for f in "$root/.ledger/process-feedback"/*.yaml 2>/dev/null; do
+  [[ -f "$f" ]] || continue
+  nickel export "$f" --apply-contract "$skill_dir/process_feedback_apply.ncl" >/dev/null \
+    || { echo "process-feedback record failed: $f" >&2; exit 1; }
+done
+```
+
+The `project-gates.sh` runner discovers and executes this script automatically
+on each commit when a walk is registered. Projects with no `.ledger/gates/`
+directory incur zero overhead (the runner is a clean no-op).
 
 ---
 
