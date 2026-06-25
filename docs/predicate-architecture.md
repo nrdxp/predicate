@@ -170,9 +170,13 @@ it is a state the machine models explicitly.
 ## DISCOVERY — the keystone sub-procedure
 
 DISCOVERY is the sub-procedure both the architect (`SURVEY`/`ABSORB`) and every
-worker (`ABSORB`) run. Defined once in `ledger/contracts/discovery.ncl`, imported
-by both `campaign_procedure.ncl` and `boundary_procedure.ncl` — same required-step
-set, same deposit schema, no divergence possible.
+worker (`ABSORB`) run. Defined once in `ledger/contracts/discovery.ncl` — the
+single authority for the step set and deposit schema. Procedure steps reach it via
+`invoke.class = "discovery"`, which the sub-procedure registry
+(`ledger/contracts/sub_procedures.ncl`) gates: only registered class names are
+accepted, so the set that judges a walk is never self-authored. No caller imports
+`discovery.ncl` directly; the registry-and-invoke indirection is what prevents
+divergence across callers.
 
 ### The required step set
 

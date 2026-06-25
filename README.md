@@ -27,10 +27,13 @@ predicate/
 └── docs/           # Guides, the orchestration protocol, ADRs, and theory
 ```
 
-Two directories are runtime-only and gitignored by the parent repository: `.scratch/`
+Two directories are runtime-only and gitignored by this repository: `.scratch/`
 holds a campaign's ephemeral working set, and `.ledger/` is the durable history
 sub-repository (the flight recorder). Neither is tracked here; see
-[the flight recorder](#the-flight-recorder) below.
+[the flight recorder](#the-flight-recorder) below. These entries are specific to
+the predicate checkout; downstream consumers must add both lines to their own
+project's `.gitignore`. The file `templates/.gitignore` in the checkout contains
+them as a copy-ready reference.
 
 ### Terminology
 
@@ -177,7 +180,7 @@ The full test suite and linters must also pass. See [docs/predicate-architecture
 
 Exploration before commitment is the always-on **sketch principle** (an ambient layer principle, above). Its durable substrate is the **flight recorder** at `.ledger/log/`. The principle and the substrate are distinct: the disposition is ambient, the recorder is load-bearing infrastructure.
 
-The topology has two runtime directories, both gitignored by the parent repository so it never tracks transient or subrepo state:
+The topology has two runtime directories, both gitignored by this repository (downstream consumers add the same two entries to their project's `.gitignore`; `templates/.gitignore` in the checkout is the copy-ready reference) so it never tracks transient or subrepo state:
 
 * **`.scratch/`** — a campaign's ephemeral working set (live review, plan, orchestration, and prompts). Mutable and never committed.
 * **`.ledger/`** — an independent sub-repository with its own git history. Its `.ledger/log/` subtree is the flight recorder: a committed, linear record of every architectural decision, discovery, and pivot, checkpointed at each reconciliation boundary. Because the parent ignores `.ledger/` but the subrepo commits internally, the record is durable *within the subrepo* without polluting the parent's history — and any campaign can be regenerated from the recorder plus `git`.
