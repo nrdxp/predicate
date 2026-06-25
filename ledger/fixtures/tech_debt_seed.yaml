@@ -1,0 +1,78 @@
+# Tech-debt seed records — predicate's own accepted limitations, promoted to
+# first-class trackable records rather than prose in the flight log.
+#
+# Sourced from: .scratch/process-campaign/follow-ups.md §C (Accepted limitations).
+# Contract: skills/record/tech_debt.ncl (TechDebtStore)
+# Validate: nickel export tech_debt_seed.yaml --apply-contract skills/record/tech_debt_apply.ncl
+# EXPECT: pass
+items:
+  - id: td-adherence-b1
+    claim: >-
+      The adherence gate cannot bind an agent that controls git refs; it catches
+      accidental flat-commits and drift from well-intentioned agents, but a
+      determined agent can mint a node/* branch at any tip and launder a bypass
+      to PASS.
+    location: ledger/gate/adherence_audit.sh
+    severity: low
+    why_deferred: >-
+      Binds at the wrong layer — real adversary defense belongs at OS/container
+      isolation, not git hooks. The campaign's threat model explicitly excludes
+      the determined-adversary scenario; the gate's guarantee is honest-claim
+      only, and that claim was corrected in the CLOSE sweep.
+    signpost: >-
+      Resolved if a lower-layer isolation mechanism constrains the agent's file
+      system and git ref namespace before the hook runs. Until then, the gate
+      header, orchestration skill, and scopes doc must state the honest-claim
+      guarantee rather than an adversary guarantee.
+
+  - id: td-import-dos
+    claim: >-
+      A staged predicate-owned .ncl file with a divergent import (non-existent
+      or circular path) causes `nickel export` to hang indefinitely — the
+      structural gate has no timeout and the commit blocks.
+    location: hooks/pre-commit, ledger/gate/ledger-validate.sh
+    severity: low
+    why_deferred: >-
+      Self-DoS only: agents do not edit contracts in the general case and would
+      have to hunt them. The YAML deposit shift (D5) closes the deposit vector
+      structurally — only contract edits staged by the agent itself remain.
+      Adding a timeout requires choosing a value that doesn't false-positive on
+      large contracts; lower-layer's job (OS timeout, CI time limit).
+    signpost: >-
+      Resolved by wrapping nickel calls in ledger-validate.sh with `timeout N`
+      once an empirical bound for large-contract export time is established.
+      Alternatively resolved by the agent never staging predicate-owned .ncl
+      files — enforced via explicit file-surface declarations in the campaign DAG.
+
+  - id: td-glob-over-auth
+    claim: >-
+      authorized.py uses Python fnmatch `*` which crosses path separators; a
+      glob surface like "skills/*" would authorize all files under skills/
+      including deeply nested paths not intended by the DAG node.
+    location: ledger/gate/authorized.py
+    severity: low
+    why_deferred: >-
+      DORMANT: no committed DAG uses glob surfaces. All current surface
+      declarations are explicit paths. The defect only manifests when a glob
+      surface is introduced, which has not occurred.
+    signpost: >-
+      Activated when a glob surface appears in a committed DAG. Resolved by
+      either fixing fnmatch to use os.sep-aware pattern matching (e.g.
+      pathlib.PurePath.match) or by documenting the glob-crosses-separator
+      behavior as a known footgun in the DAG authoring guide.
+
+  - id: td-demo-coverage
+    claim: >-
+      skills/orchestration/demo/dag.ncl and demo/layers.ncl are not validated
+      by any CI gate — a regression in the demo artifacts goes undetected.
+    location: skills/orchestration/demo/
+    severity: low
+    why_deferred: >-
+      The structural-scope fix left them unvalidated. Adding them to the CI sweep
+      requires either extending the fixture sweep to discover skills/**/*.ncl,
+      adding a dedicated demo sweep, or moving the demo files under ledger/.
+      Deferred pending the doc-accuracy node (A4) which owns this surface.
+    signpost: >-
+      Resolved by a CI step that runs `nickel export skills/orchestration/demo/dag.ncl`
+      and `nickel typecheck skills/orchestration/demo/layers.ncl`. The doc-accuracy
+      node (follow-ups.md A4) is the natural locus for this fix.
