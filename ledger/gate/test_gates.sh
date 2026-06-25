@@ -318,30 +318,34 @@ fi
 
 echo "== process-gate.sh: validate subcommand (direct) =="
 # Direct validate cases: no git state required. The gate shells out to nickel
-# to export-validate the procedure instance against the boundary contract. An
-# honest deposit (all required steps present) must exit 0; a deposit that omits
-# a required step must exit 1.
+# to export-validate the YAML procedure deposit against the boundary contract
+# via `nickel export --apply-contract`.  An honest deposit (all required steps
+# present) must exit 0; a deposit that omits a required step must exit 1.
+# YAML deposits are pure data — no self-binding (A-B1) or import is possible.
 expect "process-gate honest boundary deposit -> rc 0" 0 \
   bash "$process_gate" validate \
-    "$root/ledger/fixtures/process_gate_honest.ncl" boundary
+    "$root/ledger/fixtures/process_gate_honest.yaml" boundary
 expect "process-gate skip boundary deposit -> rc 1" 1 \
   bash "$process_gate" validate \
-    "$root/ledger/fixtures/process_gate_skip.ncl" boundary
+    "$root/ledger/fixtures/process_gate_skip.yaml" boundary
 # Usage error: no-active-walk commit is not blocked by the validate subcommand
 # itself (it is blocked at the hook level only when the pointer is present).
 expect "process-gate unknown contract class -> rc 2" 2 \
   bash "$process_gate" validate \
-    "$root/ledger/fixtures/process_gate_honest.ncl" unknown-class
+    "$root/ledger/fixtures/process_gate_honest.yaml" unknown-class
 
-# A-B1 regression: the gate must apply the class contract EXTERNALLY — a deposit
-# that does not self-bind its contract cannot bypass the footprint-presence check.
+# A-B1 regression: the gate must apply the class contract EXTERNALLY via
+# --apply-contract — a deposit that carries no contract binding cannot bypass
+# the footprint-presence check.  YAML deposits cannot self-bind by construction
+# (YAML has no execution model); these NCL dodge cases verify that the external
+# application also closes the bypass for NCL-format inputs.
 # Two dodge patterns must FAIL (rc 1):
-#   dodge-bare: a bare { workflow, steps=[] } record with no contract import at all.
-#   dodge-wrap: a file that imports the contract but puts the data in a wrapper
-#               field with no contract annotation, so the binding is never applied.
-# The gate must catch both — the external application closes the bypass.
+#   dodge-bare: a bare { workflow, steps=[] } record with no contract binding.
+#   dodge-wrap: data nested in a wrapper field so footprint-presence fires.
+# The gate catches both — --apply-contract applies the contract outside the
+# deposit regardless of what the deposit contains.
 cat > "$fixdir/process_gate_dodge_bare.ncl" <<'NCL'
-# DODGE: bare record, no contract import or binding, steps=[].
+# DODGE: bare record, no contract binding, steps=[].
 # A-B1 regression: gate must reject this (rc 1) — steps=[] omits all required steps.
 {
   workflow = "boundary-dodge",
@@ -349,7 +353,7 @@ cat > "$fixdir/process_gate_dodge_bare.ncl" <<'NCL'
 }
 NCL
 cat > "$fixdir/process_gate_dodge_wrap.ncl" <<'NCL'
-# DODGE: file wraps data in a field with no contract annotation, steps=[].
+# DODGE: data in a wrapper field, steps=[].
 # A-B1 regression: gate must reject this (rc 1) — no .steps at top level,
 # so the contract fires "missing field steps" or footprint-presence fails.
 {
@@ -362,24 +366,29 @@ NCL
 expect "A-B1 dodge-bare (steps=[], no binding) -> rc 1" 1 \
   bash "$process_gate" validate \
     "$fixdir/process_gate_dodge_bare.ncl" boundary
-expect "A-B1 dodge-wrap (wrapped, no annotation, steps=[]) -> rc 1" 1 \
+expect "A-B1 dodge-wrap (wrapped field, steps=[]) -> rc 1" 1 \
   bash "$process_gate" validate \
     "$fixdir/process_gate_dodge_wrap.ncl" boundary
 
 echo "== process-gate.sh: walk-activation overlay from a worktree =="
 # The process overlay fires in the pre-commit hook ONLY when .ledger/active-walk
-# is present. The pointer is now TWO LINES: line 1 = class, line 2 = deposit-path
+# is present. The pointer is TWO LINES: line 1 = class, line 2 = deposit-path
 # (pinned at register time). The hook validates ONLY the declared deposit-path
-# (if staged); other .ncl files are never process-validated.
+# (if staged); other files are never process-validated.
+#
+# Worker deposits are pure-data YAML — validated externally via
+# `nickel export <deposit>.yaml --apply-contract <shim>.ncl`.  A YAML deposit
+# cannot self-bind (A-B1) or import Nickel code; the data/code split enforced
+# by the file format closes those attack vectors by construction.
 #
 # Cases (all run from a linked worktree to confirm main-tree pointer resolution):
-#   (a) No pointer: staged honest .ncl passes (check 5 is skipped entirely).
-#   (b) Pointer with deposit=pg_probe.ncl, stage HONEST deposit -> PASS (rc 0).
-#   (c) Pointer with deposit=pg_probe.ncl, stage SKIP deposit -> FAIL (rc 1).
-#   (d) THE FIX: pointer with deposit=pg_probe.ncl, stage a NON-DEPOSIT .ncl
-#       (NOT pg_probe.ncl) -> PASS (rc 0): the gate ignores non-deposit .ncl.
-#   (e) A-B1: pointer with deposit=pg_probe.ncl, stage steps=[] dodge AT deposit
-#       path -> FAIL (rc 1): A-B1 still closed, external contract still applied.
+#   (a) No pointer: staged honest .yaml passes (check 5 is skipped entirely).
+#   (b) Pointer with deposit=pg_probe.yaml, stage HONEST deposit -> PASS (rc 0).
+#   (c) Pointer with deposit=pg_probe.yaml, stage SKIP deposit -> FAIL (rc 1).
+#   (d) THE FIX: pointer with deposit=pg_probe.yaml, stage a NON-DEPOSIT .ncl
+#       (NOT pg_probe.yaml) -> PASS (rc 0): the gate ignores non-deposit files.
+#   (e) A-B1: pointer with deposit=pg_probe.yaml, stage steps:[] YAML dodge AT
+#       deposit path -> FAIL (rc 1): external contract catches empty footprint.
 #
 # NOTE: all hook invocations use $root/hooks/pre-commit (the WORKTREE hook, which
 # carries the tier-5 PROCESS implementation). The MAIN hook ($hook) is the old
@@ -387,53 +396,54 @@ echo "== process-gate.sh: walk-activation overlay from a worktree =="
 wt_hook="$root/hooks/pre-commit"
 if git -C "$main" worktree add --detach "$proc_wt" HEAD >/dev/null 2>&1; then
 
-  # (a) No pointer: stage a process_gate_honest.ncl in the worktree and confirm
+  # (a) No pointer: stage a YAML honest deposit in the worktree and confirm
   # the hook does NOT invoke the process gate (rc 0, clean pass via existing
   # checks only). We stage the honest fixture — if the process gate fired
   # without the pointer, it would still pass (honest = rc 0), so this case
   # does NOT distinguish walk vs no-walk by outcome. The meaningful guard here
   # is that the hook does not ERROR on an unknown class or a missing gate binary
-  # when the pointer is absent (i.e., it genuinely skips check 5).
+  # when the pointer is absent (i.e., it genuinely skips check 5). YAML files
+  # also bypass the .ncl structural check (check 3), so this is a clean no-op.
   ( cd "$proc_wt" \
-      && cp "$root/ledger/fixtures/process_gate_honest.ncl" ledger/fixtures/pg_probe.ncl \
-      && git add ledger/fixtures/pg_probe.ncl ) >/dev/null 2>&1
-  expect "no active-walk pointer: hook passes honest .ncl -> rc 0" 0 \
+      && cp "$root/ledger/fixtures/process_gate_honest.yaml" ledger/fixtures/pg_probe.yaml \
+      && git add ledger/fixtures/pg_probe.yaml ) >/dev/null 2>&1
+  expect "no active-walk pointer: hook passes honest .yaml -> rc 0" 0 \
     bash -c 'cd "$1" && bash "$2"' _ "$proc_wt" "$wt_hook"
 
   # Reset for next cases.
   ( cd "$proc_wt" && git reset -q HEAD . \
-      && rm -f ledger/fixtures/pg_probe.ncl ) >/dev/null 2>&1
+      && rm -f ledger/fixtures/pg_probe.yaml ) >/dev/null 2>&1
 
-  # Write the active-walk pointer (class=boundary, deposit=ledger/fixtures/pg_probe.ncl).
+  # Write the active-walk pointer (class=boundary, deposit=ledger/fixtures/pg_probe.yaml).
   # Two-line format: line 1 = class, line 2 = deposit-path (repo-root-relative).
-  printf 'boundary\nledger/fixtures/pg_probe.ncl\n' > "$walk_pointer"
+  printf 'boundary\nledger/fixtures/pg_probe.yaml\n' > "$walk_pointer"
 
   # (b) With pointer: stage the HONEST fixture at the declared deposit path
   # -> hook must pass (rc 0).
   ( cd "$proc_wt" \
-      && cp "$root/ledger/fixtures/process_gate_honest.ncl" ledger/fixtures/pg_probe.ncl \
-      && git add ledger/fixtures/pg_probe.ncl ) >/dev/null 2>&1
+      && cp "$root/ledger/fixtures/process_gate_honest.yaml" ledger/fixtures/pg_probe.yaml \
+      && git add ledger/fixtures/pg_probe.yaml ) >/dev/null 2>&1
   expect "active-walk pointer present, honest deposit -> rc 0" 0 \
     bash -c 'cd "$1" && bash "$2"' _ "$proc_wt" "$wt_hook"
 
   # Reset, then stage SKIP fixture at the declared deposit path.
   ( cd "$proc_wt" && git reset -q HEAD . \
-      && rm -f ledger/fixtures/pg_probe.ncl ) >/dev/null 2>&1
+      && rm -f ledger/fixtures/pg_probe.yaml ) >/dev/null 2>&1
 
   # (c) With pointer: stage the SKIP fixture at the declared deposit path
   # (omits "attack") -> hook must fail (rc 1).
   ( cd "$proc_wt" \
-      && cp "$root/ledger/fixtures/process_gate_skip.ncl" ledger/fixtures/pg_probe.ncl \
-      && git add ledger/fixtures/pg_probe.ncl ) >/dev/null 2>&1
+      && cp "$root/ledger/fixtures/process_gate_skip.yaml" ledger/fixtures/pg_probe.yaml \
+      && git add ledger/fixtures/pg_probe.yaml ) >/dev/null 2>&1
   expect "active-walk pointer present, skip deposit -> rc 1" 1 \
     bash -c 'cd "$1" && bash "$2"' _ "$proc_wt" "$wt_hook"
 
   # Reset.
   ( cd "$proc_wt" && git reset -q HEAD . \
-      && rm -f ledger/fixtures/pg_probe.ncl ) >/dev/null 2>&1
+      && rm -f ledger/fixtures/pg_probe.yaml ) >/dev/null 2>&1
 
   # (d) B2 REPRODUCED — declared deposit not staged. Pointer declares
-  # deposit=pg_probe.ncl but we stage a DIFFERENT .ncl (a valid config record).
+  # deposit=pg_probe.yaml but we stage a DIFFERENT .ncl (a valid config record).
   # The declared deposit is NOT staged → gate must FAIL CLOSED (rc 1). Before the
   # B2 fix, the hook treated a missing deposit as a no-op and silently passed (rc 0):
   # "declared-but-never-delivered" was not caught. The B2 fix requires the declared
@@ -456,23 +466,25 @@ if git -C "$main" worktree add --detach "$proc_wt" HEAD >/dev/null 2>&1; then
   # validated" property holds after the B2 fix (deposit present → validates and
   # passes; non-deposit → not process-validated, no false-positive rejection).
   ( cd "$proc_wt" \
-      && cp "$root/ledger/fixtures/process_gate_honest.ncl" ledger/fixtures/pg_probe.ncl \
+      && cp "$root/ledger/fixtures/process_gate_honest.yaml" ledger/fixtures/pg_probe.yaml \
       && printf '{ kind = "config", value = 42 }\n' > ledger/fixtures/pg_non_deposit.ncl \
-      && git add ledger/fixtures/pg_probe.ncl ledger/fixtures/pg_non_deposit.ncl ) >/dev/null 2>&1
+      && git add ledger/fixtures/pg_probe.yaml ledger/fixtures/pg_non_deposit.ncl ) >/dev/null 2>&1
   expect "non-deposit .ncl alongside honest deposit (both staged) -> rc 0" 0 \
     bash -c 'cd "$1" && bash "$2"' _ "$proc_wt" "$wt_hook"
 
   # Reset.
   ( cd "$proc_wt" && git reset -q HEAD . \
-      && rm -f ledger/fixtures/pg_probe.ncl ledger/fixtures/pg_non_deposit.ncl ) >/dev/null 2>&1
+      && rm -f ledger/fixtures/pg_probe.yaml ledger/fixtures/pg_non_deposit.ncl ) >/dev/null 2>&1
 
-  # B2 explicit: walk declares deposit=pg_probe.ncl but stages a SKIP deposit at
-  # ledger/fixtures/pg_probe_b2.ncl (a different path). The gate sees:
-  #   - pg_probe_b2.ncl IS staged but is NOT the declared deposit → not validated
-  #   - pg_probe.ncl is NOT staged → before B2 fix: no-op → silent pass (rc 0) [BUG]
+  # B2 explicit: walk declares deposit=pg_probe.yaml but stages a file at a
+  # DIFFERENT path — ledger/fixtures/pg_probe_b2.ncl. The gate sees:
+  #   - pg_probe_b2.ncl IS staged but is NOT the declared deposit → not process-validated
+  #   - pg_probe.yaml is NOT staged → before B2 fix: no-op → silent pass (rc 0) [BUG]
   # After B2 fix: declared deposit not staged → FAIL CLOSED (rc 1).
+  # pg_probe_b2.ncl uses valid NCL content so check 3 (structural) does not fail
+  # for the wrong reason — only check 5 (process gate) fires here.
   ( cd "$proc_wt" \
-      && cp "$root/ledger/fixtures/process_gate_skip.ncl" ledger/fixtures/pg_probe_b2.ncl \
+      && printf '{ kind = "config", value = 42 }\n' > ledger/fixtures/pg_probe_b2.ncl \
       && git add ledger/fixtures/pg_probe_b2.ncl ) >/dev/null 2>&1
   expect "B2 explicit: skip deposit at wrong path, declared deposit absent -> rc 1" 1 \
     bash -c 'cd "$1" && bash "$2"' _ "$proc_wt" "$wt_hook"
@@ -481,19 +493,20 @@ if git -C "$main" worktree add --detach "$proc_wt" HEAD >/dev/null 2>&1; then
   ( cd "$proc_wt" && git reset -q HEAD . \
       && rm -f ledger/fixtures/pg_probe_b2.ncl ) >/dev/null 2>&1
 
-  # (e) A-B1 still closed. Pointer declares deposit=pg_probe.ncl; stage a steps=[]
-  # dodge at that exact path -> hook must still FAIL (rc 1). The gate applies the
-  # contract externally; the self-binding omission is not an escape hatch.
+  # (e) A-B1 still closed. Pointer declares deposit=pg_probe.yaml; stage a YAML
+  # deposit with steps: [] at that exact path -> hook must still FAIL (rc 1).
+  # YAML deposits cannot import Nickel or self-bind; the gate applies the contract
+  # externally via --apply-contract, and steps: [] omits all required footprints.
   ( cd "$proc_wt" \
-      && printf '{ workflow = "boundary-dodge", steps = [] }\n' \
-           > ledger/fixtures/pg_probe.ncl \
-      && git add ledger/fixtures/pg_probe.ncl ) >/dev/null 2>&1
-  expect "A-B1: steps=[] dodge at deposit path still rejected -> rc 1" 1 \
+      && printf 'workflow: boundary-dodge\nsteps: []\n' \
+           > ledger/fixtures/pg_probe.yaml \
+      && git add ledger/fixtures/pg_probe.yaml ) >/dev/null 2>&1
+  expect "A-B1: steps=[] YAML dodge at deposit path still rejected -> rc 1" 1 \
     bash -c 'cd "$1" && bash "$2"' _ "$proc_wt" "$wt_hook"
 
   # Reset.
   ( cd "$proc_wt" && git reset -q HEAD . \
-      && rm -f ledger/fixtures/pg_probe.ncl ) >/dev/null 2>&1
+      && rm -f ledger/fixtures/pg_probe.yaml ) >/dev/null 2>&1
 
   echo "== B3: deposit-path normalization (./prefix, //, absolute) =="
   # B3: the pointer carries the deposit path as a raw string; git diff --cached
@@ -505,57 +518,57 @@ if git -C "$main" worktree add --detach "$proc_wt" HEAD >/dev/null 2>&1; then
   # deposit exits rc 1; before the fix the deposit is not found and the gate
   # no-ops (rc 0 — the wrong verdict for a skip deposit).
 
-  # B3-dot: pointer has ./ledger/fixtures/pg_probe.ncl (leading ./). Without
+  # B3-dot: pointer has ./ledger/fixtures/pg_probe.yaml (leading ./). Without
   # normalization, ./X ≠ X → deposit_staged=0 → no-op → rc 0 [BUG].
   # After B3 fix: strip ./ → X, match found, validate skip → rc 1.
-  printf 'boundary\n./ledger/fixtures/pg_probe.ncl\n' > "$walk_pointer"
+  printf 'boundary\n./ledger/fixtures/pg_probe.yaml\n' > "$walk_pointer"
   ( cd "$proc_wt" \
-      && cp "$root/ledger/fixtures/process_gate_skip.ncl" ledger/fixtures/pg_probe.ncl \
-      && git add ledger/fixtures/pg_probe.ncl ) >/dev/null 2>&1
+      && cp "$root/ledger/fixtures/process_gate_skip.yaml" ledger/fixtures/pg_probe.yaml \
+      && git add ledger/fixtures/pg_probe.yaml ) >/dev/null 2>&1
   expect "B3-dot: ./path pointer, skip deposit at canonical path -> rc 1" 1 \
     bash -c 'cd "$1" && bash "$2"' _ "$proc_wt" "$wt_hook"
 
   ( cd "$proc_wt" && git reset -q HEAD . \
-      && rm -f ledger/fixtures/pg_probe.ncl ) >/dev/null 2>&1
+      && rm -f ledger/fixtures/pg_probe.yaml ) >/dev/null 2>&1
 
   # B3-dot-honest: ./path pointer, HONEST deposit at canonical path → PASS (rc 0).
   # Confirms normalization finds AND successfully validates (not just no-ops).
   ( cd "$proc_wt" \
-      && cp "$root/ledger/fixtures/process_gate_honest.ncl" ledger/fixtures/pg_probe.ncl \
-      && git add ledger/fixtures/pg_probe.ncl ) >/dev/null 2>&1
+      && cp "$root/ledger/fixtures/process_gate_honest.yaml" ledger/fixtures/pg_probe.yaml \
+      && git add ledger/fixtures/pg_probe.yaml ) >/dev/null 2>&1
   expect "B3-dot-honest: ./path pointer, honest deposit at canonical path -> rc 0" 0 \
     bash -c 'cd "$1" && bash "$2"' _ "$proc_wt" "$wt_hook"
 
   ( cd "$proc_wt" && git reset -q HEAD . \
-      && rm -f ledger/fixtures/pg_probe.ncl ) >/dev/null 2>&1
+      && rm -f ledger/fixtures/pg_probe.yaml ) >/dev/null 2>&1
 
-  # B3-slash: pointer has ledger//fixtures/pg_probe.ncl (doubled //). Without
+  # B3-slash: pointer has ledger//fixtures/pg_probe.yaml (doubled //). Without
   # normalization: ledger//... ≠ ledger/... → no-op → rc 0 [BUG].
   # After B3 fix: collapse // → single /, match found, validate skip → rc 1.
-  printf 'boundary\nledger//fixtures/pg_probe.ncl\n' > "$walk_pointer"
+  printf 'boundary\nledger//fixtures/pg_probe.yaml\n' > "$walk_pointer"
   ( cd "$proc_wt" \
-      && cp "$root/ledger/fixtures/process_gate_skip.ncl" ledger/fixtures/pg_probe.ncl \
-      && git add ledger/fixtures/pg_probe.ncl ) >/dev/null 2>&1
+      && cp "$root/ledger/fixtures/process_gate_skip.yaml" ledger/fixtures/pg_probe.yaml \
+      && git add ledger/fixtures/pg_probe.yaml ) >/dev/null 2>&1
   expect "B3-slash: //path pointer, skip deposit at canonical path -> rc 1" 1 \
     bash -c 'cd "$1" && bash "$2"' _ "$proc_wt" "$wt_hook"
 
   ( cd "$proc_wt" && git reset -q HEAD . \
-      && rm -f ledger/fixtures/pg_probe.ncl ) >/dev/null 2>&1
+      && rm -f ledger/fixtures/pg_probe.yaml ) >/dev/null 2>&1
 
-  # B3-abs: pointer has absolute /abs/path/ledger/fixtures/pg_probe.ncl. Without
+  # B3-abs: pointer has absolute /abs/path/ledger/fixtures/pg_probe.yaml. Without
   # normalization: /abs/.../... ≠ ledger/... → no-op → rc 0 [BUG].
   # After B3 fix: strip $root/ prefix → repo-relative, match found, skip → rc 1.
-  printf 'boundary\n%s/ledger/fixtures/pg_probe.ncl\n' "$proc_wt" > "$walk_pointer"
+  printf 'boundary\n%s/ledger/fixtures/pg_probe.yaml\n' "$proc_wt" > "$walk_pointer"
   ( cd "$proc_wt" \
-      && cp "$root/ledger/fixtures/process_gate_skip.ncl" ledger/fixtures/pg_probe.ncl \
-      && git add ledger/fixtures/pg_probe.ncl ) >/dev/null 2>&1
+      && cp "$root/ledger/fixtures/process_gate_skip.yaml" ledger/fixtures/pg_probe.yaml \
+      && git add ledger/fixtures/pg_probe.yaml ) >/dev/null 2>&1
   expect "B3-abs: absolute-path pointer, skip deposit at canonical path -> rc 1" 1 \
     bash -c 'cd "$1" && bash "$2"' _ "$proc_wt" "$wt_hook"
 
   # Reset and restore standard pointer form for teardown.
   ( cd "$proc_wt" && git reset -q HEAD . \
-      && rm -f ledger/fixtures/pg_probe.ncl ) >/dev/null 2>&1
-  printf 'boundary\nledger/fixtures/pg_probe.ncl\n' > "$walk_pointer"
+      && rm -f ledger/fixtures/pg_probe.yaml ) >/dev/null 2>&1
+  printf 'boundary\nledger/fixtures/pg_probe.yaml\n' > "$walk_pointer"
 
   # Teardown: remove the walk pointer and the worktree promptly.
   rm -f "$walk_pointer"

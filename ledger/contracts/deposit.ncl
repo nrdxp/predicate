@@ -46,17 +46,26 @@
   #   - The machine can gate each field non-empty independently.
   #   - The reviewer can judge claim / method / location as distinct quality axes.
   #   - A mis-typed method fails the contract; a mis-typed free-text blob passes.
+  # Value-restricted tag-or-string for Evidence.method.
+  # Accepts the enum tag 'proof/'type_check/… OR the matching string "proof"/
+  # "type_check"/… so a YAML deposit (which carries strings, not tags) validates
+  # without modification.  A bare [| 'proof, … |] rejects strings; a bare
+  # std.enum.TagOrString accepts ANY string and loses the value restriction.
+  # This contract implements: string ∈ allowed-set OR matching tag — the minimum
+  # that preserves both the YAML-compatibility and the value-restriction goals.
+  EvidenceMethod = std.contract.from_predicate (fun v =>
+    v == 'proof          || v == "proof"
+    || v == 'type_check  || v == "type_check"
+    || v == 'property_test || v == "property_test"
+    || v == 'example_test  || v == "example_test"
+    || v == 'lint        || v == "lint"
+    || v == 'review      || v == "review"
+    || v == 'manual      || v == "manual"
+  ),
+
   Evidence = {
     claim    | NonEmptyString,   # the falsifiable assertion
-    method   | [|
-      'proof,           # formal proof
-      'type_check,      # type-system verification
-      'property_test,   # property / fuzz test
-      'example_test,    # example-based unit test
-      'lint,            # static analysis / linter
-      'review,          # decorrelated adversarial review
-      'manual,          # human spot-check (weakest; requires explicit escalation)
-    |],
+    method   | EvidenceMethod,   # how it was established; accepts tag or string
     location | NonEmptyString,   # file:line, command, URL, or commit to reproduce
   },
 
