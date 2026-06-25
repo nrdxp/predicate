@@ -33,8 +33,10 @@
 # clears and auto-propagates a `git pull`.
 #
 # Usage:
-#   bootstrap/install.sh install [--harness claude-code|antigravity]
-#   bootstrap/install.sh init    [--project DIR]
+#   bootstrap/install.sh install   [--harness claude-code|antigravity]
+#   bootstrap/install.sh init      [--project DIR]
+#   bootstrap/install.sh uninstall [--harness claude-code|antigravity]
+#   bootstrap/install.sh deinit    [--project DIR]
 #
 # Environment overrides (all optional; sensible defaults below):
 #   PREDICATE_PLUGIN_SRC    path to this plugin checkout (default: this repo)
@@ -53,7 +55,7 @@ self_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # The plugin checkout is the parent of bootstrap/ unless overridden.
 plugin_src="${PREDICATE_PLUGIN_SRC:-$(cd "$self_dir/.." && pwd)}"
 
-usage() { sed -n '35,37p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; }
+usage() { sed -n '35,39p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; }
 
 # --- harness detection -------------------------------------------------------
 # Resolve which harness we are registering against. Detection mirrors how runtime
@@ -295,14 +297,140 @@ phase_init() {
   echo "init: done. Next (human seam): push the .ledger remote when ready."
 }
 
+# --- strip_managed_block: remove the delimited block from a file, in-place ---
+# Strips exactly the span between BEGIN_MARK and END_MARK (inclusive); content
+# outside the markers is passed through byte-for-byte. Idempotent: a file with
+# no managed block is left unchanged.
+strip_managed_block() {
+  local file="$1"
+  [ -f "$file" ] || return 0
+  local body
+  body="$(awk -v b="$BEGIN_MARK" -v e="$END_MARK" '
+    $0 == b { skip = 1; next }
+    $0 == e { skip = 0; next }
+    !skip   { print }
+  ' "$file")"
+  printf '%s\n' "$body" >"$file.tmp"
+  mv "$file.tmp" "$file"
+}
+
+# --- deregister: claude-code via the CLI ------------------------------------
+# Reverses register_claude_code. Uses `claude plugin uninstall` then
+# `claude plugin marketplace remove` — both idempotent (the CLI is a no-op when
+# already absent). Non-fatal if the CLI is absent: by definition the plugin is
+# not registered if there is no CLI to register it with.
+deregister_claude_code() {
+  if ! command -v claude >/dev/null 2>&1; then
+    echo "uninstall: 'claude' CLI not found — plugin registration already absent."
+    return 0
+  fi
+  echo "uninstall: uninstalling predicate@predicate"
+  claude plugin uninstall predicate@predicate 2>/dev/null || true
+  echo "uninstall: removing predicate marketplace"
+  claude plugin marketplace remove predicate 2>/dev/null || true
+  echo "uninstall: deregistered predicate from the Claude Code marketplace/install path."
+}
+
+# --- deregister: antigravity via symlink removal -----------------------------
+# Reverses register_antigravity: removes the symlink ONLY if it resolves to
+# THIS plugin_src. A symlink to a different target is foreign; we never touch it.
+deregister_antigravity() {
+  local plugins_dir="$HOME/.gemini/antigravity-cli/plugins"
+  local dst="$plugins_dir/predicate"
+  if [ ! -e "$dst" ] && [ ! -L "$dst" ]; then
+    echo "uninstall: plugin symlink already absent ($dst)."
+    return 0
+  fi
+  if [ ! -L "$dst" ]; then
+    echo "uninstall: $dst is not a symlink — foreign file, leaving untouched." >&2
+    return 0
+  fi
+  local target; target="$(readlink "$dst")"
+  if [ "$target" != "$plugin_src" ]; then
+    echo "uninstall: $dst -> $target does not resolve to this plugin ($plugin_src) — leaving untouched." >&2
+    return 0
+  fi
+  rm "$dst"
+  echo "uninstall: removed plugin symlink $dst."
+}
+
+# --- phase: uninstall (GLOBAL, once) -----------------------------------------
+# Reverses phase_install: strip the managed block from CLAUDE.md and deregister
+# the plugin. PRESERVES all user content outside the managed block.
+# Idempotent: a second run detects the absence and is a clean no-op.
+phase_uninstall() {
+  local harness=""
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+      --harness) harness="${2:?--harness needs a value}"; shift 2 ;;
+      -h|--help) usage; exit 0 ;;
+      *) echo "uninstall: unknown argument: $1" >&2; exit 2 ;;
+    esac
+  done
+  harness="$(detect_harness "$harness")"
+  echo "uninstall: harness=$harness plugin=$plugin_src"
+
+  # Strip the managed @import block from the global CLAUDE.md.
+  local claude_md="$HOME/.claude/CLAUDE.md"
+  if [ -f "$claude_md" ]; then
+    if grep -qxF "$BEGIN_MARK" "$claude_md"; then
+      strip_managed_block "$claude_md"
+      echo "uninstall: removed predicate managed block from $claude_md."
+    else
+      echo "uninstall: no predicate managed block found in $claude_md (already clean)."
+    fi
+  else
+    echo "uninstall: $claude_md does not exist (already clean)."
+  fi
+
+  # Deregister the plugin for the detected harness.
+  case "$harness" in
+    claude-code) deregister_claude_code ;;
+    antigravity) deregister_antigravity ;;
+    *) echo "uninstall: unknown harness: $harness (want claude-code|antigravity)" >&2; exit 2 ;;
+  esac
+
+  echo "uninstall: done."
+}
+
+# --- phase: deinit (PER-PROJECT) ---------------------------------------------
+# Reverses phase_init: removes the hook symlinks from the project's git-common-dir
+# ONLY IF they resolve to this plugin's hooks/. PRESERVES .ledger/ entirely —
+# the flight-recorder history, decisions, and sketches belong to the human.
+# Idempotent: a second run detects absence and is a clean no-op.
+phase_deinit() {
+  local project=""
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+      --project) project="${2:?--project needs a value}"; shift 2 ;;
+      -h|--help) usage; exit 0 ;;
+      *) echo "deinit: unknown argument: $1" >&2; exit 2 ;;
+    esac
+  done
+  project="${project:-$(pwd)}"
+  project="$(cd "$project" && pwd)"
+  echo "deinit: project=$project plugin=$plugin_src"
+
+  local hooks_uninstaller="$plugin_src/hooks/install-hooks.sh"
+  if [ ! -f "$hooks_uninstaller" ]; then
+    echo "deinit: missing $hooks_uninstaller" >&2; exit 1
+  fi
+  ( cd "$project" && bash "$hooks_uninstaller" --uninstall )
+
+  echo "deinit: .ledger/ PRESERVED (flight-recorder history belongs to the human)."
+  echo "deinit: done."
+}
+
 # --- dispatch ----------------------------------------------------------------
 main() {
   local sub="${1:-}"
   case "$sub" in
-    install) shift; phase_install "$@" ;;
-    init)    shift; phase_init "$@" ;;
+    install)   shift; phase_install "$@" ;;
+    init)      shift; phase_init "$@" ;;
+    uninstall) shift; phase_uninstall "$@" ;;
+    deinit)    shift; phase_deinit "$@" ;;
     -h|--help|"") usage; [ -z "$sub" ] && exit 2 || exit 0 ;;
-    *) echo "install: unknown subcommand: $sub (want install|init)" >&2; usage; exit 2 ;;
+    *) echo "install: unknown subcommand: $sub (want install|init|uninstall|deinit)" >&2; usage; exit 2 ;;
   esac
 }
 
