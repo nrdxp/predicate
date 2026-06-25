@@ -73,6 +73,31 @@ rigorous truth that answers it.
   controller** executing derivative-free stochastic optimization toward $\Delta E
   \to 0$. The inner walk drifts; the outer loop is what relaxes.
 
+### The economic axiom — the selection rule the closed loop implies
+
+The four mappings yield one corollary that the doctrine treats as its generating
+rule: **no wasted tokens — a hit is cheaper than a miss.** It is not a slogan but
+a consequence of mapping 4. Because the inner walk is open-loop, an uncorrected
+error vector does not stay fixed — it *compounds*: a miss at step $t$ shifts the
+prefix $\mathbf{S}_t$, and every subsequent transition $P(\mathbf{S}_{t+1} \mid
+\mathbf{S}_t)$ samples from the displaced distribution, so the cost of a miss grows
+super-linearly in the horizon over which it goes undetected. The closed-loop
+correction that resolves it, by contrast, costs a bounded $\Delta E$ measurement
+plus one boundary update. A token spent *now* — verifying a condition,
+re-surfacing a diluted invariant (mapping 5), or searching outward before a
+guess — is therefore an investment against a compounding future cost, and the
+expected saving is positive exactly when the probability-weighted cost of the
+averted miss exceeds the present token spend.
+
+This is why the discipline is *economical*, not merely cautious: every gate,
+re-injection, and outward probe in the doctrine is a place where the early,
+bounded cost is provably below the compounding cost it forecloses. It also sets
+the *limit* on ceremony — a check whose averted-miss cost does not exceed its
+token spend is waste in the other direction, the over-ceremony the
+[focus-level selector](../../ambient.md#the-focus-level-selector) guards against.
+The axiom thus generates both halves of the discipline: spend tokens where a miss
+compounds, withhold them where it does not.
+
 **Conclusion.** The four mappings are rigorously validated. This validation is the
 *substrate* beneath Predicate's doctrine, not its headline: the
 [Verification Dual](../../rules.md) is the discipline a practitioner works in, and
