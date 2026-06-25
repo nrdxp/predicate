@@ -164,6 +164,49 @@ if [ -f "$pointer" ]; then
   fi
 fi
 
+# --- 5. PROCESS (iff an active walk is declared) ---------------------------
+# The process overlay is WALK-ACTIVATED: it fires only when an agent walk has
+# declared its run-state via the active-walk pointer. The pointer lives in the
+# MAIN tree's .ledger/active-walk (the same placement as active-dag), written
+# by the walk at startup via `process-gate.sh register` and removed by its
+# teardown trap on exit. A human commit never writes this pointer; humans meet
+# checks 1-4 only (K7).
+#
+# Pointer ABSENT  -> ordinary commit (human or walk with no procedure deposits):
+#                    checks 1-4 only, PROCESS layer skipped.
+# Pointer PRESENT -> PROCESS enforced: every staged .ncl file that applies a
+#                    procedure contract is validated against that contract.
+#                    Skip/shrink → fail. The contract class (boundary|refine) is
+#                    read from the pointer's first line.
+walk_pointer="$ledger_root/.ledger/active-walk"
+if [ -f "$walk_pointer" ]; then
+  walk_class="$(head -n1 "$walk_pointer" | tr -d '[:space:]')"
+  if [ -z "$walk_class" ]; then
+    echo "pre-commit: active-walk pointer is empty; cannot run process gate" >&2
+    rc=1
+  else
+    # For every staged .ncl file, invoke the process gate. The gate validates
+    # only files that apply the named procedure contract (the `nickel export`
+    # call in process-gate.sh validate fires the contract); non-procedure .ncl
+    # files export cleanly without the contract and pass silently.
+    for f in "${staged[@]}"; do
+      case "$f" in
+        *.ncl)
+          if [ -f "$root/$f" ]; then
+            bash "$plugin/ledger/gate/process-gate.sh" validate "$root/$f" "$walk_class"
+            proc_rc=$?
+            if [ "$proc_rc" -ne 0 ]; then
+              echo "pre-commit: PROCESS gate failed for $f (class: $walk_class)" >&2
+              echo "  A staged procedure deposit omits a required step or has bad shape." >&2
+              rc=1
+            fi
+          fi
+          ;;
+      esac
+    done
+  fi
+fi
+
 if [ "$rc" -ne 0 ]; then
   echo "pre-commit: staged-surface gate failed — commit blocked." >&2
   echo "  (Hooks enforce the commit gate; bypassing with --no-verify defeats it.)" >&2

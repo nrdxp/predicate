@@ -36,6 +36,7 @@ set -u
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 root="$(cd "$here/../.." && pwd)"
 validate="$here/ledger-validate.sh"
+process_gate="$here/process-gate.sh"
 check_docs="$root/skills/doc-audit/scripts/check_docs.py"
 recorder_close_check="$here/recorder_close_check.sh"
 adherence_audit="$here/adherence_audit.sh"
@@ -228,13 +229,19 @@ MD
 # (which would gate every later commit) or a worktree.
 # ---------------------------------------------------------------------------
 pointer="$main/.ledger/active-dag"
+walk_pointer="$main/.ledger/active-walk"
 xr_wt="$main/.scratch/worktrees/test-gates-xr-$$"   # cross-root artifact worktree
 auth_wt="$main/.scratch/worktrees/test-gates-auth-$$" # authority-from-worktree
+proc_wt="$main/.scratch/worktrees/test-gates-proc-$$" # process-gate walk-activation worktree
 
 # Was a pointer already present before we started? If so a real campaign may own
 # it; we must NOT remove it on teardown. (Defensive: we also refuse to run.)
 pointer_preexisting=0
 [ -e "$pointer" ] && pointer_preexisting=1
+
+# Same guard for the active-walk pointer: if a walk already owns it, refuse.
+walk_pointer_preexisting=0
+[ -e "$walk_pointer" ] && walk_pointer_preexisting=1
 
 # The .ledger/ parent is gitignored (the flight-recorder subrepo is not in this
 # repo's tree), so a fresh checkout has no .ledger/ dir and the pointer write
@@ -250,12 +257,15 @@ cleanup() {
   if [ "$pointer_preexisting" -eq 0 ]; then
     rm -f "$pointer"
   fi
+  if [ "$walk_pointer_preexisting" -eq 0 ]; then
+    rm -f "$walk_pointer"
+  fi
   # Remove the .ledger/ dir only if WE created it and it is now empty (rmdir is a
   # no-op on a non-empty dir, so a real .ledger/ is never clobbered).
   if [ "$ledger_dir_created" -eq 1 ]; then
     rmdir "$ledger_dir" 2>/dev/null || true
   fi
-  for w in "$xr_wt" "$auth_wt"; do
+  for w in "$xr_wt" "$auth_wt" "$proc_wt"; do
     [ -e "$w" ] && { git -C "$main" worktree remove --force "$w" 2>/dev/null || rm -rf "$w"; }
   done
   git -C "$main" worktree prune 2>/dev/null || true
@@ -266,6 +276,11 @@ trap cleanup EXIT
 if [ "$pointer_preexisting" -eq 1 ]; then
   echo "FAIL: an active-dag pointer already exists at $pointer" >&2
   echo "  Refusing to run (a real campaign may own it; we will not clobber it)." >&2
+  exit 2
+fi
+if [ "$walk_pointer_preexisting" -eq 1 ]; then
+  echo "FAIL: an active-walk pointer already exists at $walk_pointer" >&2
+  echo "  Refusing to run (a live walk may own it; we will not clobber it)." >&2
   exit 2
 fi
 
@@ -328,6 +343,85 @@ if git -C "$main" worktree add --detach "$auth_wt" HEAD >/dev/null 2>&1; then
   git -C "$main" worktree prune 2>/dev/null || true
 else
   echo "FAIL  (env) could not create authority worktree at $auth_wt"; fails=$((fails + 1))
+fi
+
+echo "== process-gate.sh: validate subcommand (direct) =="
+# Direct validate cases: no git state required. The gate shells out to nickel
+# to export-validate the procedure instance against the boundary contract. An
+# honest deposit (all required steps present) must exit 0; a deposit that omits
+# a required step must exit 1.
+expect "process-gate honest boundary deposit -> rc 0" 0 \
+  bash "$process_gate" validate \
+    "$root/ledger/fixtures/process_gate_honest.ncl" boundary
+expect "process-gate skip boundary deposit -> rc 1" 1 \
+  bash "$process_gate" validate \
+    "$root/ledger/fixtures/process_gate_skip.ncl" boundary
+# Usage error: no-active-walk commit is not blocked by the validate subcommand
+# itself (it is blocked at the hook level only when the pointer is present).
+expect "process-gate unknown contract class -> rc 2" 2 \
+  bash "$process_gate" validate \
+    "$root/ledger/fixtures/process_gate_honest.ncl" unknown-class
+
+echo "== process-gate.sh: walk-activation overlay from a worktree =="
+# The process overlay fires in the pre-commit hook ONLY when .ledger/active-walk
+# is present. We:
+#   (a) Verify that WITHOUT the pointer, a staged honest .ncl commit passes the
+#       hook unchanged (no-active-walk commit -> existing gate only).
+#   (b) Verify that WITH the pointer (class=boundary), a staged HONEST .ncl
+#       passes the hook (rc 0).
+#   (c) Verify that WITH the pointer, a staged SKIP .ncl (omits "attack") fails
+#       the hook (rc 1).
+# All hook invocations run from a linked worktree (the same pattern as the
+# authority regression test) to confirm the pointer is resolved from the MAIN
+# tree's .ledger/, not the worktree root.
+if git -C "$main" worktree add --detach "$proc_wt" HEAD >/dev/null 2>&1; then
+
+  # (a) No pointer: stage a process_gate_honest.ncl in the worktree and confirm
+  # the hook does NOT invoke the process gate (rc 0, clean pass via existing
+  # checks only). We stage the honest fixture — if the process gate fired
+  # without the pointer, it would still pass (honest = rc 0), so this case
+  # does NOT distinguish walk vs no-walk by outcome. The meaningful guard here
+  # is that the hook does not ERROR on an unknown class or a missing gate binary
+  # when the pointer is absent (i.e., it genuinely skips check 5).
+  ( cd "$proc_wt" \
+      && cp "$root/ledger/fixtures/process_gate_honest.ncl" ledger/fixtures/pg_probe.ncl \
+      && git add ledger/fixtures/pg_probe.ncl ) >/dev/null 2>&1
+  expect "no active-walk pointer: hook passes honest .ncl -> rc 0" 0 \
+    bash -c 'cd "$1" && bash "$2"' _ "$proc_wt" "$hook"
+
+  # Reset for next cases.
+  ( cd "$proc_wt" && git reset -q HEAD . \
+      && rm -f ledger/fixtures/pg_probe.ncl ) >/dev/null 2>&1
+
+  # Write the active-walk pointer (class=boundary).
+  printf '%s\n' "boundary" > "$walk_pointer"
+
+  # (b) With pointer: stage the HONEST fixture -> hook must pass (rc 0).
+  ( cd "$proc_wt" \
+      && cp "$root/ledger/fixtures/process_gate_honest.ncl" ledger/fixtures/pg_probe.ncl \
+      && git add ledger/fixtures/pg_probe.ncl ) >/dev/null 2>&1
+  expect "active-walk pointer present, honest deposit -> rc 0" 0 \
+    bash -c 'cd "$1" && bash "$2"' _ "$proc_wt" "$hook"
+
+  # Reset, then stage SKIP fixture.
+  ( cd "$proc_wt" && git reset -q HEAD . \
+      && rm -f ledger/fixtures/pg_probe.ncl ) >/dev/null 2>&1
+
+  # (c) With pointer: stage the SKIP fixture (omits "attack") -> hook must fail (rc 1).
+  ( cd "$proc_wt" \
+      && cp "$root/ledger/fixtures/process_gate_skip.ncl" ledger/fixtures/pg_probe.ncl \
+      && git add ledger/fixtures/pg_probe.ncl ) >/dev/null 2>&1
+  expect "active-walk pointer present, skip deposit -> rc 1" 1 \
+    bash -c 'cd "$1" && bash "$2"' _ "$proc_wt" "$hook"
+
+  # Teardown: remove the walk pointer and the worktree promptly.
+  rm -f "$walk_pointer"
+  ( cd "$proc_wt" && git reset -q HEAD . \
+      && rm -f ledger/fixtures/pg_probe.ncl ) >/dev/null 2>&1
+  git -C "$main" worktree remove --force "$proc_wt" 2>/dev/null || rm -rf "$proc_wt"
+  git -C "$main" worktree prune 2>/dev/null || true
+else
+  echo "FAIL  (env) could not create process-gate worktree at $proc_wt"; fails=$((fails + 1))
 fi
 
 echo "== check_docs.py: anchor (#fragment) validation =="
