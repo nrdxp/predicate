@@ -8,7 +8,7 @@
 # a graph that already passed `Dag` + `DagNoConflict`. `nickel export` of this
 # file emits the layering as JSON; re-running on the same DAG reproduces it
 # deterministically (the evaluator for C-P3.4).
-let dag = import "dag.ncl" in
+let dag = import "dag.yaml" in
 let nodes = dag.nodes in
 let n_count = std.array.length nodes in
 

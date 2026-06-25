@@ -16,7 +16,7 @@
 # `complete` are PRE-SETTLED — they never appear in the emitted schedule, so a
 # continuation derives layers only for the active remainder. (Mirrors the same
 # treatment in contracts/dag.ncl.)
-let dag = import "../fixtures/dag_valid.ncl" in
+let dag = import "../fixtures/dag_valid.yaml" in
 let nodes = dag.nodes in
 let n_count = std.array.length nodes in
 

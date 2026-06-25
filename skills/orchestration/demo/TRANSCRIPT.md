@@ -9,16 +9,19 @@ against the **real** gate scripts; the recorded `rc` is the gate's actual exit.
 ## Reproduce the schedule derivation yourself
 
 ```bash
-nix run nixpkgs#nickel -- export skills/orchestration/demo/dag.ncl      # rc 0 (structural gate)
-nix run nixpkgs#nickel -- export skills/orchestration/demo/layers.ncl   # the Kahn schedule
+# Validate the YAML DAG (Dag ∘ DagNoConflict — instances are YAML, contracts are Nickel):
+nickel export skills/orchestration/demo/dag.yaml \
+  --apply-contract ledger/contracts/dag_apply.ncl   # rc 0 (structural gate)
+# Derive the Kahn layer schedule:
+nickel export skills/orchestration/demo/layers.ncl  # the Kahn schedule
 ```
 
 `layers.ncl` is the live `ledger/derive/layers.ncl` derivation **verbatim**, with
-its DAG import bound to this demo fixture (`import "dag.ncl"`) — the input-contract
-parameterization the skill documents. Only line 11 (the import) differs from the
+its DAG import bound to this demo fixture (`import "dag.yaml"`) — the input-contract
+parameterization the skill documents. Only the import path differs from the
 live derivation; the schedule logic is byte-identical.
 
-## Demo DAG ([`dag.ncl`](dag.ncl)) — 2 layers, a parallel pair, a serialize edge
+## Demo DAG ([`dag.yaml`](dag.yaml)) — 2 layers, a parallel pair, a serialize edge
 
 | Node | depends_on | file_surface | layer | role |
 | :--- | :--- | :--- | :--- | :--- |
@@ -30,9 +33,10 @@ live derivation; the schedule logic is byte-identical.
 ## DERIVE — schedule reproduced
 
 ```
-$ nix run nixpkgs#nickel -- export skills/orchestration/demo/dag.ncl
+$ nickel export skills/orchestration/demo/dag.yaml \
+    --apply-contract ledger/contracts/dag_apply.ncl
   -> rc=0                                   # Dag ∘ DagNoConflict structural gate
-$ nix run nixpkgs#nickel -- export skills/orchestration/demo/layers.ncl
+$ nickel export skills/orchestration/demo/layers.ncl
 { "layer_count": 2, "layers": [ ["D1"], ["D2","D3","D4"] ] }
   -> rc=0
 ```
@@ -92,7 +96,7 @@ PASS: every touched path of node D4 falls under its declared surface   -> rc 0
 
 ```
 $ bash ledger/gate/premise_fresh.sh D-future <tripwires>
-FRESH  (0==0)  test -f skills/orchestration/demo/dag.ncl
+FRESH  (0==0)  test -f skills/orchestration/demo/dag.yaml
 FRESH  (0==0)  grep -q orchestration skills/campaign/SKILL.md
 FRESH: node D-future — every premise still holds against HEAD          -> rc 0
 ```
@@ -136,5 +140,5 @@ never resolved by policy in either mode (remotes belong to the human — rules.m
 
 Real `git worktree add` was used throughout (the per-node isolation primitive).
 The demo's transient worktrees and `orchdemo/*` branches were removed after the
-run; only the durable fixture (`dag.ncl`, `layers.ncl`) and this transcript remain
+run; only the durable fixtures (`dag.yaml`, `layers.ncl`) and this transcript remain
 under `skills/orchestration/demo/`. `git worktree list` showed only the main tree.

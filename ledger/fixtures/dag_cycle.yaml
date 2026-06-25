@@ -1,0 +1,17 @@
+# EXPECT: fail
+# Negative-control YAML DAG fixture: A<->B cycle. The Dag contract detects the
+# cycle via Kahn reduction and exits non-zero. Validate with:
+#   nickel export ledger/fixtures/dag_cycle.yaml \
+#     --apply-contract ledger/contracts/dag_apply.ncl
+# Must exit non-zero (cycle detected).
+nodes:
+  - id: A
+    depends_on: ["B"]
+    file_surface: ["a/"]
+    discipline: core
+    mitigates: []
+  - id: B
+    depends_on: ["A"]
+    file_surface: ["b/"]
+    discipline: core
+    mitigates: []

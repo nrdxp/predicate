@@ -9,11 +9,10 @@
 #                 file_surface — "not in the IBC -> not authorized". A change
 #                 with no authorizing node fails the gate.
 #
-# Portability (AC7): nickel need not be on PATH. The runner is resolved to a
-# direct `nickel` XOR `nix run nixpkgs#nickel --`, so the gate is identical in
-# a human shell and a headless orchestrator. If neither is reachable the gate
-# halts non-zero rather than skipping its checks (Reserved halt: a gate that
-# cannot run is not a gate that passes).
+# Portability: nickel must be on PATH (project shell.nix provides nickel 1.14.0;
+# no nix-run fallback — the runner is `nickel` directly). If nickel is not
+# reachable the gate halts non-zero rather than skipping its checks (Reserved
+# halt: a gate that cannot run is not a gate that passes).
 #
 # Usage:
 #   ledger-validate.sh structure <artifact.ncl>
@@ -55,10 +54,9 @@ NICKEL_IMPORT_FLAGS=(-I "$plugin/ledger/contracts")
 resolve_nickel() {
   if command -v nickel >/dev/null 2>&1; then
     NICKEL=(nickel)
-  elif command -v nix >/dev/null 2>&1; then
-    NICKEL=(nix run nixpkgs#nickel --)
   else
-    echo "ledger-validate: neither 'nickel' nor 'nix' on PATH; cannot run gate" >&2
+    echo "ledger-validate: 'nickel' not on PATH; cannot run gate" >&2
+    echo "  Enter the project shell (shell.nix / nix-shell) to get nickel 1.14.0." >&2
     exit 2
   fi
 }
@@ -104,6 +102,13 @@ cmd_structure() {
         # contracts in the SAME tree are importable without absolute paths.
         "${NICKEL[@]}" typecheck -I "$(dirname "$abs_artifact")" "$artifact" >/dev/null
         ;;
+      *.yaml)
+        # YAML instances (campaign DAGs) carry pure data — validate by applying
+        # the Dag ∘ DagNoConflict contract externally via --apply-contract.
+        "${NICKEL[@]}" export "${NICKEL_IMPORT_FLAGS[@]}" \
+          --apply-contract "$plugin/ledger/contracts/dag_apply.ncl" \
+          "$artifact" >/dev/null
+        ;;
       *)
         "${NICKEL[@]}" export "${NICKEL_IMPORT_FLAGS[@]}" "$artifact" >/dev/null
         ;;
@@ -148,7 +153,13 @@ cmd_authorize() {
   # commits). So read a fresh JSON cache (<dag>.json, regenerated at amendment);
   # fall back to a live export only when the cache is missing or older than the
   # DAG, and refresh the cache from that export for next time.
-  local cache="${dag%.ncl}.json"
+  #
+  # YAML DAGs: export via --apply-contract dag_apply.ncl (validates + serializes
+  # to JSON); the JSON cache and authorized.py consumption are unchanged.
+  case "$dag" in
+    *.yaml) local cache="${dag%.yaml}.json" ;;
+    *)      local cache="${dag%.ncl}.json" ;;
+  esac
   local tmp created=0
   if [[ -f "$cache" && ! "$dag" -nt "$cache" ]]; then
     tmp="$cache"
@@ -156,7 +167,16 @@ cmd_authorize() {
     resolve_nickel
     tmp="$(mktemp)"
     created=1
-    "${NICKEL[@]}" export "${NICKEL_IMPORT_FLAGS[@]}" "$dag" >"$tmp"
+    case "$dag" in
+      *.yaml)
+        "${NICKEL[@]}" export "${NICKEL_IMPORT_FLAGS[@]}" \
+          --apply-contract "$plugin/ledger/contracts/dag_apply.ncl" \
+          "$dag" >"$tmp"
+        ;;
+      *)
+        "${NICKEL[@]}" export "${NICKEL_IMPORT_FLAGS[@]}" "$dag" >"$tmp"
+        ;;
+    esac
     cp -f "$tmp" "$cache" 2>/dev/null || true
   fi
 

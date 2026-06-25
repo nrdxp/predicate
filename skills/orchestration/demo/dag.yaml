@@ -1,0 +1,38 @@
+# Demonstration DAG for the orchestration driver (the C13-2 / AC5 example test).
+# A reviewer validates this YAML and derives the layering:
+#
+#   nickel export skills/orchestration/demo/dag.yaml \
+#     --apply-contract ledger/contracts/dag_apply.ncl   # rc 0
+#   nickel export skills/orchestration/demo/layers.ncl  # the Kahn schedule
+#
+# Topology: 2 layers.
+#   L1 = [D1]                     (foundation)
+#   L2 = [D2, D3, D4]
+#     D2, D3  conflict-free PARALLEL pair  (disjoint file_surface)
+#     D4      SERIALIZE node (serialize=true; shares D2's surface, runs serially)
+nodes:
+  - id: D1
+    title: foundation
+    depends_on: []
+    file_surface: ["demo/base.txt"]
+    discipline: core
+    mitigates: []
+  - id: D2
+    title: parallel a
+    depends_on: ["D1"]
+    file_surface: ["demo/a.txt"]
+    discipline: core
+    mitigates: []
+  - id: D3
+    title: parallel b
+    depends_on: ["D1"]
+    file_surface: ["demo/b.txt"]
+    discipline: core
+    mitigates: []
+  - id: D4
+    title: serial (shares a's surface)
+    depends_on: ["D1"]
+    file_surface: ["demo/a.txt"]
+    discipline: core
+    mitigates: []
+    serialize: true

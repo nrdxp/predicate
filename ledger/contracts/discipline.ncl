@@ -16,6 +16,19 @@
 #   'doc     documentation lifecycle           (skills/doc)
 #   'form    formal domain modeling            (skills/form)
 #   'spec    normative specification           (skills/spec)
+#
+# YAML compatibility (value-restricted tag-or-string): YAML instances carry strings,
+# not Nickel enum tags. A bare `[| 'core, … |]` enum rejects strings; a bare
+# `std.enum.TagOrString` accepts ANY string and loses the value restriction.
+# This contract implements: string ∈ allowed-set OR matching tag — the minimum
+# that preserves both YAML-compatibility and value-restriction. Mirrors the
+# EvidenceMethod pattern in deposit.ncl (same design rationale).
 {
-  Discipline = [| 'core, 'refine, 'doc, 'form, 'spec |],
+  Discipline = std.contract.from_predicate (fun v =>
+    v == 'core    || v == "core"
+    || v == 'refine || v == "refine"
+    || v == 'doc    || v == "doc"
+    || v == 'form   || v == "form"
+    || v == 'spec   || v == "spec"
+  ),
 }

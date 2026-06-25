@@ -144,7 +144,7 @@ locked Nickel contracts under [`ledger/contracts/`](../../ledger/contracts), and
 | Artifact | Contract | Load-bearing invariant |
 | :--- | :--- | :--- |
 | Findings ledger (SURVEY) | [`findings.ncl`](../../ledger/contracts/findings.ncl) | a resolved finding (`'mitigated`/`'accepted_risk`) MUST name the `evaluator` that closed it |
-| Campaign DAG (PLAN/ORCHESTRATE) | [`dag.ncl`](../../ledger/contracts/dag.ncl) | each node's `discipline` is one of the enum `[\| 'core, 'refine, 'doc \|]`; the graph is acyclic, referentially whole, and concurrent nodes carry disjoint `file_surface` or a `serialize` marker |
+| Campaign DAG (PLAN/ORCHESTRATE) | [`dag_apply.ncl`](../../ledger/contracts/dag_apply.ncl) (`Dag ∘ DagNoConflict`) | the DAG is **authored as YAML** (`<topic>/dag.yaml`) and validated via `nickel export dag.yaml --apply-contract ledger/contracts/dag_apply.ncl`; each node's `discipline` is one of `core`/`refine`/`doc`/`form`/`spec`; the graph is acyclic, referentially whole, and concurrent nodes carry disjoint `file_surface` or a `serialize` marker; contracts stay Nickel, instances are YAML |
 | Reconcile log (RECONCILE) | [`reconcile_log.ncl`](../../ledger/contracts/reconcile_log.ncl) | an `'accept` judgment MUST name the `evaluator` that justified it |
 
 The `evaluator` field and the `discipline` enum are the campaign's two
