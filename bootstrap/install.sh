@@ -143,6 +143,35 @@ inject_imports() {
   echo "install: wired @import rules+ambient into $claude_md (idempotent)."
 }
 
+# --- conditioning delivery (called from phase_install) -----------------------
+# Generates and installs the architect-role conditioning prompt.  Additive to
+# the existing inject_imports step; preserves all existing install behaviour.
+# The conditioning/install.sh script is the authority for delivery — this is
+# the bootstrap wiring only.  Non-fatal if Nickel is not available (the
+# CLAUDE.md @import from inject_imports remains the Tier 2 floor).
+inject_conditioning() {
+  local harness="$1"
+  local conditioning_sh="$plugin_src/conditioning/install.sh"
+  if [ ! -f "$conditioning_sh" ]; then
+    echo "install: conditioning/install.sh not found at $plugin_src/conditioning/; skipping." >&2
+    return 0
+  fi
+  echo "install: running conditioning delivery for role=architect ..."
+  # Pass the harness hint so conditioning/install.sh does not re-detect.
+  # Map bootstrap harness names → conditioning harness names (additive surface).
+  local cond_harness=""
+  case "$harness" in
+    claude-code) cond_harness="claude-code" ;;
+    antigravity) cond_harness="generic" ;;
+    *)           cond_harness="" ;;
+  esac
+  local extra_args=()
+  [ -n "$cond_harness" ] && extra_args=(--harness "$cond_harness")
+  PREDICATE_SRC="$plugin_src" bash "$conditioning_sh" \
+    --role architect "${extra_args[@]+"${extra_args[@]}"}" \
+    || echo "install: conditioning delivery exited non-zero (non-fatal; Tier 2 @import still active)." >&2
+}
+
 # --- phase: install (GLOBAL, once) -------------------------------------------
 phase_install() {
   local harness=""
@@ -161,6 +190,7 @@ phase_install() {
     *) echo "install: unknown harness: $harness (want claude-code|antigravity)" >&2; exit 2 ;;
   esac
   inject_imports
+  inject_conditioning "$harness"
   echo "install: done. Next: run 'init' inside each repo you want governed."
 }
 
