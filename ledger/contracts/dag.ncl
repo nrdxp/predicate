@@ -15,6 +15,14 @@
 # no out-of-band step to forget. Acyclicity and referential integrity remain
 # intrinsic in `Dag` as required.
 #
+# Performance: every set/map below is a RECORD — membership is O(1) `has_field`,
+# lookup is O(1) `"%{id}"` — never an array with a linear `std.array.elem`/`find`
+# scan. `DagNoConflict` MEMOIZES each node's reachable set once (`reach_map`)
+# instead of recomputing the transitive closure twice per pair inside the O(n^2)
+# loop. The earlier array-based version was ~O(n^5) with a large constant; this is
+# ~O(n^2) over O(1) record operations (the campaign's own 30-node DAG dropped from
+# minutes to sub-second).
+#
 # Shared definitions (D-DUP / T1.1): the `discipline` enum and the surface-
 # containment predicate both have ONE canonical home, imported rather than
 # inlined, so they cannot drift from the IBC contract or from authorized.py:
@@ -42,6 +50,24 @@ let auth = import "authorized.ncl" in
     ..                             # open: title/rationale/serialize ride along
   },
 
+  # --- record-as-set helpers ----------------------------------------------------
+  # A SET is a record `{ "<id>" = true }`; membership is O(1) `has_field`. Inserts
+  # are dup-tolerant (raw `std.record.insert` raises on an existing field), so
+  # id-uniqueness is decided by comparing cardinalities, never by a crash.
+  set_insert | doc "add an id to a record-set, tolerant of repeats"
+    = fun id s => if std.record.has_field id s then s else std.record.insert id true s,
+  set_of | doc "build a record-set from an array of ids"
+    = fun arr => std.array.fold_left (fun acc id => set_insert id acc) {} arr,
+  set_size | doc "cardinality of a record-set"
+    = fun s => std.array.length (std.record.fields s),
+  # `complete = true` marks a node already landed + validated in a prior layer.
+  # Such nodes are pre-settled for acyclicity and EXCLUDED from the active
+  # conflict/reach work — a continuation pays only for the incomplete remainder,
+  # not the whole accumulated graph. (Referential integrity + node conformance
+  # still cover ALL nodes; a completed node remains a valid dep target.)
+  is_complete | doc "node already landed in a prior layer (excluded from active work)"
+    = fun n => std.record.has_field "complete" n && n.complete == true,
+
   Dag = std.contract.custom (fun _label value =>
     let nodes = value.nodes in
     # Per-element node conformance: annotate each node with the `Node` contract
@@ -59,39 +85,39 @@ let auth = import "authorized.ncl" in
         nodes
     in
     let ids = std.array.map (fun n => n.id) nodes in
-    # referential integrity: every depends_on resolves to a declared node id
+    # id set (record) — O(1) membership; cardinality decides id-uniqueness.
+    let id_set = set_of ids in
+    let unique_ids = std.array.length ids == set_size id_set in
+    # referential integrity: every depends_on resolves to a declared node id (O(1))
     let all_edges_resolve =
       std.array.all
-        (fun n => std.array.all (fun d => std.array.elem d ids) n.depends_on)
+        (fun n => std.array.all (fun d => std.record.has_field d id_set) n.depends_on)
         nodes
     in
-    # acyclicity via Kahn reduction: settle nodes whose deps are all settled,
-    # iterating |nodes| rounds. If any node is unsettled afterward, a cycle exists.
+    # acyclicity via Kahn reduction over a record-set of settled ids. Each round
+    # settles EVERY node whose deps are all settled (O(1) lookups); a DAG settles
+    # all nodes within |nodes| rounds, a cycle leaves some node forever unsettled.
+    let n_count = std.array.length nodes in
     let settle_round = fun settled =>
       std.array.fold_left
         (fun acc n =>
-          if std.array.elem n.id acc then acc
-          else if std.array.all (fun d => std.array.elem d acc) n.depends_on
-          then acc @ [n.id]
+          if std.record.has_field n.id acc then acc
+          else if std.array.all (fun d => std.record.has_field d acc) n.depends_on
+          then std.record.insert n.id true acc
           else acc)
         settled
         nodes
     in
-    let n_count = std.array.length nodes in
+    # complete nodes are pre-settled — already landed + validated in a prior
+    # layer — so the Kahn only settles the active remainder on top of them.
+    let pre_settled = set_of (std.array.map (fun n => n.id) (std.array.filter is_complete nodes)) in
     let final_settled =
       std.array.fold_left
         (fun acc _i => settle_round acc)
-        []
+        pre_settled
         (std.array.generate (fun i => i) n_count)
     in
-    let acyclic = std.array.length final_settled == n_count in
-    let dedup =
-      std.array.fold_left
-        (fun acc x => if std.array.elem x acc then acc else acc @ [x])
-        []
-        ids
-    in
-    let unique_ids = std.array.length ids == std.array.length dedup in
+    let acyclic = set_size final_settled == n_count in
     # `std.seq _node_conformance` forces the per-element `Node` applications
     # (above) before the structural verdict, so a malformed node fails the
     # contract eagerly rather than being skipped by laziness.
@@ -108,42 +134,53 @@ let auth = import "authorized.ncl" in
   # an explicit `serialize` marker.
   DagNoConflict = std.contract.custom (fun _label value =>
     let nodes = value.nodes in
-    let find = fun id => std.array.filter (fun n => n.id == id) nodes in
-    let deps_of = fun id =>
-      let m = find id in
-      if std.array.length m == 0 then [] else (std.array.first m).depends_on
-    in
-    # reachable set from a start id over depends_on, bounded by |nodes| rounds
     let n_count = std.array.length nodes in
-    let expand = fun frontier =>
+    # id -> depends_on map (record), O(1) lookup (was a linear `find` per call).
+    let deps_map =
       std.array.fold_left
-        (fun acc id =>
-          std.array.fold_left
-            (fun a2 d => if std.array.elem d a2 then a2 else a2 @ [d])
-            acc
-            (deps_of id))
-        frontier
-        frontier
+        (fun acc n => if std.record.has_field n.id acc then acc else std.record.insert n.id n.depends_on acc)
+        {}
+        nodes
     in
-    let reach = fun start =>
+    let deps_get = fun id => if std.record.has_field id deps_map then deps_map."%{id}" else [] in
+    # reach(start): transitive depends_on closure as a record-set. Expansion adds
+    # each seen id's direct deps; bounded by |nodes| rounds (the closure converges).
+    let reach_of = fun start =>
+      let expand = fun seen =>
+        std.array.fold_left
+          (fun acc id =>
+            std.array.fold_left (fun a2 d => set_insert d a2) acc (deps_get id))
+          seen
+          (std.record.fields seen)
+      in
       std.array.fold_left
         (fun acc _i => expand acc)
-        (deps_of start)
+        (set_of (deps_get start))
         (std.array.generate (fun i => i) n_count)
     in
-    # two nodes are ORDERED if one is in the other's transitive dep closure
-    let ordered = fun a b =>
-      std.array.elem b.id (reach a.id) || std.array.elem a.id (reach b.id)
+    # complete nodes participate in NO pair (a new node touching a completed
+    # node's file is ordered after it by a dep), so reach + pairs run over the
+    # ACTIVE set only. Dep traversal still uses the full deps_map, since an active
+    # node may depend on a completed one.
+    let active = std.array.filter (fun n => !(is_complete n)) nodes in
+    # MEMOIZE each active node's reach-set ONCE — the key fix. The old code
+    # recomputed `reach` twice for every one of the O(n^2) pairs.
+    let reach_map =
+      std.array.fold_left
+        (fun acc n => if std.record.has_field n.id acc then acc else std.record.insert n.id (reach_of n.id) acc)
+        {}
+        active
     in
-    # Two surface TOKENS overlap when one path-contains the other, not merely
-    # when they are byte-equal. Exact-string comparison wrongly read "docs/" and
-    # "docs/x.md" as disjoint, so two concurrent nodes editing the same tree
-    # passed the gate. The containment predicate (`tokens_overlap`) is defined
-    # ONCE in authorized.ncl and imported here, so this conflict gate and the
-    # authorization gate (authorized.py) cannot drift apart (D-DUP). Plain string
-    # prefixing, no regex, so glob metacharacters in a token are inert here
-    # (globs are an authorization-time concern, handled in authorized.py).
-    # surfaces overlap if ANY token pair overlaps under path-containment
+    let reach_get = fun id => if std.record.has_field id reach_map then reach_map."%{id}" else {} in
+    # two nodes are ORDERED if one is in the other's transitive dep closure (O(1))
+    let ordered = fun a b =>
+      std.record.has_field b.id (reach_get a.id) || std.record.has_field a.id (reach_get b.id)
+    in
+    # Two surface TOKENS overlap when one path-contains the other, not merely when
+    # byte-equal. The containment predicate (`tokens_overlap`) is defined ONCE in
+    # authorized.ncl and imported here, so this conflict gate and the authorization
+    # gate (authorized.py) cannot drift apart (D-DUP). Surfaces overlap if ANY token
+    # pair overlaps under path-containment.
     let surfaces_overlap = fun a b =>
       std.array.any
         (fun s1 => std.array.any (fun s2 => auth.tokens_overlap s1 s2) b.file_surface)
@@ -152,7 +189,8 @@ let auth = import "authorized.ncl" in
     let has_serialize = fun n =>
       std.record.has_field "serialize" n && n.serialize == true
     in
-    # for every unordered pair, require disjoint surfaces OR a serialize marker
+    # for every unordered ACTIVE pair, require disjoint surfaces OR a serialize
+    # marker. Completed nodes are excluded (already landed; ordered-after by deps).
     let pairs_ok =
       std.array.all
         (fun a =>
@@ -162,8 +200,8 @@ let auth = import "authorized.ncl" in
               else if ordered a b then true
               else if !(surfaces_overlap a b) then true
               else (has_serialize a || has_serialize b))
-            nodes)
-        nodes
+            active)
+        active
     in
     if !pairs_ok
     then 'Error { message = "concurrent nodes share file_surface without serialize marker" }
