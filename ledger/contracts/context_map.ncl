@@ -29,6 +29,19 @@
   # `grounding`, `last_validated`, and `signpost` are mandatory and non-empty:
   # the contract makes naming the evidence, the freshness, and the defeater a
   # precondition of carrying the item at all.
+  #
+  # Hydration fields (P-TRACK / I14 — the AGENTS.md fusion):
+  # `hydration_source` is OPTIONAL. When present it records where this item was
+  # hydrated FROM — a path:section pointer into the project's AGENTS.md hierarchy.
+  # Absent = item originated in scratch (unoriented walk); present = item was
+  # hydrated from the persistent AGENTS.md anchor. This field feeds
+  # tracker_fresh.sh: a stale `last_validated` on a hydrated item means the
+  # persistent anchor may have drifted and reorientation is due.
+  #
+  # `hydration_source` shape when present: "<relative-path>#<section-heading>",
+  # e.g. "AGENTS.md#requirements" or "skills/orient/AGENTS.md#invariants".
+  # The empty string is the silent-omission sentinel and is therefore forbidden
+  # (same NonEmptyString discipline as the other evidence fields).
   Item = {
     id | String,
     statement | String,                  # the requirement/unknown itself
@@ -36,10 +49,22 @@
     grounding | NonEmptyString,          # source/evidence; "" forbidden
     last_validated | NonEmptyString,     # when last checked vs reality; "" forbidden
     signpost | NonEmptyString,           # resolver (unknown) / defeater (others); "" forbidden
+    hydration_source
+      | std.contract.from_predicate (fun v => v == null || (std.is_string v && std.string.length v > 0))
+      | optional
+      | default = null,                  # AGENTS.md path#section; null = scratch-originated
   },
 
   # The context-map contract: a record holding an array of items, with the
   # every-item-grounded invariant enforced intrinsically.
+  #
+  # Freshness gate (P-TRACK I-T3 / tracker_fresh.sh): tracker_fresh.sh reads
+  # `last_validated` from a serialised ContextMap instance and compares it to
+  # the current HEAD git commit date. Items with a `hydration_source` that are
+  # stale signal that the persistent AGENTS.md anchor may have drifted and
+  # reorientation is due. The contract itself enforces non-empty `last_validated`;
+  # the staleness check is a runtime gate (tracker_fresh.sh), not a static
+  # contract, because HEAD is not available at Nickel evaluation time.
   ContextMap = std.contract.custom (fun _label value =>
     let items = value.items in
     # Per-element item conformance: annotate each item with the `Item` contract
