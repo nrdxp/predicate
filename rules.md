@@ -28,6 +28,8 @@ An LLM is a deterministic, high-dimensional weight matrix executing an Autoregre
 
 ## 2. Prime Invariants
 
+One selection rule generates all six: **no wasted tokens — a hit is cheaper than a miss.** This is the economic axiom the framework is made of. Every token spent verifying, re-surfacing a constraint, or searching outward is paid against the cost of the drift it forecloses; a correction caught early is cheaper than the compounding error it prevents. The invariants below are not ceremony — each earns its tokens by buying a miss that would otherwise be paid downstream, and the precedence order is the order in which the misses are most expensive. The axiom is derived from the closed-loop dynamics in [the formalism](docs/theory/formalism.md) (Part 1).
+
 Six invariants, in precedence order. Every other rule in this workspace elaborates one of them.
 
 1. **The Verification Dual — verify, then trust.** Every condition that must hold is closed by the strongest applicable evaluator, and exactly one of two complementary paths closes it. **If a deterministic evaluator exists or can be built, it MUST be used** (the symbolic path); **if none can exist, the condition is closed by adversarial review from context-free agents operating out of decorrelated boundaries** (the adversarial path). Both paths iterate to a fixed point against error feedback toward $\Delta E = 0$; if 3–5 corrective iterations fail to converge, freeze and surface. The evaluator hierarchy, strongest first:
