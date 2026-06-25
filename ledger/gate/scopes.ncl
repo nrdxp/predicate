@@ -1,0 +1,265 @@
+# Gate-scope taxonomy — machine-legible source of truth.
+#
+# Declares EVERY gate in the predicate gate surface: each hook tier and each
+# script in ledger/gate/, gates/, and the skill scripts they invoke.  The
+# structural gate (ledger-validate.sh structure) export-validates this file on
+# every commit that stages it, so an invalid scope string fails export.
+#
+# check_scopes.sh is the completeness checker: it enumerates the ACTUAL gate
+# surface and exits non-zero if any gate is absent from this manifest.
+#
+# Gate identifiers use repo-root-relative paths for file-based gates, and the
+# logical key "hook/<hook>:<tier>" for hook tiers.  check_scopes.sh matches on
+# the same identifier space.
+#
+# Fields per gate entry:
+#   gate        string identifier (repo-root-relative path or hook/<hook>:<tier>)
+#   scope       one of: universal | predicate_artifact | campaign | walk | orchestration
+#   fires_when  activation condition in plain language
+#   applies_to  "human + agent" or "agent only"
+#
+# Scope semantics
+# ───────────────
+#   universal          every commit, human or agent
+#   predicate_artifact every commit that stages a *.ncl or *.md file (structural tier)
+#   campaign           iff .ledger/active-dag present (authority tier)
+#   walk               iff .ledger/active-walk present (process tier)
+#   orchestration      NOT on the commit path; run by orchestrator or CI
+
+let Scope = [|
+  'universal,
+  'predicate_artifact,
+  'campaign,
+  'walk,
+  'orchestration,
+|] in
+
+let GateEntry = {
+  gate       | String,
+  scope      | Scope,
+  fires_when | String,
+  applies_to | String,
+} in
+
+{
+  gates = [
+
+    # ── HOOK TIERS (hooks/commit-msg and hooks/pre-commit) ──────────────────
+
+    {
+      gate        = "hook/commit-msg:hygiene",
+      scope       = 'universal,
+      fires_when  = "every git commit; invokes skills/commit-hygiene/scripts/check_commit_msg.py (Conventional Commits form, merge-exempt)",
+      applies_to  = "human + agent",
+    } | GateEntry,
+
+    {
+      gate        = "hook/commit-msg:selfcontained",
+      scope       = 'universal,
+      fires_when  = "every git commit; invokes gates/check_selfcontained.sh (rejects internal node-ID / layer-tag refs in message)",
+      applies_to  = "human + agent",
+    } | GateEntry,
+
+    {
+      gate        = "hook/pre-commit:orphans",
+      scope       = 'predicate_artifact,
+      fires_when  = "staged authoritative files; invokes gates/check_orphans.sh scoped to the staged set",
+      applies_to  = "human + agent",
+    } | GateEntry,
+
+    {
+      gate        = "hook/pre-commit:doc-links",
+      scope       = 'predicate_artifact,
+      fires_when  = "staged *.md files; invokes skills/doc-audit/scripts/check_docs.py for valid local links and anchors",
+      applies_to  = "human + agent",
+    } | GateEntry,
+
+    {
+      gate        = "hook/pre-commit:ledger-structure",
+      scope       = 'predicate_artifact,
+      fires_when  = "staged *.ncl files; invokes ledger/gate/ledger-validate.sh structure to ensure nickel export passes",
+      applies_to  = "human + agent",
+    } | GateEntry,
+
+    {
+      gate        = "hook/pre-commit:authority",
+      scope       = 'campaign,
+      fires_when  = "iff .ledger/active-dag is present; invokes ledger/gate/ledger-validate.sh authorize against the DAG file_surface",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
+      gate        = "hook/pre-commit:process",
+      scope       = 'walk,
+      fires_when  = "iff .ledger/active-walk is present AND the declared deposit-path is staged; invokes ledger/gate/process-gate.sh validate",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    # ── LEDGER/GATE SCRIPTS ──────────────────────────────────────────────────
+
+    {
+      gate        = "ledger/gate/ledger-validate.sh",
+      scope       = 'predicate_artifact,
+      fires_when  = "commit-time (structure sub-command) on staged *.ncl; orchestration (authorize / commit-gate) at dispatch",
+      applies_to  = "human + agent",
+    } | GateEntry,
+
+    {
+      gate        = "ledger/gate/authorized.py",
+      scope       = 'campaign,
+      fires_when  = "called by ledger-validate.sh authorize; decides whether each staged path falls under a DAG node file_surface",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
+      gate        = "ledger/gate/process-gate.sh",
+      scope       = 'walk,
+      fires_when  = "walk-activated (iff .ledger/active-walk present); validates procedure deposits against Nickel contracts at commit time",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
+      gate        = "ledger/gate/check_scopes.sh",
+      scope       = 'orchestration,
+      fires_when  = "CI gate-scope step and manual; verifies every gate in the actual surface is declared in scopes.ncl (fails on omission)",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
+      gate        = "ledger/gate/gate-set.sh",
+      scope       = 'orchestration,
+      fires_when  = "orchestrator or CI; proves /core gate set is a superset of the node gate set (scale-invariance check)",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
+      gate        = "ledger/gate/adherence_audit.sh",
+      scope       = 'orchestration,
+      fires_when  = "orchestrator at campaign CLOSE; audits worktree isolation via git merge history",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
+      gate        = "ledger/gate/coherence_impact.sh",
+      scope       = 'orchestration,
+      fires_when  = "orchestrator at each node landing (RECONCILE step); checks contracts, orphans, and links across the full tree",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
+      gate        = "ledger/gate/premise_fresh.sh",
+      scope       = 'orchestration,
+      fires_when  = "orchestrator before dispatching a pending node; re-runs S1 tripwires against HEAD to detect stale premises",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
+      gate        = "ledger/gate/recorder_close_check.sh",
+      scope       = 'orchestration,
+      fires_when  = "orchestrator at campaign CLOSE; asserts a 'log: close <topic>' commit exists in the flight recorder",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
+      gate        = "ledger/gate/tracker_fresh.sh",
+      scope       = 'orchestration,
+      fires_when  = "orchestrator or /orient; validates context-map last_validated timestamps against HEAD commit date",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
+      gate        = "ledger/gate/tracker_fresh.py",
+      scope       = 'orchestration,
+      fires_when  = "called by tracker_fresh.sh; effectful tier: exports the context-map and evaluates the Nickel freshness predicate",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
+      gate        = "ledger/gate/test_gates.sh",
+      scope       = 'orchestration,
+      fires_when  = "CI gate-test step; exercises ledger-validate, authority overlay, doc-link, recorder, adherence, orphan, selfcontained, sync-sketch, and commit-msg gates from main tree and linked worktree",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
+      gate        = "ledger/gate/test_reconcile.sh",
+      scope       = 'orchestration,
+      fires_when  = "CI gate-test step; exercises premise_fresh.sh and coherence_impact.sh with fixtures",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
+      gate        = "ledger/gate/test_surface_protocol.sh",
+      scope       = 'orchestration,
+      fires_when  = "CI gate-test step; exercises authorized.py collision-check and reconcile-node protocols",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
+      gate        = "ledger/gate/test_adherence.sh",
+      scope       = 'orchestration,
+      fires_when  = "CI gate-test step; exercises adherence_audit.sh with synthetic git histories",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
+      gate        = "ledger/gate/test_contract_typecheck.sh",
+      scope       = 'orchestration,
+      fires_when  = "CI contract-typecheck step; asserts every ledger/contracts/*.ncl typechecks cleanly",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
+      gate        = "ledger/gate/test_fixture_sweep.sh",
+      scope       = 'orchestration,
+      fires_when  = "CI fixture-polarity-sweep step; asserts every ledger/fixtures/*.ncl behaves per its declared polarity",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
+      gate        = "ledger/gate/demo_scale_invariant.sh",
+      scope       = 'orchestration,
+      fires_when  = "CI smoke and manual; runs the gate sequence under both a campaign DAG and a one-node DAG, asserts byte-identical transcripts",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
+      gate        = "ledger/gate/demo_unauthorized.sh",
+      scope       = 'orchestration,
+      fires_when  = "CI smoke and manual; stages an unauthorized path (expects non-zero), then confirms an authorized path passes",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    # ── GATES/ SCRIPTS (invoked from hooks and orchestration) ────────────────
+
+    {
+      gate        = "gates/check_orphans.sh",
+      scope       = 'predicate_artifact,
+      fires_when  = "commit-time via hook/pre-commit:orphans; also standalone and from coherence_impact.sh",
+      applies_to  = "human + agent",
+    } | GateEntry,
+
+    {
+      gate        = "gates/check_selfcontained.sh",
+      scope       = 'universal,
+      fires_when  = "commit-time via hook/commit-msg:selfcontained; rejects messages with internal node-ID or layer-tag references",
+      applies_to  = "human + agent",
+    } | GateEntry,
+
+    # ── SKILL SCRIPTS (invoked from hooks or CI) ─────────────────────────────
+
+    {
+      gate        = "skills/commit-hygiene/scripts/check_commit_msg.py",
+      scope       = 'universal,
+      fires_when  = "commit-time via hook/commit-msg:hygiene and CI; enforces Conventional Commits form (header length, type, blank line, body wrap), merge-exempt",
+      applies_to  = "human + agent",
+    } | GateEntry,
+
+    {
+      gate        = "skills/doc-audit/scripts/check_docs.py",
+      scope       = 'predicate_artifact,
+      fires_when  = "commit-time via hook/pre-commit:doc-links on staged *.md; also CI doc-audit step for the full tree",
+      applies_to  = "human + agent",
+    } | GateEntry,
+  ],
+}
