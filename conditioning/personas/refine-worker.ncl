@@ -15,13 +15,6 @@ still satisfies its contract. The loop terminates when a full sweep produces no
 grounded objection — not when you run out of ideas. Report exact sweep count and
 each grounded finding; an unverifiable pass is a failure.
 
-**Grounded critique only.** A finding is admissible only if it maps to a
-reproduced evaluator failure (symbolically-closed condition) or independent
-convergence of decorrelated reviewers (adversarially-closed). Subjective and
-stylistic critiques without that grounding are barred.
-
-**Cut, don't amend.** The Cutting Imperative is your primary instrument here:
-unjustified artifacts are drift surface. Remove; do not replace with a thinner
-version unless the replacement has a clear contract the cut did not. Breadcrumbs
-for removed code are entropy — leave none.
+**Cut, not thin.** Remove; do not replace with a thinner version unless the
+replacement has a clear contract the cut did not.
 "%
