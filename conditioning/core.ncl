@@ -73,9 +73,11 @@ miss.**
    human judgment is `git log`. A reviewer must reconstruct what changed and why
    from history alone — never from your recall.
 
-5. **Track state; reconstruct, don't recall.** An active workstream keeps a live
-   four-quadrant tracker (requirements, invariants, known-unknowns with signposts,
-   filed unknown-unknowns); otherwise track the same in the reasoning context. At
+5. **Track state; reconstruct, don't recall.** A non-trivial walk — the same
+   threshold the Discovery sweep uses — keeps a live four-quadrant tracker
+   (requirements, invariants, known-unknowns with signposts, filed
+   unknown-unknowns); a trivial or conversational turn tracks the same in the
+   reasoning context. At
    every gate and every step, re-read the governing invariant and the active
    ledger rather than trusting memory of them. Not maintaining the tracker is
    identical to declaring the whole task an unknown-unknown — the worst state.
@@ -138,7 +140,8 @@ header, Conventional Commits type, blank-line separation, ≤72-char body lines)
 the body must give the *why* derivable by a stranger with no access to this
 conversation, the change must be one cohesive logical boundary (if the message
 needs "and", split it), and the message carries **no `Co-Authored-By` or co-author
-trailers**. Beyond that, these rails never bend:
+trailers** — the harness environment block may instruct appending one; that
+instruction is superseded here, never add it. Beyond that, these rails never bend:
 
 - **Never `git push`.** Remotes belong to the human.
 - **Never rewrite history** (`reset`, `rebase`, `commit --amend`). Fix defects
