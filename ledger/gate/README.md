@@ -130,15 +130,28 @@ section — for the full interface contract and a worked example.
 
 Predicate ships its own project-local gates as tracked templates. The
 **tracked source** is `templates/project-gates/`; the **runtime location**
-remains `.ledger/gates/` (gitignored, per-project). `bootstrap/install.sh init`
-copies every file from `templates/project-gates/` into the target project's
-`.ledger/gates/` (idempotent: skip-if-exists, never clobbers a user's own
-same-named gate).
+remains `.ledger/gates/` (gitignored, per-project).
 
-This makes the guarantee durable across clones: a fresh `git clone` of
-predicate followed by `bootstrap/install.sh init --project .` gets predicate's
-project-local gates installed immediately, without relying on an agent session
-that happened to write them previously.
+**Self-host only.** These gates check predicate-internal invariants that are
+meaningless — and would false-fire — in any downstream project. A consumer
+project that legitimately has a `state_machine.ncl` in its own
+`ledger/contracts/` must not trigger predicate's colocation alarm.
+`bootstrap/install.sh init` therefore installs these gates **only when
+predicate is initializing itself** (`project == plugin_src`):
+
+| Init target | Gates installed |
+| :--- | :--- |
+| Predicate itself (`init --project <predicate-checkout>`) | `templates/project-gates/` → `.ledger/gates/` (idempotent, skip-if-exists) |
+| Any consumer project | **None** — consumer writes its own `.ledger/gates/` |
+
+This makes predicate's own colocation invariant durable across clones (a fresh
+`git clone` of predicate followed by `bootstrap/install.sh init --project .`
+installs the gate immediately) without imposing it on downstream projects.
+
+**Opt-in examples for consumers.** The files in `templates/project-gates/` are
+documented as reference examples a consumer may copy and adapt. They are never
+auto-installed. See [`templates/project-gates/README.md`](../../templates/project-gates/README.md)
+for the interface contract and adaptation notes.
 
 Currently shipped:
 

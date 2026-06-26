@@ -11,13 +11,18 @@
 #      (d) All five skill-owned names present → rc 1 (FIRES, all reported).
 #      (e) A contract with a name that is NOT one of the five → rc 0 (not fired).
 #
-#   2. INIT WIRING (bootstrap/install.sh init) — demonstrates that a fresh
-#      `init` against a real git repo installs the colocation gate into
-#      .ledger/gates/ and that the installed gate is:
-#      (A) Present and executable after init.
-#      (B) Idempotent: a second init skips-if-exists without clobbering.
-#      (C) Fires on re-centralization (end-to-end TDD assertion).
-#      (D) Passes when no skill-owned contract is present.
+#   2. INIT WIRING — self-host-vs-consumer split:
+#
+#      Consumer project (project ≠ plugin_src):
+#        (A)  init installs NO predicate-specific gates — a downstream project
+#             with a legitimate state_machine.ncl must not false-fire.
+#        (A2) Corollary: a consumer project with a state_machine.ncl in its own
+#             ledger/contracts/ does not trigger any predicate-gate (gate absent).
+#
+#      Self-host (project == plugin_src — predicate gating itself):
+#        (B1) init installs the colocation gate, present and executable.
+#        (B2) Installed gate fires on re-centralization (end-to-end assertion).
+#        (B3) Idempotent: re-init skips-if-exists, never clobbers the gate.
 #
 # All scratch state is torn down via EXIT trap.
 #
@@ -53,7 +58,46 @@ expect() { # description expected-rc -- command...
 
 # Scratch dir: all throwaway state lives here, torn down on exit.
 scratch="$(mktemp -d)"
-cleanup() { rm -rf "$scratch"; }
+git_id=(-c user.name=test-colocation-gate -c user.email=test@colocation-gate -c commit.gpgsign=false)
+
+# Track the original state of $root/.ledger/ so we can restore it on exit.
+# The self-host init test runs `init --project "$root"`, which calls both
+# init_ledger (creates log/, state/, config.sh.example) and install_selfhost_gates
+# (creates .ledger/gates/). We must undo all of that on exit.
+selfhost_ledger_dir="$root/.ledger"
+selfhost_gates_dir="$selfhost_ledger_dir/gates"
+selfhost_gate="$selfhost_gates_dir/10-skill-contract-colocation.sh"
+selfhost_ledger_existed=0
+selfhost_gates_dir_existed=0
+selfhost_gate_existed=0
+selfhost_gate_content=""
+[ -d "$selfhost_ledger_dir" ] && selfhost_ledger_existed=1
+if [ -d "$selfhost_gates_dir" ]; then
+  selfhost_gates_dir_existed=1
+  if [ -f "$selfhost_gate" ]; then
+    selfhost_gate_existed=1
+    selfhost_gate_content="$(cat "$selfhost_gate")"
+  fi
+fi
+
+cleanup() {
+  rm -rf "$scratch"
+  # Restore the original state of $root/.ledger/:
+  #   - .ledger/ did not exist before → remove it entirely (init created it).
+  #   - .ledger/ existed, .ledger/gates/ did not → remove gates dir + gate file.
+  #   - .ledger/gates/ existed, gate file did not → remove only the gate file.
+  #   - Gate file existed → restore its original content in place.
+  if [ "$selfhost_ledger_existed" -eq 0 ]; then
+    rm -rf "$selfhost_ledger_dir"
+  elif [ "$selfhost_gates_dir_existed" -eq 0 ]; then
+    rm -rf "$selfhost_gates_dir"
+  elif [ "$selfhost_gate_existed" -eq 0 ]; then
+    rm -f "$selfhost_gate"
+  else
+    printf '%s' "$selfhost_gate_content" > "$selfhost_gate"
+    chmod +x "$selfhost_gate"
+  fi
+}
 trap cleanup EXIT
 
 # ─── LEVEL 1: GATE UNIT ─────────────────────────────────────────────────────
@@ -109,57 +153,99 @@ done
 expect "all five skill-owned names in ledger/contracts/ → rc 1 (FIRES)" 1 \
   bash "$gate_template" "$all_dir"
 
-# ─── LEVEL 2: INIT WIRING ───────────────────────────────────────────────────
+# ─── LEVEL 2: INIT WIRING — SELF-HOST VS CONSUMER ───────────────────────────
+#
+# The colocation gate is PREDICATE's own project-local gate. It checks
+# predicate-internal invariants (skill-contract colocation) that are
+# meaningless — and would false-fire — in any downstream project.
+#
+# Correct wiring:
+#   consumer init (project ≠ plugin_src)  → NO predicate-specific gates
+#   self-host init (project == plugin_src) → colocation gate installed
 
-echo "== init wiring: bootstrap/install.sh init installs the colocation gate =="
+echo "== init wiring: consumer init installs NO predicate-specific gates =="
 
-proj_dir="$scratch/init_project"
-mkdir -p "$proj_dir"
-git_id=(-c user.name=test-colocation-gate -c user.email=test@colocation-gate -c commit.gpgsign=false)
-git "${git_id[@]}" -C "$proj_dir" init -q
+# (A) Consumer project: init → NO colocation gate installed.
+#     A downstream project with its own state_machine.ncl must not false-fire.
+consumer_dir="$scratch/consumer_project"
+mkdir -p "$consumer_dir"
+git "${git_id[@]}" -C "$consumer_dir" init -q
 
-# Run init against the throwaway project.
 PREDICATE_PLUGIN_SRC="$root" \
 PREDICATE_LEDGER_REMOTE="git@example.invalid:fixture/ledger.git" \
-  bash "$install_sh" init --project "$proj_dir" >/dev/null 2>&1
+  bash "$install_sh" init --project "$consumer_dir" >/dev/null 2>&1
 
-installed_gate="$proj_dir/.ledger/gates/10-skill-contract-colocation.sh"
+consumer_gate="$consumer_dir/.ledger/gates/10-skill-contract-colocation.sh"
 
-# (A) Gate present and executable after init.
-if [ -f "$installed_gate" ] && [ -x "$installed_gate" ]; then
-  echo "PASS  (A) gate present and executable after init"
+if [ ! -f "$consumer_gate" ]; then
+  echo "PASS  (A) consumer init: no predicate-specific gate installed in consumer project"
 else
-  echo "FAIL  (A) gate not installed or not executable at $installed_gate"; fails=$((fails + 1))
+  echo "FAIL  (A) consumer init: predicate colocation gate was wrongly installed in consumer project"; fails=$((fails + 1))
 fi
 
-# (B) Idempotent: sentinel line in installed gate; overwrite it; re-run init;
-#     verify the user's version is preserved (skip-if-exists in action).
-if [ -f "$installed_gate" ]; then
-  printf '# user-modified gate — must NOT be clobbered by re-init\n' > "$installed_gate"
+# (A2) Corollary: a consumer project with a legitimate state_machine.ncl in its
+#      own ledger/contracts/ must not false-fire. Since the gate is absent,
+#      no false-fire can occur. Demonstrate both absence and lack of fire.
+mkdir -p "$consumer_dir/ledger/contracts"
+printf '# consumer-owned state machine\n{}' \
+  > "$consumer_dir/ledger/contracts/state_machine.ncl"
+
+if [ ! -f "$consumer_gate" ]; then
+  echo "PASS  (A2) consumer with state_machine.ncl: gate absent, no false-fire possible"
+else
+  # Gate is wrongly present — show that it WOULD false-fire (both are failures).
+  bash "$consumer_gate" "$consumer_dir" >/dev/null 2>&1 \
+    && note_rc=0 || note_rc=$?
+  if [ "$note_rc" -ne 0 ]; then
+    echo "FAIL  (A2) colocation gate wrongly installed in consumer AND fires on legitimate contract"; fails=$((fails + 1))
+  else
+    echo "FAIL  (A2) colocation gate wrongly installed in consumer (but happens not to fire)"; fails=$((fails + 1))
+  fi
+fi
+rm -f "$consumer_dir/ledger/contracts/state_machine.ncl"
+
+echo "== init wiring: self-host init (predicate itself) installs colocation gate =="
+
+# Self-host: init where project == plugin_src (predicate gating itself).
+# We run init --project "$root" with PREDICATE_PLUGIN_SRC="$root".
+# The cleanup trap restores the gate to its original state after the test.
+PREDICATE_PLUGIN_SRC="$root" \
+PREDICATE_LEDGER_REMOTE="git@example.invalid:fixture/ledger.git" \
+  bash "$install_sh" init --project "$root" >/dev/null 2>&1
+
+# (B1) Gate present and executable after self-host init.
+if [ -f "$selfhost_gate" ] && [ -x "$selfhost_gate" ]; then
+  echo "PASS  (B1) self-host init: colocation gate installed and executable"
+else
+  echo "FAIL  (B1) self-host init: gate not installed or not executable at $selfhost_gate"; fails=$((fails + 1))
+fi
+
+# (B2) Installed gate fires on re-centralization (end-to-end TDD assertion).
+# Use a throwaway tree that simulates a predicate checkout with a re-centralized contract.
+recentral_dir="$scratch/recentralized"
+mkdir -p "$recentral_dir/ledger/contracts"
+printf '# re-centralized skill-owned contract\n{}' \
+  > "$recentral_dir/ledger/contracts/boundary_procedure.ncl"
+if [ -f "$selfhost_gate" ]; then
+  expect "(B2) installed self-host gate fires on re-centralization → rc 1" 1 \
+    bash "$selfhost_gate" "$recentral_dir"
+fi
+
+# (B3) Idempotent: re-init does not clobber the installed gate.
+if [ -f "$selfhost_gate" ]; then
+  printf '# user-modified self-host gate — must NOT be clobbered by re-init\n' > "$selfhost_gate"
   PREDICATE_PLUGIN_SRC="$root" \
   PREDICATE_LEDGER_REMOTE="git@example.invalid:fixture/ledger.git" \
-    bash "$install_sh" init --project "$proj_dir" >/dev/null 2>&1
-  if grep -qF 'user-modified gate' "$installed_gate"; then
-    echo "PASS  (B) re-init skipped existing gate (idempotent, non-clobbering)"
+    bash "$install_sh" init --project "$root" >/dev/null 2>&1
+  if grep -qF 'user-modified self-host gate' "$selfhost_gate"; then
+    echo "PASS  (B3) self-host re-init: skipped existing gate (idempotent, non-clobbering)"
   else
-    echo "FAIL  (B) re-init overwrote the user's gate (must skip-if-exists)"; fails=$((fails + 1))
+    echo "FAIL  (B3) self-host re-init: overwrote the existing gate (must skip-if-exists)"; fails=$((fails + 1))
   fi
-  # Restore the real gate for the firing tests.
-  cp "$gate_template" "$installed_gate"
-  chmod +x "$installed_gate"
+  # Restore the real gate for any subsequent assertions.
+  cp "$gate_template" "$selfhost_gate"
+  chmod +x "$selfhost_gate"
 fi
-
-# (C) Installed gate fires when a skill-owned contract is re-centralized.
-mkdir -p "$proj_dir/ledger/contracts"
-printf '# re-centralized skill-owned contract\n{}' \
-  > "$proj_dir/ledger/contracts/boundary_procedure.ncl"
-expect "(C) installed gate fires on re-centralization → rc 1" 1 \
-  bash "$installed_gate" "$proj_dir"
-
-# (D) Installed gate passes when no skill-owned contracts are present.
-rm -f "$proj_dir/ledger/contracts/boundary_procedure.ncl"
-expect "(D) installed gate passes with no re-centralized contracts → rc 0" 0 \
-  bash "$installed_gate" "$proj_dir"
 
 # ─── Results ─────────────────────────────────────────────────────────────────
 if [ "$fails" -ne 0 ]; then

@@ -160,11 +160,14 @@ if [ -f "$pointer" ]; then
     rc=1
   else
     # The authority half: authorize the staged set against the active DAG.
-    # We call `authorize`, NOT `commit-gate`: the DagNoConflict STRUCTURE proof
-    # is an ORCHESTRATOR-level check, run once when the DAG is amended — not
-    # something a worker commit should re-prove (it is expensive and was being
-    # OOM-killed on a large DAG, silently blocking commits). A staged .ncl edit
-    # is still structure-checked by the STRUCTURAL layer (check 3) above.
+    # We call `authorize`, NOT `commit-gate`: for NCL DAGs, the DagNoConflict
+    # STRUCTURE proof is an ORCHESTRATOR-level check, run once when the DAG is
+    # amended — not re-proved per worker commit.  A staged .ncl edit is still
+    # structure-checked by the STRUCTURAL layer (check 3) above.
+    # NOTE: YAML DAGs' authorize now runs --apply-contract dag_apply.ncl
+    # (Dag ∘ DagNoConflict) on every call after the cache removal; dag-perf
+    # keeps this fast (~0.1 s), so it is not a performance concern.  The
+    # NCL/YAML distinction is in ledger-validate.sh cmd_authorize.
     # ledger-validate.sh resolves its own machinery ($plugin).
     bash "$plugin/ledger/gate/ledger-validate.sh" authorize "$dag_path"
     auth_rc=$?
