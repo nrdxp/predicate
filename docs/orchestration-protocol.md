@@ -314,25 +314,68 @@ exit code *is* the routing decision; the orchestrator does not interpret it.
 
 ## CLOSE
 
+> [!IMPORTANT]
+> **Dual-CLOSE Invariant.** CLOSE terminates only when **both** conditions hold:
+>
+> **(a) Deterministic path** — the full gate suite exits green, proving the
+> machinery **executes**. A green suite is necessary but not sufficient: it
+> proves execution, not wiring or coverage.
+>
+> **(b) Adversarial path** — a decorrelated, context-free sufficiency review
+> finds the machinery **wired in and sufficient**, proving that what the gates
+> claim to check is actually checked. Context-free reviewers (ideally a model
+> switch, per the [dialectic principle](../ambient.md)) ask: "what does no gate
+> check, what is defined-but-unwired, what claim is hollow?" Their findings
+> route to follow-up nodes or recorded tech-debt before final acceptance.
+>
+> This campaign's own green CLOSE missed real holes — a new DAG format not
+> wired into any gate, a trusted cache, a rename blind spot — that a
+> decorrelated review then found. The gate suite was green; the machinery was
+> not sufficient. The dual closes the gap.
+>
+> The review verdict is adversarial-path (no machine can decide "is this gate
+> sufficient?"). The retrospective's "## Sufficiency Review" section is the
+> durable record; `ledger/gate/recorder_close_check.sh` verifies it was
+> recorded — a structural check, not a machine verdict on the review itself.
+
 ```
 CLOSE(dag, shared_branch):
+  # ── (a) Deterministic path: the full gate suite must exit green ──────────────
   assert  every finding is MITIGATED or human-accepted ACCEPTED_RISK
   assert  every node is ACCEPTED
-  run the full deterministic surface over shared_branch:
-      nix run nixpkgs#nickel -- export <every ledger example>     # all 0
-      ledger/gate/test_surface_protocol.sh                        # 0
-      ledger/gate/test_reconcile.sh                               # 0
-      gates/* and the discipline test suites                      # all 0
-  run ONE final decorrelated sweep (MBSS) over the cumulative diff for
-      cross-node integration drift no single boundary could see   # adversarial
+  run the full deterministic surface over shared_branch (gate suites,
+      nickel exports, adherence audit, linters — all 0)
+
+  # ── (b) Adversarial path: sufficiency review ─────────────────────────────────
+  dispatch decorrelated sufficiency review over the full gate surface:
+      "what does no gate check, what is defined-but-unwired,
+       what claim is hollow?"                                   # adversarial-path
+  route findings to follow-up nodes or tech-debt records before acceptance
+
+  # ── Integration-drift sweep (a separate adversarial-path check) ──────────────
+  run ONE final decorrelated MBSS sweep over the cumulative diff for
+      cross-node integration drift no single boundary could see # adversarial-path
+
+  # ── Retrospective and close record ───────────────────────────────────────────
+  emit the retrospective to .ledger/log/ (`log: close <topic> retrospective`);
+      the retrospective MUST include a "## Sufficiency Review" section
+      (reviewers, convergence verdict, and any findings routed to follow-up
+       nodes or tech-debt records — the durable trace of path (b))
+  ledger/gate/recorder_close_check.sh <topic>           # rc≠0 → HALT
+      # structural check: verifies BOTH the close entry AND its
+      # "## Sufficiency Review" section were recorded in the retrospective
+
   produce the campaign report from REVIEW.md -> outcomes
+  rm -f $root/.ledger/active-dag
   [HUMAN SEAM] HALT for human final acceptance and any git push (agents never
       push; remotes belong to the human — rules.md §3).
 ```
 
 The per-boundary coherence step (RECONCILE step 3) shrinks what CLOSE can find:
 if every boundary caught its own breakage, CLOSE's final sweep is a confirmation,
-not a rescue.
+not a rescue. The Dual-CLOSE Invariant closes the complementary gap: if the gate
+machinery itself is under-wired or covers less than it claims, a green sweep
+confirms nothing. Both paths must close.
 
 ---
 
@@ -348,6 +391,7 @@ ambiguity the formalization cannot remove:
 | Non-resolvable reserved halt | DISPATCH | A reserved predicate beyond surface-exceed / refuted-premise is, by definition of "reserved," a human escalation. |
 | Decision-rights realignment | REWORK/ESCALATE, REALIGN | When realigning needs a call outside the IBC's declared sovereignty gates. |
 | Non-converging adversarial review | RECONCILE step 3 | When decorrelated reviewers do not converge, the dual escalates to human (rules.md §1). |
+| Non-converging sufficiency review | CLOSE | When the sufficiency reviewers do not converge on a SUFFICIENT verdict, CLOSE cannot complete without human resolution of the open questions. |
 
 In an `AUTONOMOUS`-mode campaign these seams resolve by policy or escalate; in
 `INTERACTIVE` mode they surface to the person. Everything else — schedule

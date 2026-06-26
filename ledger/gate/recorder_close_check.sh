@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Recorder-close gate — deterministic audit that a campaign's CLOSE retrospective
-# was actually committed to the flight recorder.
+# was actually committed to the flight recorder, and that the retrospective
+# contains a "Sufficiency Review" section per the Dual-CLOSE Invariant.
 #
 # This gate exists because the durable narrative of a campaign is supposed to land
 # in the flight recorder (the .ledger subrepo, on the recorder's branch) at CLOSE,
@@ -12,6 +13,14 @@
 # indistinguishable by its OUTPUT from one that recorded it; it is distinguishable
 # by the recorder's HISTORY. This gate reads that history — the sibling of
 # adherence_audit.sh, which audits isolation from the integration branch's history.
+#
+# Dual-CLOSE Invariant (docs/orchestration-protocol.md §CLOSE): CLOSE terminates
+# only when BOTH (a) the full deterministic gate suite exits green AND (b) a
+# decorrelated sufficiency review finds the machinery wired in and sufficient.
+# The review verdict is adversarial-path (no machine can decide "is this gate
+# sufficient?"); this gate closes the structural half: was the review RECORDED?
+# A "## Sufficiency Review" section (reviewers + convergence + verdict) MUST
+# appear in at least one file touched by the close commit. Absence → FAIL.
 #
 # Usage:
 #   recorder_close_check.sh <topic> [recorder-dir]
@@ -64,33 +73,74 @@ if ! git -C "$recorder" rev-parse --git-dir >/dev/null 2>&1; then
 fi
 
 # ---------------------------------------------------------------------------
-# The check: a commit whose SUBJECT begins `log: close <topic>` must exist.
+# Check 1: a commit whose SUBJECT begins `log: close <topic>` must exist.
 # --grep matches against the whole message; anchoring with ^ and restricting the
 # format to the subject keeps the match to the subject line. <topic> is escaped so
 # regex metacharacters in a topic slug match literally.
 # ---------------------------------------------------------------------------
 topic_re="$(printf '%s' "$topic" | sed 's/[.[\*^$()+?{|]/\\&/g')"
 
-match="$(git -C "$recorder" log --all --grep="^log: close ${topic_re}" \
-  --format='%s' 2>/dev/null | grep -m1 "^log: close ${topic} " || true)"
+close_hash=""
+match=""
+
+line="$(git -C "$recorder" log --all --grep="^log: close ${topic_re}" \
+  --format='%H %s' 2>/dev/null | grep -m1 " log: close ${topic} " || true)"
 
 # Allow the bare `log: close <topic>` subject (no trailing text) too, not only the
 # `… retrospective` form, by re-checking without the trailing-space requirement
 # when the strict match found nothing.
+if [[ -z "$line" ]]; then
+  line="$(git -C "$recorder" log --all --grep="^log: close ${topic_re}\$" \
+    --format='%H %s' 2>/dev/null | head -n1 || true)"
+fi
+
+if [[ -n "$line" ]]; then
+  close_hash="${line%% *}"
+  match="${line#* }"
+fi
+
 if [[ -z "$match" ]]; then
-  match="$(git -C "$recorder" log --all --grep="^log: close ${topic_re}\$" \
-    --format='%s' 2>/dev/null | head -n1 || true)"
+  echo "FAIL  recorder-close: recorder has no 'log: close $topic' entry —" \
+    "the CLOSE retrospective was not recorded" >&2
+  echo "      Recorder: $recorder" >&2
+  echo "      CLOSE must not complete without committing the durable narrative to the" >&2
+  echo "      flight recorder (a 'log: close $topic …' commit). Record it, then re-run." >&2
+  exit 1
 fi
 
-if [[ -n "$match" ]]; then
-  echo "PASS  recorder-close: '$topic' has a CLOSE retrospective in the recorder"
-  echo "      $match"
-  exit 0
+echo "      recorder-close: '$topic' has a CLOSE entry in the recorder"
+echo "      $match"
+
+# ---------------------------------------------------------------------------
+# Check 2 (Dual-CLOSE Invariant): the retrospective MUST contain a
+# "## Sufficiency Review" section (reviewers + convergence + verdict).
+#
+# The review verdict is adversarial-path — no machine can decide whether the
+# gate machinery is sufficient. This gate closes the structural half: was the
+# review RECORDED? We inspect the content of every file touched by the close
+# commit, looking for a Markdown heading that begins "Sufficiency Review"
+# (any level: #, ##, ###). Presence is the structural check; quality is the
+# adversarial reviewer's job, not this gate's.
+# ---------------------------------------------------------------------------
+sufficiency_found=0
+while IFS= read -r fname; do
+  [[ -z "$fname" ]] && continue
+  content="$(git -C "$recorder" show "${close_hash}:${fname}" 2>/dev/null || true)"
+  if printf '%s\n' "$content" | grep -qiE '^#+[[:space:]]+Sufficiency Review'; then
+    sufficiency_found=1
+    break
+  fi
+done < <(git -C "$recorder" show --name-only --format='' "$close_hash" 2>/dev/null)
+
+if [[ "$sufficiency_found" -eq 0 ]]; then
+  echo "FAIL  recorder-close: '$topic' close record is missing a 'Sufficiency Review' section —" >&2
+  echo "      CLOSE requires a decorrelated adversarial review of machinery sufficiency" >&2
+  echo "      (Dual-CLOSE Invariant, docs/orchestration-protocol.md §CLOSE), not only" >&2
+  echo "      that gate checks pass. The retrospective must contain a '## Sufficiency" >&2
+  echo "      Review' section documenting reviewers, their convergence, and the verdict." >&2
+  echo "      Add it to the retrospective and re-run." >&2
+  exit 1
 fi
 
-echo "FAIL  recorder-close: recorder has no 'log: close $topic' entry —" \
-  "the CLOSE retrospective was not recorded" >&2
-echo "      Recorder: $recorder" >&2
-echo "      CLOSE must not complete without committing the durable narrative to the" >&2
-echo "      flight recorder (a 'log: close $topic …' commit). Record it, then re-run." >&2
-exit 1
+echo "PASS  recorder-close: '$topic' retrospective includes a Sufficiency Review section"
+exit 0

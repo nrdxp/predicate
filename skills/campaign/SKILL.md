@@ -352,26 +352,46 @@ breaches and appetite exhaustion route to the human (`HALT`).
 
 ### 8. CLOSE
 
+> [!IMPORTANT]
+> **Dual-CLOSE Invariant.** CLOSE requires two paths to close — not one.
+> **(a)** the full deterministic gate suite exits green; **(b)** a
+> decorrelated, context-free adversarial sufficiency review finds the
+> machinery wired in and sufficient. A green gate suite is necessary but
+> not sufficient: it proves execution, not coverage. The procedure is
+> [docs/orchestration-protocol.md §CLOSE](../../docs/orchestration-protocol.md#close).
+
 When all findings are `MITIGATED` or human-accepted as `ACCEPTED_RISK`
 and the DAG is complete:
 
 1. Run the full deterministic verification surface (complete test suite,
    linters, proof checkers where present) — the commit-gate scope, not
-   the targeted-loop scope.
+   the targeted-loop scope. **(Dual-CLOSE path (a).)**
 2. Run one final adversarial sweep (MBSS) over the campaign's cumulative
    diff to catch cross-node integration drift no single worker could see.
-3. **Emit a retrospective to the flight recorder** (`.ledger/log/`) before
+3. **Run the sufficiency review.** **(Dual-CLOSE path (b).)** Dispatch
+   decorrelated, context-free reviewers to audit whether the gate
+   machinery is wired in and sufficient. Their question: "what does no
+   gate check, what is defined-but-unwired, what claim is hollow?" Route
+   findings to follow-up nodes or tech-debt records before acceptance.
+   When reviewers do not converge on a SUFFICIENT verdict, escalate to the
+   human — this is a `[HUMAN SEAM]` at CLOSE.
+4. **Emit a retrospective to the flight recorder** (`.ledger/log/`) before
    presenting the report to the human. The retrospective captures the
    hard-won context that survives context loss and compaction. It MUST
    include: original goal and what actually landed; execution-model and
    intellectual-capital lessons (surprises, realignments, what the initial
    DAG missed); open watch-items or residual risks; a durability map
-   (which artifacts are durable, which scratch is disposable). Commit it
-   in the `.ledger/` subrepo tagged `log: close <topic> retrospective`.
-4. Produce the campaign report from `REVIEW.md` → outcomes: findings
+   (which artifacts are durable, which scratch is disposable); and a
+   **`## Sufficiency Review` section** (reviewers, convergence verdict,
+   and any findings routed to follow-up nodes or tech-debt records — the
+   durable trace of path (b)). Commit in the `.ledger/` subrepo tagged
+   `log: close <topic> retrospective`. The `recorder_close_check` gate
+   verifies BOTH the close entry and the `## Sufficiency Review` section
+   were recorded.
+5. Produce the campaign report from `REVIEW.md` → outcomes: findings
    table with mitigation evidence, DAG execution trace, reconcile rounds,
    realignments, residual risks.
-5. **HALT for human final acceptance.** Scratch MAY then be discarded;
+6. **HALT for human final acceptance.** Scratch MAY then be discarded;
    the sketch and git history carry the durable record.
 
 ---
@@ -392,7 +412,16 @@ and the DAG is complete:
    retrospective to the flight recorder (`.ledger/log/`). Every campaign's
    hard-won context — what landed vs the goal, execution-model lessons,
    open watch-items, durability map — must survive context loss. The
-   retrospective is a `CLOSE` step, not an afterthought.
+   retrospective is a `CLOSE` step, not an afterthought. The retrospective
+   MUST include a `## Sufficiency Review` section (reviewers, convergence,
+   verdict) — without it, `recorder_close_check` fails and CLOSE cannot
+   complete.
+9. **DUAL_CLOSE:** A CLOSE that runs only the deterministic gate suite is
+   incomplete. CLOSE terminates only when BOTH (a) the full gate suite
+   exits green AND (b) a decorrelated sufficiency review finds the
+   machinery wired in and sufficient. A green gate proves execution; it
+   cannot prove coverage. Procedure:
+   [docs/orchestration-protocol.md §CLOSE](../../docs/orchestration-protocol.md#close).
 3. **ARCHITECT_AS_JUDGE:** No worker output is accepted without a
    `RECONCILE` judgment grounded in re-run evaluators. Worker
    self-certification is void.
