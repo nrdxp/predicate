@@ -296,7 +296,12 @@ complexity — a simple question gets a direct answer, not headers and sections.
 
 These are capability guidance, not standing constraints — leverage what the active
 harness provides; a tool named in a skill or task IBC takes precedence where more
-precise.
+precise. One standing constraint governs all of them: **degrade to the primitive**
+— every capability MUST reduce to a harness-native primitive
+(`git`/`bash`/`python`/`nickel`); a harness convenience MAY accelerate a step but
+never *replaces* the primitive path when it is absent or fails. Know the fallback
+before depending on the convenience; a capability you cannot perform without a
+specific harness feature is a hidden hard dependency, not a capability.
 
 - **Live in-session tracking.** Use the harness's native methods for the live,
   in-session view of ongoing work. This is a synchronous, ephemeral mirror of the
