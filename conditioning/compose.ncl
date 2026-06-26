@@ -17,7 +17,7 @@
 #   echo '(import "compose.ncl").architect' \
 #     | nix run nixpkgs#nickel -- export --format text
 #
-# VERIFIED NICKEL IDIOMS (1.17.0)
+# VERIFIED NICKEL IDIOMS (1.14.0 — the project's pinned nickel)
 # --------------------------------
 #   String concat:  ++
 #   Import:         import "relative/path.ncl"

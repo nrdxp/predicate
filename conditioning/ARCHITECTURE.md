@@ -77,18 +77,31 @@ conditioning/
 
 **`core.ncl`** (authored by: `invariant-core` node)
 
-- Must export a single `String` value — the complete invariant-core prose.
-- Contents: the Prime Invariants (rules.md §2) + always-on ambient dispositions
-  (intent-reconstruction, verify-everything / trust-boundary, outward-search,
-  candor, focus-selector) + the ported default floor (scope discipline, dual-use
-  refusal, commit-only-when-authorized, outcome-first / live-update comms,
-  code-edit floor).
-- MINIMALITY CONSTRAINT: small. Not all of rules.md + ambient.md — law only.
-  Detailed skills stay routed-by-moment, not injected. Rationale: injecting
-  the full ambient mass silences the persona's focus (conditioning-layer.md
-  §minimality constraint). Rule: if an item binds EVERY walker regardless of
-  discipline, it belongs in core; if it only applies to some roles, it belongs
-  in the persona overlay.
+- Must export a single `String` value — the complete behavioral-law prose. This
+  is the **full replacement** for the harness default behavioral block (Claude
+  Code output style, `keep-coding-instructions: false`), not an append.
+- Contents: the Prime Invariants (rules.md §2) + the promoted constitution
+  principles (Truth>Harmony, Evidence>Authority, Halt>Assumption,
+  Outcomes>Process) + the promoted SWE discipline (engineering code-edit floor +
+  verification protocol + commit gate) + the always-on ambient dispositions
+  (intent-reconstruction, the Discovery sweep, verify-everything / trust-boundary,
+  outward-search, focus-selector, candor) + the derived comms/action principles
+  (minimal representation, action caution, outcome-first) + the ported default
+  floor (scope discipline, dual-use refusal, commit-only-when-authorized,
+  absorbed CLAUDE.md overrides) + the harness-capability instructions (live
+  tracking, structured queries).
+- MINIMALITY CONSTRAINT, recalibrated: **principles always-on; procedures
+  by-moment.** The old rule ("core = law only, SWE stays a routed skill") is
+  WRONG now that the harness's own SWE block is disabled — leaving SWE
+  routed-by-moment would open a coverage gap the default no longer fills. So the
+  *principles* of constitution and engineering promote into core; their *detailed
+  procedures* (the by-moment reference halves of those skills, plus every
+  workflow skill) stay routed-by-moment, not injected. Rationale: injecting full
+  procedural mass silences the persona's focus (conditioning-layer.md §minimality
+  constraint), but omitting a binding principle leaves drift uncorrected. Rule:
+  if a *principle* binds EVERY walker regardless of discipline, it belongs in
+  core; if it is a *procedure* or applies only to some roles, it stays a skill or
+  a persona overlay.
 - Export form: `nickel export --format text conditioning/core.ncl` → a plain
   string, ready to concatenate.
 
@@ -389,8 +402,11 @@ Each downstream node can verify it is building against the right slot:
 - [ ] Top-level value is a `String` (not a record).
 - [ ] `nickel export --format text conditioning/core.ncl` exits 0 and emits
       non-empty prose.
-- [ ] Contents: Prime Invariants + always-on ambient dispositions + ported floor.
-- [ ] Does NOT include any role-specific workflow or discipline-specific content.
+- [ ] Contents: Prime Invariants + promoted constitution & SWE *principles* +
+      always-on ambient dispositions (incl. the Discovery sweep) + derived
+      comms/action principles + ported floor + harness-capability instructions.
+- [ ] Carries promoted *principles* but NOT *procedures*: no role-specific
+      persona content, no by-moment workflow procedure (those stay skills).
 
 **`personas` node** — writes `conditioning/personas/<role>.ncl` for each role:
 - [ ] Each file's top-level value is a `String`.
