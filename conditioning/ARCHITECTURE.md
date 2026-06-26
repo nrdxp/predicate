@@ -282,87 +282,55 @@ let HasCore = std.contract.from_predicate
 
 ---
 
-## 5. Harness-Agnostic Delivery
+## 5. Native Delivery
 
-### The Arsenal-Class Ladder (P-ARSENAL instance)
+`install.sh` materializes the generated prompts into each harness's **native
+system-prompt surface** at install time. No runtime tier-probing, no per-launch
+flag injection. Adding a harness = one install branch in `install.sh`;
+`compose.ncl` is unchanged.
 
-Injection is an instance of P-ARSENAL's `conditioning-surface` class (bias:
-`strongest`). The ladder is a graceful degradation sequence; `install.sh`
-discovers the best available surface at runtime — it does NOT pre-encode
-per-harness mechanisms.
+### Per-Harness Surfaces
 
-```
-Tier 1 — system prompt (strongest)
-  Claude Code:  --append-system-prompt "<prompt>"  (per-launch)
-                output-style persistent install     (session-level)
-  API callers:  system parameter
-  agy:          --system-prompt "<prompt>"          (per-launch)
+**Claude Code** — two surfaces:
 
-Tier 2 — globally-read rules file (just under system prompt)
-  Claude Code:  CLAUDE.md managed block (@-import)  ← current predicate fallback
-  Cursor:       .cursorrules
-  Generic:      AGENTS.md prepend section
+- **Output style** → `~/.claude/output-styles/predicate-architect.md`
+  Frontmatter `keep-coding-instructions: false` empties Claude Code's built-in
+  software-engineering block while preserving tool definitions, environment info,
+  agent identity, and safety scaffolding. The markdown body is appended to the
+  system prompt, so predicate's law becomes the behavioral half with nothing
+  contradicting underneath.
+- **Worker agents** → `~/.claude/agents/predicate-<role>.md` (one file per
+  worker role; the six roles are `core-worker`, `refine-worker`, `doc-worker`,
+  `form-worker`, `spec-worker`, `boundary-worker`). The agent body becomes that
+  subagent's full system prompt — a convenience cache. The architect may also
+  inject a freshly generated persona dynamically via the native subagent path.
 
-Tier 3 — initial-prompt prepend (last resort)
-  agy:          --prompt-interactive "SYSTEM:\n<prompt>\n\nTASK:\n<IBC>"
-  Any harness:  prepend the generated prompt to the first user turn
-```
+**agy** — one managed block:
 
-Predicate's current `CLAUDE.md @import` is the Tier 2 fallback — the campaign
-adds Tier 1 above it where available. Tier 2 remains the graceful floor.
+- **GEMINI.md** → `~/.gemini/GEMINI.md`
+  A managed block (between `# >>> predicate conditioning block >>>` sentinels)
+  is injected into the system prompt. User content outside the block is preserved
+  on re-install. No persistent worker surface: agy generates worker personas from
+  the same source at launch.
 
-Discovery at runtime: `install.sh` probes the environment for harness
-capabilities (e.g. `claude --help | grep append-system-prompt`) and selects
-the highest available tier. Adding a harness = one thin detection + install
-branch in `install.sh`; `compose.ncl` is unchanged.
+### Regeneration
 
-### Two Injection Modes
-
-Both modes share the same `compose.ncl` output and the same ladder.
-
-**Mode A — Persistent Install (session-level)**
-
-Use for: the human's own sessions; the architect character.
+The install regenerates every prompt from source (`compose.ncl`) on every run —
+no stale committed copy. The orchestrator generates fresh per-role prompts at
+dispatch time using the same `nickel export` call:
 
 ```bash
-# install.sh persistent install (pseudocode — injection node authors the real impl)
-PROMPT=$(nickel export --format text -I conditioning/ conditioning/compose.ncl \
-           -- --override "role=\"$ROLE\"")
-
-# Tier 1 available (Claude Code output-style / CLAUDE.md managed block)?
-#   → write prompt to the harness's persistent system surface
-# Tier 2 only?
-#   → write to CLAUDE.md managed block
-```
-
-The install regenerates the prompt from source on every run, so the installed
-copy is always current with `core.ncl` and persona edits.
-
-**Mode B — Per-Launch Injection (worker dispatch)**
-
-Use for: orchestrator dispatching a worker node at a specific discipline tier.
-
-```bash
-# Orchestrator dispatch pattern (pseudocode)
+# Per-role prompt generation (canonical call)
 PROMPT=$(nickel export --format text -I conditioning/ conditioning/compose.ncl \
            -- --override "role=\"refine-worker\"")
-
-# Claude Code (Tier 1 available):
-claude --append-system-prompt "$PROMPT" --model <tier> \
-  --prompt-interactive "$(cat node_ibc.md)"
-
-# agy (Tier 1 available):
-agy --system-prompt "$PROMPT" --model <tier> \
-  --prompt-interactive "$(cat node_ibc.md)"
-
-# Tier 1 unavailable (agy without --system-prompt support):
-agy --model <tier> \
-  --prompt-interactive "SYSTEM CONDITIONING:\n$PROMPT\n\n---\nTASK:\n$(cat node_ibc.md)"
 ```
 
-Generation is on-launch (`nickel export` is cheap — no stale installed copy
-in the per-launch mode). The role is chosen at dispatch time by the
-orchestrator; the surface is discovered at dispatch time by `install.sh`.
+### Activation Note
+
+Writing the output-style file does not by itself select it. To make predicate
+the active behavioral law for Claude Code sessions, the harness must select the
+style (`/output-style` or `"outputStyle": "Predicate Architect"` in
+`settings.json`). That step belongs to bootstrap, not to this generator.
 
 ---
 
@@ -373,7 +341,7 @@ orchestrator; the surface is discovered at dispatch time by `install.sh`.
 | ONE `core.ncl`, never copied | conditioning-layer.md §composition stack | Generate-don't-copy; verbatim contract closes drift |
 | Thin persona overlays (not full prompts) | conditioning-layer.md §2, S7 | Over-ceremony dilutes persona focus; core injected by generator |
 | Nickel is the generator, bash only at effect boundary | conditioning-layer.md §on disk, IBC K10 | Functional-core / imperative-shell; composition stays pure |
-| Injection as P-ARSENAL ladder, not per-harness adapter | conditioning-layer.md §injection mechanism, primitives-spec.md §P-ARSENAL | Harness-agnostic; new harness = one detection branch |
+| Native delivery surfaces, not a runtime-probed adapter ladder | conditioning-layer.md §delivery | Each harness gets one install branch; `compose.ncl` is unchanged and harness-agnostic |
 | `std.string.contains` for injection-rule contract | Nickel 1.17.0 stdlib (verified) | Verbatim substring check; export fails on violation |
 | `++` for string concatenation | Nickel 1.17.0 syntax (verified) | Native operator; arrays use `@` but strings use `++` |
 | Per-role record fields in `compose.ncl`, not a parameterized function | Nickel export model | `nickel export --format text` emits a String; a record keyed by role lets callers access fields via wrapper or customize mode |
@@ -383,14 +351,14 @@ orchestrator; the surface is discovered at dispatch time by `install.sh`.
 
 ## 7. Reserved Halts (Inherited from IBC)
 
-**HALT condition:** if harness-agnostic injection cannot be expressed as the
-arsenal-class ladder above (a harness requires pre-encoding its mechanism into
-`compose.ncl` or a separate adapter file) → report to architect. This would
-break the harness-agnostic premise.
+**HALT condition:** if a new harness cannot be served by an install-time branch
+in `install.sh` (i.e. it requires modifying `compose.ncl` itself or shipping a
+separate adapter binary) → report to architect. This would break the
+harness-agnostic-generator premise.
 
-**Current status:** the ladder as specified handles Claude Code, agy, and the
-generic API case. No halt triggered. U-HARNESS is dissolved (conditioning-
-layer.md §known-unknowns): injection is discovery-at-runtime, not pre-encoding.
+**Current status:** the native delivery model handles Claude Code and agy. No
+halt triggered. U-HARNESS is dissolved: injection is install-time native surface
+writing, not runtime adapter dispatch.
 
 ---
 
@@ -425,5 +393,5 @@ Each downstream node can verify it is building against the right slot:
       violation (verify by running the bad case manually).
 - [ ] `install.sh` treats non-zero `nickel export` exit as fatal (no harness
       surface written).
-- [ ] `install.sh` probes for Tier 1 capability before falling back to Tier 2.
+- [ ] `install.sh` writes native surfaces (output style + worker agents for Claude Code; GEMINI.md managed block for agy).
 - [ ] `install.sh` regenerates the prompt from source on every persistent install.

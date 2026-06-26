@@ -55,21 +55,27 @@ The `claude` CLI must be on your `PATH`; if it is not, install
 so the `install` phase symlinks the checkout into its plugins directory under
 `~/.gemini/antigravity-cli/plugins/predicate`.
 
-In both cases, `install` then installs the always-on conditioning output style:
-Predicate ships a conditioning layer (`conditioning/`) that generates a structured
-system prompt for each role. The generator (`conditioning/compose.ncl`) composes
-`invariant-core ++ persona(role)` and enforces a contract (`HasCore`) that makes
-it structurally impossible for any harness adapter or persona to drop the
-always-on law. The `install` phase delivers this as an **output style that
-replaces the harness default**: it writes the generated prompt to
-`conditioning/generated/` and wires it via `--append-system-prompt` (Tier 1, when
-the CLI supports it), or falls back to inlining the prompt inside a conditioning
-managed block directly in CLAUDE.md (Tier 2). The `--append-system-prompt` flag
-is also the **per-launch** adapter path used by `conditioning/adapters/claude.sh`
-when an orchestrator spawns a worker. The orchestrator uses the same generator at
-dispatch time, selecting the appropriate role. See
-[conditioning-layer.md](conditioning-layer.md) for the composition contract and
-the harness-agnostic injection ladder.
+After registering the plugin, `install` delivers the always-on conditioning
+layer natively into each harness. Predicate ships a conditioning layer
+(`conditioning/`) that generates a structured system prompt for each role.
+The generator (`conditioning/compose.ncl`) composes `invariant-core ++
+persona(role)` and enforces a contract (`HasCore`) that makes it structurally
+impossible for any persona to drop the always-on law. The `install` phase
+materializes the generated prompts into each harness's **native system-prompt
+surface** at install time:
+
+- **Claude Code** — writes an output style to
+  `~/.claude/output-styles/predicate-architect.md` (frontmatter
+  `keep-coding-instructions: false`, which empties Claude Code's built-in
+  software-engineering block while preserving tool definitions, environment
+  info, agent identity, and safety scaffolding). It also materializes every
+  worker permutation as a subagent under `~/.claude/agents/predicate-<role>.md`
+  (the subagent body becomes that role's full system prompt).
+- **agy** — writes the architect law as a managed block into
+  `~/.gemini/GEMINI.md`.
+
+See [conditioning-layer.md](conditioning-layer.md) for the composition contract
+and delivery details.
 
 The output style is the single always-on surface. No `@import` of `rules.md` or
 `ambient.md` is written to CLAUDE.md; `rules.md` is the authoritative source for
@@ -191,11 +197,12 @@ Confirm your agent runner detects and loads the Predicate configuration.
 1. **Verify the registration**: For Claude Code, run `claude plugin list` and
    confirm `predicate@predicate` appears, enabled. The skills surface under the
    `predicate:` namespace.
-2. **Verify the conditioning output style**: Check that `conditioning/generated/architect.md`
-   exists under your Predicate checkout (Tier 1 install). For a Tier 2 install,
-   check that your global `CLAUDE.md` contains the conditioning managed block
-   (between the `# >>> predicate conditioning block >>>` sentinels). A new session
-   receives the invariant core via this conditioning prompt.
+2. **Verify the conditioning output style**: For Claude Code, check that
+   `~/.claude/output-styles/predicate-architect.md` exists and that worker
+   agents appear under `~/.claude/agents/predicate-<role>.md`. For agy, check
+   that `~/.gemini/GEMINI.md` contains the predicate managed block (between the
+   `# >>> predicate conditioning block >>>` sentinels). A new session receives
+   the invariant core via the installed native surface.
 3. **Verify the skills list**: When you launch your runner, the startup metadata's
    **Available skills** block should list the Predicate skills (`constitution`,
    `engineering`, a language skill such as `rust` or `go`, and a workflow such as

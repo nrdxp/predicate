@@ -215,75 +215,38 @@ Core appears first by construction (`core_text ++ "\n\n" ++ persona_overlay`).
 (functional-core / imperative-shell). It discovers the best available conditioning
 surface at runtime and writes the generated prompt there.
 
-### The injection-surface ladder
+### Native delivery surfaces
 
-Injection is an instance of the P-ARSENAL `conditioning-surface` capability class
-(bias: `strongest`; see [`primitives.md`](primitives.md)). The ladder is a graceful
-degradation sequence:
+`install.sh` materializes the generated prompts into each harness's **native
+system-prompt surface** at install time — no runtime probing, no per-launch
+flag injection. Adding a new harness = one install branch in `install.sh`;
+`compose.ncl` is unchanged.
 
-```
-Tier 1 — system prompt (strongest)
-  Claude Code:   --append-system-prompt "<prompt>"  (per-launch)
-                 output-style persistent install     (session-level)
-  API callers:   system parameter
-  agy:           --system-prompt "<prompt>"          (per-launch)
+**Claude Code** — two surfaces are written:
 
-Tier 2 — globally-read rules file (just under system prompt)
-  Claude Code:   CLAUDE.md managed block (@-import)  ← current predicate fallback
-  Cursor:        .cursorrules
-  Generic:       AGENTS.md prepend section
+- **Output style** → `~/.claude/output-styles/predicate-architect.md`
+  Frontmatter `keep-coding-instructions: false` empties Claude Code's built-in
+  software-engineering block while preserving tool definitions, environment info,
+  agent identity, and safety scaffolding. The markdown body is appended to the
+  system prompt, so predicate's law becomes the behavioral half with nothing
+  contradicting underneath.
+- **Worker agents** → `~/.claude/agents/predicate-<role>.md` (one file per
+  worker role: `core-worker`, `refine-worker`, `doc-worker`, `form-worker`,
+  `spec-worker`, `boundary-worker`). The agent body becomes that subagent's full
+  system prompt — a convenience cache; the architect may also inject a freshly
+  generated persona dynamically via the native subagent path.
 
-Tier 3 — initial-prompt prepend (last resort)
-  agy:           --prompt-interactive "SYSTEM:\n<prompt>\n\nTASK:\n<IBC>"
-  Any harness:   prepend the generated prompt to the first user turn
-```
+**agy** — one managed block is written:
 
-Predicate's current `CLAUDE.md @import` is the Tier 2 fallback. The conditioning
-layer adds Tier 1 above it where available; Tier 2 remains the graceful floor.
+- **GEMINI.md** → `~/.gemini/GEMINI.md`
+  A managed block (between `# >>> predicate conditioning block >>>` sentinels)
+  is appended into the system prompt. User content outside the block is
+  preserved on re-install.
 
-`install.sh` probes for Tier 1 capability at runtime
-(e.g. `claude --help | grep append-system-prompt`) and selects the highest
-available tier. Adding a new harness = one thin detection + install branch in
-`install.sh`; `compose.ncl` is unchanged.
-
-### Two injection modes
-
-Both modes share the same `compose.ncl` output and the same ladder.
-
-**Mode A — Persistent install (session-level).** For the human's own sessions and
-the architect character. The install regenerates the prompt from source on every
-run, so the installed copy is always current.
-
-```bash
-PROMPT=$(nickel export --format text -I conditioning/ \
-           --field architect conditioning/compose.ncl)
-# install.sh writes PROMPT to the best available persistent surface
-```
-
-**Mode B — Per-launch injection (worker dispatch).** For the orchestrator
-dispatching a worker node at a specific discipline tier. Generation is on-launch
-(no stale installed copy):
-
-```bash
-PROMPT=$(nickel export --format text -I conditioning/ \
-           --field 'refine-worker' conditioning/compose.ncl)
-
-# Claude Code (Tier 1):
-claude --append-system-prompt "$PROMPT" --model <tier> \
-  --prompt-interactive "$(cat node_ibc.md)"
-
-# agy (Tier 1):
-agy --system-prompt "$PROMPT" --model <tier> \
-  --prompt-interactive "$(cat node_ibc.md)"
-
-# Tier 1 unavailable:
-agy --model <tier> \
-  --prompt-interactive "SYSTEM CONDITIONING:\n$PROMPT\n\n---\nTASK:\n$(cat node_ibc.md)"
-```
-
-The role is chosen at dispatch time by the orchestrator; the surface is discovered
-at dispatch time by `install.sh`. Both vary per launch — this is the "dynamic" in
-dynamic harness wiring.
+The install regenerates prompts from source on every run (no stale committed
+copy). The role chosen per surface is fixed at install time for persistent
+surfaces; the orchestrator generates fresh per-role prompts at dispatch time
+using the same `compose.ncl` call.
 
 ---
 
@@ -294,7 +257,7 @@ dynamic harness wiring.
 | ONE `core.ncl`, never copied | Generate-don't-copy; verbatim injection contract closes drift |
 | Thin persona overlays (not full prompts) | Over-ceremony dilutes persona focus; core injected by generator |
 | Nickel is the generator, bash only at effect boundary | Functional-core / imperative-shell; composition stays pure and testable |
-| Injection as arsenal-class ladder, not per-harness adapter | Harness-agnostic; new harness = one detection branch, `compose.ncl` unchanged |
+| Native delivery surfaces, not a runtime-probed adapter ladder | Each harness gets one install branch; `compose.ncl` is unchanged and harness-agnostic |
 | `std.string.contains` for injection-rule contract | Verbatim substring check; export fails on violation |
 | `++` for string concatenation | Native Nickel operator (arrays use `@`, strings use `++`) |
 | Per-role record fields in `compose.ncl` | `nickel export --format text` emits a String; a keyed record lets callers access fields cleanly |
