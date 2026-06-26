@@ -91,18 +91,23 @@ invariant-core is injected *verbatim* — the injection-rule contract in
 
 `conditioning/core.ncl` — the single source of truth for role-independent law.
 
-**Contents:** the framework's Prime Invariants + the always-on ambient
-dispositions (intent-reconstruction, verify-everything, outward-search reflex,
-candor obligation, focus-level selector) + the ported default floor (scope
-discipline, dual-use refusal, commit-only-when-authorized, outcome-first comms,
-code-edit floor).
+**Contents:** Prime Invariants + promoted constitution principles (Truth>Harmony,
+Evidence>Authority, Halt>Assumption, Outcomes>Process) + promoted SWE discipline
+(commit gate hard-rails, verification protocol, code-edit floor) + always-on
+ambient dispositions (intent-reconstruction, Discovery sweep, outward-search
+reflex, focus before ceremony, candor, minimal representation) + action caution
+(side-effect discipline) + external-source trust boundary + dual-use security
+floor + outcome-first communication + harness-capability instructions (live
+tracking, structured queries, worker dispatch) + address the human by name.
 
-**Minimality constraint (load-bearing).** The injected core is deliberately small.
-Injecting the entire ruleset dilutes the persona's focus — the over-ceremony
-failure. Detailed skill procedures stay routed-by-moment (loaded on demand), never
-injected. The selection criterion: if an item binds every walker regardless of
-discipline, it belongs in core; if it applies only to some roles, it belongs in
-the persona overlay.
+**Minimality constraint (load-bearing), recalibrated.** The injected core is
+deliberately bounded. Injecting the entire ruleset dilutes the persona's focus —
+the over-ceremony failure. The selection criterion: **principles always-on;
+procedures by-moment.** If a *principle* binds every walker regardless of
+discipline, it belongs in core. If it is a *procedure* or applies only to some
+roles, it stays a skill or persona overlay — even when that procedure applies to
+all roles. Detailed workflow procedures stay routed-by-moment (loaded on demand),
+never injected.
 
 This is the principle "when context is scarce, the Prime Invariants are what
 survive" made structural rather than aspirational.
@@ -273,4 +278,4 @@ using the same `compose.ncl` call.
 | `conditioning/core.ncl` | The ONE invariant-core source |
 | `conditioning/personas/*.ncl` | Thin role deltas (one per role) |
 | `conditioning/compose.ncl` | Generator + injection-rule contract |
-| `conditioning/install.sh` | Effect boundary — delivers via the ladder |
+| `conditioning/install.sh` | Effect boundary — delivers to native harness surfaces |
