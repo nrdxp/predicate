@@ -207,7 +207,7 @@ REAL_PREDICATE_AFTER=$(
   find "$REAL_HOME/.claude" -name "predicate-*.md" 2>/dev/null | sort
 )
 assert_pass "real ~/.claude: no new predicate-*.md files introduced by test" \
-  bash -c "[ \"$(printf '%s' '$REAL_PREDICATE_BEFORE')\" = \"$(printf '%s' '$REAL_PREDICATE_AFTER')\" ]"
+  test "$REAL_PREDICATE_BEFORE" = "$REAL_PREDICATE_AFTER"
 
 echo "  INFO: real ~/.claude predicate files before: $(printf '%s\n' "$REAL_PREDICATE_BEFORE" | wc -l | tr -d ' ') found"
 echo "  INFO: real ~/.claude predicate files after:  $(printf '%s\n' "$REAL_PREDICATE_AFTER"  | wc -l | tr -d ' ') found"

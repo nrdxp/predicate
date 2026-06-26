@@ -5,8 +5,8 @@
 > defined here are fixed before `invariant-core`, `personas`, and `injection`
 > author their content — preventing copy-paste spaghetti by construction.
 >
-> Sources: `conditioning-layer.md` (§composition stack, §dynamic harness
-> wiring, §injection mechanism); `primitives-spec.md` (§P-COMPOSE, §P-ARSENAL).
+> Sources: `conditioning-layer.md` (§composition stack, §injection-rule contract,
+> §delivery); `docs/primitives.md` (§P-COMPOSE, §P-ARSENAL).
 
 ---
 
@@ -345,7 +345,7 @@ style (`/output-style` or `"outputStyle": "Predicate Architect"` in
 | `std.string.contains` for injection-rule contract | Nickel 1.17.0 stdlib (verified) | Verbatim substring check; export fails on violation |
 | `++` for string concatenation | Nickel 1.17.0 syntax (verified) | Native operator; arrays use `@` but strings use `++` |
 | Per-role record fields in `compose.ncl`, not a parameterized function | Nickel export model | `nickel export --format text` emits a String; a record keyed by role lets callers access fields via wrapper or customize mode |
-| Generate on every launch, no caching | conditioning-layer.md §dynamic harness wiring | Always current; `nickel export` is cheap |
+| Generate on every launch, no caching | conditioning-layer.md §delivery | Always current; `nickel export` is cheap |
 
 ---
 
