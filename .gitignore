@@ -14,3 +14,8 @@ __pycache__/
 # written by cmd_authorize (now removed). The rule is scoped to ledger/fixtures/
 # so legitimate JSON elsewhere in the repo is unaffected.
 ledger/fixtures/*.json
+
+# Conditioning prompts are generated at install time into the harness's own dirs
+# (~/.claude, ~/.gemini), never in-tree. A stray conditioning/generated/ is a
+# leftover of the retired in-tree generation path and must not be committed.
+conditioning/generated/
