@@ -159,19 +159,36 @@ inject_conditioning() {
     return 0
   fi
   echo "install: running conditioning delivery for role=architect ..."
-  # Pass the harness hint so conditioning/install.sh does not re-detect.
-  # Map bootstrap harness names → conditioning harness names (additive surface).
+  # For claude-code: let conditioning auto-detect Tier 1 vs Tier 2 (probes
+  # whether the CLI supports --append-system-prompt at runtime). Passing
+  # --harness claude-code explicitly would short-circuit that probe and force
+  # Tier 2 even on a Tier-1-capable installation. For antigravity the mapping
+  # is unambiguous (always generic), so we carry it through.
   local cond_harness=""
   case "$harness" in
-    claude-code) cond_harness="claude-code" ;;
     antigravity) cond_harness="generic" ;;
-    *)           cond_harness="" ;;
+    # claude-code: intentionally absent — conditioning auto-detects Tier 1 / Tier 2.
   esac
   local extra_args=()
   [ -n "$cond_harness" ] && extra_args=(--harness "$cond_harness")
   PREDICATE_SRC="$plugin_src" bash "$conditioning_sh" \
     --role architect "${extra_args[@]+"${extra_args[@]}"}" \
     || echo "install: conditioning delivery exited non-zero (non-fatal; Tier 2 @import still active)." >&2
+}
+
+# --- conditioning teardown (called from phase_uninstall) ---------------------
+# Symmetric counterpart to inject_conditioning: strips the conditioning managed
+# block from CLAUDE.md and removes conditioning/generated/.  Non-fatal if
+# conditioning/install.sh is absent (nothing to undo).
+remove_conditioning() {
+  local conditioning_sh="$plugin_src/conditioning/install.sh"
+  if [ ! -f "$conditioning_sh" ]; then
+    echo "uninstall: conditioning/install.sh not found; skipping conditioning teardown." >&2
+    return 0
+  fi
+  echo "uninstall: running conditioning teardown ..."
+  PREDICATE_SRC="$plugin_src" bash "$conditioning_sh" --uninstall \
+    || echo "uninstall: conditioning teardown exited non-zero (non-fatal)." >&2
 }
 
 # --- phase: install (GLOBAL, once) -------------------------------------------
@@ -405,6 +422,9 @@ phase_uninstall() {
   else
     echo "uninstall: $claude_md does not exist (already clean)."
   fi
+
+  # Strip the conditioning managed block from CLAUDE.md (symmetric to inject_conditioning).
+  remove_conditioning
 
   # Deregister the plugin for the detected harness.
   case "$harness" in

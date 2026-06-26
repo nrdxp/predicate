@@ -13,10 +13,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # `nickel` is the only non-standard dependency; the gate machinery
-      # resolves it via `nickel` XOR `nix run nixpkgs#nickel`. Installing it
-      # onto PATH via Nix lets the suites use it directly (no per-call flake
-      # eval). python3, bash, and git are preinstalled on ubuntu-latest.
+      # `nickel` is the only non-standard dependency. It is installed onto PATH
+      # via Nix; the gate machinery calls `nickel` directly (no nix-run fallback
+      # — shell.nix provides nickel 1.14.0 for local dev; CI installs it via nix
+      # profile). python3, bash, and git are preinstalled on ubuntu-latest.
       - uses: DeterminateSystems/nix-installer-action@main
       - name: install nickel
         run: nix profile install nixpkgs#nickel
@@ -28,12 +28,16 @@ jobs:
           bash ledger/gate/test_surface_protocol.sh
           bash ledger/gate/test_gates.sh
           bash ledger/gate/test_adherence.sh
+          bash ledger/gate/test_project_gates.sh
 
       - name: contract typecheck (all ledger/contracts/*.ncl)
         run: bash ledger/gate/test_contract_typecheck.sh
 
-      - name: fixture polarity sweep (all ledger/fixtures/*.ncl)
+      - name: fixture polarity sweep (all ledger/fixtures/*.ncl + *.yaml)
         run: bash ledger/gate/test_fixture_sweep.sh
+
+      - name: conditioning sweep (compose.ncl, core.ncl, probe_no_core.ncl)
+        run: bash ledger/gate/test_conditioning_sweep.sh
 
       - name: gate-scope completeness (fails on undeclared gate)
         run: bash ledger/gate/check_scopes.sh

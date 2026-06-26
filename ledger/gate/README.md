@@ -21,10 +21,13 @@ one-node DAG, so the property holds universally without extra ceremony.
 
 ## Portability (AC7)
 
-`nickel` need not be on `PATH`. The runner resolves to a direct `nickel`
-or to `nix run nixpkgs#nickel --`, so the one command is identical across
-a human shell and a headless CI. If neither is reachable the gate halts
-non-zero — a gate that cannot run is not a gate that passes.
+`nickel` must be on `PATH`. The runner calls `nickel` directly — there is
+no `nix run nixpkgs#nickel` fallback. For local development, enter the
+project shell (`nix-shell` or `nix develop` with `shell.nix`) which
+provides nickel 1.14.0. CI installs nickel via `nix profile install
+nixpkgs#nickel` before invoking the gate suites. If `nickel` is not
+reachable the gate halts non-zero — a gate that cannot run is not a gate
+that passes.
 
 ## Downstream import convention
 

@@ -23,10 +23,13 @@
 #   dag (existing + new disciplines + prefix-overlap), discovery, findings,
 #   procedure (spine, loop, shrink, XOR, invoke-registry), refine_procedure,
 #   reconcile_log, refine_output, state_machine, tracker_freshness, worker_ibc.
+#   dag_*.yaml — YAML DAG instances (dag_valid.yaml, dag_cycle.yaml), validated
+#   via ledger-validate.sh which applies dag_apply.ncl externally.
 #
 # The sweep is additive — it adds ZERO new fixtures of its own; instead it
 # asserts the universe already defined, making future regressions detectable.
-# Adding a new fixture to ledger/fixtures/ automatically extends this sweep.
+# Adding a new fixture to ledger/fixtures/ (*.ncl or dag_*.yaml) automatically
+# extends this sweep.
 #
 # Usage: test_fixture_sweep.sh
 # Exit:  0 = every fixture behaved per its declared polarity
@@ -46,7 +49,7 @@ fi
 fails=0
 total=0
 
-for fixture in "$root"/ledger/fixtures/*.ncl; do
+for fixture in "$root"/ledger/fixtures/*.ncl "$root"/ledger/fixtures/dag_*.yaml; do
   [[ -f "$fixture" ]] || continue
   name="$(basename "$fixture")"
   total=$((total + 1))

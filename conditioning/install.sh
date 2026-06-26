@@ -23,6 +23,7 @@
 #
 # Usage:
 #   conditioning/install.sh [--role ROLE] [--harness HARNESS] [--dry-run]
+#   conditioning/install.sh --uninstall
 #
 # Options:
 #   --role ROLE       Role to install (default: architect)
@@ -31,6 +32,9 @@
 #   --harness NAME    Force a harness instead of auto-detecting
 #                     One of: claude-code agy generic
 #   --dry-run         Generate the prompt but print it to stdout; no harness writes.
+#   --uninstall       Symmetric teardown: strip the conditioning block from
+#                     CLAUDE.md and remove conditioning/generated/ (if present).
+#                     Idempotent; no role or harness needed.
 #
 # Environment overrides:
 #   NICKEL_CMD        nickel runner (default: nickel on PATH; shell.nix provides it)
@@ -70,18 +74,60 @@ readonly END_MARK='# <<< predicate conditioning block <<<'
 role="architect"
 harness=""
 dry_run=false
+uninstall=false
 
 while [ "$#" -gt 0 ]; do
   case "$1" in
-    --role)    role="${2:?--role needs a value}";    shift 2 ;;
-    --harness) harness="${2:?--harness needs a value}"; shift 2 ;;
-    --dry-run) dry_run=true; shift ;;
+    --role)      role="${2:?--role needs a value}";    shift 2 ;;
+    --harness)   harness="${2:?--harness needs a value}"; shift 2 ;;
+    --dry-run)   dry_run=true; shift ;;
+    --uninstall) uninstall=true; shift ;;
     -h|--help)
-      sed -n '29,34p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+      sed -n '29,38p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
       exit 0 ;;
     *) echo "install: unknown argument: $1" >&2; exit 2 ;;
   esac
 done
+
+# ---------------------------------------------------------------------------
+# do_uninstall — symmetric teardown, called when --uninstall is passed.
+# Strips the conditioning managed block from CLAUDE.md (idempotent; a missing
+# block is a clean no-op) and removes conditioning/generated/ if it was written
+# by a prior Tier-1 install. No role, no nickel needed.
+# ---------------------------------------------------------------------------
+do_uninstall() {
+  local claude_md="$HOME/.claude/CLAUDE.md"
+
+  # Strip the conditioning block from CLAUDE.md.
+  if [ -f "$claude_md" ]; then
+    if grep -qxF "$BEGIN_MARK" "$claude_md"; then
+      local body
+      body="$(awk -v b="$BEGIN_MARK" -v e="$END_MARK" '
+        $0 == b { skip = 1; next }
+        $0 == e { skip = 0; next }
+        !skip   { print }
+      ' "$claude_md")"
+      printf '%s\n' "$body" >"$claude_md.conditioning.tmp"
+      mv "$claude_md.conditioning.tmp" "$claude_md"
+      echo "install: removed predicate conditioning block from $claude_md."
+    else
+      echo "install: no conditioning block found in $claude_md (already clean)."
+    fi
+  else
+    echo "install: $claude_md does not exist (already clean)."
+  fi
+
+  # Remove conditioning/generated/ (written by Tier-1 install).
+  local gen_dir="$conditioning_dir/generated"
+  if [ -d "$gen_dir" ]; then
+    rm -rf "$gen_dir"
+    echo "install: removed $gen_dir."
+  else
+    echo "install: $gen_dir absent (already clean)."
+  fi
+
+  echo "install: uninstall done."
+}
 
 # ---------------------------------------------------------------------------
 # validate_role — guard BEFORE any Nickel interpolation.
@@ -273,6 +319,11 @@ install_generic() {
 # ---------------------------------------------------------------------------
 # main
 # ---------------------------------------------------------------------------
+if "$uninstall"; then
+  do_uninstall
+  exit 0
+fi
+
 validate_role "$role"
 echo "install: generating prompt for role='$role' ..."
 prompt="$(generate_prompt "$role")"

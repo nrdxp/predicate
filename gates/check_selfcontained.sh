@@ -17,7 +17,20 @@ root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 pat="$SELFCONTAINED_PAT"
 hits=$(printf '%s' "$msg" | grep -noE "$pat" || true)
 if [ -n "$hits" ]; then
-  printf 'SELF-CONTAINMENT VIOLATION — internal refs:\n%s\n' "$hits"
+  printf '%s\n' \
+    'SELF-CONTAINMENT VIOLATION — commit message contains a campaign-reference token.' \
+    '' \
+    'Campaign labels (P1, L2, AC-P3, C-P5, …) name ephemeral planning artifacts that' \
+    'live in the gitignored .scratch/ tree and are never committed.  A reference to' \
+    'them in a commit message becomes a dangling label in the permanent git history,' \
+    'meaningless to any reader who lacks that scratch context.' \
+    '' \
+    'Matched token(s):' \
+    "$hits" \
+    '' \
+    'If this is a legitimate collision (e.g. "L1 cache", "P1 severity"), set' \
+    'SELFCONTAINED_PAT in .ledger/config.sh to a narrower pattern that excludes' \
+    'your token, then retry.'
   exit 1
 fi
 exit 0

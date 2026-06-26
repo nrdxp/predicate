@@ -532,6 +532,206 @@ case_init_gitignore_entries() {
 }
 
 # ---------------------------------------------------------------------------
+# Defect 1a: conditioning/install.sh --uninstall strips the conditioning block.
+# Before the fix, conditioning/install.sh has no --uninstall flag → exits 2.
+# ---------------------------------------------------------------------------
+case_conditioning_sh_uninstall() {
+  local name="conditioning/install.sh --uninstall: strips conditioning block from CLAUDE.md"
+  local conditioning_sh="$plugin_root/conditioning/install.sh"
+  if [ ! -f "$conditioning_sh" ]; then
+    note "conditioning/install.sh not found at $plugin_root — skipping"; bad "$name"; return
+  fi
+
+  local home; home="$(make_home)"
+  local claude_md="$home/.claude/CLAUDE.md"
+
+  # Pre-populate with user content + a pre-written conditioning block (simulating
+  # what conditioning/install.sh Tier 2 would have written on install).
+  cat >"$claude_md" <<'EOF'
+# My global config
+1. Always address me by name.
+# >>> predicate conditioning block >>>
+# Generated conditioning for role: architect
+# Managed by conditioning/install.sh — re-run to update.
+This is the big inline conditioning prompt (215 lines in production).
+# <<< predicate conditioning block <<<
+EOF
+  local original_first_line="# My global config"
+
+  # Also seed a fake conditioning/generated/ to verify teardown removes it.
+  local gen_dir="$plugin_root/conditioning/generated"
+  local gen_existed=0
+  [ -d "$gen_dir" ] && gen_existed=1
+  mkdir -p "$gen_dir"
+  printf 'fake generated prompt\n' >"$gen_dir/architect.md"
+
+  local rc=0
+  HOME="$home" PREDICATE_SRC="$plugin_root" \
+    bash "$conditioning_sh" --uninstall >/dev/null 2>&1 || {
+    note "conditioning/install.sh --uninstall exited non-zero"; rc=1
+  }
+
+  # Conditioning block must be gone.
+  if grep -qxF '# >>> predicate conditioning block >>>' "$claude_md"; then
+    note "conditioning block BEGIN marker still present after --uninstall"; rc=1
+  fi
+  if grep -qxF '# <<< predicate conditioning block <<<' "$claude_md"; then
+    note "conditioning block END marker still present after --uninstall"; rc=1
+  fi
+  # User content outside the conditioning block must survive.
+  if ! grep -qxF "$original_first_line" "$claude_md"; then
+    note "user content outside conditioning block was lost"; rc=1
+  fi
+  # conditioning/generated/ must be removed (or already gone).
+  if [ -d "$gen_dir" ]; then
+    note "conditioning/generated/ still present after --uninstall"; rc=1
+  fi
+
+  # Restore gen_dir state (if it existed before this test, bring it back).
+  # If it did not exist, leave it gone (clean slate).
+  [ "$gen_existed" -eq 0 ] || mkdir -p "$gen_dir"
+
+  # Idempotent: second --uninstall is a clean no-op (exit 0, no mutation).
+  local before_second; before_second="$(cat "$claude_md")"
+  HOME="$home" PREDICATE_SRC="$plugin_root" \
+    bash "$conditioning_sh" --uninstall >/dev/null 2>&1 || {
+    note "second --uninstall exited non-zero (not idempotent)"; rc=1
+  }
+  if [ "$(cat "$claude_md")" != "$before_second" ]; then
+    note "second --uninstall mutated the file (not idempotent)"; rc=1
+  fi
+
+  rm -rf "$home"
+  [ "$rc" -eq 0 ] && ok "$name" || bad "$name"
+}
+
+# ---------------------------------------------------------------------------
+# Defect 1b: bootstrap phase_uninstall also strips the conditioning block.
+# Before the fix, phase_uninstall only strips the managed block.
+# ---------------------------------------------------------------------------
+case_uninstall_strips_conditioning_block() {
+  local name="uninstall: conditioning block stripped by bootstrap phase_uninstall"
+  local home; home="$(make_home)"
+  local claude_md="$home/.claude/CLAUDE.md"
+
+  # Pre-populate with user content.
+  cat >"$claude_md" <<'EOF'
+# My global config
+1. Always address me by name.
+EOF
+
+  # install writes both the managed block and the conditioning block (via nickel).
+  run_install "$home" >/dev/null 2>&1
+
+  # Confirm both blocks exist post-install.
+  local rc=0
+  if ! grep -qxF '# >>> predicate managed block >>>' "$claude_md"; then
+    note "managed block missing after install (test precondition failure)"; rc=1
+    bad "$name"; rm -rf "$home"; return
+  fi
+  if ! grep -qxF '# >>> predicate conditioning block >>>' "$claude_md"; then
+    note "conditioning block missing after install — was nickel not available or conditioning skipped?"; rc=1
+    bad "$name"; rm -rf "$home"; return
+  fi
+
+  run_uninstall "$home" >/dev/null 2>&1
+
+  # Managed block must be gone.
+  if grep -qxF '# >>> predicate managed block >>>' "$claude_md"; then
+    note "managed block still present after uninstall"; rc=1
+  fi
+  # Conditioning block must ALSO be gone.
+  if grep -qxF '# >>> predicate conditioning block >>>' "$claude_md"; then
+    note "conditioning block still present after uninstall (orphaned)"; rc=1
+  fi
+  if grep -qxF '# <<< predicate conditioning block <<<' "$claude_md"; then
+    note "conditioning block END marker still present after uninstall (orphaned)"; rc=1
+  fi
+  # User content must survive.
+  if ! grep -qxF '# My global config' "$claude_md"; then
+    note "user content outside blocks was lost during uninstall"; rc=1
+  fi
+
+  # Idempotent second run.
+  local before_second; before_second="$(cat "$claude_md")"
+  run_uninstall "$home" >/dev/null 2>&1
+  if [ "$(cat "$claude_md")" != "$before_second" ]; then
+    note "second uninstall mutated the file (not idempotent)"; rc=1
+  fi
+
+  rm -rf "$home"
+  [ "$rc" -eq 0 ] && ok "$name" || bad "$name"
+}
+
+# ---------------------------------------------------------------------------
+# Defect 2: bootstrap forces Tier 2 by passing --harness explicitly to
+# conditioning, defeating auto-detect even when the CLI supports Tier 1.
+# After the fix, bootstrap lets conditioning auto-detect; a Tier-1-capable
+# claude results in conditioning/generated/architect.md being written.
+# ---------------------------------------------------------------------------
+case_bootstrap_allows_tier1() {
+  local name="bootstrap: conditioning auto-detects Tier 1 when CLI supports --append-system-prompt"
+  local conditioning_sh="$plugin_root/conditioning/install.sh"
+  if [ ! -f "$conditioning_sh" ]; then
+    note "conditioning/install.sh not found — skipping"; bad "$name"; return
+  fi
+
+  # Build a mock claude that advertises --append-system-prompt and handles the
+  # plugin sub-commands bootstrap invokes (marketplace add, install, uninstall,
+  # marketplace remove).
+  local mock_bin; mock_bin="$(mktemp -d)"
+  cat >"$mock_bin/claude" <<'EOF'
+#!/bin/sh
+case "$1" in
+  --help) printf '  --append-system-prompt string\n'; exit 0 ;;
+  plugin) exit 0 ;;
+  *) exit 0 ;;
+esac
+EOF
+  chmod +x "$mock_bin/claude"
+
+  local home; home="$(make_home)"
+
+  # Capture the state of conditioning/generated/ so we can restore it.
+  local gen_dir="$plugin_root/conditioning/generated"
+  local gen_existed=0
+  [ -d "$gen_dir" ] && gen_existed=1
+
+  local rc=0
+  # Run bootstrap install with the mock claude on PATH; let it auto-detect harness.
+  # Pass --harness claude-code so bootstrap skips the real 'claude plugin ...' check
+  # (which we've mocked) and goes straight to inject_imports + inject_conditioning.
+  PATH="$mock_bin:$PATH" HOME="$home" PREDICATE_PLUGIN_SRC="$plugin_root" \
+    bash "$install_sh" install --harness claude-code >/dev/null 2>&1
+
+  # After the fix, conditioning should have used Tier 1 (no forced --harness
+  # passed from bootstrap), so the generated file must exist.
+  if [ ! -f "$gen_dir/architect.md" ]; then
+    note "conditioning/generated/architect.md not created — Tier 1 was not used"; rc=1
+    note "(bootstrap likely forced --harness claude-code, bypassing Tier-1 auto-detect)"
+  fi
+
+  # And CLAUDE.md's conditioning block should contain an @import line (not inline prompt).
+  local claude_md="$home/.claude/CLAUDE.md"
+  if grep -qxF '# >>> predicate conditioning block >>>' "$claude_md"; then
+    # Block present — verify it uses @import not inline.
+    local block_content
+    block_content="$(awk '/# >>> predicate conditioning block >>>/,/# <<< predicate conditioning block <<</' "$claude_md")"
+    if ! printf '%s' "$block_content" | grep -qE '^@'; then
+      note "conditioning block present but has no @import line (Tier 2 inline was used)"; rc=1
+    fi
+  fi
+
+  # Cleanup: remove generated dir if it was not there before this test.
+  if [ "$gen_existed" -eq 0 ]; then
+    rm -rf "$gen_dir"
+  fi
+
+  rm -rf "$mock_bin" "$home"
+  [ "$rc" -eq 0 ] && ok "$name" || bad "$name"
+}
+
+# ---------------------------------------------------------------------------
 # run all cases
 # ---------------------------------------------------------------------------
 case_uninstall_strips_block
@@ -545,6 +745,10 @@ case_deinit_idempotent
 case_role_injection_rejected
 case_uninstall_dangling_symlink_removed
 case_init_gitignore_entries
+# conditioning lifecycle defects
+case_conditioning_sh_uninstall
+case_uninstall_strips_conditioning_block
+case_bootstrap_allows_tier1
 
 printf '\n%d passed, %d failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]

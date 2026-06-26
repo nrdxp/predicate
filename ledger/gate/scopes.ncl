@@ -252,6 +252,13 @@ let GateEntry = {
       applies_to  = "agent only",
     } | GateEntry,
 
+    {
+      gate        = "ledger/gate/test_conditioning_sweep.sh",
+      scope       = 'orchestration,
+      fires_when  = "CI conditioning-sweep step; asserts every conditioning/*.ncl behaves per its declared polarity, machine-guarding the HasCore injection-rule proof",
+      applies_to  = "agent only",
+    } | GateEntry,
+
     # ── GATES/ SCRIPTS (invoked from hooks and orchestration) ────────────────
 
     {
@@ -271,6 +278,13 @@ let GateEntry = {
     # ── SKILL SCRIPTS (invoked from hooks or CI) ─────────────────────────────
 
     {
+      gate        = "skills/chronicle/scripts/update_chronicle.py",
+      scope       = 'orchestration,
+      fires_when  = "orchestrator or manual; regenerates docs/chronicle.md from skill SKILL.md headers and the skill routing table",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
       gate        = "skills/commit-hygiene/scripts/check_commit_msg.py",
       scope       = 'universal,
       fires_when  = "commit-time via hook/commit-msg:hygiene and CI; enforces Conventional Commits form (header length, type, blank line, body wrap), merge-exempt",
@@ -282,6 +296,20 @@ let GateEntry = {
       scope       = 'predicate_artifact,
       fires_when  = "commit-time via hook/pre-commit:doc-links on staged *.md; also CI doc-audit step for the full tree",
       applies_to  = "human + agent",
+    } | GateEntry,
+
+    {
+      gate        = "skills/refine/scripts/sync_sketch.py",
+      scope       = 'orchestration,
+      fires_when  = "orchestrator at reconciliation boundary; syncs .scratch/<topic>/ volatile draft into the .ledger/log/ flight recorder",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
+      gate        = "skills/security-audit/scripts/run_audit.py",
+      scope       = 'orchestration,
+      fires_when  = "orchestrator or manual; runs the security-audit sweep and emits a findings deposit",
+      applies_to  = "agent only",
     } | GateEntry,
   ],
 }
