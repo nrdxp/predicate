@@ -530,21 +530,31 @@ case_init_gitignore_entries() {
 }
 
 # ---------------------------------------------------------------------------
-# Defect 1a: conditioning/install.sh --uninstall strips the conditioning block.
-# Before the fix, conditioning/install.sh has no --uninstall flag → exits 2.
+# conditioning/install.sh --uninstall: removes native conditioning surfaces
+# (output-style file, agent files) and strips any legacy conditioning block
+# from CLAUDE.md as cleanup from pre-native-delivery installs.
 # ---------------------------------------------------------------------------
 case_conditioning_sh_uninstall() {
-  local name="conditioning/install.sh --uninstall: strips conditioning block from CLAUDE.md"
+  local name="conditioning/install.sh --uninstall: removes native surfaces; strips legacy CLAUDE.md block"
   local conditioning_sh="$plugin_root/conditioning/install.sh"
   if [ ! -f "$conditioning_sh" ]; then
     note "conditioning/install.sh not found at $plugin_root — skipping"; bad "$name"; return
   fi
 
   local home; home="$(make_home)"
-  local claude_md="$home/.claude/CLAUDE.md"
+  local claude_dir="$home/.claude"
+  local claude_md="$claude_dir/CLAUDE.md"
 
-  # Pre-populate with user content + a pre-written conditioning block (simulating
-  # what conditioning/install.sh Tier 2 would have written on install).
+  # Seed native surfaces (what a real install writes) for uninstall to remove.
+  mkdir -p "$claude_dir/output-styles"
+  printf 'fake output style\n' >"$claude_dir/output-styles/predicate-architect.md"
+  mkdir -p "$claude_dir/agents"
+  for r in core-worker refine-worker doc-worker form-worker spec-worker boundary-worker; do
+    printf 'fake agent\n' >"$claude_dir/agents/predicate-$r.md"
+  done
+
+  # Pre-populate CLAUDE.md with user content + a legacy conditioning block (the
+  # pre-native-delivery artifact that --uninstall must strip as legacy cleanup).
   cat >"$claude_md" <<'EOF'
 # My global config
 1. Always address me by name.
@@ -556,20 +566,23 @@ This is the big inline conditioning prompt (215 lines in production).
 EOF
   local original_first_line="# My global config"
 
-  # Also seed a fake conditioning/generated/ to verify teardown removes it.
-  local gen_dir="$plugin_root/conditioning/generated"
-  local gen_existed=0
-  [ -d "$gen_dir" ] && gen_existed=1
-  mkdir -p "$gen_dir"
-  printf 'fake generated prompt\n' >"$gen_dir/architect.md"
-
   local rc=0
   HOME="$home" PREDICATE_SRC="$plugin_root" \
     bash "$conditioning_sh" --uninstall >/dev/null 2>&1 || {
     note "conditioning/install.sh --uninstall exited non-zero"; rc=1
   }
 
-  # Conditioning block must be gone.
+  # Native surfaces must be removed.
+  if [ -f "$claude_dir/output-styles/predicate-architect.md" ]; then
+    note "output-styles/predicate-architect.md still present after --uninstall"; rc=1
+  fi
+  for r in core-worker refine-worker doc-worker form-worker spec-worker boundary-worker; do
+    if [ -f "$claude_dir/agents/predicate-$r.md" ]; then
+      note "agents/predicate-$r.md still present after --uninstall"; rc=1
+    fi
+  done
+
+  # Legacy conditioning block must be stripped.
   if grep -qxF '# >>> predicate conditioning block >>>' "$claude_md"; then
     note "conditioning block BEGIN marker still present after --uninstall"; rc=1
   fi
@@ -580,14 +593,6 @@ EOF
   if ! grep -qxF "$original_first_line" "$claude_md"; then
     note "user content outside conditioning block was lost"; rc=1
   fi
-  # conditioning/generated/ must be removed (or already gone).
-  if [ -d "$gen_dir" ]; then
-    note "conditioning/generated/ still present after --uninstall"; rc=1
-  fi
-
-  # Restore gen_dir state (if it existed before this test, bring it back).
-  # If it did not exist, leave it gone (clean slate).
-  [ "$gen_existed" -eq 0 ] || mkdir -p "$gen_dir"
 
   # Idempotent: second --uninstall is a clean no-op (exit 0, no mutation).
   local before_second; before_second="$(cat "$claude_md")"
@@ -604,38 +609,55 @@ EOF
 }
 
 # ---------------------------------------------------------------------------
-# Defect 1b: bootstrap phase_uninstall also strips the conditioning block.
-# Before the fix, phase_uninstall only strips the managed block.
+# bootstrap phase_uninstall: removes native conditioning surfaces and strips any
+# legacy conditioning block from CLAUDE.md. Never writes to CLAUDE.md on install.
 # ---------------------------------------------------------------------------
 case_uninstall_strips_conditioning_block() {
-  local name="uninstall: conditioning block stripped by bootstrap phase_uninstall"
+  local name="uninstall: native surfaces removed; legacy conditioning block stripped by bootstrap uninstall"
   local home; home="$(make_home)"
-  local claude_md="$home/.claude/CLAUDE.md"
+  local claude_dir="$home/.claude"
+  local claude_md="$claude_dir/CLAUDE.md"
 
-  # Pre-populate with user content.
+  # Seed native surfaces directly (install requires the real claude CLI which is
+  # not available in this context; we test what uninstall removes, not what install writes).
+  mkdir -p "$claude_dir/output-styles"
+  printf 'fake output style\n' >"$claude_dir/output-styles/predicate-architect.md"
+  mkdir -p "$claude_dir/agents"
+  for r in core-worker refine-worker doc-worker form-worker spec-worker boundary-worker; do
+    printf 'fake agent\n' >"$claude_dir/agents/predicate-$r.md"
+  done
+
+  # Pre-populate CLAUDE.md with user content + a legacy conditioning block (the
+  # pre-native-delivery artifact that bootstrap uninstall must strip via conditioning teardown).
   cat >"$claude_md" <<'EOF'
 # My global config
 1. Always address me by name.
+# >>> predicate conditioning block >>>
+# Generated conditioning for role: architect
+# Managed by conditioning/install.sh — re-run to update.
+This is the big inline conditioning prompt (215 lines in production).
+# <<< predicate conditioning block <<<
 EOF
 
-  # install writes the conditioning block (via nickel); @import managed block is
-  # NOT written (output style is the single always-on surface).
-  run_install "$home" >/dev/null 2>&1
-
-  # Confirm the conditioning block exists post-install (precondition).
+  # The @import managed block must NEVER be present (install never writes it).
   local rc=0
-  if ! grep -qxF '# >>> predicate conditioning block >>>' "$claude_md"; then
-    note "conditioning block missing after install — was nickel not available or conditioning skipped?"; rc=1
-    bad "$name"; rm -rf "$home"; return
-  fi
-  # Confirm the @import managed block was NOT written.
   if grep -qxF '# >>> predicate managed block >>>' "$claude_md"; then
-    note "managed @import block found after install (must not be written)"; rc=1
+    note "managed @import block found before uninstall (should never exist)"; rc=1
   fi
 
   run_uninstall "$home" >/dev/null 2>&1
 
-  # Conditioning block must be gone.
+  # Native surfaces must be removed.
+  if [ -f "$claude_dir/output-styles/predicate-architect.md" ]; then
+    note "output-styles/predicate-architect.md still present after uninstall (orphaned)"; rc=1
+  fi
+  for r in core-worker refine-worker doc-worker form-worker spec-worker boundary-worker; do
+    if [ -f "$claude_dir/agents/predicate-$r.md" ]; then
+      note "agents/predicate-$r.md still present after uninstall (orphaned)"; rc=1
+    fi
+  done
+
+  # Legacy conditioning block must be stripped.
   if grep -qxF '# >>> predicate conditioning block >>>' "$claude_md"; then
     note "conditioning block still present after uninstall (orphaned)"; rc=1
   fi
@@ -663,26 +685,24 @@ EOF
 }
 
 # ---------------------------------------------------------------------------
-# Defect 2: bootstrap forces Tier 2 by passing --harness explicitly to
-# conditioning, defeating auto-detect even when the CLI supports Tier 1.
-# After the fix, bootstrap lets conditioning auto-detect; a Tier-1-capable
-# claude results in conditioning/generated/architect.md being written.
+# bootstrap install --harness claude-code: writes native conditioning surfaces
+# (output-style file + worker agent files) and does NOT write CLAUDE.md blocks.
+# Verifies the integration between phase_install and conditioning/install.sh:
+# no --harness is forced for claude-code, letting conditioning use its default.
 # ---------------------------------------------------------------------------
-case_bootstrap_allows_tier1() {
-  local name="bootstrap: conditioning auto-detects Tier 1 when CLI supports --append-system-prompt"
+case_bootstrap_installs_native_surfaces() {
+  local name="bootstrap: install --harness claude-code writes native conditioning surfaces"
   local conditioning_sh="$plugin_root/conditioning/install.sh"
   if [ ! -f "$conditioning_sh" ]; then
     note "conditioning/install.sh not found — skipping"; bad "$name"; return
   fi
 
-  # Build a mock claude that advertises --append-system-prompt and handles the
-  # plugin sub-commands bootstrap invokes (marketplace add, install, uninstall,
-  # marketplace remove).
+  # Build a mock claude that handles the plugin sub-commands bootstrap invokes
+  # (marketplace add, install, uninstall, marketplace remove).
   local mock_bin; mock_bin="$(mktemp -d)"
   cat >"$mock_bin/claude" <<'EOF'
 #!/bin/sh
 case "$1" in
-  --help) printf '  --append-system-prompt string\n'; exit 0 ;;
   plugin) exit 0 ;;
   *) exit 0 ;;
 esac
@@ -691,39 +711,31 @@ EOF
 
   local home; home="$(make_home)"
 
-  # Capture the state of conditioning/generated/ so we can restore it.
-  local gen_dir="$plugin_root/conditioning/generated"
-  local gen_existed=0
-  [ -d "$gen_dir" ] && gen_existed=1
-
   local rc=0
-  # Run bootstrap install with the mock claude on PATH; let it auto-detect harness.
-  # Pass --harness claude-code so bootstrap skips the real 'claude plugin ...' check
-  # (which we've mocked) and goes straight to inject_conditioning.
+  # Run bootstrap install with the mock claude on PATH.
   PATH="$mock_bin:$PATH" HOME="$home" PREDICATE_PLUGIN_SRC="$plugin_root" \
     bash "$install_sh" install --harness claude-code >/dev/null 2>&1
 
-  # After the fix, conditioning should have used Tier 1 (no forced --harness
-  # passed from bootstrap), so the generated file must exist.
-  if [ ! -f "$gen_dir/architect.md" ]; then
-    note "conditioning/generated/architect.md not created — Tier 1 was not used"; rc=1
-    note "(bootstrap likely forced --harness claude-code, bypassing Tier-1 auto-detect)"
+  # Native output-style surface must have been written.
+  if [ ! -f "$home/.claude/output-styles/predicate-architect.md" ]; then
+    note "output-styles/predicate-architect.md not written by install"; rc=1
+  fi
+  # At least one worker agent file must have been written.
+  local agent_found=0
+  for r in core-worker refine-worker doc-worker form-worker spec-worker boundary-worker; do
+    [ -f "$home/.claude/agents/predicate-$r.md" ] && agent_found=1 && break
+  done
+  if [ "$agent_found" -eq 0 ]; then
+    note "no predicate-*.md agent files written by install"; rc=1
   fi
 
-  # And CLAUDE.md's conditioning block should contain an @import line (not inline prompt).
+  # CLAUDE.md must NOT have a conditioning block or managed @import block.
   local claude_md="$home/.claude/CLAUDE.md"
-  if grep -qxF '# >>> predicate conditioning block >>>' "$claude_md"; then
-    # Block present — verify it uses @import not inline.
-    local block_content
-    block_content="$(awk '/# >>> predicate conditioning block >>>/,/# <<< predicate conditioning block <<</' "$claude_md")"
-    if ! printf '%s' "$block_content" | grep -qE '^@'; then
-      note "conditioning block present but has no @import line (Tier 2 inline was used)"; rc=1
-    fi
+  if grep -qxF '# >>> predicate conditioning block >>>' "$claude_md" 2>/dev/null; then
+    note "conditioning block written to CLAUDE.md by install (must not be written)"; rc=1
   fi
-
-  # Cleanup: remove generated dir if it was not there before this test.
-  if [ "$gen_existed" -eq 0 ]; then
-    rm -rf "$gen_dir"
+  if grep -qxF '# >>> predicate managed block >>>' "$claude_md" 2>/dev/null; then
+    note "managed @import block written to CLAUDE.md by install (must not be written)"; rc=1
   fi
 
   rm -rf "$mock_bin" "$home"
@@ -747,7 +759,7 @@ case_init_gitignore_entries
 # conditioning lifecycle defects
 case_conditioning_sh_uninstall
 case_uninstall_strips_conditioning_block
-case_bootstrap_allows_tier1
+case_bootstrap_installs_native_surfaces
 
 printf '\n%d passed, %d failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]

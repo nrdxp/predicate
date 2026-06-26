@@ -24,9 +24,9 @@
 #     plugins/), so a symlink of the checkout IS the registration there.
 #
 # The conditioning layer generates a structured system prompt for each role and
-# delivers it via the best available surface (Tier 1: output style with
-# --append-system-prompt; Tier 2: CLAUDE.md conditioning block). This is the
-# single always-on surface; no @import of rules.md/ambient.md is written.
+# delivers it via native harness surfaces: for claude-code, an output-style file
+# (<claude-dir>/output-styles/predicate-architect.md) and per-role agent files;
+# for agy, a GEMINI.md managed block. No CLAUDE.md conditioning block is written.
 #
 # Usage:
 #   bootstrap/install.sh install   [--harness claude-code|antigravity]
@@ -109,15 +109,13 @@ inject_conditioning() {
     return 0
   fi
   echo "install: running conditioning delivery for role=architect ..."
-  # For claude-code: let conditioning auto-detect Tier 1 vs Tier 2 (probes
-  # whether the CLI supports --append-system-prompt at runtime). Passing
-  # --harness claude-code explicitly would short-circuit that probe and force
-  # Tier 2 even on a Tier-1-capable installation. For antigravity the mapping
-  # is unambiguous (always generic), so we carry it through.
+  # For claude-code: no --harness arg — conditioning defaults to claude-code (writes
+  # native output-style and agent files under $claude_dir). For antigravity the harness
+  # name maps to the legacy alias "generic" in conditioning/install.sh.
   local cond_harness=""
   case "$harness" in
     antigravity) cond_harness="generic" ;;
-    # claude-code: intentionally absent — conditioning auto-detects Tier 1 / Tier 2.
+    # claude-code: no --harness passed — conditioning defaults to claude-code.
   esac
   local extra_args=()
   [ -n "$cond_harness" ] && extra_args=(--harness "$cond_harness")
@@ -127,9 +125,9 @@ inject_conditioning() {
 }
 
 # --- conditioning teardown (called from phase_uninstall) ---------------------
-# Symmetric counterpart to inject_conditioning: strips the conditioning managed
-# block from CLAUDE.md and removes conditioning/generated/.  Non-fatal if
-# conditioning/install.sh is absent (nothing to undo).
+# Symmetric counterpart to inject_conditioning: removes native conditioning surfaces
+# (output-style file, agent files, GEMINI.md block) and strips any legacy conditioning
+# block from CLAUDE.md.  Non-fatal if conditioning/install.sh is absent.
 remove_conditioning() {
   local conditioning_sh="$plugin_src/conditioning/install.sh"
   if [ ! -f "$conditioning_sh" ]; then
@@ -389,9 +387,9 @@ deregister_antigravity() {
 }
 
 # --- phase: uninstall (GLOBAL, once) -----------------------------------------
-# Reverses phase_install: strips the conditioning block from CLAUDE.md and
-# deregisters the plugin. PRESERVES all user content outside the conditioning
-# block. Idempotent: a second run detects the absence and is a clean no-op.
+# Reverses phase_install: removes native conditioning surfaces (output-style, agent
+# files, GEMINI.md block) and deregisters the plugin. PRESERVES all user content
+# in CLAUDE.md/GEMINI.md. Idempotent: a second run detects absence and is a clean no-op.
 phase_uninstall() {
   local harness=""
   while [ "$#" -gt 0 ]; do
@@ -404,7 +402,7 @@ phase_uninstall() {
   harness="$(detect_harness "$harness")"
   echo "uninstall: harness=$harness plugin=$plugin_src"
 
-  # Strip the conditioning managed block from CLAUDE.md (symmetric to inject_conditioning).
+  # Remove native conditioning surfaces (symmetric to inject_conditioning).
   remove_conditioning
 
   # Deregister the plugin for the detected harness.
