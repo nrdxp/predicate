@@ -49,6 +49,11 @@ make_repo() {
   git -C "$dir" init -q -b master
   git -C "$dir" config user.email "test@adherence.example"
   git -C "$dir" config user.name  "Adherence Test"
+  # Simulate a campaign in flight: adherence_audit is active-campaign-gated (it
+  # keys on .ledger/active-dag, like the commit-gate authority overlay), so the
+  # check-bearing cases below must declare an active campaign to exercise it.
+  # Case (e) removes this to test the no-campaign skip.
+  mkdir -p "$dir/.ledger"; : > "$dir/.ledger/active-dag"
 }
 
 # Commit a file with a fixed timestamp so the test never depends on wall clock.
@@ -181,6 +186,23 @@ commit_file "$repo_d" "work on campaign" "work.txt"
 baseline_d="$(git -C "$repo_d" rev-parse master)"
 expect "(d) no node/* branches — WARN, skip, rc 0" 0 \
   bash -c "cd '$repo_d' && bash '$audit' '$baseline_d' campaign/gone"
+
+# ---------------------------------------------------------------------------
+# Case (e): No active campaign — audit is not applicable, skip (rc 0)
+#
+# Even on master with a direct commit (which CHECK 1 would reject DURING a
+# campaign), the absence of a .ledger/active-dag pointer means no campaign is in
+# flight — a human committing to master is not a protocol violation. The audit
+# must SKIP (rc 0), not fail. This encodes the active-campaign conditioning.
+# ---------------------------------------------------------------------------
+repo_e="$scratch/no-campaign"
+make_repo "$repo_e"
+commit_file "$repo_e" "baseline"
+commit_file "$repo_e" "direct work on master" "m.txt"   # direct commit on master
+rm -f "$repo_e/.ledger/active-dag"                       # no campaign in flight
+baseline_e="$(git -C "$repo_e" rev-parse HEAD~1)"
+expect "(e) no active campaign — not applicable, skip rc 0" 0 \
+  bash -c "cd '$repo_e' && bash '$audit' '$baseline_e' master"
 
 # ---------------------------------------------------------------------------
 # Results

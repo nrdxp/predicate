@@ -74,6 +74,29 @@ if ! git rev-parse --verify "$integration" >/dev/null 2>&1; then
   exit 2
 fi
 
+# ---------------------------------------------------------------------------
+# Active-campaign gate — the dual of the commit-gate authority overlay.
+# This audit verifies CAMPAIGN execution-protocol adherence: a campaign/*
+# integration branch (CHECK 1) and worktree-isolated node/* commits (CHECK 2).
+# Those invariants exist ONLY while a campaign is in flight; outside one they do
+# not apply. A human committing directly to master or an ordinary branch, or a
+# post-merge / post-close tree, is NOT a protocol violation — and must not be
+# failed by CHECK 1's "must be a campaign/* branch" demand. So gate the whole
+# audit on the same signal the authority overlay keys on: the .ledger/active-dag
+# pointer. Absent it, there is no campaign to audit -> exit 0 (not applicable).
+# The pointer lives in the MAIN tree's .ledger (a linked worktree has none of its
+# own); resolve it via the common git dir's parent, exactly as hooks/pre-commit
+# and recorder_close_check.sh do. (The orchestrator runs this audit at RECONCILE
+# and CLOSE while the pointer is present; it is cleared only at the very end of
+# CLOSE, after the final audit.)
+# ---------------------------------------------------------------------------
+main_tree="$(cd "$(dirname "$(git rev-parse --git-common-dir 2>/dev/null)")" 2>/dev/null && pwd || true)"
+if [[ -z "$main_tree" || ! -f "$main_tree/.ledger/active-dag" ]]; then
+  echo "adherence_audit: no active campaign (.ledger/active-dag absent) —" \
+    "nothing to audit; skipping (rc 0, not applicable)."
+  exit 0
+fi
+
 fails=0
 
 # ---------------------------------------------------------------------------
