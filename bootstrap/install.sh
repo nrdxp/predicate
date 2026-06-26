@@ -296,27 +296,39 @@ init_ledger() {
   fi
 }
 
-# --- step: install predicate's project-local gates from templates/ -----------
-# Copies all files from templates/project-gates/ into the project's
-# .ledger/gates/ directory and marks each copy executable. The copy is
-# idempotent: a gate with the same name that already exists in .ledger/gates/
-# (whether user-authored or a prior install) is skipped without modification.
-# This ensures a fresh clone of predicate gets its own project-local checks
-# (the colocation gate, etc.) on the first `init` run, rather than only after
-# an agent session that happened to write them previously.
-install_project_gates() {
+# --- step: install predicate's own project-local gates (SELF-HOST ONLY) -----
+# Copies all files from templates/project-gates/ into PREDICATE'S OWN
+# .ledger/gates/ directory and marks each copy executable.
+#
+# This is called ONLY when predicate is initializing itself (the "self-host"
+# case: $project == $plugin_src). Consumer projects are NEVER given predicate's
+# project-specific gates: those gates check predicate-internal invariants
+# (the skill-contract colocation decision) that are meaningless and would
+# false-fire in any downstream project that legitimately uses the same contract
+# names (e.g., a project with its own state_machine.ncl in ledger/contracts/).
+#
+# A consumer project writes its OWN project-local gates in .ledger/gates/ using
+# exactly the same per-project mechanism. The templates/project-gates/ directory
+# serves as:
+#   (a) predicate's tracked self-host gate source, and
+#   (b) opt-in examples a consumer may copy — never auto-installed.
+#
+# Copy is idempotent: skip-if-exists (never clobbers a user-authored gate).
+install_selfhost_gates() {
   local project="$1"
   local gates_dir="$project/.ledger/gates"
   local templates_dir="$plugin_src/templates/project-gates"
 
   if [ ! -d "$templates_dir" ]; then
-    echo "init: templates/project-gates/ not found at $templates_dir; skipping project-gate install." >&2
+    echo "init: templates/project-gates/ not found at $templates_dir; skipping self-host gate install." >&2
     return 0
   fi
 
   mkdir -p "$gates_dir"
   local installed=0
   local skipped=0
+  # Install only *.sh scripts — documentation files in templates/project-gates/
+  # (README.md, etc.) belong in the tracked source, not in the runtime gates dir.
   while IFS= read -r src; do
     local name; name="$(basename "$src")"
     local dst="$gates_dir/$name"
@@ -329,9 +341,9 @@ install_project_gates() {
       echo "init: installed project-gate $name -> $dst"
       installed=$((installed + 1))
     fi
-  done < <(find "$templates_dir" -maxdepth 1 -type f | LC_ALL=C sort)
+  done < <(find "$templates_dir" -maxdepth 1 -name '*.sh' -type f | LC_ALL=C sort)
 
-  echo "init: project-gates installed=$installed skipped=$skipped"
+  echo "init: self-host project-gates installed=$installed skipped=$skipped"
 }
 
 # --- step: ensure .gitignore contains the predicate subrepo entries ----------
@@ -371,7 +383,18 @@ phase_init() {
   echo "init: project=$project plugin=$plugin_src"
   install_hooks "$project"
   init_ledger "$project"
-  install_project_gates "$project"
+  # Install predicate's own project-local gates ONLY when predicate is gating
+  # itself (the self-host case). Consumer projects must not receive predicate's
+  # gates: they check predicate-internal invariants that false-fire in any
+  # downstream project that legitimately uses the same contract names.
+  # A consumer writes its own .ledger/gates/ via the same per-project mechanism.
+  if [ "$project" = "$plugin_src" ]; then
+    install_selfhost_gates "$project"
+  else
+    echo "init: consumer project — predicate-specific gates are not installed (self-host only)."
+    echo "init: to add project-local gates, write executables in $project/.ledger/gates/"
+    echo "init: see templates/project-gates/ in the predicate checkout for opt-in examples."
+  fi
   ensure_gitignore "$project"
   echo "init: done. Next (human seam): push the .ledger remote when ready."
 }
