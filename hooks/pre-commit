@@ -61,7 +61,7 @@ rc=0
 
 # Staged files (added/copied/modified), repo-root-relative paths — the same
 # coordinate system check_orphans.sh emits, so prefix matching is exact.
-mapfile -t staged < <(git diff --cached --name-only --diff-filter=ACM)
+mapfile -t staged < <(git diff --cached --name-only --diff-filter=ACMR)
 
 # --- 1. ORPHANS (scoped to staged files) ----------------------------------
 # Run the full repo-wide gate for its pattern truth, then fail the commit only
