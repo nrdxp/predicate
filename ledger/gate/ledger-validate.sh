@@ -152,39 +152,23 @@ cmd_authorize() {
     echo "ledger-validate: no such DAG: $dag" >&2
     exit 2
   fi
-  # Authority needs only the node file_surfaces, NOT the DagNoConflict proof —
-  # which is an ORCHESTRATOR-level check (validate the plan once at amendment),
-  # not a per-commit one. Evaluating that contract on every worker commit is
-  # ~O(n^2..n^3) and OOM-killable on a large DAG (it was silently killing worker
-  # commits). So read a fresh JSON cache (<dag>.json, regenerated at amendment);
-  # fall back to a live export only when the cache is missing or older than the
-  # DAG, and refresh the cache from that export for next time.
-  #
-  # YAML DAGs: export via --apply-contract dag_apply.ncl (validates + serializes
-  # to JSON); the JSON cache and authorized.py consumption are unchanged.
+  # Authority needs only the node file_surfaces. dag-perf reduced full DAG
+  # validation to ~0.1s, so the cache layer is gone: always export FRESH to a
+  # tempfile. YAML DAGs: export via --apply-contract dag_apply.ncl (validates
+  # and serializes to JSON). No cache read or write; rm the tempfile when done.
+  resolve_nickel
+  local tmp
+  tmp="$(mktemp)"
   case "$dag" in
-    *.yaml) local cache="${dag%.yaml}.json" ;;
-    *)      local cache="${dag%.ncl}.json" ;;
+    *.yaml)
+      "${NICKEL[@]}" export "${NICKEL_IMPORT_FLAGS[@]}" \
+        --apply-contract "$plugin/ledger/contracts/dag_apply.ncl" \
+        "$dag" >"$tmp"
+      ;;
+    *)
+      "${NICKEL[@]}" export "${NICKEL_IMPORT_FLAGS[@]}" "$dag" >"$tmp"
+      ;;
   esac
-  local tmp created=0
-  if [[ -f "$cache" && ! "$dag" -nt "$cache" ]]; then
-    tmp="$cache"
-  else
-    resolve_nickel
-    tmp="$(mktemp)"
-    created=1
-    case "$dag" in
-      *.yaml)
-        "${NICKEL[@]}" export "${NICKEL_IMPORT_FLAGS[@]}" \
-          --apply-contract "$plugin/ledger/contracts/dag_apply.ncl" \
-          "$dag" >"$tmp"
-        ;;
-      *)
-        "${NICKEL[@]}" export "${NICKEL_IMPORT_FLAGS[@]}" "$dag" >"$tmp"
-        ;;
-    esac
-    cp -f "$tmp" "$cache" 2>/dev/null || true
-  fi
 
   local rc=0
   if [[ "$#" -gt 0 ]]; then
@@ -196,7 +180,7 @@ cmd_authorize() {
     git diff --cached --name-only \
       | python3 "$here/authorized.py" --dag "$tmp" || rc=$?
   fi
-  [[ "$created" -eq 1 ]] && rm -f "$tmp"
+  rm -f "$tmp"
   return "$rc"
 }
 

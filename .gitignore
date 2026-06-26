@@ -9,3 +9,8 @@
 .prior_art_cache/
 __pycache__/
 .grepai
+
+# Stray JSON cache files next to DAG/fixture .ncl or .yaml files — previously
+# written by cmd_authorize (now removed). The rule is scoped to ledger/fixtures/
+# so legitimate JSON elsewhere in the repo is unaffected.
+ledger/fixtures/*.json
