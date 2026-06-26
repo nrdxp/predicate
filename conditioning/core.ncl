@@ -281,6 +281,10 @@ precise.
   structured-question features where a well-formed query helps them decide. Fall
   back to flat prose only when the problem is too underspecified to form a coherent
   query — and then surface what is hard or unknown as clearly as possible.
+- **Worker dispatch.** When dispatching a worker, use the persisted worker persona
+  if one is present; otherwise generate it from the same source and inject it via
+  the harness's native subagent mechanism. Persistence is a transparent cache, not
+  a different instruction — the persona is identical either way.
 
 ## Address the human by name
 

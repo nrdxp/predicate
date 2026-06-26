@@ -569,6 +569,8 @@ These are not ambient principles — they carry no standing constraint. They are
 
 **Structured user queries.** Use the harness's structured-question features when querying the human where a well-formed query helps decide. Fall back to a flat prose description only when the problem is too underspecified to form a coherent query — and in that case, surface what is hard or unknown as clearly as possible. A structured query is a better halt than a free-form block of uncertainty; it gives the human a minimal-sufficient response surface ([Minimal Representation](#minimal-representation)).
 
+**Worker dispatch.** When dispatching a worker, use the persisted worker persona if one is present; otherwise generate it from the same source and inject it via the harness's native subagent mechanism. Persistence is a transparent cache, not a different instruction — the persona is identical either way.
+
 ---
 
 > [!IMPORTANT]
