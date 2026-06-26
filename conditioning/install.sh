@@ -1,57 +1,76 @@
 #!/usr/bin/env bash
-# conditioning/install.sh — harness-agnostic conditioning delivery.
+# conditioning/install.sh — native, install-time conditioning delivery.
 #
-# Generates a per-role system prompt from compose.ncl and delivers it to the
-# best available conditioning surface, walking the arsenal-class ladder:
+# Predicate is INSTRUCTIONS + GENERATED PROMPTS, not a process wrapper. This
+# script materializes predicate's behavioral law into each harness's NATIVE
+# surface at install time, generated from `compose.ncl` on every run (no stale
+# committed copy). It NEVER composes prompts itself — `nickel export` is the sole
+# combinator; this is the imperative shell at the effect boundary.
 #
-#   Tier 1 — system prompt (strongest)
-#     claude-code:  --append-system-prompt flag available → write to output-style
-#                   persistent install surface (CLAUDE.md @import of generated file).
-#                   Detected at runtime; not assumed.
-#     agy:          --system-prompt flag available (per-launch only; no persistent surface)
+# Per-harness native delivery (ARCHITECTURE.md §5 — adding a harness is one branch):
 #
-#   Tier 2 — globally-read rules file (graceful floor)
-#     Claude Code:  CLAUDE.md managed block (@-import of generated prompt file)
-#     Generic:      AGENTS.md prepend section
+#   claude-code:
+#     - OUTPUT STYLE  → <claude-dir>/output-styles/predicate-architect.md
+#       (frontmatter `keep-coding-instructions: false`: empties Claude Code's
+#        built-in software-engineering block while PRESERVING tool defs, env info,
+#        agent identity, and safety scaffolding — so predicate's law cleanly
+#        becomes the behavioral half with nothing contradicting underneath. The
+#        markdown body is appended to the system prompt.)
+#     - WORKER AGENTS → <claude-dir>/agents/predicate-<role>.md  (every worker
+#       permutation persisted; the agent body becomes that subagent's full system
+#       prompt. A transparent CONVENIENCE cache — the architect may instead inject
+#       a freshly generated persona dynamically via the native subagent path.)
 #
-# The functional core is compose.ncl + the HasCore injection-rule contract.
-# This script is the imperative shell: it generates, then delivers.
-# It NEVER composes prompts itself — `nickel export` is the sole combinator.
+#   agy:
+#     - GEMINI.md     → <gemini-dir>/GEMINI.md  (managed block; injected into the
+#       system prompt, so the law lands. No persistent worker surface: agy
+#       generates worker personas from the same source at launch.)
 #
-# ARCHITECTURE.md §5: adding a harness = one thin detection + install branch here;
-# compose.ncl is unchanged.
+# ACTIVATION NOTE: writing the output-style FILE does not by itself select it.
+# To make predicate the active behavioral law, the harness must select the style
+# (`/output-style` or `"outputStyle": "Predicate Architect"` in settings.json).
+# That belongs to bootstrap/settings, not to this generator.
 #
 # Usage:
-#   conditioning/install.sh [--role ROLE] [--harness HARNESS] [--dry-run]
+#   conditioning/install.sh [--harness NAME] [--dry-run]
+#   conditioning/install.sh --role ROLE --dry-run     # inspect one composed prompt
 #   conditioning/install.sh --uninstall
 #
 # Options:
-#   --role ROLE       Role to install (default: architect)
+#   --harness NAME    Restrict delivery to one harness's surfaces.
+#                     One of: claude-code | agy | all   (default: claude-code)
+#                     Legacy aliases accepted: antigravity, generic → agy.
+#   --role ROLE       DRY-RUN ONLY: which composed prompt to print. A real install
+#                     always materializes the full surface for the harness; this
+#                     flag does not narrow it. Accepted for back-compat.
 #                     One of: architect core-worker refine-worker doc-worker
 #                             form-worker spec-worker boundary-worker
-#   --harness NAME    Force a harness instead of auto-detecting
-#                     One of: claude-code agy generic
-#   --dry-run         Generate the prompt but print it to stdout; no harness writes.
-#   --uninstall       Symmetric teardown: strip the conditioning block from
-#                     CLAUDE.md and remove conditioning/generated/ (if present).
-#                     Idempotent; no role or harness needed.
+#   --dry-run         Print the delivery plan (and, with --role, that role's full
+#                     composed prompt); write nothing to any surface.
+#   --uninstall       Remove every predicate-owned conditioning surface across
+#                     both harnesses. Idempotent; no role or harness needed.
 #
-# Environment overrides:
-#   NICKEL_CMD        nickel runner (default: nickel on PATH; shell.nix provides it)
-#   PREDICATE_SRC     path to the predicate checkout (default: auto-resolved via realpath)
-#   HOME              harness config root (honored as-is; testable via override)
+# Environment overrides (hermeticity — point tests at a throwaway dir):
+#   PREDICATE_CLAUDE_DIR  Claude config root (default: $HOME/.claude)
+#   PREDICATE_GEMINI_DIR  agy/Gemini config root (default: $HOME/.gemini)
+#   HOME                  base for the two defaults above
+#   NICKEL_CMD            nickel runner (default: nickel on PATH; shell.nix provides it)
+#   PREDICATE_SRC         predicate checkout (default: auto-resolved via realpath)
 #
-# Exit: 0 = delivered / dry-run complete; non-zero = fatal (no harness write performed).
+# Exit: 0 = delivered / dry-run / uninstall complete; non-zero = fatal (no write).
 set -euo pipefail
 
 # ---------------------------------------------------------------------------
-# Paths — resolved via realpath for downstream portability (no project-relative
-# assumptions; works from any CWD once installed anywhere on the filesystem).
+# Paths — resolved via realpath for portability (no project-relative CWD assumptions).
 # ---------------------------------------------------------------------------
 self_path="$(realpath "${BASH_SOURCE[0]}")"
 conditioning_dir="$(dirname "$self_path")"
 predicate_src="${PREDICATE_SRC:-$(dirname "$conditioning_dir")}"
 compose_ncl="$conditioning_dir/compose.ncl"
+
+# Target roots — overridable for hermetic tests; default under $HOME for real installs.
+claude_dir="${PREDICATE_CLAUDE_DIR:-$HOME/.claude}"
+gemini_dir="${PREDICATE_GEMINI_DIR:-$HOME/.gemini}"
 
 # Nickel runner: require nickel on PATH (provided by the project shell.nix).
 # Do NOT fall back to `nix run`; enter the shell first: nix develop / direnv.
@@ -68,104 +87,78 @@ fi
 readonly BEGIN_MARK='# >>> predicate conditioning block >>>'
 readonly END_MARK='# <<< predicate conditioning block <<<'
 
+# Output-style display name (also the value to set in settings.json `outputStyle`).
+readonly OUTPUT_STYLE_NAME='Predicate Architect'
+readonly OUTPUT_STYLE_FILE='predicate-architect.md'
+
+# The six worker roles materialized as persisted Claude agents.
+readonly WORKER_ROLES=(core-worker refine-worker doc-worker form-worker spec-worker boundary-worker)
+# All valid roles (for --role validation and dry-run targeting).
+readonly ALL_ROLES=(architect "${WORKER_ROLES[@]}")
+
 # ---------------------------------------------------------------------------
 # parse args
 # ---------------------------------------------------------------------------
 role="architect"
-harness=""
+role_explicit=false
+harness="claude-code"
 dry_run=false
 uninstall=false
 
 while [ "$#" -gt 0 ]; do
   case "$1" in
-    --role)      role="${2:?--role needs a value}";    shift 2 ;;
+    --role)      role="${2:?--role needs a value}"; role_explicit=true; shift 2 ;;
     --harness)   harness="${2:?--harness needs a value}"; shift 2 ;;
     --dry-run)   dry_run=true; shift ;;
     --uninstall) uninstall=true; shift ;;
     -h|--help)
-      sed -n '29,38p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+      sed -n '34,60p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
       exit 0 ;;
     *) echo "install: unknown argument: $1" >&2; exit 2 ;;
   esac
 done
 
-# ---------------------------------------------------------------------------
-# do_uninstall — symmetric teardown, called when --uninstall is passed.
-# Strips the conditioning managed block from CLAUDE.md (idempotent; a missing
-# block is a clean no-op) and removes conditioning/generated/ if it was written
-# by a prior Tier-1 install. No role, no nickel needed.
-# ---------------------------------------------------------------------------
-do_uninstall() {
-  local claude_md="$HOME/.claude/CLAUDE.md"
-
-  # Strip the conditioning block from CLAUDE.md.
-  if [ -f "$claude_md" ]; then
-    if grep -qxF "$BEGIN_MARK" "$claude_md"; then
-      local body
-      body="$(awk -v b="$BEGIN_MARK" -v e="$END_MARK" '
-        $0 == b { skip = 1; next }
-        $0 == e { skip = 0; next }
-        !skip   { print }
-      ' "$claude_md")"
-      printf '%s\n' "$body" >"$claude_md.conditioning.tmp"
-      mv "$claude_md.conditioning.tmp" "$claude_md"
-      echo "install: removed predicate conditioning block from $claude_md."
-    else
-      echo "install: no conditioning block found in $claude_md (already clean)."
-    fi
-  else
-    echo "install: $claude_md does not exist (already clean)."
-  fi
-
-  # Remove conditioning/generated/ (written by Tier-1 install).
-  local gen_dir="$conditioning_dir/generated"
-  if [ -d "$gen_dir" ]; then
-    rm -rf "$gen_dir"
-    echo "install: removed $gen_dir."
-  else
-    echo "install: $gen_dir absent (already clean)."
-  fi
-
-  echo "install: uninstall done."
-}
+# Normalize harness, accepting legacy bootstrap aliases.
+case "$harness" in
+  claude-code|agy|all) ;;
+  antigravity|generic) harness="agy" ;;   # legacy aliases → native agy surface
+  *)
+    echo "install: unknown harness '$harness'." >&2
+    echo "install: valid: claude-code | agy | all (aliases: antigravity, generic → agy)" >&2
+    exit 2 ;;
+esac
 
 # ---------------------------------------------------------------------------
 # validate_role — guard BEFORE any Nickel interpolation.
-# The $role string is interpolated into a Nickel expression; an unchecked
-# value lets an attacker break out of the string literal and import arbitrary
-# files (e.g., --role 'x" (import "/etc/passwd") #').
-# Validating against the known set eliminates the injection surface entirely.
+# The $role string is interpolated into a Nickel expression; an unchecked value
+# lets an attacker break out of the string literal and import arbitrary files
+# (e.g. --role 'x" (import "/etc/passwd") #'). Validating against the known set
+# eliminates the injection surface entirely.
 # ---------------------------------------------------------------------------
 validate_role() {
-  local r="$1"
-  case "$r" in
-    architect|core-worker|refine-worker|doc-worker|form-worker|spec-worker|boundary-worker)
-      return 0 ;;
-    *)
-      echo "install: unknown role '${r}'." >&2
-      echo "install: valid roles: architect core-worker refine-worker doc-worker" \
-           "form-worker spec-worker boundary-worker" >&2
-      exit 2 ;;
-  esac
+  local r="$1" known
+  for known in "${ALL_ROLES[@]}"; do
+    [ "$r" = "$known" ] && return 0
+  done
+  echo "install: unknown role '${r}'." >&2
+  echo "install: valid roles: ${ALL_ROLES[*]}" >&2
+  exit 2
 }
 
 # ---------------------------------------------------------------------------
 # generate_prompt — the functional core call.
-# Runs `nickel export` on compose.ncl; treats non-zero exit as FATAL per spec.
+# Runs `nickel export` on a wrapper that selects one role field of compose.ncl.
 # The HasCore injection-rule contract fires here; if core is absent the export
-# fails and this function exits non-zero before any harness write occurs.
+# fails and this function exits non-zero before any surface is written.
 # ---------------------------------------------------------------------------
 generate_prompt() {
   local role_arg="$1"
-  # Extract a single role field as plain text via a wrapper expression piped
-  # to nickel export.  The wrapper imports compose.ncl by absolute path (safe
-  # across any CWD) and accesses the role field via std.record.get for
-  # hyphenated key safety.
+  # Wrapper imports compose.ncl by absolute path (CWD-safe) and accesses the role
+  # field via std.record.get (hyphenated-key safe).
   local wrapper
   wrapper="std.record.get \"${role_arg}\" (import \"${compose_ncl}\")"
   # Capture stdout (the prompt) ONLY; route stderr to a temp file. Folding stderr
-  # into the prompt (2>&1) corrupts it with runner noise — e.g. nix's "unpacking
-  # '...' into the Git cache" progress line on first fetch lands inside the prompt.
+  # into the prompt (2>&1) corrupts it with runner noise.
   local prompt _err
   _err="$(mktemp)"
   if ! prompt="$(echo "$wrapper" | $NICKEL_CMD export --format text 2>"$_err")"; then
@@ -181,172 +174,203 @@ generate_prompt() {
 }
 
 # ---------------------------------------------------------------------------
-# harness detection — probe capabilities at runtime; do not pre-encode.
-# Implements the P-ARSENAL ladder: strongest first.
+# worker_description — the `description` frontmatter that drives delegation.
+# Concise: names the discipline so the architect can route to it.
 # ---------------------------------------------------------------------------
-detect_harness() {
-  local explicit="$1"
-  if [ -n "$explicit" ]; then printf '%s' "$explicit"; return; fi
+worker_description() {
+  case "$1" in
+    core-worker)     printf 'TDD feature implementation under the /core workflow: write the failing test invariant, verify baseline failure, then implement to green within the stated file surface.' ;;
+    refine-worker)   printf 'Refine and optimize existing artifacts under /refine: contraction-loop sweeps to a fixed point, each finding grounded; cut, do not thin.' ;;
+    doc-worker)      printf 'Documentation authoring and auditing under /doc-audit: link integrity, heading hierarchy, table formatting, and grounded claims written for the stranger-reader.' ;;
+    form-worker)     printf 'Formal mathematical domain modeling under /form: construct, validate, and connect models whose every invariant has a falsification signpost.' ;;
+    spec-worker)     printf 'Normative specification under /spec: machine-checkable invariants, permitted transitions, and forbidden states; every constraint names its evaluator.' ;;
+    boundary-worker) printf 'IBC authoring and refinement under /boundary: S1–S7 sufficiency contraction with deterministic acceptance criteria.' ;;
+    *) printf 'Predicate worker persona.' ;;
+  esac
+}
 
-  # Tier 1: claude-code — probe for --append-system-prompt in the CLI help.
-  if command -v claude >/dev/null 2>&1; then
-    if claude --help 2>/dev/null | grep -q -- '--append-system-prompt'; then
-      printf 'claude-code-tier1'; return
+# ---------------------------------------------------------------------------
+# strip_managed_block — echo a file's content with the predicate managed block
+# removed. A missing block is a clean pass-through.
+# ---------------------------------------------------------------------------
+strip_managed_block() {
+  local file="$1"
+  [ -f "$file" ] || return 0
+  awk -v b="$BEGIN_MARK" -v e="$END_MARK" '
+    $0 == b { skip = 1; next }
+    $0 == e { skip = 0; next }
+    !skip   { print }
+  ' "$file"
+}
+
+# ===========================================================================
+# Delivery — claude-code
+# ===========================================================================
+
+# Output style: predicate owns the whole file → write it entirely.
+install_output_style() {
+  local prompt="$1"
+  local dir="$claude_dir/output-styles"
+  local file="$dir/$OUTPUT_STYLE_FILE"
+  mkdir -p "$dir"
+  {
+    printf -- '---\n'
+    printf 'name: %s\n' "$OUTPUT_STYLE_NAME"
+    printf 'description: %s\n' "Predicate's complete behavioral law as the architect orchestration character."
+    printf 'keep-coding-instructions: false\n'
+    printf -- '---\n\n'
+    printf '%s\n' "$prompt"
+  } >"$file.tmp"
+  mv "$file.tmp" "$file"
+  echo "install: wrote output style → $file"
+}
+
+# Worker agents: one predicate-owned file per worker permutation.
+install_worker_agents() {
+  local dir="$claude_dir/agents"
+  mkdir -p "$dir"
+  local r prompt file
+  for r in "${WORKER_ROLES[@]}"; do
+    prompt="$(generate_prompt "$r")"
+    file="$dir/predicate-$r.md"
+    {
+      printf -- '---\n'
+      printf 'name: predicate-%s\n' "$r"
+      printf 'description: %s\n' "$(worker_description "$r")"
+      printf -- '---\n\n'
+      printf '%s\n' "$prompt"
+    } >"$file.tmp"
+    mv "$file.tmp" "$file"
+    echo "install: wrote worker agent → $file"
+  done
+}
+
+# ===========================================================================
+# Delivery — agy (GEMINI.md, managed block; user content outside it is preserved)
+# ===========================================================================
+install_gemini() {
+  local prompt="$1"
+  local file="$gemini_dir/GEMINI.md"
+  mkdir -p "$gemini_dir"
+
+  local body
+  body="$(strip_managed_block "$file")"
+
+  {
+    if [ -n "$body" ]; then printf '%s\n' "$body"; fi
+    printf '%s\n' "$BEGIN_MARK"
+    printf '<!-- Generated by conditioning/install.sh — role: architect.\n'
+    printf '     Managed block; re-run install.sh to update. Edit OUTSIDE this block. -->\n'
+    printf '%s\n' "$prompt"
+    printf '%s\n' "$END_MARK"
+  } >"$file.tmp"
+  mv "$file.tmp" "$file"
+  echo "install: wrote GEMINI.md (managed block) → $file"
+}
+
+# ===========================================================================
+# Uninstall — remove every predicate-owned surface, both harnesses. Idempotent.
+# ===========================================================================
+do_uninstall() {
+  local removed=0
+
+  # Output style.
+  local os_file="$claude_dir/output-styles/$OUTPUT_STYLE_FILE"
+  if [ -f "$os_file" ]; then rm -f "$os_file"; echo "install: removed $os_file"; removed=1; fi
+
+  # Worker agents.
+  local r af
+  for r in "${WORKER_ROLES[@]}"; do
+    af="$claude_dir/agents/predicate-$r.md"
+    if [ -f "$af" ]; then rm -f "$af"; echo "install: removed $af"; removed=1; fi
+  done
+
+  # GEMINI.md managed block; drop the file if nothing else remains.
+  local gm="$gemini_dir/GEMINI.md"
+  if [ -f "$gm" ] && grep -qxF "$BEGIN_MARK" "$gm"; then
+    local body
+    body="$(strip_managed_block "$gm")"
+    if printf '%s' "$body" | grep -q '[^[:space:]]'; then
+      printf '%s\n' "$body" >"$gm.tmp"; mv "$gm.tmp" "$gm"
+      echo "install: stripped conditioning block from $gm"
+    else
+      rm -f "$gm"; echo "install: removed $gm (predicate-only file, now empty)"
     fi
-    # claude CLI present but no Tier 1 surface → fall to Tier 2.
-    printf 'claude-code'; return
+    removed=1
   fi
 
-  # agy (per-launch Tier 1 via --system-prompt).
-  if command -v agy >/dev/null 2>&1; then
-    printf 'agy'; return
+  # Legacy cleanup: a prior (pre-native) install may have left a conditioning
+  # block in CLAUDE.md. Strip it idempotently so no orphan survives.
+  local claude_md="$claude_dir/CLAUDE.md"
+  if [ -f "$claude_md" ] && grep -qxF "$BEGIN_MARK" "$claude_md"; then
+    local cbody
+    cbody="$(strip_managed_block "$claude_md")"
+    printf '%s\n' "$cbody" >"$claude_md.tmp"; mv "$claude_md.tmp" "$claude_md"
+    echo "install: stripped legacy conditioning block from $claude_md"
+    removed=1
   fi
 
-  # Generic fallback: AGENTS.md prepend.
-  printf 'generic'
+  [ "$removed" -eq 0 ] && echo "install: no predicate conditioning surfaces found (already clean)."
+  echo "install: uninstall done."
 }
 
-# ---------------------------------------------------------------------------
-# delivery: claude-code Tier 1 — write to a generated file, @import it from
-# the CLAUDE.md managed block.  The generated file is placed next to compose.ncl
-# so the import path is stable and harness-readable.
-# ---------------------------------------------------------------------------
-install_claude_code_tier1() {
-  local prompt="$1"
-  local generated_file="$conditioning_dir/generated/${role}.md"
-  mkdir -p "$(dirname "$generated_file")"
-  printf '%s' "$prompt" >"$generated_file"
-  echo "install: wrote generated prompt to $generated_file"
-
-  # Wire the @import into CLAUDE.md managed block (idempotent, append-safe).
-  local claude_md="$HOME/.claude/CLAUDE.md"
-  mkdir -p "$(dirname "$claude_md")"
-  [ -f "$claude_md" ] || : >"$claude_md"
-
-  local import_line="@$generated_file"
-
-  local body
-  body="$(awk -v b="$BEGIN_MARK" -v e="$END_MARK" '
-    $0 == b { skip = 1; next }
-    $0 == e { skip = 0; next }
-    !skip   { print }
-  ' "$claude_md")"
-
-  {
-    if [ -n "$body" ]; then printf '%s\n' "$body"; fi
-    printf '%s\n' "$BEGIN_MARK"
-    printf '# Generated by conditioning/install.sh — role: %s\n' "$role"
-    printf '# Managed block; re-run install.sh to update. Edit outside this block.\n'
-    printf '%s\n' "$import_line"
-    printf '%s\n' "$END_MARK"
-  } >"$claude_md.conditioning.tmp"
-  mv "$claude_md.conditioning.tmp" "$claude_md"
-  echo "install: wired @import into $claude_md (idempotent)."
-}
-
-# ---------------------------------------------------------------------------
-# delivery: claude-code Tier 2 — CLAUDE.md managed block with inline prompt.
-# Used when --append-system-prompt is not available.
-# ---------------------------------------------------------------------------
-install_claude_code_tier2() {
-  local prompt="$1"
-  local claude_md="$HOME/.claude/CLAUDE.md"
-  mkdir -p "$(dirname "$claude_md")"
-  [ -f "$claude_md" ] || : >"$claude_md"
-
-  local body
-  body="$(awk -v b="$BEGIN_MARK" -v e="$END_MARK" '
-    $0 == b { skip = 1; next }
-    $0 == e { skip = 0; next }
-    !skip   { print }
-  ' "$claude_md")"
-
-  {
-    if [ -n "$body" ]; then printf '%s\n' "$body"; fi
-    printf '%s\n' "$BEGIN_MARK"
-    printf '# Generated conditioning for role: %s\n' "$role"
-    printf '# Managed by conditioning/install.sh — re-run to update.\n'
-    printf '%s\n' "$prompt"
-    printf '%s\n' "$END_MARK"
-  } >"$claude_md.conditioning.tmp"
-  mv "$claude_md.conditioning.tmp" "$claude_md"
-  echo "install: wrote conditioning (Tier 2) to $claude_md."
-}
-
-# ---------------------------------------------------------------------------
-# delivery: agy — print the per-launch dispatch pattern; no persistent surface.
-# agy is per-launch only; no persistent install is possible via conditioning.
-# ---------------------------------------------------------------------------
-install_agy() {
-  local prompt="$1"
-  local generated_file="$conditioning_dir/generated/${role}.md"
-  mkdir -p "$(dirname "$generated_file")"
-  printf '%s' "$prompt" >"$generated_file"
-  echo "install: wrote generated prompt to $generated_file"
-  echo "install: agy has no persistent system-prompt surface."
-  echo "install: use the following per-launch pattern (Tier 1):"
-  printf '\n  agy --system-prompt "$(cat %s)" --model <tier> --prompt-interactive "$(cat node_ibc.md)"\n\n' \
-    "$generated_file"
-}
-
-# ---------------------------------------------------------------------------
-# delivery: generic — prepend to AGENTS.md.
-# ---------------------------------------------------------------------------
-install_generic() {
-  local prompt="$1"
-  local agents_md="${PWD}/AGENTS.md"
-  [ -f "$agents_md" ] || : >"$agents_md"
-
-  local body
-  body="$(awk -v b="$BEGIN_MARK" -v e="$END_MARK" '
-    $0 == b { skip = 1; next }
-    $0 == e { skip = 0; next }
-    !skip   { print }
-  ' "$agents_md")"
-
-  {
-    printf '%s\n' "$BEGIN_MARK"
-    printf '# Generated conditioning for role: %s\n' "$role"
-    printf '# Managed by conditioning/install.sh — re-run to update.\n'
-    printf '%s\n' "$prompt"
-    printf '%s\n' "$END_MARK"
-    if [ -n "$body" ]; then printf '%s\n' "$body"; fi
-  } >"$agents_md.conditioning.tmp"
-  mv "$agents_md.conditioning.tmp" "$agents_md"
-  echo "install: wrote conditioning to $agents_md (generic Tier 2)."
-}
-
-# ---------------------------------------------------------------------------
+# ===========================================================================
 # main
-# ---------------------------------------------------------------------------
+# ===========================================================================
 if "$uninstall"; then
   do_uninstall
   exit 0
 fi
 
 validate_role "$role"
-echo "install: generating prompt for role='$role' ..."
-prompt="$(generate_prompt "$role")"
-echo "install: generated ${#prompt} chars (HasCore contract passed)."
 
+# Dry-run: print the plan, and (with --role) the targeted composed prompt.
 if "$dry_run"; then
-  echo "install: --dry-run; printing prompt to stdout and exiting."
+  echo "install: --dry-run (harness=$harness); no surface will be written."
+  echo "install: plan:"
+  case "$harness" in
+    claude-code|all)
+      echo "  - output style → $claude_dir/output-styles/$OUTPUT_STYLE_FILE (keep-coding-instructions: false)"
+      for r in "${WORKER_ROLES[@]}"; do
+        echo "  - worker agent → $claude_dir/agents/predicate-$r.md"
+      done ;;
+  esac
+  case "$harness" in
+    agy|all) echo "  - GEMINI.md (managed block) → $gemini_dir/GEMINI.md" ;;
+  esac
+  echo "install: composed prompt for role='$role':"
   echo "---"
-  printf '%s\n' "$prompt"
+  printf '%s\n' "$(generate_prompt "$role")"
   exit 0
 fi
 
-harness="$(detect_harness "$harness")"
-echo "install: harness=$harness"
+if "$role_explicit"; then
+  echo "install: note — --role is dry-run-only; a real install materializes the full surface."
+fi
+
+echo "install: native delivery (harness=$harness) ..."
+
+# Architect prompt is reused for the output style and GEMINI.md.
+architect_prompt=""
+need_architect=false
+case "$harness" in claude-code|all|agy) need_architect=true ;; esac
+if "$need_architect"; then
+  architect_prompt="$(generate_prompt "architect")"
+  echo "install: generated architect prompt (${#architect_prompt} chars; HasCore passed)."
+fi
 
 case "$harness" in
-  claude-code-tier1) install_claude_code_tier1 "$prompt" ;;
-  claude-code)       install_claude_code_tier2 "$prompt" ;;
-  agy)               install_agy "$prompt" ;;
-  generic)           install_generic "$prompt" ;;
-  *)
-    echo "install: unknown harness: $harness" >&2
-    exit 2 ;;
+  claude-code)
+    install_output_style "$architect_prompt"
+    install_worker_agents ;;
+  agy)
+    install_gemini "$architect_prompt" ;;
+  all)
+    install_output_style "$architect_prompt"
+    install_worker_agents
+    install_gemini "$architect_prompt" ;;
 esac
 
 echo "install: done."
+echo "install: to ACTIVATE the output style, select it (\`/output-style\`) or set"
+echo "install:   \"outputStyle\": \"$OUTPUT_STYLE_NAME\" in $claude_dir/settings.json."

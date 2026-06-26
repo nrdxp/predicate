@@ -5,6 +5,33 @@ Each entry: name the technique, cite the source fragment, state the technique, s
 
 ---
 
+## Delivery target — where these dispositions land
+
+Dispositions written per this guide are not wrapped around a harness at launch by a
+process adapter — predicate is **instructions + generated prompts, not a process
+wrapper**. They are generated into each harness's **native system-prompt surface at
+install time** by `conditioning/install.sh` (composed as `core.ncl ++ persona(role)`;
+see [ARCHITECTURE.md](ARCHITECTURE.md)):
+
+- **Claude Code** — the architect law ships as an **output style**
+  (`~/.claude/output-styles/predicate-architect.md`) with frontmatter
+  `keep-coding-instructions: false`. That setting empties Claude's built-in
+  software-engineering block while **preserving** tool definitions, environment
+  info, agent identity, and safety scaffolding; the output-style body is *appended*
+  to the system prompt. Consequence for the author: write the behavioral law only —
+  do not re-state tool mechanics, the `file_path:line` reference convention, or
+  environment details the harness still supplies. Every worker permutation is also
+  materialized under `~/.claude/agents/predicate-<role>.md`, where the body becomes
+  that subagent's full system prompt.
+- **agy** — the same law is written into `~/.gemini/GEMINI.md` (a managed block
+  injected into the system prompt).
+
+Because the surface is native, a disposition's *harness-coupling flags* (below)
+matter: anything the harness already provides — tool syntax, env vars, the
+file-reference convention — must be omitted from the disposition, not re-specified.
+
+---
+
 ## 0. General Disposition-Phrasing Technique
 
 ### 0.1 — One Imperative + Subordinate Why
