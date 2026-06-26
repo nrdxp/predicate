@@ -1,5 +1,14 @@
 # The Verification Dual — Master Ruleset
 
+> [!NOTE]
+> **SOURCE and by-moment reference, not an always-on injection.**
+> This file is the authoritative source for the Prime Invariants and is loaded
+> by invoked skills and workflows. The always-on delivery surface is the
+> conditioning output style installed by `bootstrap/install.sh` — it composes
+> the invariant core into a generated system prompt that is active in every
+> session. Do not `@import` this file directly into CLAUDE.md; that path is
+> retired. Skill routing is in §5; the ambient layer is in [ambient.md](ambient.md).
+
 Master constraints for all autoregressive sequence generations in this workspace — the ambient boundary condition every walker inherits, from a cheap worker running a refinement loop to an architect running a campaign.
 
 This document states what must **always** be true and routes to the skill that owns each procedure. Skills are the authorities for detail; nothing here is repeated at length. When context is scarce, the Prime Invariants are what survive.
