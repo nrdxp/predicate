@@ -61,6 +61,16 @@ jobs:
       - name: doc audit (links + anchors)
         run: python3 skills/doc-audit/scripts/check_docs.py .
 
+      - name: conditioning delivery e2e + bootstrap uninstall (hermetic)
+        run: |
+          set -euo pipefail
+          bash conditioning/test_conditioning.sh
+          bash bootstrap/test_uninstall.sh
+
       # NOTE: bootstrap/test_bootstrap.sh is intentionally NOT run here. It
       # performs a real `claude plugin install` (Claude CLI + network + auth),
       # which is not CI-appropriate; run it manually when changing bootstrap.
+      # The two tests above ARE CI-safe: test_conditioning.sh installs into a
+      # throwaway HOME (PREDICATE_CLAUDE_DIR/PREDICATE_GEMINI_DIR), and
+      # test_uninstall.sh seeds surfaces directly and uses a mock `claude` — no
+      # network, no auth, no real ~ touched.
