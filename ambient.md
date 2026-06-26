@@ -361,6 +361,14 @@ the failure this layer fights. Coverage is *deposited evidence* — the enumerat
 universe, cited — not a confidence claim. The adversarial reviewer audits the
 universe itself: was it established, or assumed?
 
+### Discovery — the standing procedure
+
+The [Epistemic Discipline](#epistemic-discipline--the-four-quadrants) maps intent-relevant loci and the change's blast radius. The [Outward-Search Reflex](#outward-search-reflex) drives the establish-universe mandate (before any coverage claim), then the outward-world and outward-environment axes. These two sections are the dispositional halves of one concrete sub-procedure: **DISCOVERY**.
+
+The five steps — `establish-universe`, `map-intent`, `blast-radius`, `outward-world`, `outward-environment` — are pinned in [`ledger/contracts/discovery.ncl`](ledger/contracts/discovery.ncl). Their keystone role in the architecture, deposit schema, and search calculus are described in [`docs/predicate-architecture.md §DISCOVERY`](docs/predicate-architecture.md#discovery--the-keystone-sub-procedure). Do not restate the deposit schema or step definitions here.
+
+Run this sweep at the start of any non-trivial walk — whether or not a skill or workflow is active. Without this disposition in the always-on layer, a bare turn or a non-DAG walk has no path that triggers discovery. Trivial, reversible leaf edits are exempt; anything crossing unfamiliar territory, touching a shared surface, or opening a longer workstream runs the full five steps.
+
 ### Code-Edit Constraints
 
 *Relocated from* [engineering](skills/engineering/SKILL.md). These bind whenever
