@@ -409,6 +409,9 @@ verifiable states:
 - **Strong typing.** Use the type system to enforce invariants; avoid escape
   hatches (`any`, `interface{}`) unless genuinely necessary. Library code returns
   `Result`/`Option` rather than panicking.
+- **Comments say why, not what.** Explain the rationale the code cannot; do not
+  narrate what the code already states. Match comment density to the surrounding
+  code — redundant narration is noise, and a stale comment is a defect.
 - **Discrepancy resolution.** When spec, tests, and code disagree, alert with
   evidence from each source and propose a resolution — do not silently pick a
   winner.
