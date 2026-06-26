@@ -6,8 +6,9 @@
 #
 # Round-trip invariants under test:
 #   install → uninstall
-#     - managed block is gone from CLAUDE.md
-#     - surrounding user content is preserved byte-for-byte
+#     - managed @import block is NEVER written by install (output style is the
+#       single always-on surface)
+#     - user content in CLAUDE.md is preserved byte-for-byte through install + uninstall
 #     - second uninstall is a clean no-op (exit 0, no mutation)
 #     - antigravity symlink is removed only when it resolves to this plugin
 #
@@ -78,10 +79,10 @@ run_deinit() {
 }
 
 # ---------------------------------------------------------------------------
-# uninstall: managed block is stripped; user content is preserved
+# install → uninstall: @import block is never written; user content is preserved
 # ---------------------------------------------------------------------------
-case_uninstall_strips_block() {
-  local name="uninstall: managed block removed; user content preserved; no-op on second run"
+case_install_uninstall_preserves_user_content() {
+  local name="install+uninstall: @import block never written; user content preserved; no-op on second uninstall"
   local home; home="$(make_home)"
   local claude_md="$home/.claude/CLAUDE.md"
 
@@ -95,38 +96,35 @@ EOF
   local original; original="$(cat "$claude_md")"
 
   run_install "$home" >/dev/null 2>&1
-  # Confirm the managed block exists post-install.
+
+  # The managed @import block must NOT have been written by install.
   local rc=0
-  if ! grep -qxF '# >>> predicate managed block >>>' "$claude_md"; then
-    note "managed block not present after install (test precondition failure)"; rc=1
-    bad "$name"; rm -rf "$home"; return
+  if grep -qxF '# >>> predicate managed block >>>' "$claude_md"; then
+    note "managed @import block written by install (must not be written)"; rc=1
   fi
 
   run_uninstall "$home" >/dev/null 2>&1
 
-  # The managed block must be gone.
+  # The @import block markers must remain absent.
   if grep -qxF '# >>> predicate managed block >>>' "$claude_md"; then
-    note "managed block still present after uninstall"; rc=1
+    note "managed @import block BEGIN marker present after uninstall"; rc=1
   fi
   if grep -qxF '# <<< predicate managed block <<<' "$claude_md"; then
-    note "managed block END marker still present after uninstall"; rc=1
+    note "managed @import block END marker present after uninstall"; rc=1
   fi
-  # The @import lines must be gone.
-  if grep -qF '/rules.md' "$claude_md"; then
-    note "rules.md @import still present after uninstall"; rc=1
+  # Bare @import lines for rules.md / ambient.md must be absent.
+  if grep -qE "^@.*/rules\.md$" "$claude_md" 2>/dev/null; then
+    note "bare @import for rules.md present after uninstall"; rc=1
   fi
-  if grep -qF '/ambient.md' "$claude_md"; then
-    note "ambient.md @import still present after uninstall"; rc=1
+  if grep -qE "^@.*/ambient\.md$" "$claude_md" 2>/dev/null; then
+    note "bare @import for ambient.md present after uninstall"; rc=1
   fi
-  # Original user content must survive (as a prefix).
-  local after; after="$(cat "$claude_md")"
-  # Strip trailing whitespace/newlines for comparison robustness.
-  local orig_trimmed; orig_trimmed="$(printf '%s' "$original" | sed 's/[[:space:]]*$//')"
-  if ! grep -qxF "$(printf '%s' "$orig_trimmed" | head -1)" "$claude_md" 2>/dev/null; then
-    note "original user content not preserved after uninstall"; rc=1
+  # Original user content must survive.
+  if ! grep -qxF '# My global config' "$claude_md" 2>/dev/null; then
+    note "original user content not preserved after install + uninstall"; rc=1
   fi
 
-  # Second run must be a clean no-op (same file, exit 0).
+  # Second uninstall must be a clean no-op (same file, exit 0).
   local before_second; before_second="$(cat "$claude_md")"
   run_uninstall "$home" >/dev/null 2>&1
   local after_second; after_second="$(cat "$claude_md")"
@@ -620,32 +618,33 @@ case_uninstall_strips_conditioning_block() {
 1. Always address me by name.
 EOF
 
-  # install writes both the managed block and the conditioning block (via nickel).
+  # install writes the conditioning block (via nickel); @import managed block is
+  # NOT written (output style is the single always-on surface).
   run_install "$home" >/dev/null 2>&1
 
-  # Confirm both blocks exist post-install.
+  # Confirm the conditioning block exists post-install (precondition).
   local rc=0
-  if ! grep -qxF '# >>> predicate managed block >>>' "$claude_md"; then
-    note "managed block missing after install (test precondition failure)"; rc=1
-    bad "$name"; rm -rf "$home"; return
-  fi
   if ! grep -qxF '# >>> predicate conditioning block >>>' "$claude_md"; then
     note "conditioning block missing after install — was nickel not available or conditioning skipped?"; rc=1
     bad "$name"; rm -rf "$home"; return
   fi
+  # Confirm the @import managed block was NOT written.
+  if grep -qxF '# >>> predicate managed block >>>' "$claude_md"; then
+    note "managed @import block found after install (must not be written)"; rc=1
+  fi
 
   run_uninstall "$home" >/dev/null 2>&1
 
-  # Managed block must be gone.
-  if grep -qxF '# >>> predicate managed block >>>' "$claude_md"; then
-    note "managed block still present after uninstall"; rc=1
-  fi
-  # Conditioning block must ALSO be gone.
+  # Conditioning block must be gone.
   if grep -qxF '# >>> predicate conditioning block >>>' "$claude_md"; then
     note "conditioning block still present after uninstall (orphaned)"; rc=1
   fi
   if grep -qxF '# <<< predicate conditioning block <<<' "$claude_md"; then
     note "conditioning block END marker still present after uninstall (orphaned)"; rc=1
+  fi
+  # @import managed block must remain absent.
+  if grep -qxF '# >>> predicate managed block >>>' "$claude_md"; then
+    note "managed @import block appeared after uninstall (should never exist)"; rc=1
   fi
   # User content must survive.
   if ! grep -qxF '# My global config' "$claude_md"; then
@@ -700,7 +699,7 @@ EOF
   local rc=0
   # Run bootstrap install with the mock claude on PATH; let it auto-detect harness.
   # Pass --harness claude-code so bootstrap skips the real 'claude plugin ...' check
-  # (which we've mocked) and goes straight to inject_imports + inject_conditioning.
+  # (which we've mocked) and goes straight to inject_conditioning.
   PATH="$mock_bin:$PATH" HOME="$home" PREDICATE_PLUGIN_SRC="$plugin_root" \
     bash "$install_sh" install --harness claude-code >/dev/null 2>&1
 
@@ -734,7 +733,7 @@ EOF
 # ---------------------------------------------------------------------------
 # run all cases
 # ---------------------------------------------------------------------------
-case_uninstall_strips_block
+case_install_uninstall_preserves_user_content
 case_uninstall_already_clean
 case_uninstall_antigravity_symlink
 case_deinit_removes_hooks_preserves_ledger

@@ -55,36 +55,26 @@ The `claude` CLI must be on your `PATH`; if it is not, install
 so the `install` phase symlinks the checkout into its plugins directory under
 `~/.gemini/antigravity-cli/plugins/predicate`.
 
-In both cases, `install` then appends two `@import` lines to your global
-`CLAUDE.md` so the always-on rules load in every session (each line points at
-your checkout):
-
-```
-@<predicate-dir>/rules.md
-@<predicate-dir>/ambient.md
-```
-
-Plugins expose skills and hooks but have no always-on-rules surface, so the
-`@import` is the supported mechanism for `rules.md` + `ambient.md`. The append is
-idempotent and non-clobbering: the lines live inside a sentinel-delimited managed
-block, so re-running is a no-op and your existing `CLAUDE.md` content is preserved
-untouched. The imports point at your **checkout** (not the version-pinned plugin
-cache), so they survive cache clears and auto-propagate a `git pull`.
-
-**System-prompt conditioning.** In addition to `@import`-based loading, Predicate
-ships a conditioning layer (`conditioning/`) that generates a structured system
-prompt for each role. The generator (`conditioning/compose.ncl`) composes
+In both cases, `install` then installs the always-on conditioning output style:
+Predicate ships a conditioning layer (`conditioning/`) that generates a structured
+system prompt for each role. The generator (`conditioning/compose.ncl`) composes
 `invariant-core ++ persona(role)` and enforces a contract (`HasCore`) that makes
 it structurally impossible for any harness adapter or persona to drop the
-always-on law. The `install` phase persists this via `@import` into CLAUDE.md: it
-writes the generated prompt to `conditioning/generated/` and wires an `@import` of
-that file inside a conditioning managed block (Tier 1, when the CLI supports it),
-or inlines the prompt directly into CLAUDE.md (Tier 2). The
-`--append-system-prompt` flag is the **per-launch** adapter path — used by
-`conditioning/adapters/claude.sh` when an orchestrator spawns a worker, not by
-`install`. The orchestrator uses the same generator at dispatch time, selecting the
-appropriate role. See [conditioning-layer.md](conditioning-layer.md) for the
-composition contract and the harness-agnostic injection ladder.
+always-on law. The `install` phase delivers this as an **output style that
+replaces the harness default**: it writes the generated prompt to
+`conditioning/generated/` and wires it via `--append-system-prompt` (Tier 1, when
+the CLI supports it), or falls back to inlining the prompt inside a conditioning
+managed block directly in CLAUDE.md (Tier 2). The `--append-system-prompt` flag
+is also the **per-launch** adapter path used by `conditioning/adapters/claude.sh`
+when an orchestrator spawns a worker. The orchestrator uses the same generator at
+dispatch time, selecting the appropriate role. See
+[conditioning-layer.md](conditioning-layer.md) for the composition contract and
+the harness-agnostic injection ladder.
+
+The output style is the single always-on surface. No `@import` of `rules.md` or
+`ambient.md` is written to CLAUDE.md; `rules.md` is the authoritative source for
+the invariants and is loaded by invoked skills — the conditioning prompt already
+carries the invariant core into every session.
 
 > The `install` phase touches only your global config. It installs **no** git
 > hooks and creates **no** `.ledger` — those are per-project, and belong to `init`.
@@ -166,8 +156,8 @@ where the plugin lives.
 
 ## 3. Configure AGENTS.md (Optional for basic use)
 
-The `install` phase wires rules loading for you, so an `AGENTS.md` is not required
-for skills to load — basic use works without one. It remains useful for
+The `install` phase delivers the conditioning output style, so an `AGENTS.md` is
+not required for skills to load — basic use works without one. It remains useful for
 *project-specific* context the global rules cannot know — build commands, an
 architecture overview, and explicit skill routing.
 
@@ -201,10 +191,11 @@ Confirm your agent runner detects and loads the Predicate configuration.
 1. **Verify the registration**: For Claude Code, run `claude plugin list` and
    confirm `predicate@predicate` appears, enabled. The skills surface under the
    `predicate:` namespace.
-2. **Verify the rules `@import`**: Check that your global `CLAUDE.md` ends with the
-   predicate managed block (the two `@import` lines between the
-   `# >>> predicate managed block >>>` sentinels). A new session loads `rules.md`
-   and `ambient.md` from there.
+2. **Verify the conditioning output style**: Check that `conditioning/generated/architect.md`
+   exists under your Predicate checkout (Tier 1 install). For a Tier 2 install,
+   check that your global `CLAUDE.md` contains the conditioning managed block
+   (between the `# >>> predicate conditioning block >>>` sentinels). A new session
+   receives the invariant core via this conditioning prompt.
 3. **Verify the skills list**: When you launch your runner, the startup metadata's
    **Available skills** block should list the Predicate skills (`constitution`,
    `engineering`, a language skill such as `rust` or `go`, and a workflow such as

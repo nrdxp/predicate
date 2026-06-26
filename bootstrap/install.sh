@@ -6,8 +6,8 @@
 # (once per machine) while git hooks are PER-REPOSITORY (once per consuming repo).
 #
 #   install   GLOBAL, run once. Registers predicate with the harness via its
-#             REAL plugin mechanism, then wires the always-on rules into the
-#             user's global CLAUDE.md. No git hooks, no .ledger here.
+#             REAL plugin mechanism, then installs the conditioning output style.
+#             No git hooks, no .ledger here.
 #
 #   init      PER-PROJECT, run inside each repo you want governed. Installs the
 #             git commit gate into that repo's .git/hooks (by COMPOSING
@@ -23,14 +23,10 @@
 #   - antigravity: a file-based plugin dir convention (~/.gemini/antigravity-cli/
 #     plugins/), so a symlink of the checkout IS the registration there.
 #
-# Claude Code plugins expose skills/hooks/agents but have no always-on-rules
-# surface, so the global CLAUDE.md `@import` is the supported non-clobbering
-# mechanism for rules.md + ambient.md. The append is idempotent and append-safe:
-# it lives inside a sentinel-delimited managed block (the rustup/nvm "managed
-# block" pattern), so re-running is a no-op and any pre-existing config is
-# byte-preserved as a prefix — never overwritten. The @import points at the live
-# CHECKOUT (not the version-pinned plugin cache), so it is stable across cache
-# clears and auto-propagates a `git pull`.
+# The conditioning layer generates a structured system prompt for each role and
+# delivers it via the best available surface (Tier 1: output style with
+# --append-system-prompt; Tier 2: CLAUDE.md conditioning block). This is the
+# single always-on surface; no @import of rules.md/ambient.md is written.
 #
 # Usage:
 #   bootstrap/install.sh install   [--harness claude-code|antigravity]
@@ -46,10 +42,6 @@
 #
 # Exit: 0 = set up / already current, non-zero = a step could not complete.
 set -euo pipefail
-
-# --- markers (the managed-block sentinels; do not edit existing ones) --------
-readonly BEGIN_MARK='# >>> predicate managed block >>>'
-readonly END_MARK='# <<< predicate managed block <<<'
 
 self_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # The plugin checkout is the parent of bootstrap/ unless overridden.
@@ -104,53 +96,11 @@ register_antigravity() {
   fi
 }
 
-# --- wire rules via an append-safe, idempotent @import block -----------------
-# The managed block is rewritten atomically: strip any prior block, then append a
-# fresh one. Stripping-then-appending is what makes re-runs a true no-op while
-# tolerating a moved checkout. Content OUTSIDE the markers is never touched, so a
-# pre-existing config is preserved as a byte-prefix. The imports point at the
-# live CHECKOUT ($plugin_src), the stable always-on source — not the volatile,
-# version-pinned plugin cache.
-inject_imports() {
-  local claude_md="$HOME/.claude/CLAUDE.md"
-  mkdir -p "$(dirname "$claude_md")"
-  [ -f "$claude_md" ] || : >"$claude_md"
-
-  local rules_import="@$plugin_src/rules.md"
-  local ambient_import="@$plugin_src/ambient.md"
-
-  # Body = the file with any existing managed block removed. awk drops the
-  # marker-delimited span inclusively; everything else is passed through byte
-  # for byte (no reflow, no reorder).
-  local body
-  body="$(awk -v b="$BEGIN_MARK" -v e="$END_MARK" '
-    $0 == b { skip = 1; next }
-    $0 == e { skip = 0; next }
-    !skip   { print }
-  ' "$claude_md")"
-
-  # Reassemble: preserved body, then exactly one managed block. printf adds the
-  # trailing newline the body may lack, so the block never glues onto the user's
-  # last line (append-safety even when the original had no final newline).
-  {
-    if [ -n "$body" ]; then printf '%s\n' "$body"; fi
-    printf '%s\n' "$BEGIN_MARK"
-    printf '# Auto-loads the predicate always-on layers. Managed by bootstrap/install.sh.\n'
-    printf '# Edits inside this block are overwritten on re-run; edit OUTSIDE it.\n'
-    printf '%s\n' "$rules_import"
-    printf '%s\n' "$ambient_import"
-    printf '%s\n' "$END_MARK"
-  } >"$claude_md.tmp"
-  mv "$claude_md.tmp" "$claude_md"
-  echo "install: wired @import rules+ambient into $claude_md (idempotent)."
-}
-
 # --- conditioning delivery (called from phase_install) -----------------------
-# Generates and installs the architect-role conditioning prompt.  Additive to
-# the existing inject_imports step; preserves all existing install behaviour.
+# Generates and installs the architect-role conditioning prompt.
 # The conditioning/install.sh script is the authority for delivery — this is
-# the bootstrap wiring only.  Non-fatal if Nickel is not available (the
-# CLAUDE.md @import from inject_imports remains the Tier 2 floor).
+# the bootstrap wiring only.  Non-fatal if Nickel is not available: conditioning
+# is the single always-on surface; no @import fallback is installed.
 inject_conditioning() {
   local harness="$1"
   local conditioning_sh="$plugin_src/conditioning/install.sh"
@@ -173,7 +123,7 @@ inject_conditioning() {
   [ -n "$cond_harness" ] && extra_args=(--harness "$cond_harness")
   PREDICATE_SRC="$plugin_src" bash "$conditioning_sh" \
     --role architect "${extra_args[@]+"${extra_args[@]}"}" \
-    || echo "install: conditioning delivery exited non-zero (non-fatal; Tier 2 @import still active)." >&2
+    || echo "install: conditioning delivery exited non-zero (non-fatal)." >&2
 }
 
 # --- conditioning teardown (called from phase_uninstall) ---------------------
@@ -208,7 +158,6 @@ phase_install() {
     antigravity) register_antigravity ;;
     *) echo "install: unknown harness: $harness (want claude-code|antigravity)" >&2; exit 2 ;;
   esac
-  inject_imports
   inject_conditioning "$harness"
   echo "install: done. Next: run 'init' inside each repo you want governed."
 }
@@ -399,23 +348,6 @@ phase_init() {
   echo "init: done. Next (human seam): push the .ledger remote when ready."
 }
 
-# --- strip_managed_block: remove the delimited block from a file, in-place ---
-# Strips exactly the span between BEGIN_MARK and END_MARK (inclusive); content
-# outside the markers is passed through byte-for-byte. Idempotent: a file with
-# no managed block is left unchanged.
-strip_managed_block() {
-  local file="$1"
-  [ -f "$file" ] || return 0
-  local body
-  body="$(awk -v b="$BEGIN_MARK" -v e="$END_MARK" '
-    $0 == b { skip = 1; next }
-    $0 == e { skip = 0; next }
-    !skip   { print }
-  ' "$file")"
-  printf '%s\n' "$body" >"$file.tmp"
-  mv "$file.tmp" "$file"
-}
-
 # --- deregister: claude-code via the CLI ------------------------------------
 # Reverses register_claude_code. Uses `claude plugin uninstall` then
 # `claude plugin marketplace remove` — both idempotent (the CLI is a no-op when
@@ -457,9 +389,9 @@ deregister_antigravity() {
 }
 
 # --- phase: uninstall (GLOBAL, once) -----------------------------------------
-# Reverses phase_install: strip the managed block from CLAUDE.md and deregister
-# the plugin. PRESERVES all user content outside the managed block.
-# Idempotent: a second run detects the absence and is a clean no-op.
+# Reverses phase_install: strips the conditioning block from CLAUDE.md and
+# deregisters the plugin. PRESERVES all user content outside the conditioning
+# block. Idempotent: a second run detects the absence and is a clean no-op.
 phase_uninstall() {
   local harness=""
   while [ "$#" -gt 0 ]; do
@@ -471,19 +403,6 @@ phase_uninstall() {
   done
   harness="$(detect_harness "$harness")"
   echo "uninstall: harness=$harness plugin=$plugin_src"
-
-  # Strip the managed @import block from the global CLAUDE.md.
-  local claude_md="$HOME/.claude/CLAUDE.md"
-  if [ -f "$claude_md" ]; then
-    if grep -qxF "$BEGIN_MARK" "$claude_md"; then
-      strip_managed_block "$claude_md"
-      echo "uninstall: removed predicate managed block from $claude_md."
-    else
-      echo "uninstall: no predicate managed block found in $claude_md (already clean)."
-    fi
-  else
-    echo "uninstall: $claude_md does not exist (already clean)."
-  fi
 
   # Strip the conditioning managed block from CLAUDE.md (symmetric to inject_conditioning).
   remove_conditioning

@@ -3,15 +3,15 @@
 #
 # The bootstrap has two scopes, so the tests do too:
 #   install (GLOBAL) — registers the plugin via the harness's REAL mechanism and
-#                       wires the always-on @import into the global CLAUDE.md.
+#                       installs the conditioning output style.
 #   init    (PER-REPO) — installs the git hooks + inits the .ledger subrepo.
 #
 # Everything runs against a throwaway fixture HOME and throwaway fixture repos
 # (mktemp + git init), so the user's real global config is never touched.
 #
 # The load-bearing fixture assertions:
-#   - install: the global CLAUDE.md @import append is idempotent, append-safe,
-#     and non-clobbering (the original bytes survive as a prefix).
+#   - install: the @import managed block is NOT written to CLAUDE.md (the
+#     conditioning output style is the single always-on surface).
 #   - init:    the hooks are untracked plugin-pointing symlinks, the consumer
 #     tree stays clean, the .ledger is a subrepo with a remote but NO push, and a
 #     real commit fires the gate resolved FROM the plugin.
@@ -122,10 +122,11 @@ case_cli_validate() {
 }
 
 # ---------------------------------------------------------------------------
-# Phase install — idempotent, non-clobbering, append-safe CLAUDE.md injection
+# Phase install — does NOT write the @import managed block to CLAUDE.md.
+# The conditioning output style is the single always-on surface.
 # ---------------------------------------------------------------------------
-case_idempotent_append() {
-  local name="install: claude_md @import idempotent + append-safe + non-clobbering"
+case_install_does_not_write_import_block() {
+  local name="install: does NOT write the @import managed block to CLAUDE.md"
   local home; home="$(make_home)"
   local claude_md="$home/.claude/CLAUDE.md"
 
@@ -135,67 +136,24 @@ case_idempotent_append() {
 1. Always address me by name.
 2. Never add co-author trailers.
 EOF
-  local original; original="$(cat "$claude_md")"
 
   run_install "$home" >/dev/null 2>&1
-  local after_first; after_first="$(cat "$claude_md")"
-  run_install "$home" >/dev/null 2>&1
-  local after_second; after_second="$(cat "$claude_md")"
 
   local rc=0
-  if [ "${after_first:0:${#original}}" != "$original" ]; then
-    note "original content is not a byte-prefix of the result (clobbered/reordered)"; rc=1
+  # The @import managed block markers must NOT appear.
+  if grep -qxF '# >>> predicate managed block >>>' "$claude_md" 2>/dev/null; then
+    note "managed @import block BEGIN marker found in CLAUDE.md (must not be written)"; rc=1
   fi
-  if [ "$after_first" != "$after_second" ]; then
-    note "second run mutated the file (not idempotent)"; rc=1
+  if grep -qxF '# <<< predicate managed block <<<' "$claude_md" 2>/dev/null; then
+    note "managed @import block END marker found in CLAUDE.md (must not be written)"; rc=1
   fi
-  local n_rules n_ambient
-  n_rules="$(grep -cF '/rules.md' "$claude_md")"
-  n_ambient="$(grep -cF '/ambient.md' "$claude_md")"
-  if [ "$n_rules" != "1" ]; then note "rules.md @import count = $n_rules (want 1)"; rc=1; fi
-  if [ "$n_ambient" != "1" ]; then note "ambient.md @import count = $n_ambient (want 1)"; rc=1; fi
-  if ! grep -qE "^@.*/rules\.md$" "$claude_md"; then note "no @.../rules.md import line"; rc=1; fi
-  if ! grep -qE "^@.*/ambient\.md$" "$claude_md"; then note "no @.../ambient.md import line"; rc=1; fi
-  # The @import must point at the live CHECKOUT, not the volatile plugin cache.
-  if ! grep -qF "@$plugin_root/rules.md" "$claude_md"; then
-    note "rules @import does not point at the checkout ($plugin_root)"; rc=1
+  # Bare standalone @import lines for rules.md or ambient.md must NOT appear.
+  if grep -qE "^@.*/rules\.md$" "$claude_md" 2>/dev/null; then
+    note "bare @import for rules.md found in CLAUDE.md (must not be written by install)"; rc=1
   fi
-
-  rm -rf "$home"
-  [ "$rc" -eq 0 ] && ok "$name" || bad "$name"
-}
-
-# Append-safety against a file with NO trailing newline.
-case_no_trailing_newline() {
-  local name="install: claude_md append-safe when original lacks a trailing newline"
-  local home; home="$(make_home)"
-  local claude_md="$home/.claude/CLAUDE.md"
-  printf '# config\nlast line no newline' >"$claude_md"
-
-  run_install "$home" >/dev/null 2>&1
-  local rc=0
-  if ! grep -qx 'last line no newline' "$claude_md"; then
-    note "the original last line was corrupted by the append"; rc=1
+  if grep -qE "^@.*/ambient\.md$" "$claude_md" 2>/dev/null; then
+    note "bare @import for ambient.md found in CLAUDE.md (must not be written by install)"; rc=1
   fi
-  if ! grep -qE "^@.*/rules\.md$" "$claude_md"; then note "rules import missing"; rc=1; fi
-
-  rm -rf "$home"
-  [ "$rc" -eq 0 ] && ok "$name" || bad "$name"
-}
-
-# Fresh HOME with no CLAUDE.md at all: the install phase creates one.
-case_fresh_home() {
-  local name="install: claude_md created when absent, then idempotent"
-  local home; home="$(make_home)"
-  local claude_md="$home/.claude/CLAUDE.md"
-  rm -f "$claude_md"
-
-  run_install "$home" >/dev/null 2>&1
-  run_install "$home" >/dev/null 2>&1
-  local rc=0
-  [ -f "$claude_md" ] || { note "CLAUDE.md was not created"; rc=1; }
-  local n; n="$(grep -cF '/rules.md' "$claude_md" 2>/dev/null || echo 0)"
-  [ "$n" = "1" ] || { note "rules import count = $n (want 1)"; rc=1; }
 
   rm -rf "$home"
   [ "$rc" -eq 0 ] && ok "$name" || bad "$name"
@@ -401,9 +359,7 @@ case_hooks_composed_by_path() {
 # Phase install
 case_manifests_valid
 case_cli_validate
-case_idempotent_append
-case_no_trailing_newline
-case_fresh_home
+case_install_does_not_write_import_block
 case_real_registration
 case_install_no_hooks_no_ledger
 # Phase init
