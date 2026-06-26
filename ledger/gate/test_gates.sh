@@ -806,14 +806,17 @@ else
   fails=$((fails + 1))
 fi
 
-echo "== check_commit_msg.py: conventional-commit gate + merge exemption =="
-# Git's auto-generated merge subjects are exempt — else every real merge fails
-# the gate and pushes people toward --no-verify; a non-merge bad header still
-# fails, so the exemption is not an escape hatch.
-expect "merge subject -> exempt (rc 0)" 0 \
+echo "== check_commit_msg.py: conventional-commit gate (merge: is a first-class type) =="
+# `merge` is a first-class Conventional Commits type: a merge commit reads
+# "merge: <what>" and is held to the same header/body line limits as any other.
+# Git's auto-generated "Merge branch ..." subjects carry no type, so they now
+# FAIL the gate — merges must use a `merge:` subject (no exemption escape hatch).
+expect "bare git merge subject -> violation (rc 1)" 1 \
   python3 "$check_commit_msg" --message "Merge branch 'x' into y"
-expect "merge PR subject -> exempt (rc 0)" 0 \
+expect "bare git merge-PR subject -> violation (rc 1)" 1 \
   python3 "$check_commit_msg" --message "Merge pull request #1 from a/b"
+expect "merge: conventional subject -> clean (rc 0)" 0 \
+  python3 "$check_commit_msg" --message "merge: integrate the x branch"
 expect "bad non-merge header -> violation (rc 1)" 1 \
   python3 "$check_commit_msg" --message "garbage header with no type"
 expect "good conventional header -> clean (rc 0)" 0 \

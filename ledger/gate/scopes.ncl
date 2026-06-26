@@ -50,7 +50,7 @@ let GateEntry = {
     {
       gate        = "hook/commit-msg:hygiene",
       scope       = 'universal,
-      fires_when  = "every git commit; invokes skills/commit-hygiene/scripts/check_commit_msg.py (Conventional Commits form, merge-exempt)",
+      fires_when  = "every git commit; invokes skills/commit-hygiene/scripts/check_commit_msg.py (Conventional Commits form; merge: is a first-class type)",
       applies_to  = "human + agent",
     } | GateEntry,
 
@@ -325,6 +325,13 @@ let GateEntry = {
       gate        = "skills/security-audit/scripts/run_audit.py",
       scope       = 'orchestration,
       fires_when  = "orchestrator or manual; runs the security-audit sweep and emits a findings deposit",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
+      gate        = "skills/commit-hygiene/scripts/test_check_commit_msg.sh",
+      scope       = 'orchestration,
+      fires_when  = "orchestrator or CI; proves check_commit_msg.py accepts a merge: subject, rejects an over-length merge: header and a bare git merge subject, and still passes a conventional header",
       applies_to  = "agent only",
     } | GateEntry,
   ],
