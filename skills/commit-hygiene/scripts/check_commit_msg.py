@@ -31,7 +31,7 @@ import subprocess
 import sys
 
 TYPES = (
-    "feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert"
+    "feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert|merge"
 )
 HEADER_RE = re.compile(
     rf"^(?:{TYPES})(?:\([a-z0-9._/-]+\))?!?: \S.*$"
@@ -43,9 +43,6 @@ NON_IMPERATIVE_RE = re.compile(
     re.IGNORECASE,
 )
 URL_RE = re.compile(r"[a-z][a-z0-9+.-]*://\S+")
-# Git's auto-generated merge subjects: "Merge branch ...", "Merge pull
-# request ...", "Merge remote-tracking branch ...", "Merge tag ...".
-MERGE_RE = re.compile(r"^Merge ")
 
 
 def read_message(args: argparse.Namespace) -> str:
@@ -81,12 +78,6 @@ def validate(message: str) -> tuple[list[str], list[str]]:
         return ["E2: message is empty"], warnings
 
     header = lines[0]
-    # Merge commits carry git's auto-generated "Merge ..." subject, which is
-    # not Conventional Commits and need not be. Exempt them, as commitlint and
-    # similar tools do, so a legitimate merge does not fail the gate (and push
-    # people toward --no-verify).
-    if MERGE_RE.match(header):
-        return errors, warnings
     if len(header) > 50:
         errors.append(
             f"E1: header is {len(header)} chars (limit 50): {header!r}"

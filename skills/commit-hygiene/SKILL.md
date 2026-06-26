@@ -66,6 +66,31 @@ A breaking change must be indicated by:
 - `ci`: Alterations to CI pipeline or automation configurations.
 - `chore`: Auxiliary tasks, infrastructure tooling updates, or miscellaneous maintenance.
 - `revert`: Reversion of a previous commit.
+- `merge`: Integration of one branch, pull request, or workstream into another.
+
+### Merge Commits
+
+Use `merge:` for any commit whose primary purpose is integrating a branch or
+pull request:
+
+```
+merge: integrate the payment-retry branch
+```
+
+The same hard constraints apply: the header must not exceed 50 characters, a
+blank line must separate header from body, and body lines must not exceed 72
+characters. A body is encouraged when the integration is non-trivial — what
+conflict was resolved, what design decision the merge closes.
+
+**Distinction from the recorder convention.** The `.ledger/log/` flight-log uses
+`log:` subjects for its own sketch commits. `log:` is a recorder-only convention
+scoped to that sub-repository and does not appear in working-repository commits.
+`merge:` is a working-repository type and does not appear in the recorder.
+
+**Auto-generated merge subjects are not valid.** Git's default `Merge branch
+'foo'` and `Merge pull request #N` subjects do not carry a conventional type and
+will fail the validator. Replace them with a `merge:` header that names *what*
+was integrated and *why* it landed when the merge was not self-evident.
 
 ### Summary Header Formatting
 
