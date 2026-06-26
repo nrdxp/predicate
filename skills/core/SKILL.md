@@ -166,7 +166,7 @@ EXECUTE ──→ CLARIFY (if verification fails to converge)
          └─→ ABORT   (if target state space is unreachable)
 ```
  
-**ABSORB:** Ingest input, map target attractor basin.
+**ABSORB:** Ingest input, map target attractor basin. Before leaving this state, run the [DISCOVERY](../../ledger/contracts/discovery.ncl) sub-procedure ([architecture §DISCOVERY](../../docs/predicate-architecture.md#discovery--the-keystone-sub-procedure)) and deposit its footprint into the active `.ledger/log/[topic].md` flight recorder. Scale by stakes: a trivial, localized, reversible edit need not run all five steps; a non-trivial task always does.
  
 **CLARIFY:** Halt generation; emit obstacles to resolve uncertainty.
  

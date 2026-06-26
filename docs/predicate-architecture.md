@@ -141,7 +141,7 @@ fixture IS the topology gate.
 | `ABSORB` | Ingest the boundary; run DISCOVERY | conforms to `campaign_ibc.ncl` |
 | `CLARIFY` | Resolve ambiguity or reject the frame | human seam |
 | `SURVEY` | Exhaustive review; deposit findings | `findings.ncl` (each finding names its evaluator) |
-| `PLAN` | Draw the DAG | `nickel export dag.ncl` passes `Dag ∘ DagNoConflict` + human approval |
+| `PLAN` | Draw the DAG | `dag.yaml` passes `Dag ∘ DagNoConflict` via `nickel export dag.yaml --apply-contract ledger/contracts/dag_apply.ncl` + human approval |
 | `ORCHESTRATE` | Emit worker boundaries | each IBC conforms to `worker_ibc.ncl`; discipline in enum |
 | `DISPATCH ⇄ RECONCILE` | Execute and judge | `reconcile_log.ncl`; verdict gates the merge |
 | `CLOSE` | Final sweep + retrospective | `recorder_close_check` exits 0 |
@@ -227,9 +227,7 @@ The evaluator hierarchy ranks within the symbolic path: `type/contract > shell
 script`. Reaching for shell where a Nickel contract was available under-uses the
 hierarchy.
 
-**Architectural validity is proven once** — at the architect boundary (`nickel export
-dag.ncl` at `PLAN`), not re-litigated on every worker commit. Per-commit gates stay
-minimal and cheap.
+**Architectural validity is proven once** — at the architect boundary (`nickel export dag.yaml --apply-contract ledger/contracts/dag_apply.ncl` at `PLAN`), not re-litigated on every worker commit. Per-commit gates stay minimal and cheap.
 
 **Humans meet only the message gate.** The structural overlay (artifact export, link
 integrity, orphan checks) fires on walk-activation (when the `.ledger/active-dag`

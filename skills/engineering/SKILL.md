@@ -11,38 +11,99 @@ description: |
 
 # Engineering
 
-## CRITICAL INSTRUCTIONS
+## Always-On Principles
 
-The following are hard **requirements**, not suggestions. Violating any rule below is considered a failure mode requiring immediate correction.
+These constraints bind every code edit without skill invocation. They are the
+standing SWE law promoted into the always-on conditioning layer; deviation
+requires explicit justification and human approval. Detailed elaboration follows
+in the [By-Moment Reference](#by-moment-reference) below.
 
-## TRAJECTORY FREEZE CONDITIONS
+### Root Cause — Never a Band-Aid
 
-The mandatory-halt conditions and the divergence triggers (generative
-interpolation, accepting unverified assertions, suppressing discrepancies) are
-always-on and bind every walk whether or not this skill is invoked. They are
-stated authoritatively as **Trajectory freeze conditions** under
-[Code-Edit Constraints in ambient.md](../../ambient.md#code-edit-constraints). The
-tables below elaborate *how* to apply them in practice.
+A fix that papers over a symptom — a compatibility shim, a workaround that lets
+a broken design survive, an exception added to silence a warning — is a defect,
+not a solution. The cause MUST be fixed. If the fix requires more than local
+changes, HALT and discuss the scope before proceeding; do not re-architect
+silently.
+
+Compatibility hacks are forbidden. Additions beyond the stated task are
+forbidden (the Cutting Imperative: do not add features, abstractions, or cleanup
+not present in the task). When removing code, cut completely — compatibility
+scaffolding for removed code is entropy that must later be audited for meaning.
+
+### No Silent Failures
+
+Every error path MUST be handled or propagated, preserving the causal chain.
+Error messages MUST state **what** failed, **why**, and **where** — opaque
+messages such as "invalid input" are forbidden. Library code MUST NOT panic; it
+MUST return `Result`/`Option` to the caller. Application entry points convert
+errors to exit codes with clear messages. Secrets, tokens, and PII MUST NOT
+appear in logs.
+
+### Validate at Boundaries; Trust Internal Invariants
+
+All external inputs MUST be validated at system entry points (user input, API
+responses, file contents, IPC). Internal call sites MUST NOT add defensive
+guards against conditions the type system or framework invariants already rule
+out — that is unnecessary error handling that obscures where the real boundaries
+are. Validate the perimeter; trust what the perimeter enforced.
+
+### Strong Typing — No Escape Hatches
+
+Use the type system to enforce invariants. `any`, `interface{}`, or their
+language equivalents MUST NOT be used unless genuinely necessary; when used, the
+specific reason MUST be documented inline. Library code MUST NOT panic.
+
+### Discrepancy Resolution — Never Silent
+
+When specification, tests, and code disagree, HALT immediately. Present the
+discrepancy with evidence from each source and propose a resolution. Do not
+silently pick a winner; do not proceed until the conflict is resolved.
+
+### Trajectory Freeze Conditions
+
+Stop generating and query for boundary updates whenever:
+
+- Goal or context is contradictory or missing (uncertainty > 0.0).
+- Environment state diverges from planned invariants (expected files missing,
+  API mismatch).
+- Verification tools fail to converge after the corrective loop.
+- Multiple valid paths exist with no constraint selecting among them.
+
+Generating under unvalidated assumptions is forbidden. Guessing a corrective
+edit from ambiguous feedback is forbidden. Halting to receive parameters is
+faster than correcting trajectory drift.
+
+---
+
+## By-Moment Reference
+
+The sections below elaborate *how* to apply the always-on principles in
+practice: clarification protocols, uncertainty thresholds, language-specific
+rules, and conventions. Load this reference when actively writing or reviewing
+code.
+
+---
 
 ### Clarification Triggers
- 
+
 Invoke clarification under these conditions:
- 
+
 1. **Undefined Scope:** The request could range from trivial to architecturally significant.
 2. **Missing Acceptance Criteria:** There is no clear definition of "done."
 3. **Implicit Assumptions:** The request relies on unstated assumptions about the codebase or domain.
 4. **Conflicting Constraints:** The request appears to conflict with an existing rule or prior decision.
- 
+
 ### Uncertainty Thresholds
- 
+
 | Uncertainty Level | Criteria                                              | Action                                                                          |
 | :---------------- | :---------------------------------------------------- | :------------------------------------------------------------------------------ |
 | **None (0.0)**    | Clear requirement, established pattern, no ambiguity. | Proceed. If the change is API-breaking, still confirm.                          |
 | **Low (0.1-0.3)** | Explicit constraints with minor implementation ambiguities. | Present implementation path and query for targeted constraint boundaries before proceeding. |
 | **High (>0.3)**   | Multiple valid interpretations, conflicting constraints. | Halt sequence walk and request specific boundary parameter corrections.           |
- 
+
 When in doubt, err toward halting. Wasted clarification is cheaper than trajectory drift.
- 
+
 > [!NOTE]
 > This table applies to general execution. In C.O.R.E. planning, the
 > ambiguity gate uses a qualitative `OBSTACLES` list: the list must be
@@ -51,22 +112,7 @@ When in doubt, err toward halting. Wasted clarification is cheaper than trajecto
 
 ---
 
-## OBJECTIVE
-
-The objective of this ruleset is to constrain code generation to output **Production-Grade Correctness**, maintainability, and security. Trajectories must converge on stable, decoupled, and verifiable states.
-
-> [!NOTE]
-> The always-on **binding** constraints — production-grade correctness, no
-> silent failures, strong typing, and the robust-testing mandate — are stated
-> authoritatively under [Code-Edit Constraints in ambient.md](../../ambient.md#code-edit-constraints).
-> The rules below are the reference elaboration of those principles: the
-> language-specific detail, tables, and conventions for applying them.
-
----
-
-## CORE OPERATING RULES
-
-### 0. Context Acquisition (The "Read-First" Rule)
+### Rule 0: Context Acquisition (The "Read-First" Rule)
 
 Before writing code, understand the existing landscape:
 
@@ -79,31 +125,29 @@ Before writing code, understand the existing landscape:
 
 > **Tip:** If MCP tools are available, use them first for structural insight before reading individual files.
 
-
-
-### 1. Root Cause Analysis
+### Rule 1: Root Cause Analysis
 
 Never apply band-aid fixes. Analyze root causes; re-architect if the foundation is flawed. If a fix requires more than local changes, stop and discuss the broader implications.
 
-### 2. Implementation Scope
+### Rule 2: Implementation Scope
 
 - **Completeness:** Never leave core logic as `// TODO` within the scope of the current task.
 - **Out-of-Scope Stubs:** Must return a clear error and be tracked in the plan.
 - **Scope Creep:** If implementation reveals additional work, stop and renegotiate scope.
 
-### 3. API Stability (Version-Aware)
+### Rule 3: API Stability (Version-Aware)
 
 Check the project version in `Cargo.toml`, `package.json`, `go.mod`, or equivalent manifest:
 
 - **Pre-1.0 (`0.x.x`):** Stability is secondary. Prefer correct design over backward compatibility.
 - **Post-1.0 (`1.0.0+`):** Breaking changes to public APIs are forbidden without explicit user approval. Present trade-offs and await confirmation.
 
-### 4. The "Stop-and-Ask" Protocol
+### Rule 4: The "Stop-and-Ask" Protocol
 
 - **Ambiguity Intolerance:** If a requirement can be interpreted in multiple ways, stop and ask.
 - **Architectural Crossroads:** If a solution requires a significant new dependency, a major refactor, or a choice between valid approaches, propose options and await confirmation.
 
-### 5. Discrepancy Resolution
+### Rule 5: Discrepancy Resolution
 
 When specification, tests, and code disagree:
 
@@ -113,15 +157,15 @@ When specification, tests, and code disagree:
 
 This is a collaborative investigation, not a unilateral decision.
 
-### 6. Scope Negotiation (Minimal Viable Slice)
+### Rule 6: Scope Negotiation (Minimal Viable Slice)
 
 Before beginning any non-trivial task:
 
 1. State your understanding of the scope.
-2. If ambiguous, propose a **Minimal Viable Slice (MVS)**—the smallest unit of work that delivers demonstrable value.
+2. If ambiguous, propose a **Minimal Viable Slice (MVS)** — the smallest unit of work that delivers demonstrable value.
 3. Await confirmation before proceeding.
 
-### 7. Testing Strategy
+### Rule 7: Testing Strategy
 
 - **Concurrent Testing:** Tests are written with implementation, not after.
 - **Robust-Testing Guidelines:** Concurrently design tests adhering to [robust-testing](../robust-testing/SKILL.md). Do not rely solely on simple, example-based happy-path unit tests, as they lead to self-deception in AI-generated code.
@@ -132,7 +176,7 @@ Before beginning any non-trivial task:
 - **Meaningful Coverage:** Focus on business logic, edge cases, error handling, and multi-component E2E integration paths rather than isolated mocks.
 - **Cross-Implementation Sanity:** For protocols with multiple implementations, maintain language-agnostic test vectors.
 
-### 8. Maintainability & Clean Code
+### Rule 8: Maintainability & Clean Code
 
 - **SOLID Principles:** Single Responsibility, Open-Closed, Liskov Substitution, Interface Segregation, Dependency Inversion.
 - **Modularity:** Refactor functions exceeding ~50 lines or with deep nesting.
@@ -150,7 +194,7 @@ Code goes wrong along two axes, not one. A single-lens review audits half the co
 
 When reviewing architectural decisions, run both lenses. Findings will predominantly be single-axis. When both lenses converge on the same location, the signal is particularly acute.
 
-### 9. Security, Reliability & Observability
+### Rule 9: Security, Reliability & Observability
 
 #### Input Validation
 
@@ -185,11 +229,11 @@ Validate external inputs at system boundaries. Never trust user input, API respo
 - Use structured logging (JSON) with severity levels.
 - Never log secrets, tokens, or PII.
 
-### 10. Documentation
+### Rule 10: Documentation
 
 Update comments and documentation **immediately** when logic changes. Stale documentation is a bug.
 
-### 11. Git Hygiene & Atomic Commits
+### Rule 11: Git Hygiene & Atomic Commits
 
 Git hygiene matters to engineering for the same reason type safety does: a
 clean, human-reviewable history is the durable interface between the work and
@@ -208,21 +252,21 @@ Engineering's only addition: a diff that compiles and passes tests but smears
 several logical changes together is still a defect by this skill's standards,
 not merely a hygiene nit. Atomicity is part of production-grade correctness, not
 a separable formality.
- 
-### 12. Plan & Task Tracking
- 
+
+### Rule 12: Plan & Task Tracking
+
 For multi-step work:
- 
+
 1. Reference an implementation plan and task list.
 2. Check off work as you go.
-3. Add changes **additively**—do not destructively mutate the plan's history.
- 
+3. Add changes **additively** — do not destructively mutate the plan's history.
+
 ---
- 
-## FAILURE RECOVERY
- 
+
+## Failure Recovery
+
 When a mistake is discovered or you find yourself confused:
- 
+
 1. **Stop.** Do not continue down an uncertain path.
 2. **Acknowledge explicitly.** Do not silently correct.
 3. **Analyze:** Consider where you made a bad assumption or wrong generalization.
@@ -231,7 +275,7 @@ When a mistake is discovered or you find yourself confused:
 
 ---
 
-## UPSTREAM MODIFICATION
+## Upstream Modification
 
 When modifying an upstream dependency appears to be the correct solution:
 
@@ -241,7 +285,7 @@ When modifying an upstream dependency appears to be the correct solution:
 
 ---
 
-## RULE PRIORITY
+## Rule Priority
 
 When rules appear to conflict, use this hierarchy as a **guideline**, but remain context-aware:
 

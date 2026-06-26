@@ -23,7 +23,7 @@ and only those, are where an autonomous driver halts for a person.
 
 The inputs an orchestrator needs, and nothing more:
 
-- a DAG artifact that passes `ledger/contracts/dag.ncl` (`Dag` ∘ `DagNoConflict`);
+- a YAML DAG instance (`dag.yaml`) validated against `ledger/contracts/dag.ncl` (`Dag` ∘ `DagNoConflict`) via `nickel export dag.yaml --apply-contract ledger/contracts/dag_apply.ncl`;
 - this protocol;
 - the gate scripts under `ledger/gate/` and `gates/` (the evaluators the steps
   name).
@@ -73,7 +73,7 @@ the same layering — the schedule is a pure function of the topology.
 
 ```
 DRIVE(dag):
-  assert  nickel export dag            exits 0      # structural gate
+  assert  nickel export dag --apply-contract ledger/contracts/dag_apply.ncl  exits 0  # structural gate
   layers := export ledger/derive/layers.ncl
   shared_branch := create from current HEAD
   tip := HEAD
@@ -227,7 +227,7 @@ at CLOSE rather than at a boundary.
 REALIGN(node, reason):
   rewrite the node's IBC premises/surface to the world current HEAD describes
   if the realignment changes the DAG topology or surfaces:
-      re-export dag                  # must pass Dag ∘ DagNoConflict again
+      re-export dag --apply-contract ledger/contracts/dag_apply.ncl   # must pass Dag ∘ DagNoConflict again
       re-export ledger/derive/layers.ncl    # the schedule may have changed
   node.STATUS := PENDING
   log the realignment and its reason in the RECONCILE_LOG
