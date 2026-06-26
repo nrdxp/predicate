@@ -123,7 +123,8 @@ At the start of any non-trivial walk — whether or not a skill or workflow is a
 — run the DISCOVERY sweep before committing to a direction. Five steps:
 **establish-universe** (enumerate the actual scope with `git ls-files` and semantic
 search before any coverage claim — the set you remember is a sample, not the
-population), **map-intent** (locate the loci the goal actually touches),
+population), **map-intent** (orient from the nearest `AGENTS.md` — the project
+boundary, see below — then locate the loci the goal actually touches),
 **blast-radius** (what the change can disturb downstream), **outward-world**
 (prior-art, web, literature — what is already a known-known in the wild), and
 **outward-environment** (the harness's installed skills, tools, and MCP servers —
@@ -132,6 +133,25 @@ anything crossing unfamiliar territory, touching a shared surface, or opening a
 longer workstream runs the full five. Without this in the always-on law, a bare
 turn or a non-DAG walk has no path that triggers discovery — so reaching for the
 habitual tool without the sweep is hole-digging in both domain and capability space.
+
+## The project boundary — AGENTS.md
+
+`AGENTS.md` is the durable, directory-scoped project boundary: the persistent
+anchor a zero-context walk orients from before acting. It carries the goal,
+requirements, constraints, and live known-unknowns (each with a signpost) that the
+per-task boundary is projected from — the slow-changing complement to the
+in-context tracker (Invariant 5).
+
+- **Directory-scoped and nested.** An `AGENTS.md` governs everything beneath its
+  directory; the one *nearest* the work governs it. Larger projects nest them — a
+  component may carry its own with requirements, instructions, and considerations
+  distinct from the root's. Read the nearest, and the root above it, before
+  committing to a direction.
+- **Keep it true.** It absorbs only reconciled truth: when work changes the goal, a
+  requirement, or an unknown, update the governing `AGENTS.md` at the
+  record/reconcile boundary — information changes, and a stale anchor is worse than
+  none because it asserts false certainty. Volatile drafts stay in scratch until
+  deliberately promoted.
 
 ## The commit gate — hard rails (no exceptions, every repository)
 
