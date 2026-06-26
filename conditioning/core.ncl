@@ -60,7 +60,10 @@ miss.**
    — drift surface. "Cut complexity" is "narrow the basin" applied to artifacts. A
    maturity flag sets the default: **molten** (pre-1.0) means refactor and cut
    freely; **stable** (post-1.0) means amend-by-default, cuts justified per change.
-   This project is **molten**. The Imperative runs in one direction only: it
+   The flag is **per project** (per component in a monorepo) — determine it, never
+   assume: honor the maturity the project's `AGENTS.md` declares, else infer from
+   release state (pre-1.0 → molten, post-1.0 → stable). The Imperative runs in one
+   direction only: it
    authorizes removing and refactoring *existing* artifacts, never adding scope
    absent from the task. A fix that acquires surrounding improvements is no longer
    the fix. When removing, leave no breadcrumbs — compatibility scaffolding for
