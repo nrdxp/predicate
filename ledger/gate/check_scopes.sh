@@ -2,7 +2,7 @@
 # Gate-scope completeness checker (K10: thin bash entrypoint).
 #
 # Enumerates the ACTUAL gate surface — ledger/gate/*.sh, ledger/gate/*.py,
-# gates/*.sh, the two named hooks, the seven named hook tiers, and the skill
+# gates/*.sh, the two named hooks, the eight named hook tiers, and the skill
 # scripts invoked from hooks — then verifies that every gate is declared in
 # ledger/gate/scopes.ncl.  Fails (rc 1) if any gate is absent; passes (rc 0)
 # if every gate is declared.
@@ -119,6 +119,56 @@ run_check() {
   return 0
 }
 
+# --- meta-check: every CI-declared gate must be wired in ci.yml -------------
+# Gates in scopes.ncl whose fires_when STARTS WITH "CI" are declared as
+# direct CI-step gates (the string "CI" as the leading token marks them as
+# CI-primary, rather than gates that mention CI incidentally as a secondary
+# context).  If such a gate's script name does not appear in
+# .github/workflows/ci.yml, the "declared-but-unwired" class has silently
+# accreted — this check closes it generally rather than chasing each instance.
+run_ci_coverage_check() {
+  local ci_yml="$root/.github/workflows/ci.yml"
+  if [[ ! -f "$ci_yml" ]]; then
+    echo "check_scopes: .github/workflows/ci.yml not found at $ci_yml — skipping CI coverage check" >&2
+    return 0
+  fi
+
+  local missing=0
+  while IFS=$'\t' read -r gate fires_when; do
+    # Hook tiers (hook/commit-msg:* and hook/pre-commit:*) are logical
+    # identifiers, not directly invocable scripts; skip them.
+    case "$gate" in
+      hook/*) continue ;;
+    esac
+    local bname="${gate##*/}"
+    if ! grep -qF "$bname" "$ci_yml"; then
+      echo "check_scopes: CI-UNWIRED: $gate" >&2
+      printf '  fires_when: %s\n' "$fires_when" >&2
+      printf "  '%s' is not referenced in .github/workflows/ci.yml\n" "$bname" >&2
+      echo "  Add it to the relevant step in .github/workflows/ci.yml." >&2
+      missing=$((missing + 1))
+    fi
+  done < <(
+    nickel export "$scopes" 2>/dev/null \
+      | python3 -c '
+import json, sys
+data = json.load(sys.stdin)
+for entry in data.get("gates", []):
+    fw = entry.get("fires_when", "")
+    if fw.startswith("CI"):
+        print(entry["gate"] + "\t" + fw)
+'
+  )
+
+  if [[ "$missing" -gt 0 ]]; then
+    printf 'check_scopes: CI-COVERAGE FAIL — %d gate(s) declared for CI but absent from ci.yml\n' \
+      "$missing" >&2
+    return 1
+  fi
+  echo "check_scopes: CI-COVERAGE PASS — every CI-declared gate is wired in ci.yml"
+  return 0
+}
+
 # --- self-test: negative control + positive control -------------------------
 run_self_test() {
   local fails=0
@@ -165,7 +215,10 @@ case "${1:-}" in
     run_self_test
     ;;
   "")
-    run_check
+    overall_rc=0
+    run_check         || overall_rc=1
+    run_ci_coverage_check || overall_rc=1
+    exit "$overall_rc"
     ;;
   *)
     echo "usage: check_scopes.sh [--self-test]" >&2
