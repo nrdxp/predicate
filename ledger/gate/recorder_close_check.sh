@@ -113,34 +113,61 @@ echo "      $match"
 
 # ---------------------------------------------------------------------------
 # Check 2 (Dual-CLOSE Invariant): the retrospective MUST contain a
-# "## Sufficiency Review" section (reviewers + convergence + verdict).
+# "## Sufficiency Review" section with NON-EMPTY substantive content.
 #
 # The review verdict is adversarial-path — no machine can decide whether the
 # gate machinery is sufficient. This gate closes the structural half: was the
-# review RECORDED? We inspect the content of every file touched by the close
-# commit, looking for a Markdown heading that begins "Sufficiency Review"
-# (any level: #, ##, ###). Presence is the structural check; quality is the
-# adversarial reviewer's job, not this gate's.
+# review RECORDED, and does the record carry content? We inspect every file
+# touched by the close commit for a Markdown heading that begins "Sufficiency
+# Review" (any level: #, ##, ###) followed by at least one non-blank,
+# non-heading line before EOF or the next heading. A hollow heading (the
+# section exists but has nothing beneath it) fails this floor — an
+# orchestrator under execution momentum could write a bare heading and pass
+# the old presence-only check; this closes that gap.
+#
+# Presence + a non-empty floor is the structural check; quality — genuine
+# reviewers, real convergence, honest findings — is the adversarial
+# reviewer's responsibility, not this gate's.
 # ---------------------------------------------------------------------------
 sufficiency_found=0
 while IFS= read -r fname; do
   [[ -z "$fname" ]] && continue
   content="$(git -C "$recorder" show "${close_hash}:${fname}" 2>/dev/null || true)"
-  if printf '%s\n' "$content" | grep -qiE '^#+[[:space:]]+Sufficiency Review'; then
+
+  # Quick filter: skip files that don't even have the heading.
+  if ! printf '%s\n' "$content" | grep -qiE '^#+[[:space:]]+Sufficiency Review'; then
+    continue
+  fi
+
+  # Heading is present — verify at least one non-blank, non-heading line
+  # follows it before EOF or the next heading. awk reads the file in order:
+  # entering the section on the matching heading, stopping at the next
+  # heading (any level), and recording success when a non-blank line appears.
+  if printf '%s\n' "$content" | awk '
+    /^#+[[:space:]]/ {
+      if (in_section) { exit }
+      if (tolower($0) ~ /^#+[[:space:]]+sufficiency review/) { in_section = 1 }
+      next
+    }
+    in_section && /[^[:space:]]/ { found = 1; exit }
+    END { exit (found ? 0 : 1) }
+  '; then
     sufficiency_found=1
     break
   fi
 done < <(git -C "$recorder" show --name-only --format='' "$close_hash" 2>/dev/null)
 
 if [[ "$sufficiency_found" -eq 0 ]]; then
-  echo "FAIL  recorder-close: '$topic' close record is missing a 'Sufficiency Review' section —" >&2
+  echo "FAIL  recorder-close: '$topic' close record has no non-empty 'Sufficiency Review' section —" >&2
   echo "      CLOSE requires a decorrelated adversarial review of machinery sufficiency" >&2
   echo "      (Dual-CLOSE Invariant, docs/orchestration-protocol.md §CLOSE), not only" >&2
   echo "      that gate checks pass. The retrospective must contain a '## Sufficiency" >&2
-  echo "      Review' section documenting reviewers, their convergence, and the verdict." >&2
-  echo "      Add it to the retrospective and re-run." >&2
+  echo "      Review' section with substantive content (at least one non-blank," >&2
+  echo "      non-heading line beneath the heading). A hollow heading — section" >&2
+  echo "      present but empty — does not satisfy the structural floor." >&2
+  echo "      Add the review content and re-run." >&2
   exit 1
 fi
 
-echo "PASS  recorder-close: '$topic' retrospective includes a Sufficiency Review section"
+echo "PASS  recorder-close: '$topic' retrospective includes a non-empty Sufficiency Review section"
 exit 0

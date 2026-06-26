@@ -384,10 +384,14 @@ and the DAG is complete:
    (which artifacts are durable, which scratch is disposable); and a
    **`## Sufficiency Review` section** (reviewers, convergence verdict,
    and any findings routed to follow-up nodes or tech-debt records — the
-   durable trace of path (b)). Commit in the `.ledger/` subrepo tagged
-   `log: close <topic> retrospective`. The `recorder_close_check` gate
-   verifies BOTH the close entry and the `## Sufficiency Review` section
-   were recorded.
+   durable trace of path (b); the orchestrator's content responsibility).
+   Commit in the `.ledger/` subrepo tagged `log: close <topic> retrospective`.
+   The `recorder_close_check` gate enforces the structural floor: the close
+   entry must exist **and** the `## Sufficiency Review` section must be
+   present with non-empty content (at least one substantive line beneath
+   the heading). A hollow heading fails. Content quality — genuine
+   reviewers, honest convergence — is the adversarial reviewer's
+   responsibility, not the gate's.
 5. Produce the campaign report from `REVIEW.md` → outcomes: findings
    table with mitigation evidence, DAG execution trace, reconcile rounds,
    realignments, residual risks.
@@ -413,9 +417,12 @@ and the DAG is complete:
    hard-won context — what landed vs the goal, execution-model lessons,
    open watch-items, durability map — must survive context loss. The
    retrospective is a `CLOSE` step, not an afterthought. The retrospective
-   MUST include a `## Sufficiency Review` section (reviewers, convergence,
-   verdict) — without it, `recorder_close_check` fails and CLOSE cannot
-   complete.
+   MUST include a `## Sufficiency Review` section with substantive content
+   (at least one non-blank, non-heading line beneath the heading) — a
+   hollow heading or absent section fails the `recorder_close_check`
+   structural floor and halts CLOSE. Content quality (genuine reviewers,
+   honest convergence) is the adversarial reviewer's responsibility; the
+   gate enforces presence and a non-empty floor only.
 9. **DUAL_CLOSE:** A CLOSE that runs only the deterministic gate suite is
    incomplete. CLOSE terminates only when BOTH (a) the full gate suite
    exits green AND (b) a decorrelated sufficiency review finds the

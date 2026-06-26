@@ -335,8 +335,11 @@ exit code *is* the routing decision; the orchestrator does not interpret it.
 >
 > The review verdict is adversarial-path (no machine can decide "is this gate
 > sufficient?"). The retrospective's "## Sufficiency Review" section is the
-> durable record; `ledger/gate/recorder_close_check.sh` verifies it was
-> recorded — a structural check, not a machine verdict on the review itself.
+> durable record; `ledger/gate/recorder_close_check.sh` enforces a structural
+> floor — the heading must be present **and** carry at least one non-blank,
+> non-heading line beneath it. A hollow heading (present but empty) fails the
+> check. Content quality — genuine reviewers, real convergence, honest findings
+> — is the adversarial reviewer's responsibility, not the gate's.
 
 ```
 CLOSE(dag, shared_branch):
@@ -360,10 +363,14 @@ CLOSE(dag, shared_branch):
   emit the retrospective to .ledger/log/ (`log: close <topic> retrospective`);
       the retrospective MUST include a "## Sufficiency Review" section
       (reviewers, convergence verdict, and any findings routed to follow-up
-       nodes or tech-debt records — the durable trace of path (b))
+       nodes or tech-debt records — the durable trace of path (b);
+       content quality is the orchestrator's responsibility, not the gate's)
   ledger/gate/recorder_close_check.sh <topic>           # rc≠0 → HALT
-      # structural check: verifies BOTH the close entry AND its
-      # "## Sufficiency Review" section were recorded in the retrospective
+      # structural floor: verifies BOTH the close entry AND that its
+      # "## Sufficiency Review" section is present and non-empty (at least
+      # one substantive line beneath the heading). A hollow heading fails.
+      # Genuine reviewers and honest convergence are enforced by the
+      # adversarial path, not by this gate.
 
   produce the campaign report from REVIEW.md -> outcomes
   rm -f $root/.ledger/active-dag

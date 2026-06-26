@@ -122,25 +122,50 @@ cat > "$fixdir/bad_anchor.md" <<'MD'
 See [section](target.md#no-such-anchor-zzz) for details.
 MD
 
-# Recorder fixtures for recorder_close_check.sh (Deliverable B). Two THROWAWAY git
-# repos, NEVER the real .ledger: one with a `log: close demo-topic …` commit
-# (positive), one with no such commit (negative). They nest under $fixdir, so the
-# existing `rm -rf "$fixdir"` in cleanup() tears them down. git is run with an
-# isolated identity so the harness needs no global git config to commit.
+# Recorder fixtures for recorder_close_check.sh. Four THROWAWAY git repos, NEVER
+# the real .ledger. They nest under $fixdir so the existing `rm -rf "$fixdir"` in
+# cleanup() tears them down. git is run with an isolated identity so the harness
+# needs no global git config to commit.
+#
+#   rec_with          PASS: close commit + non-empty Sufficiency Review section
+#   rec_without       FAIL: no close commit at all (no `log: close …` subject)
+#   rec_empty_section FAIL: close commit present but section heading has no content
+#   rec_no_heading    FAIL: close commit present but no Sufficiency Review heading
+#
+# TDD polarity (recorder_close_check.sh Check 2 — structural floor):
+#   empty heading → FAIL (rc 1)   heading + content → PASS (rc 0)   no heading → FAIL (rc 1)
 rec_with="$fixdir/recorder_with"
 rec_without="$fixdir/recorder_without"
+rec_empty_section="$fixdir/recorder_empty_section"
+rec_no_heading="$fixdir/recorder_no_heading"
 git_id=(-c user.name=test-gates -c user.email=test@gates -c commit.gpgsign=false)
-mkdir -p "$rec_with" "$rec_without"
+mkdir -p "$rec_with" "$rec_without" "$rec_empty_section" "$rec_no_heading"
+
+# PASS fixture: heading present and non-empty content beneath it.
 git "${git_id[@]}" -C "$rec_with" init -q
-# the close record must carry a Sufficiency Review section (dual-close invariant,
-# enforced by recorder_close_check.sh) — the positive fixture includes it.
 printf '## Sufficiency Review\n\nDecorrelated reviewers converged; machinery sufficient.\n' > "$rec_with/log.md"
 git "${git_id[@]}" -C "$rec_with" add log.md
 git "${git_id[@]}" -C "$rec_with" commit -q -m "log: close demo-topic retrospective"
+
+# FAIL fixture: no close commit (subject is log: open, not log: close).
 git "${git_id[@]}" -C "$rec_without" init -q
 : > "$rec_without/log.md"
 git "${git_id[@]}" -C "$rec_without" add log.md
 git "${git_id[@]}" -C "$rec_without" commit -q -m "log: open demo-topic"
+
+# FAIL fixture: close commit present but Sufficiency Review section is EMPTY
+# (heading line present, nothing substantive underneath — blank lines only).
+# The structural floor must reject a hollow heading.
+git "${git_id[@]}" -C "$rec_empty_section" init -q
+printf '## Sufficiency Review\n\n' > "$rec_empty_section/log.md"
+git "${git_id[@]}" -C "$rec_empty_section" add log.md
+git "${git_id[@]}" -C "$rec_empty_section" commit -q -m "log: close demo-topic retrospective"
+
+# FAIL fixture: close commit present but NO Sufficiency Review heading in the file.
+git "${git_id[@]}" -C "$rec_no_heading" init -q
+printf '## Outcomes\n\nAll nodes accepted; campaign complete.\n' > "$rec_no_heading/log.md"
+git "${git_id[@]}" -C "$rec_no_heading" add log.md
+git "${git_id[@]}" -C "$rec_no_heading" commit -q -m "log: close demo-topic retrospective"
 
 
 # check_orphans.sh fixtures (Deliverable A2). A throwaway doc tree with a
@@ -722,16 +747,23 @@ expect "good #anchor -> valid (0)" 0 \
   python3 "$check_docs" "$fixdir/good_anchor.md"
 
 echo "== recorder_close_check.sh: CLOSE-retrospective recorded =="
-# POSITIVE: recorder history has a `log: close demo-topic …` commit -> rc 0.
-expect "recorder with close entry -> rc 0" 0 \
+# POSITIVE: recorder history has a `log: close demo-topic …` commit with a
+# non-empty Sufficiency Review section -> rc 0.
+expect "recorder with close entry + non-empty sufficiency section -> rc 0" 0 \
   bash "$recorder_close_check" demo-topic "$rec_with"
-# NEGATIVE: recorder history has no such close commit -> rc 1 (the discipline
-# the gate exists to catch: a CLOSE whose retrospective was never recorded).
+# NEGATIVE: recorder history has no close commit at all -> rc 1.
 expect "recorder without close entry -> rc 1" 1 \
   bash "$recorder_close_check" demo-topic "$rec_without"
 # USAGE: empty topic -> rc 2.
 expect "empty topic -> usage error rc 2" 2 \
   bash "$recorder_close_check" "" "$rec_with"
+# TDD polarity — structural floor (Check 2):
+# empty heading → FAIL (hollow section must not pass the structural floor)
+expect "close entry with empty Sufficiency Review section -> rc 1" 1 \
+  bash "$recorder_close_check" demo-topic "$rec_empty_section"
+# no heading → FAIL (close commit exists but retrospective has no section at all)
+expect "close entry with no Sufficiency Review heading -> rc 1" 1 \
+  bash "$recorder_close_check" demo-topic "$rec_no_heading"
 
 
 echo "== check_orphans.sh: live refs to removed workflows =="
