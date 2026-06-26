@@ -65,6 +65,7 @@ done
 echo "-- skill-owned contracts --"
 for skill_dir in \
     "$root/skills/boundary" \
+    "$root/skills/record" \
     "$root/skills/refine" \
     "$root/skills/orchestration" \
     "$root/skills/orient"; do
