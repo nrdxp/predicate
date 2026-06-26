@@ -132,7 +132,9 @@ rec_without="$fixdir/recorder_without"
 git_id=(-c user.name=test-gates -c user.email=test@gates -c commit.gpgsign=false)
 mkdir -p "$rec_with" "$rec_without"
 git "${git_id[@]}" -C "$rec_with" init -q
-: > "$rec_with/log.md"
+# the close record must carry a Sufficiency Review section (dual-close invariant,
+# enforced by recorder_close_check.sh) — the positive fixture includes it.
+printf '## Sufficiency Review\n\nDecorrelated reviewers converged; machinery sufficient.\n' > "$rec_with/log.md"
 git "${git_id[@]}" -C "$rec_with" add log.md
 git "${git_id[@]}" -C "$rec_with" commit -q -m "log: close demo-topic retrospective"
 git "${git_id[@]}" -C "$rec_without" init -q
