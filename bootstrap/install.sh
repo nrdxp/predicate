@@ -296,6 +296,44 @@ init_ledger() {
   fi
 }
 
+# --- step: install predicate's project-local gates from templates/ -----------
+# Copies all files from templates/project-gates/ into the project's
+# .ledger/gates/ directory and marks each copy executable. The copy is
+# idempotent: a gate with the same name that already exists in .ledger/gates/
+# (whether user-authored or a prior install) is skipped without modification.
+# This ensures a fresh clone of predicate gets its own project-local checks
+# (the colocation gate, etc.) on the first `init` run, rather than only after
+# an agent session that happened to write them previously.
+install_project_gates() {
+  local project="$1"
+  local gates_dir="$project/.ledger/gates"
+  local templates_dir="$plugin_src/templates/project-gates"
+
+  if [ ! -d "$templates_dir" ]; then
+    echo "init: templates/project-gates/ not found at $templates_dir; skipping project-gate install." >&2
+    return 0
+  fi
+
+  mkdir -p "$gates_dir"
+  local installed=0
+  local skipped=0
+  while IFS= read -r src; do
+    local name; name="$(basename "$src")"
+    local dst="$gates_dir/$name"
+    if [ -e "$dst" ]; then
+      echo "init: project-gate $name already present — skipping (skip-if-exists)."
+      skipped=$((skipped + 1))
+    else
+      cp "$src" "$dst"
+      chmod +x "$dst"
+      echo "init: installed project-gate $name -> $dst"
+      installed=$((installed + 1))
+    fi
+  done < <(find "$templates_dir" -maxdepth 1 -type f | LC_ALL=C sort)
+
+  echo "init: project-gates installed=$installed skipped=$skipped"
+}
+
 # --- step: ensure .gitignore contains the predicate subrepo entries ----------
 # .ledger/ is an untracked subrepo; without a .gitignore entry, `git add -A`
 # in the consuming repo hits the "embedded gitlink" error.  .scratch/ holds
@@ -333,6 +371,7 @@ phase_init() {
   echo "init: project=$project plugin=$plugin_src"
   install_hooks "$project"
   init_ledger "$project"
+  install_project_gates "$project"
   ensure_gitignore "$project"
   echo "init: done. Next (human seam): push the .ledger remote when ready."
 }

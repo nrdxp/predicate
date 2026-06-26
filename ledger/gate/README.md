@@ -126,6 +126,31 @@ fail. A project with no `.ledger/gates/` directory is a clean no-op.
 See [`docs/gates.md`](../../docs/gates.md) — the `project_local` scope
 section — for the full interface contract and a worked example.
 
+### Predicate's own project-local gates (templates/project-gates/)
+
+Predicate ships its own project-local gates as tracked templates. The
+**tracked source** is `templates/project-gates/`; the **runtime location**
+remains `.ledger/gates/` (gitignored, per-project). `bootstrap/install.sh init`
+copies every file from `templates/project-gates/` into the target project's
+`.ledger/gates/` (idempotent: skip-if-exists, never clobbers a user's own
+same-named gate).
+
+This makes the guarantee durable across clones: a fresh `git clone` of
+predicate followed by `bootstrap/install.sh init --project .` gets predicate's
+project-local gates installed immediately, without relying on an agent session
+that happened to write them previously.
+
+Currently shipped:
+
+| Gate | File | Enforces |
+| :--- | :--- | :--- |
+| Skill-contract colocation | `10-skill-contract-colocation.sh` | The five skill-owned contracts (`boundary_procedure`, `refine_procedure`, `refine_output`, `state_machine`, `tracker_freshness`) must not reappear in `ledger/contracts/`; fails on re-centralization. |
+
+The `10-` numeric prefix places the colocation check early in sorted execution
+order without preventing a project from inserting gates before it (e.g. `05-`).
+Gates in `templates/project-gates/` are declared in `scopes.ncl` under the
+`project_local` scope so the completeness manifest stays accurate.
+
 ## Files
 
 | File | Holds |

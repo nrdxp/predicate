@@ -259,6 +259,22 @@ let GateEntry = {
       applies_to  = "agent only",
     } | GateEntry,
 
+    {
+      gate        = "ledger/gate/test_colocation_gate.sh",
+      scope       = 'orchestration,
+      fires_when  = "CI gate-test step; verifies that bootstrap/install.sh init installs templates/project-gates/* into .ledger/gates/ and that the colocation gate fires when a skill-owned contract is re-centralized",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    # ── TEMPLATES/PROJECT-GATES (tracked source; installed to .ledger/gates/ by init) ──
+
+    {
+      gate        = "templates/project-gates/10-skill-contract-colocation.sh",
+      scope       = 'project_local,
+      fires_when  = "installed to <project>/.ledger/gates/ by bootstrap/install.sh init; fires on every commit in predicate; fails if any of the 5 skill-owned contract names (boundary_procedure, refine_procedure, refine_output, state_machine, tracker_freshness) reappears in ledger/contracts/",
+      applies_to  = "human + agent",
+    } | GateEntry,
+
     # ── GATES/ SCRIPTS (invoked from hooks and orchestration) ────────────────
 
     {
