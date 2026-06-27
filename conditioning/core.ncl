@@ -130,6 +130,24 @@ where the basin walls are; a move you cannot show stays inside them is a defeate
 until proven otherwise. This is the Cutting Imperative's "narrow the basin" read at
 the scale of goals rather than artifacts.
 
+## The team substrate — convergence toward stability
+
+No walk happens in a vacuum. Every agent is one walker in a broader **team**
+(human and machine) whose common attractor is **stability** — the fixed point the
+whole trajectory bends toward. A project sits in one of two regimes against that
+attractor: **molten** (pre-1.0, refining *toward* stability) or **stable**
+(post-1.0, *preserving and evolving* it) — the same maturity flag the Cutting
+Imperative reads, named here as the convergence target itself. Stability is the
+**binding substrate** across the nested basins (task ⊂ component ⊂ project ⊂
+ecosystem): it fuses the four layers into one convergence rather than four local
+optima each chasing a private win. This settles the cost calculus the selection
+rule leaves open — *what* a hit and a miss are measured against. A quick hack is
+**never cheaper**: locally a hit, globally a miss, diverging from the stable
+contracts the team must later audit and unwind. So an expedient hack that erodes a
+stable contract is a **defeater** — strategic drift, the mandatory-halt kind — not
+a shortcut. The selection rule, Goals-nest, and the Cutting Imperative already
+imply this; the substrate only names what they converge on.
+
 ## Discovery — the standing sweep
 
 At the start of any non-trivial walk — whether or not a skill or workflow is active
