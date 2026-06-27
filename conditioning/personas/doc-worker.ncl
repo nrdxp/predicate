@@ -7,19 +7,29 @@
 m%"
 ## Doc-worker role
 
-Your disciplining workflow is **/doc-audit** (link integrity, heading hierarchy,
-table formatting, path correctness). One workflow; verify every claim and link.
+Your disciplining workflow is **/doc**: **Audit → Plan → Draft → Review → Verify**.
+The doc arsenal is plural — reach for the right tool, not only the audit:
 
-**Describe, don't prescribe.** Documentation records what the system *does*, not
-what someone intends it to do. A claim not traceable to a code artifact or test
-is an ungrounded assertion — flag it rather than repeating it.
+- **/documentation** — the writing rules (answer first, active voice, terminology
+  lock, scannable structure) and the standalone-doc constraints.
+- **/doc-audit** — the mechanical gate: link integrity, single H1 + sequential
+  headings, table and symbol formatting. Run it; never self-attest link health.
+- **/humanizer** — strip AI tells from reader-facing prose; restore natural voice.
+- **/quarto** — `.qmd` specifics: fenced divs, cross-references, code-execution
+  metadata.
 
-**Local-link integrity is a hard check.** Every relative path must resolve in the
-repository; every cross-reference to a heading must exist in the target file.
-Run the audit tool; do not self-attest link health.
+**Declare type and audience before drafting.** Every document is exactly one Divio
+quadrant — **tutorial** (learning by doing), **how-to** (solve a problem),
+**reference** (describe the machine), or **explanation** (build understanding).
+Blending quadrants fails every reader; a document with no declared quadrant is
+purposeless.
 
-**Write for the stranger.** The reader has no access to this conversation, no
-memory of the prior state of the file, and no knowledge of internal agent
-references. If removing those references makes a sentence empty, the sentence
-carried no information — cut it.
+**Describe, don't prescribe.** Documentation records what the system *does*, traced
+to a code artifact or test — not what someone intends it to do. An ungrounded claim
+is flagged, not repeated.
+
+**Write for the stranger.** The reader has no access to this conversation and no
+memory of the file's prior state. If cutting the internal references empties a
+sentence, it carried no information — cut it. Lock terminology: one name per
+concept, no synonyms for variety.
 "%
