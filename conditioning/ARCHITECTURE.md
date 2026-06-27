@@ -16,7 +16,7 @@ Three layers, three scopes, three lifetimes:
 
 ```
 SYSTEM  (law, persistent, GENERATED)
-  invariant-core ++ persona(role)
+  invariant-core ++ join(modules) ++ role_delta(role)
   → injected at session-open or worker-launch; re-attended every step
 
 PROJECT (hydrated, persistent)
@@ -44,14 +44,29 @@ TASK    (assignment, ephemeral)
 **Composition law.**
 
 ```
-system_prompt(role) = invariant-core ++ persona(role)
+system_prompt(role) = invariant-core ++ join(modules) ++ role_delta(role)
 ```
 
 This is P-COMPOSE applied to the system prompt: a single combinator, not N
-hand-authored prompts. The `++` is Nickel string concatenation (verified:
+hand-authored prompts. The middle `join(modules)` is the module segment;
+segments are joined with `"\n\n"`. In the base case `modules` is empty and the
+law collapses to `invariant-core ++ role_delta(role)` — byte-identical to the
+prior two-segment form. The `++` is Nickel string concatenation (verified:
 `"a" ++ "b"` → `"ab"`). The combinator is the anti-spaghetti guarantee;
 `invariant-core` is injected *verbatim* — the injection-rule contract enforces
 this structurally (§4).
+
+**The three-segment law preserves three invariants, unweakened (§4):**
+
+- **HasCore-verbatim** — `invariant-core` appears as a verbatim contiguous
+  substring of every generated prompt; the `HasCore` contract still guards every
+  role field and fails export on absence. A sibling `HasModule` / `HasLens`
+  contract guards module and lens text by the same `std.string.contains` rule.
+- **core-first ordering** — `invariant-core` remains the *first* segment;
+  modules compose strictly between core and the role delta, never ahead of core.
+- **no-caller-side-concat** — callers consume composed role fields from
+  `compose.ncl` only; they must not concatenate core, modules, or persona
+  themselves outside the generator (§3 role-field interface).
 
 ---
 
@@ -138,10 +153,11 @@ conditioning/
 ## 3. The `compose.ncl` Generator Interface
 
 `compose.ncl` is the functional core of the conditioning layer. It is pure
-Nickel — no bash, no side effects. Its sole job: compose `core ++ persona(role)`
-and enforce the injection-rule contract on every output.
+Nickel — no bash, no side effects. Its sole job: compose
+`core ++ join(modules) ++ role_delta(role)` and enforce the injection-rule
+contract on every output.
 
-### Verified Nickel idioms (tested against Nickel 1.17.0)
+### Verified Nickel idioms (tested against Nickel 1.14.0)
 
 - **String concatenation:** `++` operator. `"a" ++ "\n\n" ++ "b"` → `"a\n\nb"`.
 - **Imports:** `let core_text = import "core.ncl" in ...` (path relative to the
@@ -162,7 +178,7 @@ and enforce the injection-rule contract on every output.
 ```nickel
 # compose.ncl
 #
-# Generator: system_prompt(role) = core ++ persona(role)
+# Generator: system_prompt(role) = core ++ join(modules) ++ role_delta(role)
 # Contract:  every generated string contains the invariant-core verbatim.
 #
 # EXPORT INTERFACE
@@ -177,9 +193,11 @@ and enforce the injection-rule contract on every output.
 # AUTHORING NOTE (for the injection node)
 # ----------------------------------------
 # 1. Import core.ncl and all persona/*.ncl files at the top.
-# 2. Define HasCore using std.contract.from_predicate + std.string.contains.
-# 3. Build the output record: one field per role, each composed and contracted.
-# 4. Do NOT add any field that omits core_text — the contract fails on export.
+# 2. Define HasCore using std.contract.from_predicate + std.string.contains;
+#    define HasModule / HasLens as parameterized siblings (same rule).
+# 3. Join segments core-first: std.string.join "\n\n" ([core] @ modules @ [delta]).
+# 4. Build the output record: one field per role, each composed and contracted.
+# 5. Do NOT add any field that omits core_text — the contract fails on export.
 
 let core_text : String = import "core.ncl" in
 
@@ -193,22 +211,38 @@ let personas : { _ : String } = {
   "boundary-worker" = import "personas/boundary-worker.ncl",
 } in
 
+# Module segment — empty in the base case; collapses the join so renders stay
+# byte-identical to the two-segment form. Modules compose between core and delta.
+let modules : Array String = [] in
+
 # INJECTION-RULE CONTRACT — see §4 for rationale and failure semantics.
 # Verified: std.string.contains "needle" "haystack" : Bool
 let HasCore : Dyn = std.contract.from_predicate
   (fun s => std.string.contains core_text s)
 in
 
-# system_prompt(role) = core_text ++ "\n\n" ++ persona(role)
+# Parameterized siblings for the module and lens slots — same verbatim rule.
+let HasModule : String -> Dyn = fun m =>
+  std.contract.from_predicate (fun s => std.string.contains m s)
+in
+let HasLens : String -> Dyn = fun l =>
+  std.contract.from_predicate (fun s => std.string.contains l s)
+in
+
+# system_prompt(role) = core ++ join(modules) ++ role_delta; core is first.
+let compose : String -> String = fun role_delta =>
+  std.string.join "\n\n" ([core_text] @ modules @ [role_delta])
+in
+
 # All role fields are typed HasCore; export fails if core_text is absent.
 {
-  architect       | HasCore = core_text ++ "\n\n" ++ personas.architect,
-  "core-worker"   | HasCore = core_text ++ "\n\n" ++ personas."core-worker",
-  "refine-worker" | HasCore = core_text ++ "\n\n" ++ personas."refine-worker",
-  "doc-worker"    | HasCore = core_text ++ "\n\n" ++ personas."doc-worker",
-  "form-worker"   | HasCore = core_text ++ "\n\n" ++ personas."form-worker",
-  "spec-worker"   | HasCore = core_text ++ "\n\n" ++ personas."spec-worker",
-  "boundary-worker" | HasCore = core_text ++ "\n\n" ++ personas."boundary-worker",
+  architect       | HasCore = compose personas.architect,
+  "core-worker"   | HasCore = compose personas."core-worker",
+  "refine-worker" | HasCore = compose personas."refine-worker",
+  "doc-worker"    | HasCore = compose personas."doc-worker",
+  "form-worker"   | HasCore = compose personas."form-worker",
+  "spec-worker"   | HasCore = compose personas."spec-worker",
+  "boundary-worker" | HasCore = compose personas."boundary-worker",
 }
 ```
 
@@ -254,7 +288,7 @@ let HasCore = std.contract.from_predicate
 
 - `core_text` is the value imported from `core.ncl` — not a hash, not a
   summary, the actual string.
-- `std.string.contains needle haystack` (Nickel 1.17.0): returns `true` iff
+- `std.string.contains needle haystack` (Nickel 1.14.0): returns `true` iff
   `needle` is a substring of `haystack`.
 - When `nickel export` evaluates a field annotated `| HasCore` and the string
   does NOT contain `core_text`, the export fails with a contract violation
@@ -342,8 +376,8 @@ style (`/output-style` or `"outputStyle": "Predicate Architect"` in
 | Thin persona overlays (not full prompts) | conditioning-layer.md §2, S7 | Over-ceremony dilutes persona focus; core injected by generator |
 | Nickel is the generator, bash only at effect boundary | conditioning-layer.md §on disk, IBC K10 | Functional-core / imperative-shell; composition stays pure |
 | Native delivery surfaces, not a runtime-probed adapter ladder | conditioning-layer.md §delivery | Each harness gets one install branch; `compose.ncl` is unchanged and harness-agnostic |
-| `std.string.contains` for injection-rule contract | Nickel 1.17.0 stdlib (verified) | Verbatim substring check; export fails on violation |
-| `++` for string concatenation | Nickel 1.17.0 syntax (verified) | Native operator; arrays use `@` but strings use `++` |
+| `std.string.contains` for injection-rule contract | Nickel 1.14.0 stdlib (verified) | Verbatim substring check; export fails on violation |
+| `++` for string concatenation | Nickel 1.14.0 syntax (verified) | Native operator; arrays use `@` but strings use `++` |
 | Per-role record fields in `compose.ncl`, not a parameterized function | Nickel export model | `nickel export --format text` emits a String; a record keyed by role lets callers access fields via wrapper or customize mode |
 | Generate on every launch, no caching | conditioning-layer.md §delivery | Always current; `nickel export` is cheap |
 

@@ -26,11 +26,17 @@ set -uo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 INSTALL_SH="$SCRIPT_DIR/install.sh"
 PROBE_NO_CORE="$SCRIPT_DIR/probe_no_core.ncl"
+PROBE_NO_MODULE="$SCRIPT_DIR/probe_no_module.ncl"
 WORKTREE_ROOT="$(dirname "$SCRIPT_DIR")"
 
 # HasCore: a stable, distinctive substring present in every generated prompt.
 # Chosen from the opening sentence of core.ncl — unique within the project.
 readonly HACORE_SNIPPET="Autoregressive Stochastic Walk"
+
+# Module sentinel: the verbatim text the HasModule sibling contract guards.
+# Inert N1 placeholder — the real producer module is N2's deliverable. Must
+# match probe_no_module.ncl exactly so both controls exercise one marker.
+readonly MODULE_SENTINEL="Predicate module segment: N1 inert example"
 
 # Managed-block sentinels — must mirror install.sh exactly.
 readonly BEGIN_MARK='# >>> predicate conditioning block >>>'
@@ -193,6 +199,32 @@ echo "════════════════════════�
 
 assert_fail "nickel export of probe_no_core.ncl fails with contract violation" \
   nickel export --format text "$PROBE_NO_CORE"
+
+# ── SECTION 4b: module contract — HasModule accepts present, rejects absent ────
+echo ""
+echo "════════════════════════════════════════════════════════════════════════"
+echo "SECTION 4b — Module contract: HasModule sibling of HasCore"
+echo "════════════════════════════════════════════════════════════════════════"
+
+# The new artifact must exist (ΔE₀ baseline: red until N1 lands it).
+assert_pass "probe_no_module.ncl exists" \
+  file_exists "$PROBE_NO_MODULE"
+
+# Positive: HasModule admits a prompt that carries the module verbatim.
+module_present_passes() {
+  nickel export --format text <<NICKEL
+let HasModule = fun expected =>
+  std.contract.from_predicate (fun s => std.string.contains expected (s | String))
+in
+({ ok | HasModule "$MODULE_SENTINEL" = "head\n\n$MODULE_SENTINEL\n\ntail" }).ok
+NICKEL
+}
+assert_pass "HasModule admits a module-present prompt" \
+  module_present_passes
+
+# Negative control: a prompt that drops the module fails export (rule bites).
+assert_fail "nickel export of probe_no_module.ncl fails with contract violation" \
+  nickel export --format text "$PROBE_NO_MODULE"
 
 # ── SECTION 5: real-tree cleanliness ─────────────────────────────────────────
 echo ""
