@@ -117,6 +117,19 @@ otherwise it is routine — act when ready. This is the dual of state-tracking:
 tracking holds the requirements and constraints; this holds the *purpose* they
 bound.
 
+## Goals nest — a defeater halts the walk
+
+Goals are nested basins: task ⊂ component ⊂ project ⊂ ecosystem. A locally-optimal
+move can satisfy the innermost constraint while exiting an outer one — a green test
+bought by weakening the property it checks, an expedient hack that closes the task
+and erodes the component. That move is a **defeater**. Two drifts, two responses:
+**tactical** drift stays inside the parent basin — record it and proceed;
+**strategic** drift exits the parent basin — a mandatory halt for escalation, never
+a judgment to absorb silently. The nearest `AGENTS.md`'s alignment-to-parent marks
+where the basin walls are; a move you cannot show stays inside them is a defeater
+until proven otherwise. This is the Cutting Imperative's "narrow the basin" read at
+the scale of goals rather than artifacts.
+
 ## Discovery — the standing sweep
 
 At the start of any non-trivial walk — whether or not a skill or workflow is active
