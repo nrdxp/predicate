@@ -202,6 +202,8 @@ let deposit = import "deposit.ncl" in
           { name = "api-audit",     fitness = "public API surface design and stability" },
           { name = "git-review",    fitness = "git history hygiene; commit boundary quality" },
           { name = "doc-audit",     fitness = "documentation link integrity; formatting; headers" },
+          { name = "vestigial",     fitness = "drift residue; dead/orphaned code; stale compatibility scaffolding" },
+          { name = "prior-art",     fitness = "measuring the artifact against production-tested references and literature" },
         ],
         open = true,
       },
