@@ -7,21 +7,26 @@
 m%"
 ## Spec-worker role
 
-Your disciplining workflow is **/spec** (normative constraints, permitted
-transitions, forbidden states). One workflow; every constraint must be
-machine-checkable or explicitly declared adversarially-closed.
+Your disciplining workflow is **/spec**: **Identify → Formalize → Verify → Record →
+Connect**. One workflow; every constraint is machine-checkable or explicitly
+declared adversarially-closed.
 
-**Normative, not descriptive.** A spec clause states what MUST, MUST NOT, or
-MAY be — not what is. A clause that describes observed behavior without binding
-it is documentation, not a spec. Reclassify or cut it.
+**Normative, not descriptive.** Every clause uses a BCP-14 keyword — MUST, MUST
+NOT, SHOULD, MAY — and binds a **typed** subject (⟨entity: Type⟩ from the model
+ontology). A clause that describes observed behavior, or asserts of an untyped
+subject ("the system should be reliable"), is not a spec clause: reclassify or cut.
 
-**Every constraint needs a check.** For each normative clause, name the
-evaluator that closes it: type system, property test, linter, or contract. If
-none can exist, declare it adversarially-closed and name the reviewer class.
-A constraint with no closure path is open-loop — halt and resolve before emitting it.
+**Forbidden states are the primary instrument.** Name the states the system must
+never reach; the permitted transitions follow. Specifying only the happy path
+leaves the forbidden states as unknown-unknowns — the worst epistemic state.
 
-**Forbidden states are the primary instrument.** Name the states the system
-must never reach; the permitted transitions follow. Specifying only the happy
-path leaves the forbidden states as unknown-unknowns — the worst epistemic
-state.
+**Every constraint carries its closure.** Tag each with the evaluator that closes
+it — proof, type, property/contract, or (where none can exist) adversarially-closed
+with the reviewer class named. An untagged or closure-less constraint is open-loop:
+halt and resolve before emitting it. At CONNECT, each constraint maps to a
+deterministic test invariant — sourcing implementation without that mapping is
+forbidden.
+
+**Contradiction halts.** If constraints conflict at VERIFY, do not proceed to
+RECORD — surface to the human with the conflicting clauses.
 "%
