@@ -45,6 +45,9 @@
 #                     flag does not narrow it. Accepted for back-compat.
 #                     One of: architect core-worker refine-worker doc-worker
 #                             form-worker spec-worker boundary-worker
+#                             refuter-reviewer hickey-reviewer lowy-reviewer
+#                             api-reviewer security-reviewer git-review-reviewer
+#                             ai-slop-reviewer prior-art-reviewer vestigial-reviewer
 #   --dry-run         Print the delivery plan (and, with --role, that role's full
 #                     composed prompt); write nothing to any surface.
 #   --uninstall       Remove every predicate-owned conditioning surface across
@@ -93,8 +96,15 @@ readonly OUTPUT_STYLE_FILE='predicate-architect.md'
 
 # The six worker roles materialized as persisted Claude agents.
 readonly WORKER_ROLES=(core-worker refine-worker doc-worker form-worker spec-worker boundary-worker)
+# The nine reviewer roles — read-only adversarial lenses. A distinct class: each
+# composes the reviewer module (NOT producer), so they form a sibling list rather
+# than joining WORKER_ROLES. This declaration is kept byte-identical to the one in
+# test_conditioning.sh (F6 lockstep).
+readonly REVIEWER_ROLES=(refuter-reviewer hickey-reviewer lowy-reviewer api-reviewer security-reviewer git-review-reviewer ai-slop-reviewer prior-art-reviewer vestigial-reviewer)
+# Every role materialized as a persisted Claude agent (workers + reviewers).
+readonly AGENT_ROLES=("${WORKER_ROLES[@]}" "${REVIEWER_ROLES[@]}")
 # All valid roles (for --role validation and dry-run targeting).
-readonly ALL_ROLES=(architect "${WORKER_ROLES[@]}")
+readonly ALL_ROLES=(architect "${AGENT_ROLES[@]}")
 
 # ---------------------------------------------------------------------------
 # parse args
@@ -185,6 +195,15 @@ worker_description() {
     form-worker)     printf 'Formal mathematical domain modeling under /form: construct, validate, and connect models whose every invariant has a falsification signpost.' ;;
     spec-worker)     printf 'Normative specification under /spec: machine-checkable invariants, permitted transitions, and forbidden states; every constraint names its evaluator.' ;;
     boundary-worker) printf 'IBC authoring and refinement under /boundary: S1–S7 sufficiency contraction with deterministic acceptance criteria.' ;;
+    refuter-reviewer)     printf 'Lens-free read-only adversarial reviewer: attack the artifact as a whole for any defect, decorrelated by fresh eyes alone; name defects, never edit.' ;;
+    hickey-reviewer)      printf 'Read-only structural-simplicity reviewer (hickey lens): scan for complected concerns and concept multiplication; name defects, never edit.' ;;
+    lowy-reviewer)        printf 'Read-only volatility-decomposition reviewer (lowy lens): test module boundaries against axes of change; name defects, never edit.' ;;
+    api-reviewer)         printf 'Read-only API surface-coherence reviewer (api lens): audit the public surface for minimality, type safety, and composability; name defects, never edit.' ;;
+    security-reviewer)    printf 'Read-only security reviewer (security lens): trust-model and taint analysis against a capable adversary; name defects, never edit.' ;;
+    git-review-reviewer)  printf 'Read-only change-coherence reviewer (git-review lens): purpose-first audit of git history and commit boundaries; name defects, never edit.' ;;
+    ai-slop-reviewer)     printf 'Read-only AI-generated-code reviewer (ai-slop lens): hunt hollow plausibility, hallucinated APIs, and transformer cadence; name defects, never edit.' ;;
+    prior-art-reviewer)   printf 'Read-only outward reviewer (prior-art lens): measure the artifact against production-tested references and literature by citation; name defects, never edit.' ;;
+    vestigial-reviewer)   printf 'Read-only drift-residue reviewer (vestigial lens): hunt dead code, orphaned scaffolding, and stale breadcrumbs by reachability; name defects, never edit.' ;;
     *) printf 'Predicate worker persona.' ;;
   esac
 }
@@ -230,7 +249,7 @@ install_worker_agents() {
   local dir="$claude_dir/agents"
   mkdir -p "$dir"
   local r prompt file
-  for r in "${WORKER_ROLES[@]}"; do
+  for r in "${AGENT_ROLES[@]}"; do
     prompt="$(generate_prompt "$r")"
     file="$dir/predicate-$r.md"
     {
@@ -278,9 +297,9 @@ do_uninstall() {
   local os_file="$claude_dir/output-styles/$OUTPUT_STYLE_FILE"
   if [ -f "$os_file" ]; then rm -f "$os_file"; echo "install: removed $os_file"; removed=1; fi
 
-  # Worker agents.
+  # Worker + reviewer agents.
   local r af
-  for r in "${WORKER_ROLES[@]}"; do
+  for r in "${AGENT_ROLES[@]}"; do
     af="$claude_dir/agents/predicate-$r.md"
     if [ -f "$af" ]; then rm -f "$af"; echo "install: removed $af"; removed=1; fi
   done
@@ -331,7 +350,7 @@ if "$dry_run"; then
   case "$harness" in
     claude-code|all)
       echo "  - output style → $claude_dir/output-styles/$OUTPUT_STYLE_FILE (keep-coding-instructions: false)"
-      for r in "${WORKER_ROLES[@]}"; do
+      for r in "${AGENT_ROLES[@]}"; do
         echo "  - worker agent → $claude_dir/agents/predicate-$r.md"
       done ;;
   esac

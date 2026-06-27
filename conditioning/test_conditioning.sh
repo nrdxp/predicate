@@ -43,6 +43,11 @@ readonly MODULE_SENTINEL="Predicate module segment: N1 inert example"
 # absent from review-only renders — the per-role module-pull is what this pins.
 readonly PRODUCER_SENTINEL="generating under unvalidated assumptions is forbidden"
 
+# Reviewer sentinel: a verbatim phrase unique to modules/reviewer.ncl (the
+# read-only adversarial-reviewer spine). Present in every reviewer render, absent
+# from core/producer/workers — the reviewer module-pull is what this pins.
+readonly REVIEWER_SENTINEL="You are a read-only adversarial reviewer"
+
 # Producer partition: the five code-writers pull it (architect asserted via the
 # output style in 3a); doc/boundary omit it.
 readonly PRODUCER_PULL_WORKERS=(core-worker refine-worker form-worker spec-worker)
@@ -54,6 +59,9 @@ readonly END_MARK='# <<< predicate conditioning block <<<'
 
 # Worker roles: exactly the six persisted agents.
 readonly WORKER_ROLES=(core-worker refine-worker doc-worker form-worker spec-worker boundary-worker)
+# Reviewer roles — read-only adversarial lenses. Kept byte-identical to the
+# declaration in install.sh (F6 lockstep): the two arrays MUST match exactly.
+readonly REVIEWER_ROLES=(refuter-reviewer hickey-reviewer lowy-reviewer api-reviewer security-reviewer git-review-reviewer ai-slop-reviewer prior-art-reviewer vestigial-reviewer)
 
 # ── hermetic temp environment ─────────────────────────────────────────────────
 REAL_HOME="$HOME"
@@ -194,6 +202,25 @@ done
 # core-worker carries the procedure exactly once (no self-restatement double-incl).
 assert_pass "core-worker: producer procedure present exactly once (no double-inclusion)" \
   file_contains_once "$PRODUCER_SENTINEL" "$CLAUDE_DIR/agents/predicate-core-worker.md"
+
+# 3f. Reviewer agents — 9 read-only lenses (refuter + 8). Each is materialized,
+# carries HasCore + the reviewer-spine sentinel, and MUST NOT carry the producer
+# sentinel — directly pinning "reviewers pull the reviewer module, not producer."
+echo ""
+echo "── 3f. Reviewer agents (9 read-only lenses) ─────────────────────────────"
+for role in "${REVIEWER_ROLES[@]}"; do
+  agent_file="$CLAUDE_DIR/agents/predicate-$role.md"
+  assert_pass "$role: file exists at agents/predicate-$role.md" \
+    file_exists "$agent_file"
+  assert_pass "$role: frontmatter name: predicate-$role" \
+    file_contains "name: predicate-$role" "$agent_file"
+  assert_pass "$role: HasCore present in body" \
+    file_contains "$HACORE_SNIPPET" "$agent_file"
+  assert_pass "$role: reviewer-spine sentinel present (pulls reviewer module)" \
+    file_contains "$REVIEWER_SENTINEL" "$agent_file"
+  assert_pass "$role: producer sentinel absent (read-only; omits producer)" \
+    file_not_contains "$PRODUCER_SENTINEL" "$agent_file"
+done
 
 # 3c. agy / GEMINI.md
 echo ""

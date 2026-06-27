@@ -47,6 +47,25 @@ let personas : { _ : String } = {
 # *between* core and the role delta — core stays first.
 let producer : String = import "modules/producer.ncl" in
 
+# Reviewer-class module: the read-only adversarial-reviewer spine. Reviewers are
+# read-only — each composes [reviewer_module], NEVER [producer]; pulling producer
+# into a reviewer would erase the decorrelation the class exists to provide.
+let reviewer_module : String = import "modules/reviewer.ncl" in
+
+# Reviewer deltas: the lens-free refuter plus the eight lens overlays. Each is a
+# plain String delta (N3/N4 bodies); composed atop core ++ reviewer_module.
+let reviewers : { _ : String } = {
+  "refuter-reviewer"    = import "personas/refuter-reviewer.ncl",
+  "hickey-reviewer"     = import "personas/hickey-reviewer.ncl",
+  "lowy-reviewer"       = import "personas/lowy-reviewer.ncl",
+  "api-reviewer"        = import "personas/api-reviewer.ncl",
+  "security-reviewer"   = import "personas/security-reviewer.ncl",
+  "git-review-reviewer" = import "personas/git-review-reviewer.ncl",
+  "ai-slop-reviewer"    = import "personas/ai-slop-reviewer.ncl",
+  "prior-art-reviewer"  = import "personas/prior-art-reviewer.ncl",
+  "vestigial-reviewer"  = import "personas/vestigial-reviewer.ncl",
+} in
+
 # INJECTION-RULE CONTRACT (ARCHITECTURE.md §4)
 # Checks that core_text appears as a verbatim contiguous substring of the
 # generated prompt.  Export fails (non-zero exit, error printed) when the
@@ -86,4 +105,26 @@ in
   "form-worker"    | HasCore = compose [producer] personas."form-worker",
   "spec-worker"    | HasCore = compose [producer] personas."spec-worker",
   "boundary-worker" | HasCore = compose [] personas."boundary-worker",
+
+  # Reviewer fields: core ++ reviewer_module ++ lens-delta. Each is HasCore +
+  # HasModule reviewer_module; the eight lenses also carry HasLens <their delta>.
+  # The lens-free refuter has NO HasLens. None pulls [producer] — read-only.
+  "refuter-reviewer"    | HasCore | HasModule reviewer_module
+    = compose [reviewer_module] reviewers."refuter-reviewer",
+  "hickey-reviewer"     | HasCore | HasModule reviewer_module | HasLens reviewers."hickey-reviewer"
+    = compose [reviewer_module] reviewers."hickey-reviewer",
+  "lowy-reviewer"       | HasCore | HasModule reviewer_module | HasLens reviewers."lowy-reviewer"
+    = compose [reviewer_module] reviewers."lowy-reviewer",
+  "api-reviewer"        | HasCore | HasModule reviewer_module | HasLens reviewers."api-reviewer"
+    = compose [reviewer_module] reviewers."api-reviewer",
+  "security-reviewer"   | HasCore | HasModule reviewer_module | HasLens reviewers."security-reviewer"
+    = compose [reviewer_module] reviewers."security-reviewer",
+  "git-review-reviewer" | HasCore | HasModule reviewer_module | HasLens reviewers."git-review-reviewer"
+    = compose [reviewer_module] reviewers."git-review-reviewer",
+  "ai-slop-reviewer"    | HasCore | HasModule reviewer_module | HasLens reviewers."ai-slop-reviewer"
+    = compose [reviewer_module] reviewers."ai-slop-reviewer",
+  "prior-art-reviewer"  | HasCore | HasModule reviewer_module | HasLens reviewers."prior-art-reviewer"
+    = compose [reviewer_module] reviewers."prior-art-reviewer",
+  "vestigial-reviewer"  | HasCore | HasModule reviewer_module | HasLens reviewers."vestigial-reviewer"
+    = compose [reviewer_module] reviewers."vestigial-reviewer",
 }
