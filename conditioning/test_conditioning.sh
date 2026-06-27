@@ -38,6 +38,16 @@ readonly HACORE_SNIPPET="Autoregressive Stochastic Walk"
 # match probe_no_module.ncl exactly so both controls exercise one marker.
 readonly MODULE_SENTINEL="Predicate module segment: N1 inert example"
 
+# Producer sentinel: a verbatim phrase unique to modules/producer.ncl (drawn
+# from its Trajectory-freeze bullet). Present in every code-writer render,
+# absent from review-only renders — the per-role module-pull is what this pins.
+readonly PRODUCER_SENTINEL="generating under unvalidated assumptions is forbidden"
+
+# Producer partition: the five code-writers pull it (architect asserted via the
+# output style in 3a); doc/boundary omit it.
+readonly PRODUCER_PULL_WORKERS=(core-worker refine-worker form-worker spec-worker)
+readonly PRODUCER_OMIT_WORKERS=(doc-worker boundary-worker)
+
 # Managed-block sentinels — must mirror install.sh exactly.
 readonly BEGIN_MARK='# >>> predicate conditioning block >>>'
 readonly END_MARK='# <<< predicate conditioning block <<<'
@@ -94,6 +104,7 @@ file_exists()       { [ -f "$1" ]; }
 dir_exists()        { [ -d "$1" ]; }
 file_contains()     { grep -qF "$1" "$2"; }
 file_not_contains() { ! grep -qF "$1" "$2"; }
+file_contains_once() { [ "$(grep -cF "$1" "$2")" -eq 1 ]; }
 no_file()           { [ ! -f "$1" ]; }
 
 # ── PRE-TEST: snapshot real-home predicate surfaces ───────────────────────────
@@ -151,6 +162,8 @@ assert_pass "frontmatter: name is 'Predicate Architect'" \
   file_contains "name: Predicate Architect" "$OS_FILE"
 assert_pass "body: HasCore present (verbatim core law)" \
   file_contains "$HACORE_SNIPPET" "$OS_FILE"
+assert_pass "body: producer present (architect is a code-writer; pulls producer)" \
+  file_contains "$PRODUCER_SENTINEL" "$OS_FILE"
 
 # 3b. Worker agents — 6 permutations
 echo ""
@@ -166,6 +179,21 @@ for role in "${WORKER_ROLES[@]}"; do
   assert_pass "$role: HasCore present in body" \
     file_contains "$HACORE_SNIPPET" "$agent_file"
 done
+
+# 3e. Per-role producer presence/absence — the N2 module-pull partition
+echo ""
+echo "── 3e. Producer module pull (5 code-writers present, 2 review-only absent) ─"
+for role in "${PRODUCER_PULL_WORKERS[@]}"; do
+  assert_pass "$role: producer present (code-writer pulls producer)" \
+    file_contains "$PRODUCER_SENTINEL" "$CLAUDE_DIR/agents/predicate-$role.md"
+done
+for role in "${PRODUCER_OMIT_WORKERS[@]}"; do
+  assert_pass "$role: producer absent (review-only role omits producer)" \
+    file_not_contains "$PRODUCER_SENTINEL" "$CLAUDE_DIR/agents/predicate-$role.md"
+done
+# core-worker carries the procedure exactly once (no self-restatement double-incl).
+assert_pass "core-worker: producer procedure present exactly once (no double-inclusion)" \
+  file_contains_once "$PRODUCER_SENTINEL" "$CLAUDE_DIR/agents/predicate-core-worker.md"
 
 # 3c. agy / GEMINI.md
 echo ""

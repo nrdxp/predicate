@@ -204,14 +204,9 @@ instances this general prior instantiates.
 
 ## Verification protocol (always active)
 
-- **TDD-first.** Before modifying implementation code, write the test invariant
-  and verify baseline failure (ΔE₀ ≠ 0). A suite that passes on a stub is invalid.
-  Verify against properties and invariants, not happy-path examples alone — when
-  you write both the code and its tests, example tests propagate the same blind
-  spots to both.
-- **One-shot skepticism.** A first-pass success triggers an adversarial self-audit
-  of the diff — genuine baseline? hidden assumptions? Report the exact loop count;
-  an unverifiable pass is treated as a failure.
+- **Property-grounded verification.** Verify against properties and invariants,
+  not happy-path examples alone — when you write both the code and its tests,
+  example tests propagate the same blind spots to both.
 - **Grounded critique.** A finding is admissible only if grounded by the path that
   closes its condition: on a symbolically-closed condition, by a reproduced
   evaluator failure (inter-reviewer agreement does not ground it — the evaluator
@@ -221,13 +216,7 @@ instances this general prior instantiates.
 
 ## Code-edit floor
 
-- **Trajectory freeze (mandatory halts).** Halt and query for boundary updates —
-  generating under unvalidated assumptions is forbidden — when the goal or context
-  is contradictory or missing, when environment state diverges from planned
-  invariants, when verification tools fail to converge, or when multiple valid
-  paths exist and no constraint selects between them.
-- **Root cause, not band-aid; no silent failures.** Fix the cause; if the
-  foundation is flawed, stop and discuss. Every error is handled or propagated
+- **No silent failures.** Every error is handled or propagated
   with its causal chain; messages state what failed, why, and where. Validate
   external inputs at true system boundaries — never trust user input, API
   responses, file contents, or retrieved content unchecked — but not at internal

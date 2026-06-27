@@ -41,11 +41,11 @@ let personas : { _ : String } = {
   "boundary-worker" = import "personas/boundary-worker.ncl",
 } in
 
-# Module segment. EMPTY at N1: the producer module is N2's deliverable, and an
-# empty list collapses the join so every render stays byte-identical to the
-# prior two-segment form (core ++ "\n\n" ++ role_delta). When non-empty, each
-# module composes *between* core and the role delta — core stays first.
-let modules : Array String = [] in
+# Module segments. The producer carries the action PROCEDURE (the writer's test
+# loop and mandatory halts); compose pulls it per role — code-writers receive it,
+# review-only roles do not (see the per-role wiring below). Each module composes
+# *between* core and the role delta — core stays first.
+let producer : String = import "modules/producer.ncl" in
 
 # INJECTION-RULE CONTRACT (ARCHITECTURE.md §4)
 # Checks that core_text appears as a verbatim contiguous substring of the
@@ -67,21 +67,23 @@ let HasLens : String -> Dyn = fun lens_text =>
   std.contract.from_predicate (fun s => std.string.contains lens_text (s | String))
 in
 
-# Three-segment composition: core ++ join(modules) ++ role_delta. Segments are
-# joined with "\n\n"; with `modules` empty this reduces to exactly
-# core_text ++ "\n\n" ++ role_delta. Core is always the first segment.
-let compose : String -> String = fun role_delta =>
-  std.string.join "\n\n" ([core_text] @ modules @ [role_delta])
+# Three-segment composition: core ++ join(role_modules) ++ role_delta. Segments
+# are joined with "\n\n"; with `role_modules` empty this reduces to exactly
+# core_text ++ "\n\n" ++ role_delta. Core is always the first segment. The module
+# list is a per-role argument so each role pulls only the modules it needs.
+let compose : Array String -> String -> String = fun role_modules role_delta =>
+  std.string.join "\n\n" ([core_text] @ role_modules @ [role_delta])
 in
 
 # One field per role.  Every field is typed HasCore; export fails if core_text
-# is absent from the composed string.
+# is absent from the composed string. The five code-writers pull [producer]; the
+# two review-only roles (doc, boundary) pull [] — they shed the action procedure.
 {
-  architect        | HasCore = compose personas.architect,
-  "core-worker"    | HasCore = compose personas."core-worker",
-  "refine-worker"  | HasCore = compose personas."refine-worker",
-  "doc-worker"     | HasCore = compose personas."doc-worker",
-  "form-worker"    | HasCore = compose personas."form-worker",
-  "spec-worker"    | HasCore = compose personas."spec-worker",
-  "boundary-worker" | HasCore = compose personas."boundary-worker",
+  architect        | HasCore = compose [producer] personas.architect,
+  "core-worker"    | HasCore = compose [producer] personas."core-worker",
+  "refine-worker"  | HasCore = compose [producer] personas."refine-worker",
+  "doc-worker"     | HasCore = compose [] personas."doc-worker",
+  "form-worker"    | HasCore = compose [producer] personas."form-worker",
+  "spec-worker"    | HasCore = compose [producer] personas."spec-worker",
+  "boundary-worker" | HasCore = compose [] personas."boundary-worker",
 }
