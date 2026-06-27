@@ -14,9 +14,10 @@ synergistic halves:
 - **Correction** — externalize correctness to the strongest evaluator (the
   **Verification Dual**: *verify, then trust* — no condition closed by an agent's
   say-so). Authority: [rules.md](rules.md).
-- **Prevention** *(WIP)* — externalize the goal, requirements, unknowns, and
-  available tools as a durable, selectively-projected **conditioning layer**, so a
-  walk stays focused *before* drift compounds.
+- **Prevention** — externalize the goal, requirements, unknowns, and available
+  tools as a durable, selectively-projected **conditioning layer** (the always-on
+  `conditioning/` system-prompt law, the `/orient` workflow, the nested AGENTS.md
+  hierarchy), so a walk stays focused *before* drift compounds.
 
 Correction without prevention corrects toward the wrong goal; prevention without
 correction drifts anyway over a long horizon. Together they bound drift.
@@ -30,8 +31,9 @@ evaluator computes an error differential and updates the boundary condition
 toward a fixed point (ΔE → 0). The formalism is non-entropic: it is the anchor
 the doctrine rests on, not the doctrine. Full treatment:
 [docs/theory/formalism.md](docs/theory/formalism.md); lexicon in
-[rules.md](rules.md) §1. *(WIP: extends to model attention-dilution and
-design-space constriction as the conditioning layer lands.)*
+[rules.md](rules.md) §1. The prevention extension — attention-dilution and
+phase-space constriction — is derived in
+[docs/theory/formalism.md](docs/theory/formalism.md) Part 2.
 
 ## Requirements (for predicate to be useful)
 
@@ -58,18 +60,26 @@ Reconstruct don't recall · Tier economy.
 - **Context economy** — every artifact is drift surface; cut what is not
   load-bearing.
 
-## Building toward the goal (WIP — the prevention half)
+## Prevention half — built
 
-The conditioning layer is in active design. Components:
-- The contract + check for an effective AGENTS.md (this file is its first
-  instance).
-- A project **initialization workflow** that maps a repository and authors its
-  AGENTS.md hierarchy.
-- A **defeater register**: each load-bearing assumption carries an explicit
-  invalidating condition + a monitored signpost ("did serving a sub-goal defeat
-  its parent goal?").
-- Nested AGENTS.md as the goal hierarchy (ecosystem ⊃ project ⊃ component), the
-  substrate for projection and defeater checks.
+The conditioning layer landed across the campaigns since this section was first
+written; the components it once forecast now exist:
+- The **AGENTS.md contract + freshness check** — contract authority in
+  [/boundary §AGENTS.md](skills/boundary/SKILL.md#agentsmd--the-project-scope-boundary);
+  freshness enforced by [ledger/gate/tracker_fresh.sh](ledger/gate/tracker_fresh.sh).
+- The **`/orient` initialization workflow** ([skills/orient/SKILL.md](skills/orient/SKILL.md))
+  — maps a repo, elicits its goal, and authors the AGENTS.md hierarchy.
+- The **defeater substrate** — each tracked R/I/U carries a `grounding` and a
+  `signpost` (its invalidating condition);
+  [ledger/contracts/context_map.ncl](ledger/contracts/context_map.ncl) is the live
+  carrier, and strategic-drift escalation is the standing response.
+- The **nested AGENTS.md goal hierarchy** (ecosystem ⊃ project ⊃ component), with
+  alignment-to-parent as the defeater check.
+
+> **Note — this file lags its own contract.** It predates the P-TRACK R/I/U
+> requirement the [`/orient`](skills/orient/SKILL.md) AUTHOR phase now mandates: no
+> first-class **Unknowns** section, and Requirements/Invariants without per-item
+> `grounding`/`signpost`. A full `/orient` refresh is the remaining cleanup.
 
 ## How to work in this repo
 
