@@ -10,8 +10,8 @@ Each entry: name the technique, cite the source fragment, state the technique, s
 Dispositions written per this guide are not wrapped around a harness at launch by a
 process adapter — predicate is **instructions + generated prompts, not a process
 wrapper**. They are generated into each harness's **native system-prompt surface at
-install time** by `conditioning/install.sh` (composed as `core.ncl ++ persona(role)`;
-see [ARCHITECTURE.md](ARCHITECTURE.md)):
+install time** by `conditioning/install.sh` (composed as
+`core ++ join(modules) ++ role_delta`; see [ARCHITECTURE.md](ARCHITECTURE.md)):
 
 - **Claude Code** — the architect law ships as an **output style**
   (`~/.claude/output-styles/predicate-architect.md`) with frontmatter

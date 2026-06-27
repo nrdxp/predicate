@@ -4,7 +4,9 @@
 # Contract:  HasCore — every generated string must contain core_text verbatim.
 #            Export fails with a contract violation if core_text is absent.
 #            HasModule / HasLens are sibling verbatim-substring contracts for
-#            module and lens text (no persona consumer at N1; see ARCHITECTURE.md §1).
+#            module and lens text. The nine reviewer fields below consume them:
+#            all nine carry HasModule reviewer_module; the eight lensed reviewers
+#            also carry HasLens <their delta> (see ARCHITECTURE.md §1).
 #
 # EXPORT INTERFACE
 # ----------------
@@ -76,9 +78,10 @@ let HasCore : Dyn = std.contract.from_predicate
 in
 
 # Siblings of HasCore for the module and lens slots. Same verbatim-substring
-# rule, parameterized by the expected text (there will be many modules and
-# lenses). No persona consumes these at N1 — HasModule's bite is proven by
-# probe_no_module.ncl; HasLens is defined for downstream reviewer lenses (N12+).
+# rule, parameterized by the expected text. The reviewer fields below consume
+# both: every reviewer carries HasModule reviewer_module, and the eight lensed
+# reviewers additionally carry HasLens over their lens delta (the lens-free
+# refuter carries only HasModule).
 let HasModule : String -> Dyn = fun module_text =>
   std.contract.from_predicate (fun s => std.string.contains module_text (s | String))
 in

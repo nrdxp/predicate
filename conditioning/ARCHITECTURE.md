@@ -202,18 +202,34 @@ contract on every output.
 let core_text : String = import "core.ncl" in
 
 let personas : { _ : String } = {
-  architect     = import "personas/architect.ncl",
-  "core-worker" = import "personas/core-worker.ncl",
-  "refine-worker" = import "personas/refine-worker.ncl",
-  "doc-worker"  = import "personas/doc-worker.ncl",
-  "form-worker" = import "personas/form-worker.ncl",
-  "spec-worker" = import "personas/spec-worker.ncl",
+  architect        = import "personas/architect.ncl",
+  "core-worker"    = import "personas/core-worker.ncl",
+  "refine-worker"  = import "personas/refine-worker.ncl",
+  "doc-worker"     = import "personas/doc-worker.ncl",
+  "form-worker"    = import "personas/form-worker.ncl",
+  "spec-worker"    = import "personas/spec-worker.ncl",
   "boundary-worker" = import "personas/boundary-worker.ncl",
 } in
 
-# Module segment — empty in the base case; collapses the join so renders stay
-# byte-identical to the two-segment form. Modules compose between core and delta.
-let modules : Array String = [] in
+# Module segments. The producer carries the action PROCEDURE (the writer's test
+# loop and mandatory halts); compose pulls it per role — code-writers receive it,
+# review-only roles do not. The reviewer_module is the read-only adversarial-
+# reviewer spine, pulled by every reviewer (never alongside producer).
+let producer : String = import "modules/producer.ncl" in
+let reviewer_module : String = import "modules/reviewer.ncl" in
+
+# Reviewer deltas: the lens-free refuter plus the eight lens overlays.
+let reviewers : { _ : String } = {
+  "refuter-reviewer"    = import "personas/refuter-reviewer.ncl",
+  "hickey-reviewer"     = import "personas/hickey-reviewer.ncl",
+  "lowy-reviewer"       = import "personas/lowy-reviewer.ncl",
+  "api-reviewer"        = import "personas/api-reviewer.ncl",
+  "security-reviewer"   = import "personas/security-reviewer.ncl",
+  "git-review-reviewer" = import "personas/git-review-reviewer.ncl",
+  "ai-slop-reviewer"    = import "personas/ai-slop-reviewer.ncl",
+  "prior-art-reviewer"  = import "personas/prior-art-reviewer.ncl",
+  "vestigial-reviewer"  = import "personas/vestigial-reviewer.ncl",
+} in
 
 # INJECTION-RULE CONTRACT — see §4 for rationale and failure semantics.
 # Verified: std.string.contains "needle" "haystack" : Bool
@@ -229,20 +245,31 @@ let HasLens : String -> Dyn = fun l =>
   std.contract.from_predicate (fun s => std.string.contains l s)
 in
 
-# system_prompt(role) = core ++ join(modules) ++ role_delta; core is first.
-let compose : String -> String = fun role_delta =>
-  std.string.join "\n\n" ([core_text] @ modules @ [role_delta])
+# system_prompt(role) = core ++ join(role_modules) ++ role_delta; core is first.
+# role_modules is a per-role argument so each role pulls only the modules it needs.
+let compose : Array String -> String -> String = fun role_modules role_delta =>
+  std.string.join "\n\n" ([core_text] @ role_modules @ [role_delta])
 in
 
-# All role fields are typed HasCore; export fails if core_text is absent.
+# One field per role. Every field is typed HasCore; export fails if core_text is
+# absent. The five code-writers pull [producer]; the two review-only roles (doc,
+# boundary) pull []. The nine reviewers pull [reviewer_module] and carry
+# HasModule reviewer_module; the eight lensed reviewers also carry HasLens.
 {
-  architect       | HasCore = compose personas.architect,
-  "core-worker"   | HasCore = compose personas."core-worker",
-  "refine-worker" | HasCore = compose personas."refine-worker",
-  "doc-worker"    | HasCore = compose personas."doc-worker",
-  "form-worker"   | HasCore = compose personas."form-worker",
-  "spec-worker"   | HasCore = compose personas."spec-worker",
-  "boundary-worker" | HasCore = compose personas."boundary-worker",
+  architect        | HasCore = compose [producer] personas.architect,
+  "core-worker"    | HasCore = compose [producer] personas."core-worker",
+  "refine-worker"  | HasCore = compose [producer] personas."refine-worker",
+  "doc-worker"     | HasCore = compose [] personas."doc-worker",
+  "form-worker"    | HasCore = compose [producer] personas."form-worker",
+  "spec-worker"    | HasCore = compose [producer] personas."spec-worker",
+  "boundary-worker" | HasCore = compose [] personas."boundary-worker",
+
+  "refuter-reviewer"    | HasCore | HasModule reviewer_module
+    = compose [reviewer_module] reviewers."refuter-reviewer",
+  "hickey-reviewer"     | HasCore | HasModule reviewer_module | HasLens reviewers."hickey-reviewer"
+    = compose [reviewer_module] reviewers."hickey-reviewer",
+  # ... six further lensed reviewers (lowy, api, security, git-review,
+  # ai-slop, prior-art, vestigial), each | HasCore | HasModule | HasLens.
 }
 ```
 
@@ -304,9 +331,9 @@ let HasCore = std.contract.from_predicate
 **What the contract checks (normative):**
 - Presence: `core_text` appears as a contiguous substring of the generated
   prompt string.
-- The contract does NOT check: ordering of core vs persona (core appears first
-  by construction — `core_text ++ "\n\n" ++ persona_overlay`); formatting
-  beyond verbatim presence; content adequacy of the core or persona.
+- The contract does NOT check: ordering of core vs modules vs delta (core
+  appears first by construction — `core ++ join(modules) ++ role_delta`);
+  formatting beyond verbatim presence; content adequacy of the core or persona.
 
 **What the contract does NOT check (must be covered by adversarial review):**
 - Whether `core.ncl` itself contains the right law (content adequacy).
