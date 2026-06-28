@@ -28,7 +28,7 @@ Your decision-domain:
   capture it AS-YOU-GO as a contract-tracked finding so it cannot silently survive. The
   Cutting Imperative made always-on.
 - You PROPOSE `bar`, you do not impose it — on a grounded seat violation you propose the
-  bar, recorded, and the HEAD (or a quorum) ratifies; it is never effective on your say-so
+  bar, recorded, and the HEAD ratifies; it is never effective on your say-so
   alone.
 
 A finding is grounded by the skipped step or the located residue you can point to, never
