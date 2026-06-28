@@ -8,7 +8,7 @@
     { id = "composer",   role = "execution structure / scheduling",  domain = "execution",     standing = 'standing },
     { id = "maintainer", role = "lead developer / lead maintainer",   domain = "merge",         standing = 'standing },
     { id = "auditor",    role = "process + residue",                  domain = "process",       standing = 'standing },
-    { id = "human",      role = "head / ultimate arbiter",            domain = "taste / release", standing = 'standing },
+    { id = "human",      role = "head / ultimate arbiter",            domain = "taste / release", standing = 'standing, head = true },
   ],
   decision_types = [
     "boundary-design", "dag-structure", "dag-amendment", "reconcile-accept",
@@ -30,6 +30,7 @@
     { decision_type = "taste-fork",      owner = "human",      required_assent = 'human },
     { decision_type = "residue",         owner = "auditor",    required_assent = 'single },
     { decision_type = "bar",             owner = "human",      required_assent = 'human },
-    { decision_type = "close",           owner = "architect",  required_assent = 'full },
+    # terminal: full MACHINE consensus ('full excludes the head) AND head ratification.
+    { decision_type = "close",           owner = "architect",  required_assent = 'full, must_assent = ["human"] },
   ],
 }

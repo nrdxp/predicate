@@ -1,6 +1,9 @@
 # EXPECT: fail
-# Case 3: a unilateral decision — `close` is a terminal 'full type, yet only the
-# architect assented. The anti-unilateral predicate rejects it (export exit != 0).
+# Case 3: a unilateral decision — `close` is a terminal 'full type. The head ratified
+# and the owner assented, but the rest of the machine council never convened, so full
+# machine-consensus is absent. The anti-unilateral predicate rejects it (export exit
+# != 0). Complement of close_no_head: there the machine reached consensus and the head
+# was missing; here the head is present and machine-consensus is missing.
 let c = import "../../contracts/council.ncl" in
 let con = (import "./constitution.ncl") | c.Constitution in
-{ decisions = [ { id = "U1", type = "close", assent = ["architect"], verdict = "rammed through", grounding = "skipped the room" } ] } | (c.DecisionLedger con)
+{ decisions = [ { id = "U1", type = "close", assent = ["architect", "human"], verdict = "rammed through", grounding = "owner + head moved without convening the rest of the council" } ] } | (c.DecisionLedger con)

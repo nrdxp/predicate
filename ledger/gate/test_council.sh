@@ -52,6 +52,11 @@ expect "barred seat in assent -> no-barred" 1 "no-barred" \
 # 6: a 'dag-amendment whose assent lacks the head -> head-ratification (F7).
 expect "dag-amendment without head ratification -> head-ratification" 1 "head-ratification" \
   -- nickel export "$fix/dag_amend_no_head.ncl"
+# 7: a 'close with full MACHINE consensus but no head -> head-ratification. Proves the
+# two terminal gates are distinct: 'full machine-consensus is met, yet the head's
+# ratification (must_assent) is still required and its absence is named specifically.
+expect "close without head ratification -> head-ratification" 1 "head-ratification" \
+  -- nickel export "$fix/close_no_head.ncl"
 
 if [ "$fails" -ne 0 ]; then
   echo "FAIL: $fails council case(s) mismatched"; exit 1

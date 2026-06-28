@@ -18,7 +18,11 @@
 # Two explicit named guards beyond the assent-class check make defeater-resistance
 # structural (a later reclassification cannot silently drop a required co-signer):
 #   merge-consent      a 'merge decision MUST carry the maintainer's recorded assent.
-#   head-ratification  a 'dag-amendment MUST carry the head (human) in assent.
+#   head-ratification  a 'dag-amendment OR 'close decision MUST carry the head (human)
+#                      in assent — for 'close, ATOP full machine consensus. The head
+#                      is a standing seat but the ratifier, excluded from the 'full
+#                      machine-consensus tally so consensus and ratification stay two
+#                      distinct gates, both required to close.
 # Both are encoded uniformly as `must_assent` on a DelegationRule and checked BEFORE
 # the assent-class predicate, so each violation surfaces its own named reason.
 {
@@ -30,6 +34,10 @@
     role | NonEmptyString,
     domain | NonEmptyString,
     standing | [| 'standing, 'guest |],
+    # the head (human) is a standing seat but the RATIFIER, not a machine-council
+    # member: excluded from the 'full machine-consensus tally and instead required
+    # atop it via must_assent on the terminal decision-types.
+    head | Bool | optional | default = false,
   },
 
   DelegationRule = {
@@ -87,9 +95,12 @@
       # default and validates shape/NonEmptyString. Checks then run on the normalized form.
       let decisions = std.array.map (fun d => d | Decision) value.decisions in
       let deleg = std.array.map (fun r => r | DelegationRule) constitution.delegation in
-      let seats = constitution.seats in
-      let standing_ids = std.array.map (fun s => s.id)
-        (std.array.filter (fun s => s.standing == 'standing) seats) in
+      let seats = std.array.map (fun s => s | Seat) constitution.seats in
+      # the 'full machine-consensus set: standing seats MINUS the head. The head
+      # ratifies terminal decisions on top of consensus (via must_assent), so it is
+      # never part of the consensus tally itself — the two gates stay distinct.
+      let machine_ids = std.array.map (fun s => s.id)
+        (std.array.filter (fun s => s.standing == 'standing && !s.head) seats) in
       let deleg_map = std.array.fold_left
         (fun acc r => std.record.insert r.decision_type r acc) {} deleg in
       let _dc = std.array.fold_left (fun acc d => std.deep_seq d acc) null decisions in
@@ -100,7 +111,7 @@
         if r.required_assent == 'single then std.array.elem r.owner d.assent
         else if r.required_assent == 'subset then std.array.length d.assent >= r.quorum
         else if r.required_assent == 'full then
-          std.array.all (fun sid => std.array.elem sid d.assent) standing_ids
+          std.array.all (fun sid => std.array.elem sid d.assent) machine_ids
         else std.array.elem "human" d.assent in
       let no_barred = fun d => std.array.all (fun sid => !(std.array.elem sid d.assent)) d.barred in
       # the explicit named guards: every must_assent seat must be present REGARDLESS of
