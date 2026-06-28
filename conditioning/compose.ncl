@@ -18,7 +18,7 @@
 #   (produces the record; wrap in a one-liner to extract a field)
 #
 # Via a wrapper file:
-#   echo '(import "compose.ncl").architect' \
+#   echo '(import "compose.ncl").composer' \
 #     | nix run nixpkgs#nickel -- export --format text
 #
 # VERIFIED NICKEL IDIOMS (1.14.0 — the project's pinned nickel)
@@ -34,7 +34,7 @@
 let core_text : String = import "core.ncl" in
 
 let personas : { _ : String } = {
-  architect        = import "personas/architect.ncl",
+  composer         = import "personas/composer.ncl",
   "core-worker"    = import "personas/core-worker.ncl",
   "refine-worker"  = import "personas/refine-worker.ncl",
   "doc-worker"     = import "personas/doc-worker.ncl",
@@ -112,10 +112,11 @@ let compose : Array String -> String -> String = fun role_modules role_delta =>
 in
 
 # One field per role.  Every field is typed HasCore; export fails if core_text
-# is absent from the composed string. The five code-writers pull [producer]; the
-# two review-only roles (doc, boundary) pull [] — they shed the action procedure.
+# is absent from the composed string. The four code-writer workers pull [producer];
+# the review-only roles (doc, boundary) and the composer pull [] — the composer is a
+# moderator, not a code-writer, so the single output-style slot sheds the procedure.
 {
-  architect        | HasCore = compose [producer] personas.architect,
+  composer         | HasCore = compose [] personas.composer,
   "core-worker"    | HasCore = compose [producer] personas."core-worker",
   "refine-worker"  | HasCore = compose [producer] personas."refine-worker",
   "doc-worker"     | HasCore = compose [] personas."doc-worker",

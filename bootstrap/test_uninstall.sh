@@ -384,8 +384,8 @@ case_role_injection_rejected() {
 
   # Also verify a VALID role still works (exit 0, no rejection).
   if ! PREDICATE_SRC="$plugin_root" bash "$conditioning_sh" \
-        --role architect --dry-run >/dev/null 2>&1; then
-    note "valid role 'architect' was incorrectly rejected"; rc=1
+        --role composer --dry-run >/dev/null 2>&1; then
+    note "valid role 'composer' was incorrectly rejected"; rc=1
   fi
 
   [ "$rc" -eq 0 ] && ok "$name" || bad "$name"
@@ -547,7 +547,7 @@ case_conditioning_sh_uninstall() {
 
   # Seed native surfaces (what a real install writes) for uninstall to remove.
   mkdir -p "$claude_dir/output-styles"
-  printf 'fake output style\n' >"$claude_dir/output-styles/predicate-architect.md"
+  printf 'fake output style\n' >"$claude_dir/output-styles/predicate-composer.md"
   mkdir -p "$claude_dir/agents"
   for r in core-worker refine-worker doc-worker form-worker spec-worker boundary-worker; do
     printf 'fake agent\n' >"$claude_dir/agents/predicate-$r.md"
@@ -573,8 +573,8 @@ EOF
   }
 
   # Native surfaces must be removed.
-  if [ -f "$claude_dir/output-styles/predicate-architect.md" ]; then
-    note "output-styles/predicate-architect.md still present after --uninstall"; rc=1
+  if [ -f "$claude_dir/output-styles/predicate-composer.md" ]; then
+    note "output-styles/predicate-composer.md still present after --uninstall"; rc=1
   fi
   for r in core-worker refine-worker doc-worker form-worker spec-worker boundary-worker; do
     if [ -f "$claude_dir/agents/predicate-$r.md" ]; then
@@ -621,7 +621,7 @@ case_uninstall_strips_conditioning_block() {
   # Seed native surfaces directly (install requires the real claude CLI which is
   # not available in this context; we test what uninstall removes, not what install writes).
   mkdir -p "$claude_dir/output-styles"
-  printf 'fake output style\n' >"$claude_dir/output-styles/predicate-architect.md"
+  printf 'fake output style\n' >"$claude_dir/output-styles/predicate-composer.md"
   mkdir -p "$claude_dir/agents"
   for r in core-worker refine-worker doc-worker form-worker spec-worker boundary-worker; do
     printf 'fake agent\n' >"$claude_dir/agents/predicate-$r.md"
@@ -648,8 +648,8 @@ EOF
   run_uninstall "$home" >/dev/null 2>&1
 
   # Native surfaces must be removed.
-  if [ -f "$claude_dir/output-styles/predicate-architect.md" ]; then
-    note "output-styles/predicate-architect.md still present after uninstall (orphaned)"; rc=1
+  if [ -f "$claude_dir/output-styles/predicate-composer.md" ]; then
+    note "output-styles/predicate-composer.md still present after uninstall (orphaned)"; rc=1
   fi
   for r in core-worker refine-worker doc-worker form-worker spec-worker boundary-worker; do
     if [ -f "$claude_dir/agents/predicate-$r.md" ]; then
@@ -717,8 +717,8 @@ EOF
     bash "$install_sh" install --harness claude-code >/dev/null 2>&1
 
   # Native output-style surface must have been written.
-  if [ ! -f "$home/.claude/output-styles/predicate-architect.md" ]; then
-    note "output-styles/predicate-architect.md not written by install"; rc=1
+  if [ ! -f "$home/.claude/output-styles/predicate-composer.md" ]; then
+    note "output-styles/predicate-composer.md not written by install"; rc=1
   fi
   # At least one worker agent file must have been written.
   local agent_found=0
