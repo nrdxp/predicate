@@ -229,7 +229,7 @@ flag injection. Adding a new harness = one install branch in `install.sh`;
 
 **Claude Code** — two surfaces are written:
 
-- **Output style** → `~/.claude/output-styles/predicate-architect.md`
+- **Output style** → `~/.claude/output-styles/predicate-composer.md`
   Frontmatter `keep-coding-instructions: false` empties Claude Code's built-in
   software-engineering block while preserving tool definitions, environment info,
   agent identity, and safety scaffolding. The markdown body is appended to the

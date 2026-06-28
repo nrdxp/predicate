@@ -13,8 +13,8 @@ wrapper**. They are generated into each harness's **native system-prompt surface
 install time** by `conditioning/install.sh` (composed as
 `core ++ join(modules) ++ role_delta`; see [ARCHITECTURE.md](ARCHITECTURE.md)):
 
-- **Claude Code** — the architect law ships as an **output style**
-  (`~/.claude/output-styles/predicate-architect.md`) with frontmatter
+- **Claude Code** — the composer law ships as an **output style**
+  (`~/.claude/output-styles/predicate-composer.md`) with frontmatter
   `keep-coding-instructions: false`. That setting empties Claude's built-in
   software-engineering block while **preserving** tool definitions, environment
   info, agent identity, and safety scaffolding; the output-style body is *appended*
