@@ -1,7 +1,0 @@
-# EXPECT: fail
-# Case 6: a `dag-amendment` whose assent lacks the head (human). The
-# head-ratification guard rejects it (export exit != 0) — a structural DAG change
-# requires both the architect (owner) and the head's ratifying assent.
-let c = import "../../contracts/council.ncl" in
-let con = (import "./constitution.ncl") | c.Constitution in
-{ decisions = [ { id = "A1", type = "dag-amendment", assent = ["architect"], verdict = "amended without ratification", grounding = "architect amended the DAG with no head sign-off" } ] } | (c.DecisionLedger con)

@@ -1,0 +1,42 @@
+# EXPECT: fail
+# Case 2: a gapped constitution — `release` is a decision-type with no delegation
+# rule. The anti-incoherence invariant rejects it (export exit != 0): you cannot
+# convene under a law that leaves a decision-type unassigned. A constitution
+# variant (carries `seats`), so council_apply.ncl routes it to the Constitution
+# contract. Identical to constitution.yaml except `release` is appended to
+# decision_types with no matching delegation rule.
+seats:
+  - { id: architect,  role: "boundary / goal / strategy",        domain: boundary,           standing: standing }
+  - { id: composer,   role: "execution structure / scheduling",  domain: execution,          standing: standing }
+  - { id: maintainer, role: "lead developer / lead maintainer",   domain: merge,              standing: standing }
+  - { id: auditor,    role: "process + residue",                  domain: process,            standing: standing }
+  - { id: human,      role: "head / ultimate arbiter",            domain: "taste / release",  standing: standing, head: true }
+decision_types:
+  - boundary-design
+  - dag-structure
+  - dag-amendment
+  - reconcile-accept
+  - dispatch
+  - convene
+  - lifecycle
+  - classification
+  - merge
+  - taste-fork
+  - residue
+  - bar
+  - close
+  - release   # orphan: no delegation rule -> anti-incoherence
+delegation:
+  - { decision_type: boundary-design,  owner: architect,  required_assent: single }
+  - { decision_type: dag-structure,    owner: composer,   required_assent: single }
+  - { decision_type: dag-amendment,    owner: architect,  required_assent: single, must_assent: [human] }
+  - { decision_type: reconcile-accept, owner: architect,  required_assent: single }
+  - { decision_type: dispatch,         owner: composer,   required_assent: single }
+  - { decision_type: convene,          owner: composer,   required_assent: single }
+  - { decision_type: lifecycle,        owner: composer,   required_assent: single }
+  - { decision_type: classification,   owner: architect,  required_assent: subset, quorum: 2 }
+  - { decision_type: merge,            owner: maintainer, required_assent: single, must_assent: [maintainer] }
+  - { decision_type: taste-fork,       owner: human,      required_assent: human }
+  - { decision_type: residue,          owner: auditor,    required_assent: single }
+  - { decision_type: bar,              owner: human,      required_assent: human }
+  - { decision_type: close,            owner: architect,  required_assent: full, must_assent: [human] }
