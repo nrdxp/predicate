@@ -267,8 +267,8 @@ LAYER_BOUNDARY(layer, dag, tip, shared_branch):
                  fault is NOT localizable to a single node (the broken ref and
                  the cut that broke it live in different nodes' surfaces), so it
                  does NOT route to single-node REWORK. It routes to
-                 ESCALATE -> PLAN: the architect realigns the plan/DAG for the
-                 cross-node coupling (re-export, re-derive, re-dispatch the
+                 ESCALATE -> PLAN: the architect seat realigns the plan/DAG for
+                 the cross-node coupling (re-export, re-derive, re-dispatch the
                  affected nodes). [HUMAN SEAM] if the realignment needs a
                  decision-rights call beyond the IBC's declared sovereignty gates.
 ```
@@ -276,9 +276,9 @@ LAYER_BOUNDARY(layer, dag, tip, shared_branch):
 This is a **boundary** gate (cumulative diff, whole cut-set), distinct from the
 per-node check: it catches cross-node orphaning a single node's reconcile cannot
 see, and it catches it *here* rather than at CLOSE. Because the fault is a
-plan-level cross-node coupling, the architect corrective (ESCALATE → PLAN) is the
-right resolution — exactly how a campaign handles a coupling its node decomposition
-under-modeled.
+plan-level cross-node coupling, the architect seat's corrective (ESCALATE → PLAN)
+is the right resolution — exactly how a campaign handles a coupling its node
+decomposition under-modeled.
 
 ---
 
@@ -395,10 +395,10 @@ ambiguity the formalization cannot remove:
 | Seam | Where | Why it is irreducible |
 | :--- | :--- | :--- |
 | Final acceptance + push | CLOSE | Remotes belong to the human (rules.md §3); a release is a sovereignty decision. |
-| Non-resolvable reserved halt | DISPATCH | A reserved predicate beyond surface-exceed / refuted-premise is, by definition of "reserved," a human escalation. |
+| Non-resolvable reserved halt | DISPATCH | A reserved predicate beyond surface-exceed / refuted-premise is, by definition of "reserved," a head escalation. |
 | Decision-rights realignment | REWORK/ESCALATE, REALIGN | When realigning needs a call outside the IBC's declared sovereignty gates. |
 | Non-converging adversarial review | RECONCILE step 3 | When decorrelated reviewers do not converge, the dual escalates to human (rules.md §1). |
-| Non-converging sufficiency review | CLOSE | When the sufficiency reviewers do not converge on a SUFFICIENT verdict, CLOSE cannot complete without human resolution of the open questions. |
+| Non-converging sufficiency review | CLOSE | When the sufficiency reviewers do not converge on a SUFFICIENT verdict, CLOSE cannot complete without the head's resolution of the open questions. |
 
 In an `AUTONOMOUS`-mode campaign these seams resolve by policy or escalate; in
 `INTERACTIVE` mode they surface to the person. Everything else — schedule

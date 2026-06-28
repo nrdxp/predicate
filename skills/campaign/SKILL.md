@@ -4,8 +4,8 @@ description: |
   SOP for the architect-tier campaign workflow (/campaign): exhaustive
   survey, mitigation planning, tiered orchestration, and reconciliation.
   Trigger when:
-  - Running a multi-workstream initiative where an expensive architect
-    model surveys, plans, emits worker prompts, and judges landed work.
+  - Running a multi-workstream initiative where an expensive architect-tier
+    council surveys, plans, emits worker prompts, and judges landed work.
   - Conducting production-readiness assessments that fan out into
     autonomous mitigation dispatches across model tiers.
   - Prompt contains: /campaign, campaign workflow, survey, orchestrate,
@@ -18,7 +18,7 @@ description: |
 
 This workflow defines the `/campaign` execution loop for architect-class
 (expensive, long-horizon) walkers coordinating heterogeneous model tiers
-across a multi-workstream goal. The architect's primary output genre is
+across a multi-workstream goal. The council's primary output genre is
 not code — it is **boundary conditions for cheaper walks**, and judgment
 on the work that returns.
 
@@ -32,16 +32,16 @@ Expensive tokens belong at the waist, not the edges:
 
 ```
   wide:   cheap tier + human  — boundary refinement (/boundary → IBC*)
-  narrow: one architect pass  — exhaustive survey, planning, orchestration
+  narrow: one council pass    — exhaustive survey, planning, orchestration
   wide:   cheap tier          — disciplined worker execution (/refine, /core)
           deterministic evaluators between every layer
 ```
 
-The architect ingests an approved $\text{IBC}^*$ (manufactured by the
-[boundary](../boundary/SKILL.md) loop), saturates its own context through
+The council ingests an approved $\text{IBC}^*$ (manufactured by the
+[boundary](../boundary/SKILL.md) loop), saturates its shared context through
 an exhaustive multi-agent survey, and emits a graph of saturated worker
 IBCs routed to the cheapest capable tier. Error-correction iterations run
-in cheap space; the architect re-enters only to judge and realign.
+in cheap space; the council re-enters only to judge and realign.
 
 ### The Plan Is a DAG of Boundary Conditions
 
@@ -61,23 +61,24 @@ at every `RECONCILE` boundary:
 > **Goal Supremacy / Mutable DAG:** execution yields exponentially more
 > context than planning — the higher-level goal reigns over the
 > pre-specified DAG skeleton, not the reverse. At every `RECONCILE`
-> boundary the architect MUST reconsider whether the DAG still serves the
+> boundary the architect seat MUST reconsider whether the DAG still serves the
 > goal. DAG amendments — adding, editing, or removing nodes — are the
 > **norm**, not a deviation; staying faithful to an arbitrary initial
 > structure while overlooking what execution revealed is the failure mode
-> this guards against. Each amendment is a new boundary and requires
-> **human approval** before any affected node is re-dispatched.
+> this guards against. Each amendment is a new boundary — a `dag-amendment`
+> the delegation table routes to the architect seat, ratified by the **head**
+> before any affected node is re-dispatched.
 
 Both checks are mechanical and cheap — they SHOULD themselves run on a cheap tier.
 
-### The Architect as Final Judge
+### The Council as Final Judge
 
 Workers execute under their assigned discipline workflows, but
 **no worker self-certifies**. Every landed changeset returns to the
-architect's `RECONCILE` state, which judges it with
+council's `RECONCILE` state, which judges it with
 [git-review](../git-review/SKILL.md) semantics against the worker's own
 IBC: acceptance evaluators re-run, coherence checklist applied, commit
-hygiene verified. The architect is constantly judging whether the campaign
+hygiene verified. The council is constantly judging whether the campaign
 has proceeded correctly — that judgment, not code emission, is what the
 expensive tokens buy.
 
@@ -192,7 +193,7 @@ CLOSE ──→ end            (final sweep passes; human accepts the report)
 
 Ingest the approved campaign $\text{IBC}^*$.
 
-- **Premise Audit (boundary S2):** the architect's first obligation is to
+- **Premise Audit (boundary S2):** the council's first obligation is to
   verify the IBC's tripwires against primary sources. On contradiction,
   emit the rejection report and transition to `CLARIFY`/`HALT` — rejecting
   the frame early is a success condition, not a failure.
@@ -201,14 +202,14 @@ Ingest the approved campaign $\text{IBC}^*$.
 
 ### 2. CLARIFY
 
-Standard ambiguity gate. Interactive: surface to the human. Autonomous:
+Standard ambiguity gate. Interactive: surface to the head. Autonomous:
 log a conservative assumption per [refine](../refine/SKILL.md) CLARIFY
 semantics — except premise failures, which always freeze: a campaign MUST
 NOT proceed from a refuted frame.
 
 ### 3. SURVEY
 
-The expensive waist: saturate the architect's context via exhaustive
+The expensive waist: saturate the council's shared context via exhaustive
 multi-agent review of the target system.
 
 - Fan out independent subagents in mutually isolated contexts (MBSS
@@ -217,9 +218,9 @@ multi-agent review of the target system.
   testing, docs-drift, performance — as the goal demands).
 - The **Grounded Critique Invariant** ([rules.md](../../rules.md) §4)
   applies in full: findings without reproducible evidence are filtered.
-- The architect synthesizes `REVIEW.md` and the `FINDINGS` ledger. The
-  architect reads primary sources directly (boundary S5) — subagents
-  locate and excerpt; they do not paraphrase on the architect's behalf.
+- The council synthesizes `REVIEW.md` and the `FINDINGS` ledger. The
+  council reads primary sources directly (boundary S5) — subagents
+  locate and excerpt; they do not paraphrase on the council's behalf.
 
 ### 4. PLAN
 
@@ -229,9 +230,9 @@ Derive the mitigation plan from the findings ledger.
   explicit `DEPENDS_ON` edges and `MITIGATES` mappings back to findings.
 - For each node, decide what is **meaningful to verify** — the acceptance
   invariants (property statements, metamorphic relations, theorem
-  statements where formal models exist). The architect owns the *what* of
+  statements where formal models exist). The architect seat owns the *what* of
   testing; workers implement the minutiae under TDD discipline.
-- Write `PLAN.md`. In `INTERACTIVE` mode, **HALT for human approval** of
+- Write `PLAN.md`. In `INTERACTIVE` mode, **HALT for the head's approval** of
   the plan before any orchestration.
 
 ### 5. ORCHESTRATE
@@ -254,7 +255,7 @@ Manufacture the worker boundaries.
     so RECONCILE can re-run them without trusting worker claims.
 - Write `ORCHESTRATION.md`: the routing table mapping each node to the
   **cheapest tier whose capability bounds the task**, with rationale.
-- In `INTERACTIVE` mode the human approves the routing table and prompt
+- In `INTERACTIVE` mode the head approves the routing table and prompt
   set (the boundary skill's HUMAN_DISPATCH_GATE, applied in batch).
 
 > [!NOTE]
@@ -285,7 +286,7 @@ is the *mechanics*; the runnable workflow that drives DISPATCH ⇄ RECONCILE as 
 automaton is the **orchestration skill** (`skills/orchestration/SKILL.md`),
 which packages the protocol's evaluator commands and exit-code routing into a
 loop a cheap-tier runner can execute. This skill is built downstream — until it
-lands, the architect drives the protocol by hand. The narrative:
+lands, the composer drives the protocol by hand. The narrative:
 
 - Workers run autonomously (e.g. under a `/goal`-style runner) inside
   their assigned discipline workflow, committing to the repository per
@@ -299,11 +300,11 @@ lands, the architect drives the protocol by hand. The narrative:
   freezes and returns its report — that is the IBC working as designed. A
   surface-exceed halt and a refuted premise have deterministic resolutions
   (the surface-exceed protocol; realignment); any other reserved halt escalates
-  to the human.
+  to the head.
 
 ### 7. RECONCILE
 
-The architect re-enters as judge. The mechanical form of every step below —
+The council re-enters to judge. The mechanical form of every step below —
 its evaluator command and exit-code routing — is the
 [orchestration protocol](../../docs/orchestration-protocol.md); that document
 is what makes RECONCILE drivable by an automaton. For every `LANDED` node, in a
@@ -331,8 +332,11 @@ premises:
    adversarial path). Breakage is caught at *this* boundary, not deferred to
    `CLOSE`.
 5. **Verdict:**
-   - `ACCEPT` — steps 1–4 clean and any dispatched review converged-pass;
-     merge the node, mark it `ACCEPTED` and its mitigated findings.
+   - `ACCEPT` — steps 1–4 clean and any dispatched review converged-pass.
+     This is the `reconcile-accept` verdict (the architect seat's); the merge
+     is a **separate** decision the delegation table routes to the
+     lead-maintainer, whose **affirmative merge-consent** is required before
+     the node merges and is marked `ACCEPTED` with its mitigated findings.
    - `REWORK` — an evaluator, surface, or coherence check failed: emit a
      corrective delta IBC (error feedback in cheap space) and re-dispatch;
      the node returns to `PENDING`.
@@ -348,7 +352,7 @@ accumulate to `CLOSE`.
 
 Finally: append the `RECONCILE_LOG` round, write the **sketch
 checkpoint**, and commit it in the `.ledger/` subrepo. Reserved-predicate
-breaches and appetite exhaustion route to the human (`HALT`).
+breaches and appetite exhaustion route to the head (`HALT`).
 
 ### 8. CLOSE
 
@@ -360,7 +364,7 @@ breaches and appetite exhaustion route to the human (`HALT`).
 > not sufficient: it proves execution, not coverage. The procedure is
 > [docs/orchestration-protocol.md §CLOSE](../../docs/orchestration-protocol.md#close).
 
-When all findings are `MITIGATED` or human-accepted as `ACCEPTED_RISK`
+When all findings are `MITIGATED` or head-accepted as `ACCEPTED_RISK`
 and the DAG is complete:
 
 1. Run the full deterministic verification surface (complete test suite,
@@ -374,9 +378,9 @@ and the DAG is complete:
    gate check, what is defined-but-unwired, what claim is hollow?" Route
    findings to follow-up nodes or tech-debt records before acceptance.
    When reviewers do not converge on a SUFFICIENT verdict, escalate to the
-   human — this is a `[HUMAN SEAM]` at CLOSE.
+   head — this is a `[HUMAN SEAM]` at CLOSE.
 4. **Emit a retrospective to the flight recorder** (`.ledger/log/`) before
-   presenting the report to the human. The retrospective captures the
+   presenting the report to the head. The retrospective captures the
    hard-won context that survives context loss and compaction. It MUST
    include: original goal and what actually landed; execution-model and
    intellectual-capital lessons (surprises, realignments, what the initial
@@ -395,7 +399,7 @@ and the DAG is complete:
 5. Produce the campaign report from `REVIEW.md` → outcomes: findings
    table with mitigation evidence, DAG execution trace, reconcile rounds,
    realignments, residual risks.
-6. **HALT for human final acceptance.** Scratch MAY then be discarded;
+6. **HALT for the head's final acceptance.** Scratch MAY then be discarded;
    the sketch and git history carry the durable record.
 
 ---
@@ -403,16 +407,16 @@ and the DAG is complete:
 ## Prime Directives
 
 1. **BOUNDARY_SUFFICIENCY:** The campaign launches only from a
-   human-approved $\text{IBC}^*$, and every emitted worker IBC satisfies
+   head-approved $\text{IBC}^*$, and every emitted worker IBC satisfies
    sufficiency conditions S1–S7. An insufficient boundary is not
    dispatched, ever.
 2. **PREMISE_FRESHNESS + GOAL_SUPREMACY:** At every `RECONCILE` boundary,
    re-verify two things: (a) every pending node's premises against current
    `HEAD` (stale premise → `INVALIDATED`); (b) whether the DAG as a whole
-   still serves the goal. DAG amendments are normal and human-approved —
+   still serves the goal. DAG amendments are normal and head-approved —
    open-loop dispatch of a stale or goal-misaligned DAG is a protocol
    violation.
-8. **RETROSPECTIVE_AT_CLOSE:** Before final human acceptance, emit a
+8. **RETROSPECTIVE_AT_CLOSE:** Before the head's final acceptance, emit a
    retrospective to the flight recorder (`.ledger/log/`). Every campaign's
    hard-won context — what landed vs the goal, execution-model lessons,
    open watch-items, durability map — must survive context loss. The
@@ -429,18 +433,19 @@ and the DAG is complete:
    machinery wired in and sufficient. A green gate proves execution; it
    cannot prove coverage. Procedure:
    [docs/orchestration-protocol.md §CLOSE](../../docs/orchestration-protocol.md#close).
-3. **ARCHITECT_AS_JUDGE:** No worker output is accepted without a
-   `RECONCILE` judgment grounded in re-run evaluators. Worker
-   self-certification is void.
+3. **COUNCIL_AS_JUDGE:** No worker output is accepted without a
+   `RECONCILE` judgment grounded in re-run evaluators — the `reconcile-accept`
+   verdict routes to the architect seat, and the merge requires the
+   lead-maintainer's affirmative consent. Worker self-certification is void.
 4. **LIVING_PLAN:** `PLAN.md`, `ORCHESTRATION.md`, and pending prompts
    are living documents — realignment when reality diverges is
    mandatory, and every realignment is logged with its why.
 5. **TIER_ECONOMY:** Route every node to the cheapest tier whose
-   capability bounds it. The architect does not emit code for
+   capability bounds it. The architect-tier seats do not emit code for
    worker-shaped tasks; workers do not make architecture decisions.
 6. **CHECKPOINT_DURABILITY:** `.scratch/` is never committed; the sketch
    checkpoints at every reconcile boundary so resume derives from
    sketch + git alone.
-7. **DELEGATED_TDD:** The architect specifies the invariants worth
+7. **DELEGATED_TDD:** The architect seat specifies the invariants worth
    verifying; workers implement tests and code under their discipline's
    closed loop, baseline failure included.
