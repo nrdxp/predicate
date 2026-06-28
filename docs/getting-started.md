@@ -65,13 +65,13 @@ materializes the generated prompts into each harness's **native system-prompt
 surface** at install time:
 
 - **Claude Code** — writes an output style to
-  `~/.claude/output-styles/predicate-architect.md` (frontmatter
+  `~/.claude/output-styles/predicate-composer.md` (frontmatter
   `keep-coding-instructions: false`, which empties Claude Code's built-in
   software-engineering block while preserving tool definitions, environment
   info, agent identity, and safety scaffolding). It also materializes every
   worker permutation as a subagent under `~/.claude/agents/predicate-<role>.md`
   (the subagent body becomes that role's full system prompt).
-- **agy** — writes the architect law as a managed block into
+- **agy** — writes the composer law as a managed block into
   `~/.gemini/GEMINI.md`.
 
 See [conditioning-layer.md](conditioning-layer.md) for the composition contract
@@ -198,7 +198,7 @@ Confirm your agent runner detects and loads the Predicate configuration.
    confirm `predicate@predicate` appears, enabled. The skills surface under the
    `predicate:` namespace.
 2. **Verify the conditioning output style**: For Claude Code, check that
-   `~/.claude/output-styles/predicate-architect.md` exists and that worker
+   `~/.claude/output-styles/predicate-composer.md` exists and that worker
    agents appear under `~/.claude/agents/predicate-<role>.md`. For agy, check
    that `~/.gemini/GEMINI.md` contains the predicate managed block (between the
    `# >>> predicate conditioning block >>>` sentinels). A new session receives

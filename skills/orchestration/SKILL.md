@@ -4,7 +4,7 @@ description: |
   Runnable driver for the deterministic campaign-execution protocol — the
   automaton that takes a validated campaign DAG to a correctly merged branch.
   Trigger when:
-  - A campaign has a validated DAG + worker IBCs and the architect (or a
+  - A campaign has a validated DAG + worker IBCs and the composer (or a
     cheap-tier runner) must DRIVE dispatch ⇄ reconcile as a loop rather than
     by hand.
   - Resuming a partially-executed campaign from its git history + sketch
@@ -26,18 +26,18 @@ code branches to.
 
 It slots between [campaign](../campaign/SKILL.md)'s §DISPATCH and §RECONCILE —
 the two steps campaign already delegates *by reference* to the protocol. Until
-this skill is invoked, the architect drives the protocol by hand; invoked, it
+this skill is invoked, the composer drives the protocol by hand; invoked, it
 drives DISPATCH ⇄ RECONCILE as a loop a cheap-tier runner can replay.
 
 > [!IMPORTANT]
 > **Non-duplication pointer.** This skill does **not** re-specify campaign
 > mechanics. [campaign/SKILL.md §6 DISPATCH and §7 RECONCILE](../campaign/SKILL.md)
-> own the *narrative* (what the architect decides, the tier routing, the worker
+> own the *narrative* (what the council decides, the tier routing, the worker
 > IBC contract); [docs/orchestration-protocol.md](../../docs/orchestration-protocol.md)
 > owns the *deterministic procedure* (the pseudocode + exit-code rules). This
 > skill is strictly the **driver**: it names protocol steps and sequences their
-> commands. If you find yourself explaining *why* a step exists or *how an
-> architect judges*, you have left orchestration space — that prose lives in
+> commands. If you find yourself explaining *why* a step exists or *how the
+> council judges*, you have left orchestration space — that prose lives in
 > campaign and the protocol, link to it.
 
 ---
@@ -57,7 +57,7 @@ fixed path; a driver run binds that path, it does not hardcode it.
 | `PLAN` | the campaign plan (node intents, tier routing) | the campaign working set's `PLAN.md` |
 | `PROMPTS` | the per-node worker IBCs handed at DISPATCH | `prompts/<node-id>-*.md` |
 | `TOPIC` | the campaign topic — names the integration branch `campaign/<TOPIC>` and the sketch | the active flight-recorder slug |
-| `MODE` | `AUTONOMOUS` (resolve seams by policy / escalate) or `INTERACTIVE` (surface seams to the human) | `INTERACTIVE` |
+| `MODE` | `AUTONOMOUS` (resolve seams by policy / escalate) or `INTERACTIVE` (surface seams to the head) | `INTERACTIVE` |
 
 `layers.ncl` imports `DAG` internally; pointing the driver at a different DAG
 (e.g. a demonstration graph) means binding the import that `LAYERS` resolves, not
@@ -191,11 +191,11 @@ the IBC-authoring boundary, not only at the RECONCILE freshness-check.
 
 1. For each node in `layers[k+1]` (the next layer), author or finalize its
    IBC with S1 premises verified against the new `tip` (cheapest tier — this
-   is a mechanical freshness check, not an architect judgment).
+   is a mechanical freshness check, not a council judgment).
 2. Gate each authored IBC: `nickel export` with `-I ledger/contracts` against
    `worker_ibc.ncl` (`Worker ∘ WorkerIBC`) must exit 0. An insufficient IBC
    is not dispatched.
-3. In `INTERACTIVE` mode, surface next-layer IBCs to the human before
+3. In `INTERACTIVE` mode, surface next-layer IBCs to the head before
    `k++` advances to `RUN_LAYER` for that layer.
 
 The routing table (`ORCHESTRATION.md`) records tier assignments for all layers
@@ -264,9 +264,10 @@ bash ledger/gate/coherence_impact.sh <repo-root> --removed <cut-1> --removed <cu
 #           is NOT localizable to one node (the broken ref and the cut that broke
 #           it live in DIFFERENT nodes' surfaces), so it does NOT route to
 #           single-node REWORK. It routes to ESCALATE -> PLAN: the architect
-#           realigns the plan/DAG for the cross-node coupling, then re-dispatches
-#           the affected nodes. (This campaign's own cross-node couplings were
-#           resolved exactly this way — an architect plan-fault, not a node fault.)
+#           seat realigns the plan/DAG for the cross-node coupling, then
+#           re-dispatches the affected nodes. (This campaign's own cross-node
+#           couplings were resolved exactly this way — an architect-seat
+#           plan-fault, not a node fault.)
 ```
 
 This is a **boundary** gate (cumulative diff, whole cut-set), not the per-node
@@ -317,8 +318,8 @@ everything else is deterministic-or-dispatched. At each seam, `MODE` decides:
 
 | Seam | Where (state) | `AUTONOMOUS` | `INTERACTIVE` |
 | :--- | :--- | :--- | :--- |
-| Final acceptance + push | `CLOSE` | resolve-by-policy is **forbidden** — a release is a sovereignty decision; HALT and escalate regardless | HALT; surface the CLOSE report; the human accepts + pushes (agents never push — rules.md §3) |
-| Non-resolvable reserved halt | `AWAIT`/`DISPATCH` | escalate to the human (a reserved predicate is, by definition, a human call) | surface the worker's freeze report |
+| Final acceptance + push | `CLOSE` | resolve-by-policy is **forbidden** — a release is a sovereignty decision; HALT and escalate regardless | HALT; surface the CLOSE report; the head accepts + pushes (agents never push — rules.md §3) |
+| Non-resolvable reserved halt | `AWAIT`/`DISPATCH` | escalate to the head (a reserved predicate is, by definition, a head call) | surface the worker's freeze report |
 | Decision-rights realignment | `RECONCILE`/`REALIGN` | resolve only if inside the IBC's declared sovereignty gates; else escalate | surface the realignment question |
 | Non-converging adversarial review | `RECONCILE` step (3) | escalate (the dual escalates to human when decorrelated reviewers do not converge — rules.md §2 Invariant 1) | surface the divergence |
 
