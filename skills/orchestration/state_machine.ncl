@@ -453,7 +453,7 @@
       to             = "CHECKPOINT",
       guard_contract = "ReconcileLog",
       guard_artifact = ".ledger/state/reconcile_log.ncl",
-      guard_note     = "Node branch merged (--no-ff or octopus per situation). STATUS := ACCEPTED; mitigated findings marked. ReconcileLog accept judgment has evaluator. Checkpoint pending.",
+      guard_note     = "Node branch merged (any merge strategy is valid; isolation is verified by branch reachability, not merge shape). STATUS := ACCEPTED; mitigated findings marked. ReconcileLog accept judgment has evaluator. Checkpoint pending.",
       human_seam     = false,
       layer          = 'L1,
     },

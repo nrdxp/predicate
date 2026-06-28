@@ -50,7 +50,7 @@ $ git worktree add .../D1 -b orchdemo/D1 HEAD            -> rc 0
 $ python3 ledger/gate/authorized.py --dag demo/dag.json --reconcile-node D1 --path demo/base.txt
 OK    demo/base.txt  <- declared surface of D1
 PASS: every touched path of node D1 falls under its declared surface   -> rc 0
-[MERGE] git merge --no-ff orchdemo/D1   -> shared tip advances to <L1 merge commit>
+[MERGE] git merge orchdemo/D1   -> shared tip advances to <L1 merge commit>
 ```
 
 ## RUN_LAYER L2 — PARTITION: parallel [D2,D3], serial [D4]
@@ -64,7 +64,7 @@ $ git worktree add .../D3 -b orchdemo/D3 <L1-tip>       -> rc 0
 [RECONCILE in node-id order]
 $ authorized.py --dag demo/dag.json --reconcile-node D2 --path demo/a.txt   PASS  -> rc 0
 $ authorized.py --dag demo/dag.json --reconcile-node D3 --path demo/b.txt   PASS  -> rc 0
-[MERGE D2, then D3, --no-ff in node-id order]   -> shared tip advances
+[MERGE D2, then D3, in node-id order]   -> shared tip advances
 ```
 
 ### SURFACE_EXCEED — the routing that proves why D4 is serial
@@ -89,7 +89,7 @@ $ git worktree add .../D4 -b orchdemo/D4 <post-parallel-tip>           -> rc 0
   (worker extends demo/a.txt — serial, so no concurrent conflict)
 $ authorized.py --dag demo/dag.json --reconcile-node D4 --path demo/a.txt
 PASS: every touched path of node D4 falls under its declared surface   -> rc 0
-[MERGE D4 --no-ff]   -> shared tip advances
+[MERGE D4]   -> shared tip advances
 ```
 
 ### RECONCILE (4) PREMISE-FRESHNESS — re-verify a pending node vs HEAD
