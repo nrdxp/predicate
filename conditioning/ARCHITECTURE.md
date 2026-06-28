@@ -77,7 +77,7 @@ conditioning/
   ARCHITECTURE.md      ← THIS FILE (authored by: conditioning-architecture node)
   core.ncl             ← the ONE invariant-core source  (authored by: invariant-core node)
   personas/
-    architect.ncl      ← thin role delta  (authored by: personas node)
+    composer.ncl       ← thin role delta  (authored by: personas node)
     core-worker.ncl    ←   "              (authored by: personas node)
     refine-worker.ncl  ←   "              (authored by: personas node)
     doc-worker.ncl     ←   "              (authored by: personas node)
@@ -136,7 +136,7 @@ conditioning/
 
   | Role identifier  | File                        |
   | :---             | :---                        |
-  | `architect`      | `personas/architect.ncl`    |
+  | `composer`       | `personas/composer.ncl`     |
   | `core-worker`    | `personas/core-worker.ncl`  |
   | `refine-worker`  | `personas/refine-worker.ncl`|
   | `doc-worker`     | `personas/doc-worker.ncl`   |
@@ -162,7 +162,7 @@ contract on every output.
 - **String concatenation:** `++` operator. `"a" ++ "\n\n" ++ "b"` → `"a\n\nb"`.
 - **Imports:** `let core_text = import "core.ncl" in ...` (path relative to the
   importing file; `NICKEL_IMPORT_PATH` or `-I` for search dirs).
-- **Record field access:** `personas_record.architect` or
+- **Record field access:** `personas_record.composer` or
   `std.record.get "core-worker" personas_record` (for hyphenated keys).
 - **Contract definition:**
   `std.contract.from_predicate (fun s => <Bool expression>)`.
@@ -202,7 +202,7 @@ contract on every output.
 let core_text : String = import "core.ncl" in
 
 let personas : { _ : String } = {
-  architect        = import "personas/architect.ncl",
+  composer         = import "personas/composer.ncl",
   "core-worker"    = import "personas/core-worker.ncl",
   "refine-worker"  = import "personas/refine-worker.ncl",
   "doc-worker"     = import "personas/doc-worker.ncl",
@@ -252,11 +252,12 @@ let compose : Array String -> String -> String = fun role_modules role_delta =>
 in
 
 # One field per role. Every field is typed HasCore; export fails if core_text is
-# absent. The five code-writers pull [producer]; the two review-only roles (doc,
-# boundary) pull []. The nine reviewers pull [reviewer_module] and carry
-# HasModule reviewer_module; the eight lensed reviewers also carry HasLens.
+# absent. The four code-writer workers pull [producer]; the review-only roles
+# (doc, boundary) and the composer output style pull []. The nine reviewers pull
+# [reviewer_module] and carry HasModule reviewer_module; the eight lensed reviewers
+# also carry HasLens.
 {
-  architect        | HasCore = compose [producer] personas.architect,
+  composer         | HasCore = compose [] personas.composer,
   "core-worker"    | HasCore = compose [producer] personas."core-worker",
   "refine-worker"  | HasCore = compose [producer] personas."refine-worker",
   "doc-worker"     | HasCore = compose [] personas."doc-worker",
@@ -281,11 +282,11 @@ in
 nickel export --format text \
   -I conditioning/ \
   conditioning/compose.ncl \
-  -- --override 'role="architect"'
+  -- --override 'role="composer"'
 # → plain string, ready to pass to the harness
 
 # Or via a one-line wrapper (no customize mode needed):
-echo '(import "compose.ncl").architect' \
+echo '(import "compose.ncl").composer' \
   | nickel export --format text -I conditioning/
 ```
 
@@ -354,7 +355,7 @@ flag injection. Adding a harness = one install branch in `install.sh`;
 
 **Claude Code** — two surfaces:
 
-- **Output style** → `~/.claude/output-styles/predicate-architect.md`
+- **Output style** → `~/.claude/output-styles/predicate-composer.md`
   Frontmatter `keep-coding-instructions: false` empties Claude Code's built-in
   software-engineering block while preserving tool definitions, environment info,
   agent identity, and safety scaffolding. The markdown body is appended to the
@@ -363,7 +364,7 @@ flag injection. Adding a harness = one install branch in `install.sh`;
 - **Worker agents** → `~/.claude/agents/predicate-<role>.md` (one file per
   worker role; the six roles are `core-worker`, `refine-worker`, `doc-worker`,
   `form-worker`, `spec-worker`, `boundary-worker`). The agent body becomes that
-  subagent's full system prompt — a convenience cache. The architect may also
+  subagent's full system prompt — a convenience cache. The composer may also
   inject a freshly generated persona dynamically via the native subagent path.
 
 **agy** — one managed block:
@@ -390,7 +391,7 @@ PROMPT=$(nickel export --format text -I conditioning/ conditioning/compose.ncl \
 
 Writing the output-style file does not by itself select it. To make predicate
 the active behavioral law for Claude Code sessions, the harness must select the
-style (`/output-style` or `"outputStyle": "Predicate Architect"` in
+style (`/output-style` or `"outputStyle": "Predicate Composer"` in
 `settings.json`). That step belongs to bootstrap, not to this generator.
 
 ---
@@ -448,7 +449,7 @@ Each downstream node can verify it is building against the right slot:
 - [ ] `HasCore` contract is defined exactly as in §3 using
       `std.contract.from_predicate` + `std.string.contains core_text`.
 - [ ] Each role field is annotated `| HasCore`.
-- [ ] `nickel export --format text conditioning/compose.ncl -- --override 'architect="..."'`
+- [ ] `nickel export --format text conditioning/compose.ncl -- --override 'composer="..."'`
       (or wrapper) emits the composed string for a valid role.
 - [ ] Injecting a persona-only string (no core) fails the export with a contract
       violation (verify by running the bad case manually).

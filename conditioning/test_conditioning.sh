@@ -48,6 +48,21 @@ readonly PRODUCER_SENTINEL="generating under unvalidated assumptions is forbidde
 # from core/producer/workers — the reviewer module-pull is what this pins.
 readonly REVIEWER_SENTINEL="You are a read-only adversarial reviewer"
 
+# Council sentinel: a verbatim phrase unique to modules/council.ncl (the shared
+# seat station). Present in every council-seat render, absent from
+# core/producer/reviewer renders — the council module-pull is what this pins.
+readonly COUNCIL_SENTINEL="You hold a SEAT on a bound council"
+
+# Composer sentinel: a verbatim phrase unique to personas/composer.ncl. The single
+# output style renders the COMPOSER after the swap — this pins that the output-style
+# slot carries the conductor/moderator, not the old architect orchestrator.
+readonly COMPOSER_SENTINEL="You are the COMPOSER — the live conductor"
+
+# Architect-orchestrator sentinel: the verbatim opening of the DELETED architect
+# persona. After the swap it must appear in NO render — the output-style slot is
+# the composer, and the architect role is now the architect-SEAT.
+readonly ARCHITECT_ORCH_SENTINEL="You are the default interactive walker AND the campaign orchestrator"
+
 # Reclassified-to-core sentinel: a verbatim phrase from the One-shot-skepticism
 # principle, moved producer→core (with Root-cause folded into Action-caution) so
 # it now binds EVERY walker, not just code-writers. Distinct from PRODUCER_SENTINEL
@@ -56,8 +71,8 @@ readonly REVIEWER_SENTINEL="You are a read-only adversarial reviewer"
 # producer. HACORE_SNIPPET guards only core's opening line, not this bullet.
 readonly CORE_GENERAL_SENTINEL="A first-pass success triggers an adversarial self-audit"
 
-# Producer partition: the five code-writers pull it (architect asserted via the
-# output style in 3a); doc/boundary omit it.
+# Producer partition: the four code-writer workers pull it; doc/boundary omit it,
+# and the composer output style omits it too (a moderator, not a code-writer — 3a).
 readonly PRODUCER_PULL_WORKERS=(core-worker refine-worker form-worker spec-worker)
 readonly PRODUCER_OMIT_WORKERS=(doc-worker boundary-worker)
 
@@ -70,6 +85,10 @@ readonly WORKER_ROLES=(core-worker refine-worker doc-worker form-worker spec-wor
 # Reviewer roles — read-only adversarial lenses. Kept byte-identical to the
 # declaration in install.sh (F6 lockstep): the two arrays MUST match exactly.
 readonly REVIEWER_ROLES=(refuter-reviewer hickey-reviewer lowy-reviewer api-reviewer security-reviewer git-review-reviewer ai-slop-reviewer prior-art-reviewer vestigial-reviewer)
+# Council roles — architect-tier SEATS. A third class: each composes the council
+# module (NOT producer), so they form a sibling list like the reviewers. Kept
+# byte-identical to the declaration in install.sh (F6 lockstep).
+readonly COUNCIL_ROLES=(architect-seat lead-maintainer-seat process-auditor-seat)
 
 # ── hermetic temp environment ─────────────────────────────────────────────────
 REAL_HOME="$HOME"
@@ -137,7 +156,7 @@ echo "SECTION 1 — ΔE₀ baseline: assertions MUST FAIL before install"
 echo "════════════════════════════════════════════════════════════════════════"
 
 assert_fail "output style absent before install" \
-  file_exists "$CLAUDE_DIR/output-styles/predicate-architect.md"
+  file_exists "$CLAUDE_DIR/output-styles/predicate-composer.md"
 
 assert_fail "agents dir absent before install" \
   dir_exists "$CLAUDE_DIR/agents"
@@ -165,21 +184,28 @@ echo "════════════════════════�
 echo "SECTION 3 — Post-install assertions"
 echo "════════════════════════════════════════════════════════════════════════"
 
-OS_FILE="$CLAUDE_DIR/output-styles/predicate-architect.md"
+OS_FILE="$CLAUDE_DIR/output-styles/predicate-composer.md"
 
-# 3a. Output style
+# 3a. Output style — the single slot renders the COMPOSER (the conductor/moderator).
+# The architect orchestrator was demoted to the architect-SEAT, so the slot pulls
+# NO producer (a moderator is not a code-writer) and the deleted architect sentinel
+# appears nowhere.
 echo ""
 echo "── 3a. Output style ─────────────────────────────────────────────────────"
 assert_pass "output style file exists" \
   file_exists "$OS_FILE"
 assert_pass "frontmatter: keep-coding-instructions: false present (REPLACES default block)" \
   file_contains "keep-coding-instructions: false" "$OS_FILE"
-assert_pass "frontmatter: name is 'Predicate Architect'" \
-  file_contains "name: Predicate Architect" "$OS_FILE"
+assert_pass "frontmatter: name is 'Predicate Composer'" \
+  file_contains "name: Predicate Composer" "$OS_FILE"
 assert_pass "body: HasCore present (verbatim core law)" \
   file_contains "$HACORE_SNIPPET" "$OS_FILE"
-assert_pass "body: producer present (architect is a code-writer; pulls producer)" \
-  file_contains "$PRODUCER_SENTINEL" "$OS_FILE"
+assert_pass "body: composer sentinel present (slot renders the composer)" \
+  file_contains "$COMPOSER_SENTINEL" "$OS_FILE"
+assert_pass "body: producer absent (composer is a moderator, not a code-writer)" \
+  file_not_contains "$PRODUCER_SENTINEL" "$OS_FILE"
+assert_pass "body: deleted architect-orchestrator sentinel absent (demoted to seat)" \
+  file_not_contains "$ARCHITECT_ORCH_SENTINEL" "$OS_FILE"
 
 # 3b. Worker agents — 6 permutations
 echo ""
@@ -227,6 +253,25 @@ for role in "${REVIEWER_ROLES[@]}"; do
   assert_pass "$role: reviewer-spine sentinel present (pulls reviewer module)" \
     file_contains "$REVIEWER_SENTINEL" "$agent_file"
   assert_pass "$role: producer sentinel absent (read-only; omits producer)" \
+    file_not_contains "$PRODUCER_SENTINEL" "$agent_file"
+done
+
+# 3h. Council seat agents — 3 architect-tier seats. Each is materialized, carries
+# HasCore + the council-station sentinel, and MUST NOT carry the producer sentinel
+# — directly pinning "seats pull the council module, not producer."
+echo ""
+echo "── 3h. Council seat agents (3 architect-tier seats) ─────────────────────"
+for role in "${COUNCIL_ROLES[@]}"; do
+  agent_file="$CLAUDE_DIR/agents/predicate-$role.md"
+  assert_pass "$role: file exists at agents/predicate-$role.md" \
+    file_exists "$agent_file"
+  assert_pass "$role: frontmatter name: predicate-$role" \
+    file_contains "name: predicate-$role" "$agent_file"
+  assert_pass "$role: HasCore present in body" \
+    file_contains "$HACORE_SNIPPET" "$agent_file"
+  assert_pass "$role: council-station sentinel present (pulls council module)" \
+    file_contains "$COUNCIL_SENTINEL" "$agent_file"
+  assert_pass "$role: producer sentinel absent (seat is not a code-writer)" \
     file_not_contains "$PRODUCER_SENTINEL" "$agent_file"
 done
 

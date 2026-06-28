@@ -18,7 +18,7 @@
 #   (produces the record; wrap in a one-liner to extract a field)
 #
 # Via a wrapper file:
-#   echo '(import "compose.ncl").architect' \
+#   echo '(import "compose.ncl").composer' \
 #     | nix run nixpkgs#nickel -- export --format text
 #
 # VERIFIED NICKEL IDIOMS (1.14.0 — the project's pinned nickel)
@@ -34,7 +34,7 @@
 let core_text : String = import "core.ncl" in
 
 let personas : { _ : String } = {
-  architect        = import "personas/architect.ncl",
+  composer         = import "personas/composer.ncl",
   "core-worker"    = import "personas/core-worker.ncl",
   "refine-worker"  = import "personas/refine-worker.ncl",
   "doc-worker"     = import "personas/doc-worker.ncl",
@@ -68,6 +68,20 @@ let reviewers : { _ : String } = {
   "vestigial-reviewer"  = import "personas/vestigial-reviewer.ncl",
 } in
 
+# Council-class module: the shared station every architect-tier SEAT carries (the
+# pact, the deliberation protocol, the governance spine). Seats are NOT code-writers
+# — each composes [council_module], NEVER [producer]; the seat's role-divergent lens
+# is the delta layered atop it. Sibling of reviewer_module one tier up.
+let council_module : String = import "modules/council.ncl" in
+
+# Seat deltas: the three landed standing-council seats. Each is a plain String
+# delta (the seat's lens); composed atop core ++ council_module.
+let council : { _ : String } = {
+  "architect-seat"       = import "personas/architect-seat.ncl",
+  "lead-maintainer-seat" = import "personas/lead-maintainer-seat.ncl",
+  "process-auditor-seat" = import "personas/process-auditor-seat.ncl",
+} in
+
 # INJECTION-RULE CONTRACT (ARCHITECTURE.md §4)
 # Checks that core_text appears as a verbatim contiguous substring of the
 # generated prompt.  Export fails (non-zero exit, error printed) when the
@@ -98,10 +112,11 @@ let compose : Array String -> String -> String = fun role_modules role_delta =>
 in
 
 # One field per role.  Every field is typed HasCore; export fails if core_text
-# is absent from the composed string. The five code-writers pull [producer]; the
-# two review-only roles (doc, boundary) pull [] — they shed the action procedure.
+# is absent from the composed string. The four code-writer workers pull [producer];
+# the review-only roles (doc, boundary) and the composer pull [] — the composer is a
+# moderator, not a code-writer, so the single output-style slot sheds the procedure.
 {
-  architect        | HasCore = compose [producer] personas.architect,
+  composer         | HasCore = compose [] personas.composer,
   "core-worker"    | HasCore = compose [producer] personas."core-worker",
   "refine-worker"  | HasCore = compose [producer] personas."refine-worker",
   "doc-worker"     | HasCore = compose [] personas."doc-worker",
@@ -130,4 +145,14 @@ in
     = compose [reviewer_module] reviewers."prior-art-reviewer",
   "vestigial-reviewer"  | HasCore | HasModule reviewer_module | HasLens reviewers."vestigial-reviewer"
     = compose [reviewer_module] reviewers."vestigial-reviewer",
+
+  # Council-seat fields: core ++ council_module ++ seat-delta. Each is HasCore +
+  # HasModule council_module; the seat lens decorrelates them by ROLE. None pulls
+  # [producer] — seats reason about the architecture, they do not write code.
+  "architect-seat"       | HasCore | HasModule council_module
+    = compose [council_module] council."architect-seat",
+  "lead-maintainer-seat" | HasCore | HasModule council_module
+    = compose [council_module] council."lead-maintainer-seat",
+  "process-auditor-seat" | HasCore | HasModule council_module
+    = compose [council_module] council."process-auditor-seat",
 }

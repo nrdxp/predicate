@@ -25,7 +25,7 @@
 #
 # The conditioning layer generates a structured system prompt for each role and
 # delivers it via native harness surfaces: for claude-code, an output-style file
-# (<claude-dir>/output-styles/predicate-architect.md) and per-role agent files;
+# (<claude-dir>/output-styles/predicate-composer.md) and per-role agent files;
 # for agy, a GEMINI.md managed block. No CLAUDE.md conditioning block is written.
 #
 # Usage:
@@ -97,7 +97,7 @@ register_antigravity() {
 }
 
 # --- conditioning delivery (called from phase_install) -----------------------
-# Generates and installs the architect-role conditioning prompt.
+# Generates and installs the composer-role conditioning prompt.
 # The conditioning/install.sh script is the authority for delivery — this is
 # the bootstrap wiring only.  Non-fatal if Nickel is not available: conditioning
 # is the single always-on surface; no @import fallback is installed.
@@ -108,7 +108,7 @@ inject_conditioning() {
     echo "install: conditioning/install.sh not found at $plugin_src/conditioning/; skipping." >&2
     return 0
   fi
-  echo "install: running conditioning delivery for role=architect ..."
+  echo "install: running conditioning delivery for role=composer ..."
   # For claude-code: no --harness arg — conditioning defaults to claude-code (writes
   # native output-style and agent files under $claude_dir). For antigravity the harness
   # name maps to the legacy alias "generic" in conditioning/install.sh.
@@ -120,7 +120,7 @@ inject_conditioning() {
   local extra_args=()
   [ -n "$cond_harness" ] && extra_args=(--harness "$cond_harness")
   PREDICATE_SRC="$plugin_src" bash "$conditioning_sh" \
-    --role architect "${extra_args[@]+"${extra_args[@]}"}" \
+    --role composer "${extra_args[@]+"${extra_args[@]}"}" \
     || echo "install: conditioning delivery exited non-zero (non-fatal)." >&2
 }
 

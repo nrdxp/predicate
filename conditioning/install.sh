@@ -10,7 +10,7 @@
 # Per-harness native delivery (ARCHITECTURE.md §5 — adding a harness is one branch):
 #
 #   claude-code:
-#     - OUTPUT STYLE  → <claude-dir>/output-styles/predicate-architect.md
+#     - OUTPUT STYLE  → <claude-dir>/output-styles/predicate-composer.md
 #       (frontmatter `keep-coding-instructions: false`: empties Claude Code's
 #        built-in software-engineering block while PRESERVING tool defs, env info,
 #        agent identity, and safety scaffolding — so predicate's law cleanly
@@ -18,7 +18,7 @@
 #        markdown body is appended to the system prompt.)
 #     - WORKER AGENTS → <claude-dir>/agents/predicate-<role>.md  (every worker
 #       permutation persisted; the agent body becomes that subagent's full system
-#       prompt. A transparent CONVENIENCE cache — the architect may instead inject
+#       prompt. A transparent CONVENIENCE cache — the composer may instead inject
 #       a freshly generated persona dynamically via the native subagent path.)
 #
 #   agy:
@@ -28,7 +28,7 @@
 #
 # ACTIVATION NOTE: writing the output-style FILE does not by itself select it.
 # To make predicate the active behavioral law, the harness must select the style
-# (`/output-style` or `"outputStyle": "Predicate Architect"` in settings.json).
+# (`/output-style` or `"outputStyle": "Predicate Composer"` in settings.json).
 # That belongs to bootstrap/settings, not to this generator.
 #
 # Usage:
@@ -43,11 +43,12 @@
 #   --role ROLE       DRY-RUN ONLY: which composed prompt to print. A real install
 #                     always materializes the full surface for the harness; this
 #                     flag does not narrow it. Accepted for back-compat.
-#                     One of: architect core-worker refine-worker doc-worker
+#                     One of: composer core-worker refine-worker doc-worker
 #                             form-worker spec-worker boundary-worker
 #                             refuter-reviewer hickey-reviewer lowy-reviewer
 #                             api-reviewer security-reviewer git-review-reviewer
 #                             ai-slop-reviewer prior-art-reviewer vestigial-reviewer
+#                             architect-seat lead-maintainer-seat process-auditor-seat
 #   --dry-run         Print the delivery plan (and, with --role, that role's full
 #                     composed prompt); write nothing to any surface.
 #   --uninstall       Remove every predicate-owned conditioning surface across
@@ -91,8 +92,8 @@ readonly BEGIN_MARK='# >>> predicate conditioning block >>>'
 readonly END_MARK='# <<< predicate conditioning block <<<'
 
 # Output-style display name (also the value to set in settings.json `outputStyle`).
-readonly OUTPUT_STYLE_NAME='Predicate Architect'
-readonly OUTPUT_STYLE_FILE='predicate-architect.md'
+readonly OUTPUT_STYLE_NAME='Predicate Composer'
+readonly OUTPUT_STYLE_FILE='predicate-composer.md'
 
 # The six worker roles materialized as persisted Claude agents.
 readonly WORKER_ROLES=(core-worker refine-worker doc-worker form-worker spec-worker boundary-worker)
@@ -101,15 +102,20 @@ readonly WORKER_ROLES=(core-worker refine-worker doc-worker form-worker spec-wor
 # than joining WORKER_ROLES. This declaration is kept byte-identical to the one in
 # test_conditioning.sh (F6 lockstep).
 readonly REVIEWER_ROLES=(refuter-reviewer hickey-reviewer lowy-reviewer api-reviewer security-reviewer git-review-reviewer ai-slop-reviewer prior-art-reviewer vestigial-reviewer)
-# Every role materialized as a persisted Claude agent (workers + reviewers).
-readonly AGENT_ROLES=("${WORKER_ROLES[@]}" "${REVIEWER_ROLES[@]}")
-# All valid roles (for --role validation and dry-run targeting).
-readonly ALL_ROLES=(architect "${AGENT_ROLES[@]}")
+# The three architect-tier council SEATS — a distinct class: each composes the
+# council module (NOT producer), a sibling list like REVIEWER_ROLES. Kept
+# byte-identical to the declaration in test_conditioning.sh (F6 lockstep).
+readonly COUNCIL_ROLES=(architect-seat lead-maintainer-seat process-auditor-seat)
+# Every role materialized as a persisted Claude agent (workers + reviewers + seats).
+readonly AGENT_ROLES=("${WORKER_ROLES[@]}" "${REVIEWER_ROLES[@]}" "${COUNCIL_ROLES[@]}")
+# All valid roles (for --role validation and dry-run targeting). The composer is
+# the single output-style role (non-agent); the rest are dispatchable agents.
+readonly ALL_ROLES=(composer "${AGENT_ROLES[@]}")
 
 # ---------------------------------------------------------------------------
 # parse args
 # ---------------------------------------------------------------------------
-role="architect"
+role="composer"
 role_explicit=false
 harness="claude-code"
 dry_run=false
@@ -185,7 +191,7 @@ generate_prompt() {
 
 # ---------------------------------------------------------------------------
 # worker_description — the `description` frontmatter that drives delegation.
-# Concise: names the discipline so the architect can route to it.
+# Concise: names the discipline so the composer can route to it.
 # ---------------------------------------------------------------------------
 worker_description() {
   case "$1" in
@@ -204,6 +210,9 @@ worker_description() {
     ai-slop-reviewer)     printf 'Read-only AI-generated-code reviewer (ai-slop lens): hunt hollow plausibility, hallucinated APIs, and transformer cadence; name defects, never edit.' ;;
     prior-art-reviewer)   printf 'Read-only outward reviewer (prior-art lens): measure the artifact against production-tested references and literature by citation; name defects, never edit.' ;;
     vestigial-reviewer)   printf 'Read-only drift-residue reviewer (vestigial lens): hunt dead code, orphaned scaffolding, and stale breadcrumbs by reachability; name defects, never edit.' ;;
+    architect-seat)       printf 'Council seat — the BOUNDARY lens: goal-fit, strategy, and architecture coherence. Sovereign over boundary-design; drives reconcile-accept and dag-amendment. Ongoing, convened at every reconcile boundary.' ;;
+    lead-maintainer-seat) printf 'Council seat — the MERGE GATE: the hostile elite engineer-maintainer who owns the maintenance burden. Every merge needs his affirmative consent; green gates are necessary but never sufficient.' ;;
+    process-auditor-seat) printf 'Council seat — the PROCESS + RESIDUE auditor: checks the composer against the pact and the law, proposes bars, and hunts vestigial residue greedily. Independent; reads the durable record directly.' ;;
     *) printf 'Predicate worker persona.' ;;
   esac
 }
@@ -235,7 +244,7 @@ install_output_style() {
   {
     printf -- '---\n'
     printf 'name: %s\n' "$OUTPUT_STYLE_NAME"
-    printf 'description: %s\n' "Predicate's complete behavioral law as the architect orchestration character."
+    printf 'description: %s\n' "Predicate's complete behavioral law as the composer — the live conductor/moderator and front door."
     printf 'keep-coding-instructions: false\n'
     printf -- '---\n\n'
     printf '%s\n' "$prompt"
@@ -278,7 +287,7 @@ install_gemini() {
   {
     if [ -n "$body" ]; then printf '%s\n' "$body"; fi
     printf '%s\n' "$BEGIN_MARK"
-    printf '<!-- Generated by conditioning/install.sh — role: architect.\n'
+    printf '<!-- Generated by conditioning/install.sh — role: composer.\n'
     printf '     Managed block; re-run install.sh to update. Edit OUTSIDE this block. -->\n'
     printf '%s\n' "$prompt"
     printf '%s\n' "$END_MARK"
@@ -369,25 +378,25 @@ fi
 
 echo "install: native delivery (harness=$harness) ..."
 
-# Architect prompt is reused for the output style and GEMINI.md.
-architect_prompt=""
-need_architect=false
-case "$harness" in claude-code|all|agy) need_architect=true ;; esac
-if "$need_architect"; then
-  architect_prompt="$(generate_prompt "architect")"
-  echo "install: generated architect prompt (${#architect_prompt} chars; HasCore passed)."
+# Composer prompt is reused for the output style and GEMINI.md.
+composer_prompt=""
+need_composer=false
+case "$harness" in claude-code|all|agy) need_composer=true ;; esac
+if "$need_composer"; then
+  composer_prompt="$(generate_prompt "composer")"
+  echo "install: generated composer prompt (${#composer_prompt} chars; HasCore passed)."
 fi
 
 case "$harness" in
   claude-code)
-    install_output_style "$architect_prompt"
+    install_output_style "$composer_prompt"
     install_worker_agents ;;
   agy)
-    install_gemini "$architect_prompt" ;;
+    install_gemini "$composer_prompt" ;;
   all)
-    install_output_style "$architect_prompt"
+    install_output_style "$composer_prompt"
     install_worker_agents
-    install_gemini "$architect_prompt" ;;
+    install_gemini "$composer_prompt" ;;
 esac
 
 echo "install: done."
