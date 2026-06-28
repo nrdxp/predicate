@@ -101,8 +101,12 @@ readonly WORKER_ROLES=(core-worker refine-worker doc-worker form-worker spec-wor
 # than joining WORKER_ROLES. This declaration is kept byte-identical to the one in
 # test_conditioning.sh (F6 lockstep).
 readonly REVIEWER_ROLES=(refuter-reviewer hickey-reviewer lowy-reviewer api-reviewer security-reviewer git-review-reviewer ai-slop-reviewer prior-art-reviewer vestigial-reviewer)
-# Every role materialized as a persisted Claude agent (workers + reviewers).
-readonly AGENT_ROLES=("${WORKER_ROLES[@]}" "${REVIEWER_ROLES[@]}")
+# The three architect-tier council SEATS — a distinct class: each composes the
+# council module (NOT producer), a sibling list like REVIEWER_ROLES. Kept
+# byte-identical to the declaration in test_conditioning.sh (F6 lockstep).
+readonly COUNCIL_ROLES=(architect-seat lead-maintainer-seat process-auditor-seat)
+# Every role materialized as a persisted Claude agent (workers + reviewers + seats).
+readonly AGENT_ROLES=("${WORKER_ROLES[@]}" "${REVIEWER_ROLES[@]}" "${COUNCIL_ROLES[@]}")
 # All valid roles (for --role validation and dry-run targeting).
 readonly ALL_ROLES=(architect "${AGENT_ROLES[@]}")
 
@@ -204,6 +208,9 @@ worker_description() {
     ai-slop-reviewer)     printf 'Read-only AI-generated-code reviewer (ai-slop lens): hunt hollow plausibility, hallucinated APIs, and transformer cadence; name defects, never edit.' ;;
     prior-art-reviewer)   printf 'Read-only outward reviewer (prior-art lens): measure the artifact against production-tested references and literature by citation; name defects, never edit.' ;;
     vestigial-reviewer)   printf 'Read-only drift-residue reviewer (vestigial lens): hunt dead code, orphaned scaffolding, and stale breadcrumbs by reachability; name defects, never edit.' ;;
+    architect-seat)       printf 'Council seat — the BOUNDARY lens: goal-fit, strategy, and architecture coherence. Sovereign over boundary-design; drives reconcile-accept and dag-amendment. Ongoing, convened at every reconcile boundary.' ;;
+    lead-maintainer-seat) printf 'Council seat — the MERGE GATE: the hostile elite engineer-maintainer who owns the maintenance burden. Every merge needs his affirmative consent; green gates are necessary but never sufficient.' ;;
+    process-auditor-seat) printf 'Council seat — the PROCESS + RESIDUE auditor: checks the composer against the pact and the law, proposes bars, and hunts vestigial residue greedily. Independent; reads the durable record directly.' ;;
     *) printf 'Predicate worker persona.' ;;
   esac
 }

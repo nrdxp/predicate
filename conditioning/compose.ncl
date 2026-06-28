@@ -68,6 +68,20 @@ let reviewers : { _ : String } = {
   "vestigial-reviewer"  = import "personas/vestigial-reviewer.ncl",
 } in
 
+# Council-class module: the shared station every architect-tier SEAT carries (the
+# pact, the deliberation protocol, the governance spine). Seats are NOT code-writers
+# — each composes [council_module], NEVER [producer]; the seat's role-divergent lens
+# is the delta layered atop it. Sibling of reviewer_module one tier up.
+let council_module : String = import "modules/council.ncl" in
+
+# Seat deltas: the three landed standing-council seats. Each is a plain String
+# delta (the seat's lens); composed atop core ++ council_module.
+let council : { _ : String } = {
+  "architect-seat"       = import "personas/architect-seat.ncl",
+  "lead-maintainer-seat" = import "personas/lead-maintainer-seat.ncl",
+  "process-auditor-seat" = import "personas/process-auditor-seat.ncl",
+} in
+
 # INJECTION-RULE CONTRACT (ARCHITECTURE.md §4)
 # Checks that core_text appears as a verbatim contiguous substring of the
 # generated prompt.  Export fails (non-zero exit, error printed) when the
@@ -130,4 +144,14 @@ in
     = compose [reviewer_module] reviewers."prior-art-reviewer",
   "vestigial-reviewer"  | HasCore | HasModule reviewer_module | HasLens reviewers."vestigial-reviewer"
     = compose [reviewer_module] reviewers."vestigial-reviewer",
+
+  # Council-seat fields: core ++ council_module ++ seat-delta. Each is HasCore +
+  # HasModule council_module; the seat lens decorrelates them by ROLE. None pulls
+  # [producer] — seats reason about the architecture, they do not write code.
+  "architect-seat"       | HasCore | HasModule council_module
+    = compose [council_module] council."architect-seat",
+  "lead-maintainer-seat" | HasCore | HasModule council_module
+    = compose [council_module] council."lead-maintainer-seat",
+  "process-auditor-seat" | HasCore | HasModule council_module
+    = compose [council_module] council."process-auditor-seat",
 }
