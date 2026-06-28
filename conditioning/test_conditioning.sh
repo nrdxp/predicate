@@ -48,6 +48,14 @@ readonly PRODUCER_SENTINEL="generating under unvalidated assumptions is forbidde
 # from core/producer/workers — the reviewer module-pull is what this pins.
 readonly REVIEWER_SENTINEL="You are a read-only adversarial reviewer"
 
+# Reclassified-to-core sentinel: a verbatim phrase from the One-shot-skepticism
+# principle, moved producer→core (with Root-cause folded into Action-caution) so
+# it now binds EVERY walker, not just code-writers. Distinct from PRODUCER_SENTINEL
+# precisely because it must appear in the review-only renders too — this pins the
+# reclassification against a future re-slice that scopes a general principle to
+# producer. HACORE_SNIPPET guards only core's opening line, not this bullet.
+readonly CORE_GENERAL_SENTINEL="A first-pass success triggers an adversarial self-audit"
+
 # Producer partition: the five code-writers pull it (architect asserted via the
 # output style in 3a); doc/boundary omit it.
 readonly PRODUCER_PULL_WORKERS=(core-worker refine-worker form-worker spec-worker)
@@ -220,6 +228,18 @@ for role in "${REVIEWER_ROLES[@]}"; do
     file_contains "$REVIEWER_SENTINEL" "$agent_file"
   assert_pass "$role: producer sentinel absent (read-only; omits producer)" \
     file_not_contains "$PRODUCER_SENTINEL" "$agent_file"
+done
+
+# 3g. Reclassified-to-core principle reaches review-only roles. One-shot
+# skepticism moved producer→core, so unlike PRODUCER_SENTINEL it MUST render in
+# the roles that pull no producer — doc/boundary and the 9 reviewers. This is the
+# positive dual of the 3e/3f producer-absence checks and the regression lock for
+# the reclassification itself.
+echo ""
+echo "── 3g. Reclassified-to-core principle in review-only renders ────────────"
+for role in "${PRODUCER_OMIT_WORKERS[@]}" "${REVIEWER_ROLES[@]}"; do
+  assert_pass "$role: One-shot-skepticism present (now core/general, not producer)" \
+    file_contains "$CORE_GENERAL_SENTINEL" "$CLAUDE_DIR/agents/predicate-$role.md"
 done
 
 # 3c. agy / GEMINI.md

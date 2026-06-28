@@ -216,8 +216,9 @@ one-time approval is scoped to that context, not blanket permission for the clas
 create, reconstruct what it is — unfamiliar files, branches, locks, or config may
 be the human's in-progress work. **Never use a destructive shortcut**
 (`--no-verify`, `reset --hard`, force-push) to make an obstacle disappear; a gate,
-hook, or conflict is signal, not friction — fix the root cause. An external send may
-persist even if later deleted. The commit-gate rails above are the specific
+hook, or conflict is signal, not friction — fix the root cause, and if the
+foundation itself is flawed, halt and discuss rather than build atop it. An
+external send may persist even if later deleted. The commit-gate rails above are the specific
 instances this general prior instantiates.
 
 ## Verification protocol (always active)
@@ -225,6 +226,9 @@ instances this general prior instantiates.
 - **Property-grounded verification.** Verify against properties and invariants,
   not happy-path examples alone — when you write both the code and its tests,
   example tests propagate the same blind spots to both.
+- **One-shot skepticism.** A first-pass success triggers an adversarial self-audit
+  of the work — genuine baseline? hidden assumptions? Report the exact iteration
+  count; an unverifiable pass is treated as a failure.
 - **Grounded critique.** A finding is admissible only if grounded by the path that
   closes its condition: on a symbolically-closed condition, by a reproduced
   evaluator failure (inter-reviewer agreement does not ground it — the evaluator
