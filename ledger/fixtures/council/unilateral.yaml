@@ -4,6 +4,6 @@
 # machine-consensus is absent. The anti-unilateral predicate rejects it (export exit
 # != 0). Complement of close_no_head: there the machine reached consensus and the head
 # was missing; here the head is present and machine-consensus is missing.
-let c = import "../../contracts/council.ncl" in
-let con = (import "./constitution.ncl") | c.Constitution in
-{ decisions = [ { id = "U1", type = "close", assent = ["architect", "human"], verdict = "rammed through", grounding = "owner + head moved without convening the rest of the council" } ] } | (c.DecisionLedger con)
+# A decisions ledger (no `seats`) -> DecisionLedger path.
+decisions:
+  - { id: U1, type: close, assent: [architect, human], verdict: "rammed through", grounding: "owner + head moved without convening the rest of the council" }

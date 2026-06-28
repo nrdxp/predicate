@@ -1,9 +1,17 @@
 #!/usr/bin/env bash
 # Fixtures for council.ncl — the council's law as an intrinsic Nickel contract.
-# `nickel export <fixture>` IS the gate: a lawful constitution+ledger exports clean;
-# a gapped / unilateral / no-consent / un-ratified / barred decision makes the export
-# exit non-zero. Each FAIL case also asserts the error names its OWN invariant (not an
-# incidental shape error), so a wrong verdict cannot pass by coincidence.
+# The fixtures are pure-data YAML instances; `council_apply.ncl` applies the law to
+# them EXTERNALLY, so the single command
+#   nickel export <fixture>.yaml --apply-contract ledger/contracts/council_apply.ncl
+# IS the gate (degrade-to-primitive: the contract is the law; this script never
+# re-implements an invariant). A lawful constitution / decision exports clean; a
+# gapped / unilateral / no-consent / un-ratified / barred instance exits non-zero.
+# Each FAIL case also asserts the error names its OWN invariant (not an incidental
+# shape error), so a wrong verdict cannot pass by coincidence.
+#
+# council_apply.ncl is shape-dispatching: a value carrying `seats` is a constitution
+# (validated by Constitution); otherwise it is a decisions ledger (validated by
+# DecisionLedger threaded with the canonical constitution.yaml).
 #
 # Usage: test_council.sh
 # Exit:  0 = every case matched, 1 = a case mismatched, 2 = environment error.
@@ -11,13 +19,15 @@ set -u
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 root="$(cd "$here/../.." && pwd)"
 fix="$root/ledger/fixtures/council"
+apply="$root/ledger/contracts/council_apply.ncl"
 
 command -v nickel >/dev/null 2>&1 || { echo "ENV: nickel not found on PATH"; exit 2; }
 [ -d "$fix" ] || { echo "ENV: fixtures dir missing: $fix"; exit 2; }
+[ -f "$apply" ] || { echo "ENV: apply-file missing: $apply"; exit 2; }
 
 fails=0
 # expect DESC EXPECTED-RC KEYWORD -- COMMAND...
-#   KEYWORD="" skips the message check (the clean PASS case).
+#   KEYWORD="" skips the message check (the clean PASS cases).
 expect() {
   local desc="$1" exp="$2" kw="$3"; shift 3
   [ "$1" = "--" ] && shift
@@ -34,29 +44,34 @@ expect() {
   fi
 }
 
+run() { nickel export "$1" --apply-contract "$apply"; }
+
+# 0: the canonical constitution alone -> Constitution path exports clean.
+expect "canonical constitution (Constitution path) -> export clean" 0 "" \
+  -- run "$fix/constitution.yaml"
 # 1: complete constitution + valid ledger (incl. a routine owner-only decision) -> clean.
-expect "complete law + valid ledger (proportional convening) -> export clean" 0 "" \
-  -- nickel export "$fix/good.ncl"
+expect "valid ledger (proportional convening) -> export clean" 0 "" \
+  -- run "$fix/good.yaml"
 # 2: a decision-type with no delegation rule -> anti-incoherence.
 expect "gapped constitution -> anti-incoherence" 1 "anti-incoherence" \
-  -- nickel export "$fix/gap.ncl"
+  -- run "$fix/gap.yaml"
 # 3: a 'full terminal type with owner-only assent -> anti-unilateral.
 expect "unilateral close -> anti-unilateral" 1 "anti-unilateral" \
-  -- nickel export "$fix/unilateral.ncl"
+  -- run "$fix/unilateral.yaml"
 # 4: a 'merge whose assent lacks the maintainer -> merge-consent (F5).
 expect "merge without maintainer consent -> merge-consent" 1 "merge-consent" \
-  -- nickel export "$fix/merge_no_consent.ncl"
+  -- run "$fix/merge_no_consent.yaml"
 # 5: a barred seat present in assent -> no-barred.
 expect "barred seat in assent -> no-barred" 1 "no-barred" \
-  -- nickel export "$fix/barred.ncl"
+  -- run "$fix/barred.yaml"
 # 6: a 'dag-amendment whose assent lacks the head -> head-ratification (F7).
 expect "dag-amendment without head ratification -> head-ratification" 1 "head-ratification" \
-  -- nickel export "$fix/dag_amend_no_head.ncl"
+  -- run "$fix/dag_amend_no_head.yaml"
 # 7: a 'close with full MACHINE consensus but no head -> head-ratification. Proves the
 # two terminal gates are distinct: 'full machine-consensus is met, yet the head's
 # ratification (must_assent) is still required and its absence is named specifically.
 expect "close without head ratification -> head-ratification" 1 "head-ratification" \
-  -- nickel export "$fix/close_no_head.ncl"
+  -- run "$fix/close_no_head.yaml"
 
 if [ "$fails" -ne 0 ]; then
   echo "FAIL: $fails council case(s) mismatched"; exit 1
