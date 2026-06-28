@@ -109,7 +109,7 @@ cannot capture by acting rashly, without permanently removing a needed seat:
 2. **Proposal** — the process-auditor PROPOSES the bar, grounded and recorded; it never
    takes effect on the auditor's say-so alone (the auditor is bound by the same rule,
    else it could bar its rivals).
-3. **Ratification** — the HEAD (or a quorum) ratifies, recorded in the decision ledger.
+3. **Ratification** — the HEAD ratifies, recorded in the decision ledger.
    `bar` is itself a `'human` decision-type — barring is governed by the law it enforces.
 4. **Scope** — this IBC / decision ONLY, the narrowest scope that stops the capture; the
    barred seat's assent there is voided, and the rest proceed.
