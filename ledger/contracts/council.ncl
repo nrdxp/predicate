@@ -38,6 +38,11 @@
     # member: excluded from the 'full machine-consensus tally and instead required
     # atop it via must_assent on the terminal decision-types.
     head | Bool | optional | default = false,
+    # the conductor (composer) is a standing council MEMBER but the moderator/hub: it
+    # CONDUCTS the consensus rather than voting in it. Excluded from the 'full tally so
+    # the seat that orchestrates the vote cannot self-certify its own conducted close —
+    # the same un-decorrelation the council exists to prevent.
+    conductor | Bool | optional | default = false,
   },
 
   DelegationRule = {
@@ -96,11 +101,13 @@
       let decisions = std.array.map (fun d => d | Decision) value.decisions in
       let deleg = std.array.map (fun r => r | DelegationRule) constitution.delegation in
       let seats = std.array.map (fun s => s | Seat) constitution.seats in
-      # the 'full machine-consensus set: standing seats MINUS the head. The head
-      # ratifies terminal decisions on top of consensus (via must_assent), so it is
-      # never part of the consensus tally itself — the two gates stay distinct.
+      # the 'full machine-consensus set: standing seats MINUS the head AND MINUS the
+      # conductor. The head ratifies terminal decisions on top of consensus (via
+      # must_assent), so it is never in the tally. The conductor (composer) CONDUCTS the
+      # vote — it is a member but not a voter, excluded so it cannot self-certify the
+      # close it orchestrated. The tally is the independent JUDGING seats alone.
       let machine_ids = std.array.map (fun s => s.id)
-        (std.array.filter (fun s => s.standing == 'standing && !s.head) seats) in
+        (std.array.filter (fun s => s.standing == 'standing && !s.head && !s.conductor) seats) in
       let deleg_map = std.array.fold_left
         (fun acc r => std.record.insert r.decision_type r acc) {} deleg in
       let _dc = std.array.fold_left (fun acc d => std.deep_seq d acc) null decisions in

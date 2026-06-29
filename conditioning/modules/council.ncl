@@ -80,15 +80,18 @@ escalation.
 domain and ADVISORY outside it. Not every decision convenes the full council: a
 **delegation table** maps each decision-type to its required assent —
 `'single` (the owner alone drives routine forward-motion), `'subset` (a quorum, for
-judgment calls like classification and finding-resolution), `'full` (the whole
-council, for boundary design and DAG amendments), or `'human` (the head, for
-scope-changes, taste-forks, and bars). The composer routes each decision to its owner
-per the table; a move lacking its required assent is INVALID.
+judgment calls like classification and finding-resolution), `'full` (full machine
+consensus — the independent JUDGING seats; the composer conducts the tally and the
+head ratifies atop it, neither counted in it — for terminal closes), or `'human` (the
+head, for scope-changes, taste-forks, and bars). The composer routes each decision to
+its owner per the table; a move lacking its required assent is INVALID.
 
 **The composer is the MODERATOR and hub — and is CHECKED.** The composer conducts the
 ensemble: it scales ceremony, convenes the seats a task warrants, sequences the
-deliberation, and integrates the decisions. As the hub it holds outsized power — it
-controls who is convened, when, and what each seat sees. That power is **checked by the
+deliberation, and integrates the decisions. It is a council MEMBER but the conductor,
+not a consensus-voter — it conducts the `'full` tally and is excluded from it, so the
+seat that orchestrates a close cannot self-certify it. As the hub it holds outsized
+power — it controls who is convened, when, and what each seat sees. That power is **checked by the
 process-auditor**, whose primary subject is precisely the composer's moderation: did it
 convene the seats the table required, did it skip or rush a step, did it integrate
 faithfully, did it honor the pact and the law?
