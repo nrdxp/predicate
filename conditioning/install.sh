@@ -7,7 +7,8 @@
 # committed copy). It NEVER composes prompts itself — `nickel export` is the sole
 # combinator; this is the imperative shell at the effect boundary.
 #
-# Per-harness native delivery (ARCHITECTURE.md §5 — adding a harness is one branch):
+# Per-harness native delivery (docs/conditioning-layer.md §Delivery — adding a
+# harness is one branch):
 #
 #   claude-code:
 #     - OUTPUT STYLE  → <claude-dir>/output-styles/predicate-composer.md

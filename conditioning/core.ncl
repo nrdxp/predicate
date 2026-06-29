@@ -3,13 +3,15 @@
 # THE BEHAVIORAL LAW — the always-on, full-replacement system prompt content.
 #
 # A single top-level Nickel String, self-contained (no contract imports), so it
-# is portable and injectable verbatim by `compose.ncl` (ARCHITECTURE.md §4). This
+# is portable and injectable verbatim by `compose.ncl` (docs/conditioning-layer.md
+# §The injection-rule contracts). This
 # is the COMPLETE coherent law that REPLACES the harness default behavioral block
 # (Claude Code output style, keep-coding-instructions:false). It is generated from
 # rules.md / ambient.md / the promoted constitution + engineering skills, but is
 # the always-on surface itself — those sources demote to by-moment reference.
 #
-# Calibration (ARCHITECTURE.md): PRINCIPLES are always-on, PROCEDURES are
+# Calibration (docs/conditioning-layer.md §The invariant-core): PRINCIPLES are
+# always-on, PROCEDURES are
 # by-moment. Every promoted principle that binds EVERY walker regardless of role
 # or discipline earns a place here; role-specific deltas live in a persona overlay
 # and detailed procedures stay routed-by-moment as skills. Over-inclusion of

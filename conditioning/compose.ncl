@@ -6,7 +6,8 @@
 #            HasModule / HasLens are sibling verbatim-substring contracts for
 #            module and lens text. The nine reviewer fields below consume them:
 #            all nine carry HasModule reviewer_module; the eight lensed reviewers
-#            also carry HasLens <their delta> (see ARCHITECTURE.md §1).
+#            also carry HasLens <their delta> (see docs/conditioning-layer.md
+#            §The injection-rule contracts).
 #
 # EXPORT INTERFACE
 # ----------------
@@ -116,7 +117,7 @@ Delegation:
 %{rules}
 "% in
 
-# INJECTION-RULE CONTRACT (ARCHITECTURE.md §4)
+# INJECTION-RULE CONTRACT (docs/conditioning-layer.md §The injection-rule contracts)
 # Checks that core_text appears as a verbatim contiguous substring of the
 # generated prompt.  Export fails (non-zero exit, error printed) when the
 # condition is false — no prompt is emitted.

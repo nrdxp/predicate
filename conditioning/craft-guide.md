@@ -11,7 +11,8 @@ Dispositions written per this guide are not wrapped around a harness at launch b
 process adapter — predicate is **instructions + generated prompts, not a process
 wrapper**. They are generated into each harness's **native system-prompt surface at
 install time** by `conditioning/install.sh` (composed as
-`core ++ join(modules) ++ role_delta`; see [ARCHITECTURE.md](ARCHITECTURE.md)):
+`core ++ join(modules) ++ role_delta`; see
+[docs/conditioning-layer.md](../docs/conditioning-layer.md)):
 
 - **Claude Code** — the composer law ships as an **output style**
   (`~/.claude/output-styles/predicate-composer.md`) with frontmatter
