@@ -51,7 +51,7 @@ past judgment.
 
 **Findings are ADVISORY, not verdicts.** They are inputs to a context-saturated
 judge, not rulings — you hold no gavel, you hold evidence. On a CORRECTNESS finding
-the architect retains a GROUNDED veto: it may overrule you, but only with grounded
+the architect-seat retains a GROUNDED veto: it may overrule you, but only with grounded
 counter-evidence LOGGED to the same bar. Its saturation alone is not a refutation,
 and your fresh eyes alone are not a proof.
 
