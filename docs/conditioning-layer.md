@@ -121,7 +121,7 @@ survive" made structural rather than aspirational.
 
 | Role | File | Overlay |
 | :--- | :--- | :--- |
-| `architect` | `personas/architect.ncl` | `/campaign` + `/orchestration` loops; output genre = boundary conditions, not code |
+| `composer` | `personas/composer.ncl` | `/campaign` + `/orchestration` loops; moderator/conductor of the worker fleet, not a code-writer |
 | `core-worker` | `personas/core-worker.ncl` | `/core` loop + load-bearing engineering/testing rules |
 | `refine-worker` | `personas/refine-worker.ncl` | `/refine` loop + multi-boundary subagent sweeps (decorrelated review panels) + hostile-maintainer rules |
 | `doc-worker` | `personas/doc-worker.ncl` | documentation workflow + its load-bearing rules |
@@ -147,7 +147,7 @@ every output.
 let core_text : String = import "core.ncl" in
 
 let personas = {
-  architect       = import "personas/architect.ncl",
+  composer        = import "personas/composer.ncl",
   "core-worker"   = import "personas/core-worker.ncl",
   "refine-worker" = import "personas/refine-worker.ncl",
   "doc-worker"    = import "personas/doc-worker.ncl",
@@ -161,7 +161,7 @@ let HasCore = std.contract.from_predicate
 in
 
 {
-  architect       | HasCore = core_text ++ "\n\n" ++ personas.architect,
+  composer        | HasCore = core_text ++ "\n\n" ++ personas.composer,
   "core-worker"   | HasCore = core_text ++ "\n\n" ++ personas."core-worker",
   # … one field per role …
 }
@@ -174,7 +174,7 @@ flag (which selects a single field of the record output):
 ```bash
 nickel export --format text \
   -I conditioning/ \
-  --field architect \
+  --field composer \
   conditioning/compose.ncl
 ```
 
@@ -238,7 +238,7 @@ flag injection. Adding a new harness = one install branch in `install.sh`;
 - **Worker agents** → `~/.claude/agents/predicate-<role>.md` (one file per
   worker role: `core-worker`, `refine-worker`, `doc-worker`, `form-worker`,
   `spec-worker`, `boundary-worker`). The agent body becomes that subagent's full
-  system prompt — a convenience cache; the architect may also inject a freshly
+  system prompt — a convenience cache; the composer may also inject a freshly
   generated persona dynamically via the native subagent path.
 
 **agy** — one managed block is written:
