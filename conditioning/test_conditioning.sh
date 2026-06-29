@@ -58,6 +58,14 @@ readonly COUNCIL_SENTINEL="You hold a SEAT on a bound council"
 # slot carries the conductor/moderator, not the old architect orchestrator.
 readonly COMPOSER_SENTINEL="You are the COMPOSER — the live conductor"
 
+# Constitution-render sentinels: the single-sourced conditioning constitution
+# (conditioning/constitution.ncl) is RENDERED into the composer's prompt by compose.ncl.
+# CONSTITUTION_SENTINEL pins the render block; DELEGATION_ROW_SENTINEL is one
+# data-derived row (decision_type → owner → required_assent) generated FROM the value —
+# proving the table is rendered, not hand-copied. Both present only in the composer slot.
+readonly CONSTITUTION_SENTINEL="the council delegation table"
+readonly DELEGATION_ROW_SENTINEL="merge → maintainer → single"
+
 # Architect-orchestrator sentinel: the verbatim opening of the DELETED architect
 # persona. After the swap it must appear in NO render — the output-style slot is
 # the composer, and the architect role is now the architect-SEAT.
@@ -202,6 +210,10 @@ assert_pass "body: HasCore present (verbatim core law)" \
   file_contains "$HACORE_SNIPPET" "$OS_FILE"
 assert_pass "body: composer sentinel present (slot renders the composer)" \
   file_contains "$COMPOSER_SENTINEL" "$OS_FILE"
+assert_pass "body: constitution render present (composer conditioned with its own council law)" \
+  file_contains "$CONSTITUTION_SENTINEL" "$OS_FILE"
+assert_pass "body: a data-derived delegation row present (decision_type → owner → required_assent)" \
+  file_contains "$DELEGATION_ROW_SENTINEL" "$OS_FILE"
 assert_pass "body: producer absent (composer is a moderator, not a code-writer)" \
   file_not_contains "$PRODUCER_SENTINEL" "$OS_FILE"
 assert_pass "body: deleted architect-orchestrator sentinel absent (demoted to seat)" \

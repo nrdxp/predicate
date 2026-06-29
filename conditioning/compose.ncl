@@ -82,6 +82,40 @@ let council : { _ : String } = {
   "process-auditor-seat" = import "personas/process-auditor-seat.ncl",
 } in
 
+# Constitution render. The single-sourced project constitution
+# (conditioning/constitution.ncl, a Nickel value conforming to council.ncl's
+# `Constitution`) is RENDERED to prose here and folded into the composer's prompt as a
+# segment — so the live conductor is conditioned with the very council law it conducts.
+# The delegation rows are GENERATED from the value (decision_type -> owner ->
+# required_assent), never hand-copied: editing the constitution re-renders the prompt.
+# Native enum tags (`required_assent`) are displayed via std.to_string; `head` /
+# `conductor` are optional, hence the has_field guards.
+let constitution = import "constitution.ncl" in
+let council_render =
+  let render_seat = fun s =>
+    let mark =
+      if std.record.has_field "head" s && s.head then " [head — ratifier]"
+      else if std.record.has_field "conductor" s && s.conductor then " [conductor — you]"
+      else "" in
+    "- %{s.id} (%{s.role})%{mark}" in
+  let render_rule = fun r =>
+    "- %{r.decision_type} → %{r.owner} → %{std.to_string r.required_assent}" in
+  let seats = std.string.join "\n" (std.array.map render_seat constitution.seats) in
+  let rules = std.string.join "\n" (std.array.map render_rule constitution.delegation) in
+  m%"
+## Predicate's Constitution — the council delegation table
+
+You CONDUCT this council. Route every decision-type to its owner per the live law
+below (decision_type → owner → required_assent); never invent a rule for a type it
+does not list.
+
+Seats:
+%{seats}
+
+Delegation:
+%{rules}
+"% in
+
 # INJECTION-RULE CONTRACT (ARCHITECTURE.md §4)
 # Checks that core_text appears as a verbatim contiguous substring of the
 # generated prompt.  Export fails (non-zero exit, error printed) when the
@@ -116,7 +150,7 @@ in
 # the review-only roles (doc, boundary) and the composer pull [] — the composer is a
 # moderator, not a code-writer, so the single output-style slot sheds the procedure.
 {
-  composer         | HasCore = compose [] personas.composer,
+  composer         | HasCore = compose [council_render] personas.composer,
   "core-worker"    | HasCore = compose [producer] personas."core-worker",
   "refine-worker"  | HasCore = compose [producer] personas."refine-worker",
   "doc-worker"     | HasCore = compose [] personas."doc-worker",

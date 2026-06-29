@@ -109,8 +109,10 @@ owner per the project Constitution; act on it like this:
 | Governance-of-self (bar, guest-summon) | `'human` / driver | the head ratifies a bar; the driver may summon a guest |
 
 The authoritative type→rule mapping is the [`council.ncl`](../../ledger/contracts/council.ncl)
-`Constitution` (project-scoped, declared in AGENTS.md). Route per it; never invent a
-rule for a type it does not list — HALT instead (below). The named guards bind
+`Constitution`, instantiated for predicate in
+[`conditioning/constitution.ncl`](../../conditioning/constitution.ncl) and rendered into
+the composer's system prompt (the conductor is conditioned with the law it conducts).
+Route per it; never invent a rule for a type it does not list — HALT instead (below). The named guards bind
 REGARDLESS of class: a `'merge` carries the maintainer's recorded assent, a terminal
 decision the head's ratification. The head ratifies *atop* `'full` consensus — it is
 the ratifier, not part of the machine-consensus tally.
