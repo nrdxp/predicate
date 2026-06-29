@@ -10,7 +10,7 @@
 # here is a valid tag, so the lift is lossless.
 seats:
   - { id: architect,  role: "boundary / goal / strategy",        domain: boundary,           standing: standing }
-  - { id: composer,   role: "execution structure / scheduling",  domain: execution,          standing: standing }
+  - { id: composer,   role: "execution structure / scheduling",  domain: execution,          standing: standing, conductor: true }
   - { id: maintainer, role: "lead developer / lead maintainer",   domain: merge,              standing: standing }
   - { id: auditor,    role: "process + residue",                  domain: process,            standing: standing }
   - { id: human,      role: "head / ultimate arbiter",            domain: "taste / release",  standing: standing, head: true }

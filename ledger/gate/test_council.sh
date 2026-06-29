@@ -72,6 +72,12 @@ expect "dag-amendment without head ratification -> head-ratification" 1 "head-ra
 # ratification (must_assent) is still required and its absence is named specifically.
 expect "close without head ratification -> head-ratification" 1 "head-ratification" \
   -- run "$fix/close_no_head.yaml"
+# 8: a 'close carrying the head + two of three JUDGING seats but missing one ->
+# anti-unilateral. The composer is excluded from the 'full tally (it conducts, it does
+# not vote), so machine-consensus is exactly {architect, maintainer, auditor}; dropping
+# one judge fails even with the head present, proving the tally is the full judging set.
+expect "close missing one judging seat -> anti-unilateral" 1 "anti-unilateral" \
+  -- run "$fix/close_missing_seat.yaml"
 
 if [ "$fails" -ne 0 ]; then
   echo "FAIL: $fails council case(s) mismatched"; exit 1

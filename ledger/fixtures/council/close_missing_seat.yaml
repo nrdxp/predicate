@@ -1,0 +1,10 @@
+# EXPECT: fail
+# Case 8: a `close` whose assent carries the head AND two of the three JUDGING seats,
+# but drops ONE (the auditor). With the composer excluded from the 'full tally, the
+# machine-consensus set is exactly the three judging seats {architect, maintainer,
+# auditor}; dropping any one fails anti-unilateral even though the head ratified. This
+# pins the tally to the full judging set — the composer's exclusion narrows WHO votes,
+# it does not lower the bar to a sub-quorum of judges.
+# A decisions ledger (no `seats`) -> DecisionLedger path.
+decisions:
+  - { id: M1, type: close, assent: [architect, maintainer, human], verdict: "closed short a judge", grounding: "head ratified and two judging seats concurred, but the auditor never assented" }

@@ -10,4 +10,4 @@ decisions:
   - { id: D3, type: merge,            assent: [maintainer],                                        verdict: "merge",            grounding: "maintainer affirmatively accepts the maintenance burden" }
   - { id: D4, type: dag-amendment,    assent: [architect, human],                                  verdict: "amended",          grounding: "node added mid-flight; the head ratifies the scope change" }
   - { id: D5, type: classification,   assent: [architect, maintainer],                             verdict: "procedure->module", grounding: "governing rule applied; quorum of 2 concur" }
-  - { id: D6, type: close,            assent: [architect, composer, maintainer, auditor, human],   verdict: "closed",           grounding: "dual-CLOSE green + sufficiency; full council assents" }
+  - { id: D6, type: close,            assent: [architect, maintainer, auditor, human],             verdict: "closed",           grounding: "dual-CLOSE green + sufficiency; the three judging seats reach 'full machine consensus and the head ratifies — the composer conducts the tally, it does not vote in it" }
