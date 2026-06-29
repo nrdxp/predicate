@@ -19,7 +19,10 @@ set -u
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 root="$(cd "$here/../.." && pwd)"
 fix="$root/ledger/fixtures/council"
-apply="$root/ledger/contracts/council_apply.ncl"
+# The TEST apply: threads the YAML fixture constitution, keeping these unit tests
+# self-contained against the fixture (council_apply.ncl, the production apply, threads
+# the live conditioning/constitution.ncl instead).
+apply="$root/ledger/contracts/council_fixture_apply.ncl"
 
 command -v nickel >/dev/null 2>&1 || { echo "ENV: nickel not found on PATH"; exit 2; }
 [ -d "$fix" ] || { echo "ENV: fixtures dir missing: $fix"; exit 2; }

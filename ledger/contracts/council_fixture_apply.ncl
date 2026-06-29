@@ -8,28 +8,23 @@
 #   DecisionLedger(const)    — a CONSTRUCTOR parameterized by the constitution.
 # A single apply-file serves both because `file_surface` names exactly one. It
 # SHAPE-DISPATCHES: a value carrying `seats` is a constitution -> Constitution;
-# otherwise it is a decisions ledger -> DecisionLedger threaded with predicate's OWN
-# constitution (a constructor needs its argument supplied here, since --apply-contract
-# has no parameter mechanism).
+# otherwise it is a decisions ledger -> DecisionLedger threaded with the canonical
+# constitution.yaml (a constructor needs its argument supplied here, since
+# --apply-contract has no parameter mechanism).
 #
-# This is the PRODUCTION apply: the threaded constitution is the single-sourced
-# conditioning value (conditioning/constitution.ncl), so council_consent.sh validates
-# real decision-ledgers against predicate's live law. The TEST apply
-# (council_fixture_apply.ncl) is byte-identical to this file but threads the YAML
-# fixture instead, keeping the law's unit tests self-contained.
+# Imports resolve relative to THIS file's location: council.ncl sits beside it and
+# constitution.yaml is one dir over under fixtures/council/.
 #
-# Imports resolve relative to THIS file's location: council.ncl sits beside it and the
-# conditioning constitution is two dirs over under conditioning/.
-#
-# enum-tag adapter: council.ncl's Seat.standing and DelegationRule.required_assent are
-# BARE enum contracts ([| 'standing, 'guest |] etc.). The conditioning constitution
-# already carries native tags, so the lift below is a no-op on it; the same adapter
-# also bridges the plain strings a pure-data YAML instance carries (the test apply),
-# so a single apply serves both representations. Every value is a valid tag, so the
-# lift is lossless and no invariant is weakened. (Decisions carry no enum fields, so
-# only the constitution needs lifting.)
+# YAML→tag adapter: council.ncl's Seat.standing and DelegationRule.required_assent
+# are BARE enum contracts ([| 'standing, 'guest |] etc.), which reject the plain
+# strings a pure-data YAML instance necessarily carries. council.ncl is the law and
+# may not change, so this adapter lifts those known strings to the tags the
+# contracts expect before the law runs. Every fixture value is a valid tag, so the
+# lift is lossless and no invariant is weakened — only the YAML-string / Nickel-enum
+# representational gap is bridged. (Decisions carry no enum fields, so only the
+# constitution needs lifting.)
 let c = import "council.ncl" in
-let raw_constitution = import "../../conditioning/constitution.ncl" in
+let raw_constitution = import "../fixtures/council/constitution.yaml" in
 
 let lift_standing = match { "guest" => 'guest, "standing" => 'standing, x => x } in
 let lift_assent = match {

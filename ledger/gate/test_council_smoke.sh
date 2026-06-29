@@ -35,7 +35,10 @@ set -u
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 root="$(cd "$here/../.." && pwd)"
 fix="$root/ledger/fixtures/council"
-apply="$root/ledger/contracts/council_apply.ncl"
+# law() uses the TEST apply (threads the YAML fixture constitution) so the law's
+# assertions stay self-contained; consent() below calls the PRODUCTION gate
+# (council_consent.sh -> council_apply.ncl -> the live conditioning constitution).
+apply="$root/ledger/contracts/council_fixture_apply.ncl"
 consent_gate="$root/ledger/gate/council_consent.sh"
 
 command -v nickel >/dev/null 2>&1 || { echo "ENV: nickel not found on PATH"; exit 2; }
