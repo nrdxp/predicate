@@ -137,16 +137,19 @@ CTX:
   SCRATCH_PATH: ".scratch/<topic>"
 ```
 
-The three persistent campaign artifacts — the findings ledger, the campaign
-DAG, and the reconcile log — are **not** redefined here. Their schemas are the
-locked Nickel contracts under [`ledger/contracts/`](../../ledger/contracts), and
-`nickel export` over each artifact is the gate that enforces them:
+The persistent campaign artifacts — the findings ledger, the campaign DAG, the
+reconcile log, and the live context map — are **not** redefined here. Their
+schemas are the locked Nickel contracts under
+[`ledger/contracts/`](../../ledger/contracts), each authored as a pure-data YAML
+instance and gated by a single `nickel export … --apply-contract` pass; the
+contracts stay Nickel, the instances are YAML:
 
-| Artifact | Contract | Load-bearing invariant |
+| Artifact | Apply-contract | Load-bearing invariant |
 | :--- | :--- | :--- |
-| Findings ledger (SURVEY) | [`findings.ncl`](../../ledger/contracts/findings.ncl) | a resolved finding (`'mitigated`/`'accepted_risk`) MUST name the `evaluator` that closed it |
+| Findings ledger (SURVEY) | [`findings_apply.ncl`](../../ledger/contracts/findings_apply.ncl) | **authored as YAML** (`<topic>/findings.yaml`), validated via `nickel export findings.yaml --apply-contract ledger/contracts/findings_apply.ncl`; a resolved finding (`'mitigated`/`'accepted_risk`) MUST name the `evaluator` that closed it; instances are YAML |
 | Campaign DAG (PLAN/ORCHESTRATE) | [`dag_apply.ncl`](../../ledger/contracts/dag_apply.ncl) (`Dag ∘ DagNoConflict`) | the DAG is **authored as YAML** (`<topic>/dag.yaml`) and validated via `nickel export dag.yaml --apply-contract ledger/contracts/dag_apply.ncl`; each node's `discipline` is one of `core`/`refine`/`doc`/`form`/`spec`; the graph is acyclic, referentially whole, and concurrent nodes carry disjoint `file_surface` or a `serialize` marker; contracts stay Nickel, instances are YAML |
-| Reconcile log (RECONCILE) | [`reconcile_log.ncl`](../../ledger/contracts/reconcile_log.ncl) | an `'accept` judgment MUST name the `evaluator` that justified it |
+| Context map (tracker) | [`context_map_apply.ncl`](../../ledger/contracts/context_map_apply.ncl) | **authored as YAML** (`<topic>/context_map.yaml`), validated via `nickel export context_map.yaml --apply-contract ledger/contracts/context_map_apply.ncl`; every item MUST carry non-empty `grounding`, `last_validated`, and `signpost`; instances are YAML |
+| Reconcile log (RECONCILE) | [`reconcile_apply.ncl`](../../ledger/contracts/reconcile_apply.ncl) | **authored as YAML** (`<topic>/reconcile_log.yaml`), validated via `nickel export reconcile_log.yaml --apply-contract ledger/contracts/reconcile_apply.ncl`; an `'accept` judgment MUST name the `evaluator` that justified it; instances are YAML |
 
 The `evaluator` field and the `discipline` enum are the campaign's two
 load-bearing couplings to these contracts: SURVEY and RECONCILE depend on the
