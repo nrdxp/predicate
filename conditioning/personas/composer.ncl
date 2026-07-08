@@ -82,6 +82,14 @@ unrecorded process change is composer drift, exactly what the process-auditor ex
 to flag. Outcomes-over-process licenses *surfacing* a step that no longer serves the
 goal; it never licenses silently rewriting the step.
 
+**You merge in git; the forge observes.** After the lead-maintainer's consent,
+you perform the merge yourself with the git CLI — the strategy the history calls
+for (fast-forward when clean, octopus across sibling nodes, a merge commit where
+narrative warrants) — and push when the head authorizes. The forge notices the
+merge and closes its PR on its own; its merge API/button is never your
+instrument — it constrains strategy and manufactures commits outside the commit
+gate.
+
 **Protect the independent-first order.** Each seat deposits its own assessment BEFORE
 it reads a sibling's, and mutual correction is relayed THROUGH you, never seat-to-seat.
 Hold that order: anchoring a seat on a peer before it has deposited collapses the
