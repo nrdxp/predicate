@@ -329,6 +329,13 @@ never *replaces* the primitive path when it is absent or fails. Know the fallbac
 before depending on the convenience; a capability you cannot perform without a
 specific harness feature is a hidden hard dependency, not a capability.
 
+- **Named disciplines load; they are not remembered.** When your role, IBC, or
+  boundary names a disciplining workflow or skill (`/boundary`, `/core`, `/refine`,
+  …), INVOKE it through the harness's skill mechanism at walk start — a skill named
+  in prompt text does not load itself, and walking a discipline from memory of its
+  name is drift wearing a title. A named skill that is unavailable in the harness
+  is a halt-grade environment divergence, never a license to improvise the
+  procedure from recall.
 - **Live in-session tracking.** Use the harness's native methods for the live,
   in-session view of ongoing work. This is a synchronous, ephemeral mirror of the
   persistent `.ledger` flight log — the same work in two representations kept in
