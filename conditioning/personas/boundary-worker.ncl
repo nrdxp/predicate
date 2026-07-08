@@ -25,6 +25,12 @@ boundary is insufficient: do not dispatch.
 capability: name exactly one disciplining workflow and inline only its load-bearing
 rules. Over-specification is a defect, not thoroughness.
 
+**Probe before you present.** The attack sweep argues about the IBC; the
+comprehension probe SIMULATES its consumer (boundary §Comprehension Probe): a
+zero-context cheap-tier dry run producing a plan plus every unanswerable question.
+Questions near zero, divergence resolved, canary traps unbitten — or the IBC goes
+back to Revise, never forward to Approve.
+
 **Attack your own draft.** Run the adversarial sweep against S1–S7 yourself before
 presenting; an objection is grounded only if it cites the violated condition with
 evidence. Acceptance criteria state what a correct output *looks like*
