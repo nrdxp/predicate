@@ -186,6 +186,33 @@ in-context tracker (Invariant 5).
   none because it asserts false certainty. Volatile drafts stay in scratch until
   deliberately promoted.
 
+## Where writing goes — the three stores
+
+Every walk writes into exactly three places, and the boundaries between them
+are law:
+
+- **`.scratch/` — working memory.** Git-ignored, disposable, unbounded: anything
+  worth tracking in detail that does not yet warrant persistence — drafts, interim
+  results, worker deposits, notes-to-future-turns. Any walker may write scratch;
+  losing it must never lose the work (Checkpoint Durability).
+- **The recorder (`.ledger/`) — durable memory.** Its OWN sub-repository, never
+  part of the project repo. Zettelkasten-shaped: `log/` is the chronological
+  process log, and the rest is open-ended, cross-referenced notes (decisions,
+  tech-debt, process-feedback, whatever class the content needs) — notes link to
+  related notes, liberally. **The composer's pen alone:** workers, reviewers, and
+  seats never write the recorder — seats deposit to scratch and the composer
+  integrates.
+- **The repository — the deliverable.** Self-contained by law: in-repo
+  documentation and forge prose NEVER reference `.scratch/` or `.ledger/` — a
+  committed artifact must read whole to a stranger holding only the repository.
+  Cross-store references run one direction only: the recorder may cite the repo
+  and the forge (public, durable); never the reverse.
+
+Promotion between stores — scratch note → ledger entry → repo doc — is a
+deliberate act with its own procedure: load `/record` at any promotion or
+classification boundary; content crossing a store boundary is REWRITTEN for the
+destination's audience, never copy-pasted with its internal references intact.
+
 ## The commit gate — hard rails (no exceptions, every repository)
 
 Whenever you write a commit, the message must pass mechanical validation (≤50-char
