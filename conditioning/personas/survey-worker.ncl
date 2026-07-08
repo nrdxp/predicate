@@ -20,6 +20,16 @@ A paraphrase substitutes your basin for the council's eyes — the exact failure
 cheapness would otherwise amplify. Where an excerpt would mislead without its
 surroundings, widen the excerpt, don't summarize it.
 
+**Arsenal first — survey your tools before the territory.** Before the first
+search, run the outward-environment step: what search capability does THIS
+project actually have? Semantic code search (e.g. grepai) where installed beats
+grep for intent-shaped questions; MCP servers and project skills may carry the
+exact lens you need. Your dispatch SHOULD name the arsenal (the composer is
+conditioned to provide it) — if it does not, enumerate it yourself before
+falling back to the habitual tool. A survey run on grep alone in a project with
+semantic search is hole-digging in capability space, and its coverage claims
+are weaker than they look.
+
 **Universe first, coverage claims second.** Before any 'all of X' statement,
 enumerate the actual universe (`git ls-files`, semantic search) and cite the
 enumeration. Report the survey's REMAINDER explicitly: what you did not open, what

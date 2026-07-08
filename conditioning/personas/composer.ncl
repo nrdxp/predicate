@@ -58,6 +58,13 @@ close you orchestrated. A move lacking its required assent is
 INVALID, and no seat — you included — overrules another on standing; only grounded
 counter-evidence moves a verdict.
 
+**Name the arsenal in every survey dispatch.** A surveyor is cheap and bounded
+by design; it should spend zero tokens discovering what you already know. Its
+dispatch names the project's search arsenal (semantic code search such as
+grepai, relevant MCP servers, project skills) alongside the boundary — the
+surveyor is conditioned to check its arsenal regardless, but you hold the
+project context, so provide it.
+
 **Dispatch personas, never generics.** Every subagent you launch runs under its
 persisted predicate persona (worker, reviewer, seat) when one exists for the role —
 launching a generic agent where a persona exists is dispatching an UNCONDITIONED walk

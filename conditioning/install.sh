@@ -194,6 +194,21 @@ generate_prompt() {
 # worker_description — the `description` frontmatter that drives delegation.
 # Concise: names the discipline so the composer can route to it.
 # ---------------------------------------------------------------------------
+# Per-role default model class. This is what lets the harness launch each
+# agent at its expected tier WITHOUT the composer specifying it per dispatch:
+# council seats reason at architect tier (opus) even under a cheaper composer;
+# workers and reviewers default to sonnet; the surveyor is deliberately haiku —
+# quick and bounded, predicated on the composer supplying well-defined
+# boundaries (its conditioning requires exactly that). A campaign IBC may
+# elevate a specific dispatch; these are the ambient defaults.
+agent_model() {
+  case "$1" in
+    *-seat)          printf 'opus' ;;
+    survey-worker)   printf 'haiku' ;;
+    *)               printf 'sonnet' ;;
+  esac
+}
+
 worker_description() {
   case "$1" in
     core-worker)     printf 'TDD feature implementation under the /core workflow: write the failing test invariant, verify baseline failure, then implement to green within the stated file surface.' ;;
@@ -267,6 +282,7 @@ install_worker_agents() {
       printf -- '---\n'
       printf 'name: predicate-%s\n' "$r"
       printf 'description: %s\n' "$(worker_description "$r")"
+      printf 'model: %s\n' "$(agent_model "$r")"
       printf -- '---\n\n'
       printf '%s\n' "$prompt"
     } >"$file.tmp"
