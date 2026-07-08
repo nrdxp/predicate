@@ -292,7 +292,7 @@ section wires its acts to driver states:
 
 | Driver state | Forge act |
 | :--- | :--- |
-| `DERIVE` (after gate rc 0) | open the integration branch's **draft PR** (`gh pr create --draft`) — body per forge §2 (self-contained; no process-internal references, ever) |
+| `DERIVE` (after gate rc 0) | open the integration branch's **draft PR** (forge MCP preferred; `gh pr create --draft` fallback — forge §0) — body per forge §2 (self-contained; no process-internal references, ever) |
 | `MERGE` / `CHECKPOINT` | keep the PR body accurate against the branch's *current* state; post review findings + triage as PR comments (forge §3) as they occur, not retrospectively |
 | `CLOSE` | mark the PR ready; the lead-maintainer's merge-consent includes the **forge audit** (forge §5); the head merges — the driver never does (rules.md §3) |
 

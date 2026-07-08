@@ -32,6 +32,17 @@ state. A PR body that cites `.scratch/`, `.ledger/`, a session link, or
 a working note is broken for every reader outside the process that
 wrote it — and those are all of its readers.
 
+## 0. Tooling: MCP for forge operations, git for merges
+
+Forge **operations** — opening/updating PRs, posting comments and
+reviews, reading state — prefer the forge's **MCP server** where the
+session has one connected: structured, typed calls over stringly CLI
+output. The CLI (`gh`, `glab`, …) is the fallback, and plain git+HTTPS
+the primitive beneath both (degrade-to-the-primitive applies: never
+depend on the MCP being present). The one hard exception runs the other
+way: **merges are always the git CLI** (§4, MERGE_IN_GIT) — no MCP or
+API merge endpoint, ever.
+
 ## 1. Branch ↔ PR mapping
 
 - One integration branch, one PR. A campaign's `campaign/<TOPIC>` branch
