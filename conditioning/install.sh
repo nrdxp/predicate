@@ -97,7 +97,7 @@ readonly OUTPUT_STYLE_NAME='Predicate Composer'
 readonly OUTPUT_STYLE_FILE='predicate-composer.md'
 
 # The six worker roles materialized as persisted Claude agents.
-readonly WORKER_ROLES=(core-worker refine-worker doc-worker form-worker spec-worker boundary-worker)
+readonly WORKER_ROLES=(core-worker refine-worker doc-worker form-worker spec-worker boundary-worker survey-worker)
 # The nine reviewer roles — read-only adversarial lenses. A distinct class: each
 # composes the reviewer module (NOT producer), so they form a sibling list rather
 # than joining WORKER_ROLES. This declaration is kept byte-identical to the one in
@@ -201,6 +201,7 @@ worker_description() {
     doc-worker)      printf 'Documentation authoring and auditing under /doc-audit: link integrity, heading hierarchy, table formatting, and grounded claims written for the stranger-reader.' ;;
     form-worker)     printf 'Formal mathematical domain modeling under /form: construct, validate, and connect models whose every invariant has a falsification signpost.' ;;
     spec-worker)     printf 'Normative specification under /spec: machine-checkable invariants, permitted transitions, and forbidden states; every constraint names its evaluator.' ;;
+    survey-worker)   printf 'Read-only cheap-tier territory mapping: locate and excerpt with file:line evidence, enumerate the universe before coverage claims, deposit findings and remainders; never judge, synthesize, or edit.' ;;
     boundary-worker) printf 'IBC authoring and refinement under /boundary: S1–S7 sufficiency contraction with deterministic acceptance criteria.' ;;
     refuter-reviewer)     printf 'Lens-free read-only adversarial reviewer: attack the artifact as a whole for any defect, decorrelated by fresh eyes alone; name defects, never edit.' ;;
     hickey-reviewer)      printf 'Read-only structural-simplicity reviewer (hickey lens): scan for complected concerns and concept multiplication; name defects, never edit.' ;;

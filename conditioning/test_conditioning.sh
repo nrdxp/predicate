@@ -82,14 +82,14 @@ readonly CORE_GENERAL_SENTINEL="A first-pass success triggers an adversarial sel
 # Producer partition: the four code-writer workers pull it; doc/boundary omit it,
 # and the composer output style omits it too (a moderator, not a code-writer — 3a).
 readonly PRODUCER_PULL_WORKERS=(core-worker refine-worker form-worker spec-worker)
-readonly PRODUCER_OMIT_WORKERS=(doc-worker boundary-worker)
+readonly PRODUCER_OMIT_WORKERS=(doc-worker boundary-worker survey-worker)
 
 # Managed-block sentinels — must mirror install.sh exactly.
 readonly BEGIN_MARK='# >>> predicate conditioning block >>>'
 readonly END_MARK='# <<< predicate conditioning block <<<'
 
 # Worker roles: exactly the six persisted agents.
-readonly WORKER_ROLES=(core-worker refine-worker doc-worker form-worker spec-worker boundary-worker)
+readonly WORKER_ROLES=(core-worker refine-worker doc-worker form-worker spec-worker boundary-worker survey-worker)
 # Reviewer roles — read-only adversarial lenses. Kept byte-identical to the
 # declaration in install.sh (F6 lockstep): the two arrays MUST match exactly.
 readonly REVIEWER_ROLES=(refuter-reviewer hickey-reviewer lowy-reviewer api-reviewer security-reviewer git-review-reviewer ai-slop-reviewer prior-art-reviewer vestigial-reviewer)

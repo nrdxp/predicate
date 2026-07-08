@@ -42,6 +42,7 @@ let personas : { _ : String } = {
   "form-worker"    = import "personas/form-worker.ncl",
   "spec-worker"    = import "personas/spec-worker.ncl",
   "boundary-worker" = import "personas/boundary-worker.ncl",
+  "survey-worker"  = import "personas/survey-worker.ncl",
 } in
 
 # Module segments. The producer carries the action PROCEDURE (the writer's test
@@ -158,6 +159,7 @@ in
   "form-worker"    | HasCore = compose [producer] personas."form-worker",
   "spec-worker"    | HasCore = compose [producer] personas."spec-worker",
   "boundary-worker" | HasCore = compose [] personas."boundary-worker",
+  "survey-worker"  | HasCore = compose [] personas."survey-worker",
 
   # Reviewer fields: core ++ reviewer_module ++ lens-delta. Each is HasCore +
   # HasModule reviewer_module; the eight lenses also carry HasLens <their delta>.
