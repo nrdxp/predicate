@@ -249,7 +249,9 @@ NOT proceed from a refuted frame.
 The expensive waist: saturate the council's shared context via exhaustive
 multi-agent review of the target system.
 
-- Fan out independent subagents in mutually isolated contexts (MBSS
+- Fan out independent subagents — **survey-worker personas at cheap tier**
+  (locate-and-excerpt with the remainder reported; never generic agents
+  where the persona exists) — in mutually isolated contexts (MBSS
   semantics from [refine](../refine/SKILL.md)) across orthogonal angles
   spanning the goal's risk surface (correctness, security, proofs/specs,
   testing, docs-drift, performance — as the goal demands).
@@ -337,8 +339,8 @@ into the shared branch and the tip advanced per layer — is the
 is the *mechanics*; the runnable workflow that drives DISPATCH ⇄ RECONCILE as an
 automaton is the **orchestration skill** (`skills/orchestration/SKILL.md`),
 which packages the protocol's evaluator commands and exit-code routing into a
-loop a cheap-tier runner can execute. This skill is built downstream — until it
-lands, the composer drives the protocol by hand. The narrative:
+loop a cheap-tier runner can execute. Invoke it (named disciplines load,
+not linger) rather than driving the protocol by hand. The narrative:
 
 - Workers run autonomously (e.g. under a `/goal`-style runner) inside
   their assigned discipline workflow, committing to the repository per
@@ -473,7 +475,7 @@ and the DAG is complete:
    still serves the goal. DAG amendments are normal and head-approved —
    open-loop dispatch of a stale or goal-misaligned DAG is a protocol
    violation.
-8. **RETROSPECTIVE_AT_CLOSE:** Before the head's final acceptance, emit a
+3. **RETROSPECTIVE_AT_CLOSE:** Before the head's final acceptance, emit a
    retrospective to the flight recorder (`.ledger/log/`). Every campaign's
    hard-won context — what landed vs the goal, execution-model lessons,
    open watch-items, durability map — must survive context loss. The
@@ -484,26 +486,26 @@ and the DAG is complete:
    structural floor and halts CLOSE. Content quality (genuine reviewers,
    honest convergence) is the adversarial reviewer's responsibility; the
    gate enforces presence and a non-empty floor only.
-9. **DUAL_CLOSE:** A CLOSE that runs only the deterministic gate suite is
+4. **DUAL_CLOSE:** A CLOSE that runs only the deterministic gate suite is
    incomplete. CLOSE terminates only when BOTH (a) the full gate suite
    exits green AND (b) a decorrelated sufficiency review finds the
    machinery wired in and sufficient. A green gate proves execution; it
    cannot prove coverage. Procedure:
    [docs/orchestration-protocol.md §CLOSE](../../docs/orchestration-protocol.md#close).
-3. **COUNCIL_AS_JUDGE:** No worker output is accepted without a
+5. **COUNCIL_AS_JUDGE:** No worker output is accepted without a
    `RECONCILE` judgment grounded in re-run evaluators — the `reconcile-accept`
    verdict routes to the architect seat, and the merge requires the
    lead-maintainer's affirmative consent. Worker self-certification is void.
-4. **LIVING_PLAN:** `PLAN.md`, `ORCHESTRATION.md`, and pending prompts
+6. **LIVING_PLAN:** `PLAN.md`, `ORCHESTRATION.md`, and pending prompts
    are living documents — realignment when reality diverges is
    mandatory, and every realignment is logged with its why.
-5. **TIER_ECONOMY:** Route every node to the cheapest tier whose
+7. **TIER_ECONOMY:** Route every node to the cheapest tier whose
    capability bounds it. The architect-tier seats do not emit code for
    worker-shaped tasks; workers do not make architecture decisions.
-6. **CHECKPOINT_DURABILITY:** `.scratch/` is never committed; the sketch
+8. **CHECKPOINT_DURABILITY:** `.scratch/` is never committed; the sketch
    checkpoints at every reconcile boundary so resume derives from
    sketch + git alone.
-7. **DELEGATED_TDD:** The architect seat specifies the invariants worth
+9. **DELEGATED_TDD:** The architect seat specifies the invariants worth
    verifying; workers implement tests and code under their discipline's
    closed loop, baseline failure included.
 10. **READINESS_GATE:** No dispatch on unmeasured readiness. Layer 0

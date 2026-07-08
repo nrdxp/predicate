@@ -149,7 +149,7 @@ in
 
 # One field per role.  Every field is typed HasCore; export fails if core_text
 # is absent from the composed string. The four code-writer workers pull [producer];
-# the review-only roles (doc, boundary) and the composer pull [] — the composer is a
+# the review-only roles (doc, boundary, survey) and the composer pull [] — the composer is a
 # moderator, not a code-writer, so the single output-style slot sheds the procedure.
 {
   composer         | HasCore = compose [council_render] personas.composer,

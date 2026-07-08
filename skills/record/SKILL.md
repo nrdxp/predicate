@@ -29,6 +29,13 @@ contract (machine-checkable shape), a `.ledger` home, and a trigger
 
 ## Category model
 
+**Who holds the pen.** In an ensemble (campaign/council), the **composer
+alone** writes the recorder — workers and seats deposit to scratch and the
+composer classifies, promotes, and records. In a **solo** predicate walk
+there is no composer: the walker holds the pen and executes this skill
+directly. One pen per walk, whoever it is — two writers interleaving one
+recorder is how a zettelkasten becomes a shoebox.
+
 Each category = **{contract, .ledger home, trigger}**. Categories are
 extensible: adding a fourth later is cheap — add the contract, home,
 and trigger row.
