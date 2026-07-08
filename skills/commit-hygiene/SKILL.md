@@ -67,6 +67,8 @@ A breaking change must be indicated by:
 - `chore`: Auxiliary tasks, infrastructure tooling updates, or miscellaneous maintenance.
 - `revert`: Reversion of a previous commit.
 - `merge`: Integration of one branch, pull request, or workstream into another.
+  (On forge-hosted projects, merges follow the [forge discipline](../forge/SKILL.md):
+  consent-to-merge, self-contained PR prose, review-on-record.)
 
 ### Merge Commits
 

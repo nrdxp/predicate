@@ -82,6 +82,40 @@ hygiene verified. The council is constantly judging whether the campaign
 has proceeded correctly — that judgment, not code emission, is what the
 expensive tokens buy.
 
+### Readiness Is Measurable
+
+Campaign failure is almost never the worker model failing to write code;
+it is the *context* the code was written against — thin doctrine at the
+point of work, prose seams two workers read differently, identity-bearing
+surfaces with no machine gate, premises that drifted. All of that is
+preparable, and preparation quality is **gaugeable before dispatch**:
+
+1. **Evaluator coverage** — of the acceptance criteria on the DAG's
+   path, what fraction carries a pre-built *machine* evaluator (a
+   violation fixture, golden vector, lint, or law test) rather than an
+   agent-check? Target ~100%; every agent-check residue is justified in
+   the routing table.
+2. **Comprehension-probe score** — every worker IBC passes the
+   zero-context probe ([boundary §Comprehension Probe](../boundary/SKILL.md)):
+   unanswered questions ~0, plan-vs-intent divergence resolved, canary
+   traps not bitten.
+3. **Seam-type completeness** — every DAG edge between nodes crosses a
+   *committed, compiling* contract (type, trait, schema, fixture),
+   never prose. Two workers meeting in the middle of a sentence is a
+   defect class; count the edges.
+4. **Red-test / golden-vector inventory** — nodes whose acceptance
+   tests exist-and-fail before dispatch; serialization and identity
+   surfaces with byte-exact golden vectors (where wrong is silent,
+   vectors make it loud).
+
+The counterweight is the **anti-over-preparation rule: prepare
+evaluators and seams, never solutions.** Pre-written implementation code
+goes stale and becomes premise-drift liability; the metrics above gauge
+walls and rails, not pre-walked paths. The end-state test: every failure
+available to a worker is either caught by a machine gate inside its own
+loop, or is a genuine design discovery worth escalating — the metrics
+exist to squeeze out the third category, the anticipatable stupidity.
+
 ### Working Set vs Flight Recorder
 
 The campaign maintains two stores with different mutability and durability:
@@ -235,6 +269,12 @@ Derive the mitigation plan from the findings ledger.
   invariants (property statements, metamorphic relations, theorem
   statements where formal models exist). The architect seat owns the *what* of
   testing; workers implement the minutiae under TDD discipline.
+- **Front-load the gates: layer 0 manufactures evaluators, not
+  features.** The DAG's earliest nodes build the campaign's own
+  verification surface — conformance fixtures, seam types/contracts,
+  golden vectors, red acceptance tests — *before* any implementation
+  node consumes them (§Readiness Is Measurable). Implementation nodes
+  then cite these artifacts in their S4 evaluator commands.
 - Write `PLAN.md`. In `INTERACTIVE` mode, **HALT for the head's approval** of
   the plan before any orchestration.
 
@@ -258,6 +298,15 @@ Manufacture the worker boundaries.
     so RECONCILE can re-run them without trusting worker claims.
 - Write `ORCHESTRATION.md`: the routing table mapping each node to the
   **cheapest tier whose capability bounds the task**, with rationale.
+- **Probe before dispatch:** each emitted IBC passes the zero-context
+  comprehension probe ([boundary §Comprehension Probe](../boundary/SKILL.md));
+  probe failures route back to the IBC (or to the committed docs it
+  leans on), never forward to dispatch.
+- **Report the readiness numbers** (§Readiness Is Measurable) alongside
+  the routing table: evaluator coverage with justified residue,
+  seam-type completeness over DAG edges, red-test and golden-vector
+  inventories, probe results. The numbers are part of what the head
+  approves — dispatching on unmeasured readiness is open-loop.
 - In `INTERACTIVE` mode the head approves the routing table and prompt
   set (the boundary skill's HUMAN_DISPATCH_GATE, applied in batch).
 
@@ -340,6 +389,8 @@ premises:
      is a **separate** decision the delegation table routes to the
      lead-maintainer, whose **affirmative merge-consent** is required before
      the node merges and is marked `ACCEPTED` with its mitigated findings.
+     Where the project has a forge, merge-consent includes the
+     [forge audit](../forge/SKILL.md) over the surfaced PR(s).
    - `REWORK` — an evaluator, surface, or coherence check failed: emit a
      corrective delta IBC (error feedback in cheap space) and re-dispatch;
      the node returns to `PENDING`.
@@ -401,7 +452,10 @@ and the DAG is complete:
    responsibility, not the gate's.
 5. Produce the campaign report from `REVIEW.md` → outcomes: findings
    table with mitigation evidence, DAG execution trace, reconcile rounds,
-   realignments, residual risks.
+   realignments, residual risks. Where the project has a forge, run the
+   [forge audit](../forge/SKILL.md) over the campaign's whole forge
+   surface as part of the council review — prose accuracy against final
+   state, self-containment, the review record's visibility.
 6. **HALT for the head's final acceptance.** Scratch MAY then be discarded;
    the sketch and git history carry the durable record.
 
@@ -452,3 +506,12 @@ and the DAG is complete:
 7. **DELEGATED_TDD:** The architect seat specifies the invariants worth
    verifying; workers implement tests and code under their discipline's
    closed loop, baseline failure included.
+10. **READINESS_GATE:** No dispatch on unmeasured readiness. Layer 0
+    manufactures the campaign's evaluators and seams; the readiness
+    numbers (evaluator coverage, probe scores, seam completeness,
+    red-test/vector inventories) are reported with the routing table and
+    approved with it. Prepare evaluators and seams, never solutions.
+11. **FORGE_WHEN_PRESENT:** Projects with a forge follow the
+    [forge discipline](../forge/SKILL.md) — self-contained PR prose,
+    review-on-record, consent-to-merge, the forge audit at merge-consent
+    and CLOSE. Projects without a forge owe nothing here.

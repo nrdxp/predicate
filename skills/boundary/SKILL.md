@@ -206,6 +206,41 @@ APPROVE ─→ DISPATCH  (human approves IBC*; expensive walk launches)
    dispatch decision. **This gate is mandatory:** no expensive walk
    launches from an unapproved boundary.
 
+## The Comprehension Probe — empirical sufficiency
+
+The ATTACK sweep argues about an IBC; the probe **simulates its
+consumer**. Before an IBC dispatches an autonomous worker (campaign
+worker IBCs especially — [campaign §ORCHESTRATE](../campaign/SKILL.md),
+[orchestration §JIT authoring](../orchestration/SKILL.md)), run a
+zero-context dry run:
+
+- A cheap-tier agent receives ONLY the IBC plus the repository's
+  committed record — no conversation history, no scratch, nothing the
+  real worker won't have — and produces an implementation **plan**
+  (never code) plus an explicit list of every question it cannot answer
+  from those inputs.
+- Score three things:
+  1. **Unanswered questions** — each one is a boundary or documentation
+     gap found for pennies instead of a mid-campaign freeze. Target ~0;
+     iterate the IBC (or the committed docs it leans on) until the
+     count flatlines.
+  2. **Plan-vs-intent divergence** — the probe's plan is compared to
+     the author's intended approach; divergence means the boundary
+     underdetermines the walk (or the intent is wrong — both are
+     findings).
+  3. **Canary traps** — seed the probe with the project's known
+     temptations (the doctrine traps its records name) and count the
+     bites; a bite means the IBC's inline rules don't neutralize a trap
+     the worker will face.
+- The probe is an *empirical validator* of S1–S7, not an eighth
+  condition: a failing probe always localizes to a violated S-condition
+  (usually S1 premises assumed-not-stated, or S7 rules that didn't make
+  the inline cut).
+
+Probe cost is a cheap-tier read; skipping it trades pennies now for a
+frozen worker later. For JIT-authored later-layer IBCs the probe runs at
+authoring time, against the tip the worker will actually see.
+
 ---
 
 ## Prime Directives

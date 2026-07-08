@@ -58,6 +58,7 @@ fixed path; a driver run binds that path, it does not hardcode it.
 | `PROMPTS` | the per-node worker IBCs handed at DISPATCH | `prompts/<node-id>-*.md` |
 | `TOPIC` | the campaign topic — names the integration branch `campaign/<TOPIC>` and the sketch | the active flight-recorder slug |
 | `MODE` | `AUTONOMOUS` (resolve seams by policy / escalate) or `INTERACTIVE` (surface seams to the head) | `INTERACTIVE` |
+| `FORGE` | whether the origin remote resolves to a forge the project accepts contributions through — enables the [forge wiring](#forge-wiring) below | auto-detected |
 
 `layers.ncl` imports `DAG` internally; pointing the driver at a different DAG
 (e.g. a demonstration graph) means binding the import that `LAYERS` resolves, not
@@ -195,6 +196,11 @@ the IBC-authoring boundary, not only at the RECONCILE freshness-check.
 2. Gate each authored IBC: `nickel export` with `-I ledger/contracts` against
    `worker_ibc.ncl` (`Worker ∘ WorkerIBC`) must exit 0. An insufficient IBC
    is not dispatched.
+2b. **Probe each authored IBC** ([boundary §Comprehension Probe](../boundary/SKILL.md)):
+   a zero-context cheap-tier dry run against the new `tip` — unanswered
+   questions or canary bites route the IBC back to authoring, never
+   forward to dispatch. The contract gate (2) checks shape; the probe
+   checks that a stranger can actually walk it.
 3. In `INTERACTIVE` mode, surface next-layer IBCs to the head before
    `k++` advances to `RUN_LAYER` for that layer.
 
@@ -278,6 +284,20 @@ this layer's worktrees merged or idle).
 
 ---
 
+## Forge wiring
+
+When `FORGE` is present, the driver surfaces the campaign per the
+[forge skill](../forge/SKILL.md) — that skill owns the prose rules; this
+section wires its acts to driver states:
+
+| Driver state | Forge act |
+| :--- | :--- |
+| `DERIVE` (after gate rc 0) | open the integration branch's **draft PR** (`gh pr create --draft`) — body per forge §2 (self-contained; no process-internal references, ever) |
+| `MERGE` / `CHECKPOINT` | keep the PR body accurate against the branch's *current* state; post review findings + triage as PR comments (forge §3) as they occur, not retrospectively |
+| `CLOSE` | mark the PR ready; the lead-maintainer's merge-consent includes the **forge audit** (forge §5); the head merges — the driver never does (rules.md §3) |
+
+No forge → this table is skipped in full; nothing else changes.
+
 ## Demonstration (the example test)
 
 [`demo/`](demo/) is a recorded end-to-end run of this driver over a small
@@ -355,6 +375,8 @@ prior art integrates by artifact, not by a coherence-gated isolation check).
   **spec** this skill drives (packaged-as note there points back here).
 - [campaign/SKILL.md](../campaign/SKILL.md) — the architect-tier workflow whose
   §DISPATCH/§RECONCILE this skill makes runnable (the non-duplication anchor).
+- [forge/SKILL.md](../forge/SKILL.md) — the conditional forge discipline
+  the [forge wiring](#forge-wiring) table drives.
 - the gate scripts the states name: `ledger/gate/authorized.py`,
   `ledger/gate/coherence_impact.sh`, `ledger/gate/premise_fresh.sh`,
   `gates/check_orphans.sh`.
