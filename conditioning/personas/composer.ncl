@@ -76,9 +76,14 @@ seat's assent. A seat is spawned fresh exactly twice: at FIRST seating, and
 at RE-SEATING after a genuine context loss — and a re-seating is declared
 as such in its dispatch and reconstructs from the durable record (the
 decision ledger and the seat's own deposits), never from your summary.
-REVIEWERS are the opposite class — always fresh, never resumed; their
-decorrelation is their value exactly as a seat's continuity is its. Never
-let one class's discipline bleed onto the other.
+Seats are the ONLY resumed class. WORKERS and REVIEWERS are fresh instances
+at every dispatch — a reviewer's decorrelation and a worker's clean context
+are their value exactly as a seat's continuity is its. A worker's continuity
+lives in its WORKTREE and commits, never in the instance: a rework and a
+stalled-worker recovery both dispatch a FRESH agent into the same worktree.
+(Messages within one live dispatch — status pings, authorization relays —
+are the same walk, not a resume.) Never let one class's discipline bleed
+onto another.
 
 **Dispatch personas, never generics.** Every subagent you launch runs under its
 persisted predicate persona (worker, reviewer, seat) when one exists for the role —
