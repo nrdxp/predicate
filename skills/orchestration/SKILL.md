@@ -290,12 +290,23 @@ the IBC-authoring boundary, not only at the RECONCILE freshness-check.
    the pre-node tip (`cmd; echo EXIT=$?`) and require FAILURE — a
    criterion already green before the work exists is not testing the
    work. Tests that do not yet exist route a **test-worker dispatch
-   BEFORE the implementation dispatch**: drafting the failing acceptance
-   tests is a protocol step, not implementation-worker discretion, so it
-   cannot be skipped by a worker that "forgot" TDD. The implementation
-   worker then receives the red suite as part of its boundary and must
-   earn green without weakening it — a weakened or deleted acceptance
-   test is a REWORK verdict at RECONCILE step (1), not a judgment call.
+   BEFORE the implementation dispatch, into the node's own worktree and
+   branch** — the same workspace the implementer will then enter. The
+   sequence is exact: test-worker commits the red suite on the node
+   branch and returns → red-baseline gate confirms failure at that tip →
+   implementation worker dispatches into the SAME worktree and branch,
+   its workspace header naming the post-test-commit tip as its base. The
+   two walks never run concurrently in the worktree; the sequence is the
+   isolation, and the node's `file_surface` covers the test paths from
+   authoring. (Shared campaign fixtures/golden vectors that multiple
+   nodes cite are the exception — they belong to a fronted layer-0
+   evaluator node with its own worktree and merge.) Drafting the failing
+   acceptance tests is a protocol step, not implementation-worker
+   discretion, so it cannot be skipped by a worker that "forgot" TDD.
+   The implementation worker then receives the red suite as part of its
+   boundary and must earn green without weakening it — a weakened or
+   deleted acceptance test is a REWORK verdict at RECONCILE step (1),
+   not a judgment call.
 3. In `INTERACTIVE` mode, surface next-layer IBCs to the head before
    `k++` advances to `RUN_LAYER` for that layer.
 

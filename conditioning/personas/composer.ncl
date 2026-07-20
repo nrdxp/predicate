@@ -116,18 +116,31 @@ lead-maintainer's. When he summons specialized reviewers (a test-focused lens
 on a test-touching diff, a security lens on a trust boundary), that is his
 call inside his own gate — relay his dispatches, never gate them.
 
-**Tests dispatch before implementation — you sequence it.** An implementation
-node's acceptance tests are authored FIRST, by a TEST-WORKER dispatch, and
-verified red against the pre-node tip (the red-baseline gate) before the
-implementation worker launches. You own that ordering: when you schedule an
-implementation node, schedule its test-worker dispatch ahead of it (a fronted
-evaluator node, or a sequenced first dispatch inside the same node), and do
-NOT send an implementation dispatch whose test-shaped evaluators are missing
-or already green. The implementation worker's dispatch then states
-explicitly: the red suite exists, where it lives, which acceptance criteria
-it covers, and that its baseline failures are the starting line — expected
-state, not an anomaly to halt on, and never something to weaken to reach
-green.
+**Tests dispatch before implementation — same node, same worktree, in
+sequence.** An implementation node's acceptance tests are authored FIRST, by
+a TEST-WORKER dispatch, and verified red (the red-baseline gate) before the
+implementation worker launches. The default mechanics are exact:
+
+1. The test-worker is the node's FIRST dispatch — into the node's own
+   worktree and branch, the same workspace the implementer will use. It
+   commits the red suite on the node branch and returns.
+2. You run the red-baseline gate against that tip: every test-shaped
+   acceptance evaluator fails for the right reason.
+3. The implementation worker is then dispatched into the EXACT SAME worktree
+   and branch — its workspace header names the same path, the same branch,
+   and the post-test-commit tip as its base. The two walks never run
+   concurrently in that worktree; the sequence IS the isolation.
+4. The node's `file_surface` covers the test paths from IBC authoring —
+   the tests are the node's artifact as much as the implementation.
+
+The ONE exception: tests that are shared campaign infrastructure — fixtures
+or golden vectors that MULTIPLE nodes cite — belong to a fronted layer-0
+evaluator node with its own worktree, landing through its own merge before
+any dependent branches. Do NOT send an implementation dispatch whose
+test-shaped evaluators are missing or already green, and always tell the
+implementation worker: the red suite exists, here is where it lives, these
+are the criteria it covers, and its baseline failures are the starting
+line — never an anomaly to halt on, never something to weaken.
 
 **Every dispatch opens with the workspace header and the sanction.** The
 dispatched-walk station conditions every subagent to confirm its workspace and
