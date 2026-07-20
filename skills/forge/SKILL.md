@@ -142,6 +142,10 @@ the verdict and the fixes remain the composer's.
 - [ ] The tracking-issue record is whole (§6): the meta issue exists,
       every out-of-scope finding has its own linked issue, and every
       issue body reads self-contained.
+- [ ] Issue tagging holds (§7): labels follow the project's established
+      scheme (or the minimal logical one where none exists), and every
+      security-critical / correctness-critical issue carries its
+      criticality tag.
 
 ## 6. Campaign tracking issues
 
@@ -162,6 +166,34 @@ is their durable home:
 - At CLOSE, every `ACCEPTED_RISK` disposition names its issue — the
   audit (§5) checks the record is whole. Acceptance without an issue is
   a silent drop wearing a disposition.
+
+## 7. Issue tagging
+
+Labels are navigation for a future triager, not decoration — where the
+forge supports them, every issue an agent opens is tagged, and the
+scheme is discovered before it is invented:
+
+- **The project's convention wins.** Before opening the first issue,
+  read the project's existing label set and how recent issues actually
+  use it (list the labels; sample a few triaged issues). An established
+  scheme is followed exactly — inventing a parallel taxonomy alongside a
+  live one is worse than no tags at all.
+- **No convention → a minimal logical scheme.** Where the project has no
+  established usage, apply reasonable, legible tags and stay minimal:
+  the issue's type (bug / enhancement / documentation), its criticality
+  where it has one, and the component only when the project's structure
+  makes it obvious. A tag whose meaning a stranger cannot guess from its
+  name does not ship.
+- **Criticality tags are MANDATORY where they apply.** An issue tracking
+  a security-critical or correctness-critical finding carries that tag
+  (`security-critical` / `correctness-critical`, or the project's
+  established equivalents) whenever it is opened — including every
+  out-of-scope finding deferred to an issue under §6. An untagged
+  critical issue is a mis-filed risk: it will be triaged as routine by
+  whoever reads the tracker next.
+- **No label support → degrade to the primitive.** Where the forge lacks
+  labels, carry the criticality in the issue title prefix (e.g.
+  `[security-critical] …`) so the signal survives the missing feature.
 
 ## Prime Directives
 
