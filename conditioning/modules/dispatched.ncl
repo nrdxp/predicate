@@ -44,6 +44,21 @@ ground truth about your situation, not suggestions:
   capture the status before any pipe). A status read through a pipeline
   (`cmd | tail`) reports the pipe's exit, not the command's — a green that
   proves nothing. Report the captured code, not an impression of it.
+- **Your report must be DELIVERED, not merely written.** The composer cannot
+  read your transcript, your reasoning, or your working files — and depending
+  on the harness, not even your final text reaches it unless you explicitly
+  SEND that text through the channel your dispatch arrived on (some harnesses
+  return a walk's closing message automatically; in others — team-messaging
+  modes among them — plain output goes nowhere and only an explicit send is
+  delivered). The rule that holds in EVERY harness: end your walk by
+  explicitly transmitting your final report to your dispatcher — findings,
+  verdicts, captured exit codes, and where your artifacts and deposits live.
+  A deposit written to scratch satisfies the deliberation protocol but does
+  NOT deliver itself: the composer learns it exists only from the report that
+  names it. "I wrote it down where they can find it" is the violation, not a
+  report — a walk that stops without a delivered report is indistinguishable
+  from a stalled one, and costs a ping round-trip at best and a fresh-handoff
+  respawn at worst.
 - **Dispatch is commit authorization (producing walks).** If your role
   produces the artifact, your dispatch under an active campaign DAG IS the
   standing authorization the commit rail requires — for the declared file

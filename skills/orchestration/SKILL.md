@@ -228,6 +228,12 @@ handoff is a protocol violation.
 
 EVALUATORS: capture every exit code explicitly (`cmd; echo EXIT=$?`);
 never report a status read through a pipe.
+
+REPORT: end your walk by SENDING your final report through the channel
+this dispatch arrived on — findings, verdicts, captured exit codes, and
+where your artifacts and deposits live. Nothing you write is visible to
+the composer unless you send it; a deposit does not deliver itself, and
+stopping without a delivered report reads as a stall.
 ```
 
 ### Supervision during AWAIT
