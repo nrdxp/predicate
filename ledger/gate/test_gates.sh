@@ -179,13 +179,13 @@ printf 'ORPHAN_TARGETS=(doc.md)\n' > "$orph_root/.ledger/config.sh"
 printf 'Run the /plan workflow to begin.\n' > "$orph_root/doc_orphan.md"
 # Clean doc — no removed-workflow names at all.
 printf 'Prose with no removed workflow names whatsoever.\n' > "$orph_root/doc_clean.md"
-# P30 regression: predicate's OWN namespace, exercised in every reference form the
-# gate matches (/predicate, `predicate`, "the predicate workflow"). With the CURRENT
-# removed set (which no longer contains "predicate") it must NOT flag — the bug
-# P30 fixed was flagging the project's own namespace. The fixture is load-bearing:
+# Own-namespace regression: predicate's OWN namespace, exercised in every reference
+# form the gate matches (/predicate, `predicate`, "the predicate workflow"). With the
+# CURRENT removed set (which no longer contains "predicate") it must NOT flag — the
+# fixed bug was flagging the project's own namespace. The fixture is load-bearing:
 # the same content WOULD flag if "predicate" were wrongly in the removed set.
 printf 'Invoke /predicate-core, see the `predicate` plugin; the predicate workflow lives in skills/predicate/.\n' \
-  > "$orph_root/doc_p30.md"
+  > "$orph_root/doc_own_ns.md"
 
 # sync_sketch.py fixture (Deliverable B). The script resolves its repo root by
 # walking UP from its OWN script path (not cwd) for .git/.ledger, then operates on
@@ -775,14 +775,16 @@ expect "live ref to removed 'plan' -> flagged (rc 1)" 1 \
 cp "$orph_root/doc_clean.md" "$orph_root/doc.md"
 expect "clean doc -> no orphans (rc 0)" 0 \
   bash "$check_orphans" "$orph_root" plan
-# P30 regression: predicate's own namespace, current removed set (no 'predicate')
-# -> NOT flagged (rc 0). Guards against re-flagging the project's own namespace.
-cp "$orph_root/doc_p30.md" "$orph_root/doc.md"
+# Own-namespace regression: current removed set (no 'predicate') -> NOT flagged
+# (rc 0). Guards against re-flagging the project's own namespace.
+cp "$orph_root/doc_own_ns.md" "$orph_root/doc.md"
 expect "predicate: namespace, current removed set -> not flagged (rc 0)" 0 \
   bash "$check_orphans" "$orph_root" core sketch dialectic
 
 echo "== check_selfcontained.sh: commit-message self-containment =="
-# An internal node-ID reference (P30) is unresolvable from the repo alone -> fail.
+# An internal node-ID-shaped token in the message is unresolvable from the repo
+# alone -> fail. (The literal fixture string below is this test's INPUT — it must
+# carry an ID-shaped token or the test is destroyed; it is exempt as fixture data.)
 expect "message with internal ref (P30) -> violation (rc 1)" 1 \
   bash "$check_selfcontained" "fix: address the P30 finding"
 # A self-contained message naming only repo-visible concepts -> pass.
@@ -845,6 +847,30 @@ expect "file naming only repo concepts -> clean (rc 0)" 0 \
 # fails every campaign diff that touches it.
 expect "gate run over its own source -> clean (rc 0)" 0 \
   bash "$check_internal_ids" --files "$check_internal_ids"
+
+# Range mode scans ADDED lines only — the merge-gate regression: a standing
+# gate that greps full file content goes permanently red on files carrying
+# prior debt or deliberate ID-shaped fixtures, and an always-red gate gets
+# ignored. Fixture repo: commit 1 ships a file with a pre-existing token
+# (assembled via printf so this harness carries none); commit 2 touches that
+# same file adding only clean lines (must pass); commit 3 adds a token line
+# (must fail).
+idrepo="$fixdir/idleak_repo"
+mkdir -p "$idrepo"
+git "${git_id[@]}" -C "$idrepo" init -q
+printf 'Historic doc citing %s7 from an old campaign.\n' N > "$idrepo/doc.md"
+git "${git_id[@]}" -C "$idrepo" add doc.md
+git "${git_id[@]}" -C "$idrepo" commit -q -m "seed with pre-existing token"
+printf 'A clean line about the merge-discipline diagnostic.\n' >> "$idrepo/doc.md"
+git "${git_id[@]}" -C "$idrepo" add doc.md
+git "${git_id[@]}" -C "$idrepo" commit -q -m "touch file, add clean line"
+expect "range touching a token-bearing file, clean adds -> rc 0" 0 \
+  bash -c "cd '$idrepo' && bash '$check_internal_ids' HEAD~1..HEAD"
+printf 'Closes finding %s4 for good.\n' F >> "$idrepo/doc.md"
+git "${git_id[@]}" -C "$idrepo" add doc.md
+git "${git_id[@]}" -C "$idrepo" commit -q -m "add a leaking line"
+expect "range whose added line carries a token -> rc 1" 1 \
+  bash -c "cd '$idrepo' && bash '$check_internal_ids' HEAD~1..HEAD"
 
 echo "== authorized.py --ibc-surface-check: context_map within file_surface =="
 authorized="$here/authorized.py"

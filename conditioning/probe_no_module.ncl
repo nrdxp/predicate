@@ -11,7 +11,7 @@
 # The inert N1 placeholder module text. Must match the MODULE_SENTINEL in
 # test_conditioning.sh exactly so both controls exercise one marker. The real
 # producer module is N2's deliverable; this carries no procedure.
-let module_text : String = "Predicate module segment: N1 inert example" in
+let module_text : String = "Predicate module segment: inert probe example" in
 
 # Sibling of HasCore: a verbatim-substring contract, parameterized by the
 # expected module text. Mirrors compose.ncl's HasModule constructor.

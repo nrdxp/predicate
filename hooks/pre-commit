@@ -164,7 +164,7 @@ pointer="$ledger_root/.ledger/active-dag"
 if [ -f "$pointer" ]; then
   # Resolve the named DAG against the MAIN tree (the pointer and the DAG both
   # live there, not in the worktree); the machinery that reads it stays
-  # $plugin-relative (P21).
+  # $plugin-relative.
   dag="$(head -n1 "$pointer" | tr -d '[:space:]')"
   case "$dag" in
     /*) dag_path="$dag" ;;                # absolute, used as-is

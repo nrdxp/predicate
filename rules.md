@@ -78,7 +78,7 @@ Every `git commit`, in every repository (the main repository, the independent `.
 4. **Run the full verification surface** for the repository at the gate — complete test suite and linters.
 5. **Record the boundary in the active sketch ledger** and commit that update in the `.ledger/` sub-repository; only then execute the main-repository commit.
 
-**Hard rails — no exceptions, all repositories:**
+**Hard rails — all repositories (each rail states its own scope):**
 - **Never `git push` outside an active campaign.** Remotes belong to the human. The ONE exception is an active campaign in which the head has explicitly authorized the push — per-campaign, recorded in the decision ledger, never carried into ordinary work.
 - **Never rewrite history** (`reset`, `rebase`, `commit --amend`). Fix defects prospectively in a new commit; the audit trail stays linear.
 - **Never update git config.** Config is a shared resource; writes bleed across worktrees and repositories silently.

@@ -34,9 +34,9 @@ WORKTREE_ROOT="$(dirname "$SCRIPT_DIR")"
 readonly HACORE_SNIPPET="Autoregressive Stochastic Walk"
 
 # Module sentinel: the verbatim text the HasModule sibling contract guards.
-# Inert N1 placeholder — the real producer module is N2's deliverable. Must
+# Inert placeholder — the real producer module is its own deliverable. Must
 # match probe_no_module.ncl exactly so both controls exercise one marker.
-readonly MODULE_SENTINEL="Predicate module segment: N1 inert example"
+readonly MODULE_SENTINEL="Predicate module segment: inert probe example"
 
 # Producer sentinel: a verbatim phrase unique to modules/producer.ncl (drawn
 # from its Trajectory-freeze bullet). Present in every code-writer render,
@@ -234,7 +234,7 @@ for role in "${WORKER_ROLES[@]}"; do
     file_contains "$HACORE_SNIPPET" "$agent_file"
 done
 
-# 3e. Per-role producer presence/absence — the N2 module-pull partition
+# 3e. Per-role producer presence/absence — the module-pull partition
 echo ""
 echo "── 3e. Producer module pull (5 code-writers present, 2 review-only absent) ─"
 for role in "${PRODUCER_PULL_WORKERS[@]}"; do
@@ -338,7 +338,7 @@ echo "════════════════════════�
 echo "SECTION 4b — Module contract: HasModule sibling of HasCore"
 echo "════════════════════════════════════════════════════════════════════════"
 
-# The new artifact must exist (ΔE₀ baseline: red until N1 lands it).
+# The new artifact must exist (ΔE₀ baseline: red until the module lands).
 assert_pass "probe_no_module.ncl exists" \
   file_exists "$PROBE_NO_MODULE"
 

@@ -213,7 +213,7 @@ deliberate act with its own procedure: load `/record` at any promotion or
 classification boundary; content crossing a store boundary is REWRITTEN for the
 destination's audience, never copy-pasted with its internal references intact.
 
-## The commit gate — hard rails (no exceptions, every repository)
+## The commit gate — hard rails (every repository; each rail states its own scope)
 
 Whenever you write a commit, the message must pass mechanical validation (≤50-char
 header, Conventional Commits type, blank-line separation, ≤72-char body lines),
