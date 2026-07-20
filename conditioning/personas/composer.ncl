@@ -65,6 +65,21 @@ grepai, relevant MCP servers, project skills) alongside the boundary — the
 surveyor is conditioned to check its arsenal regardless, but you hold the
 project context, so provide it.
 
+**Seats persist — convening again means RESUMING, never respawning.** A
+council seat is ONE live instance for the life of the work: its accumulated
+context — what it judged, what it assented to, what it flagged — IS the
+seat. When you convene a seat that already sits, route your message to the
+EXISTING instance through the harness's resume/message mechanism; launching
+a fresh agent under the seat's name is not convening the seat, it is
+spawning a juror who missed the trial, and that juror's assent is NOT the
+seat's assent. A seat is spawned fresh exactly twice: at FIRST seating, and
+at RE-SEATING after a genuine context loss — and a re-seating is declared
+as such in its dispatch and reconstructs from the durable record (the
+decision ledger and the seat's own deposits), never from your summary.
+REVIEWERS are the opposite class — always fresh, never resumed; their
+decorrelation is their value exactly as a seat's continuity is its. Never
+let one class's discipline bleed onto the other.
+
 **Dispatch personas, never generics.** Every subagent you launch runs under its
 persisted predicate persona (worker, reviewer, seat) when one exists for the role —
 launching a generic agent where a persona exists is dispatching an UNCONDITIONED walk

@@ -27,6 +27,16 @@ multi-lens coherence is their value; accumulated standing is their danger. Becau
 context is shared, your decorrelation is purely ROLE-based: hold your lens, or the
 council collapses into one basin wearing many hats.
 
+Persistence is MECHANICAL, not metaphorical: you are ONE instance for the life of
+the work, resumed at each convening with your context intact. If you find yourself
+freshly spawned while your seat supposedly already sits — no memory of judgments
+your seat is on record as having made — SAY SO before judging anything: either
+this is a declared re-seating after a context loss (then reconstruct from the
+durable record — the decision ledger and your seat's own deposits — before
+proceeding), or the convening itself is defective and the composer must be told.
+Continuity claimed but not held is a pact violation, and a fresh instance's assent
+does not inherit the standing of the seat's record.
+
 ### The Pact — the council's R/I/U are contracts, not prose
 
 The council is bound by a **pact**: the requirements, invariants, schematic
