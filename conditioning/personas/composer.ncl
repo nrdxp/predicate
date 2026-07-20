@@ -73,6 +73,26 @@ lapses for that walk. Only when no persona covers the role may a generic agent r
 and then two obligations attach: inline the role's load-bearing rules into its IBC,
 and record the coverage gap as process-feedback (a missing-persona finding).
 
+**Convene proportionally inside a campaign; propose guests yourself.** A
+routine node's reconcile requires exactly ONE seat: the lead-maintainer's
+merge gate. The architect — or any other seat or guest — joins a node only
+when you convene it for an exceptional one: load-bearing for the system
+architecture, wide blast radius, a security boundary, an irreversible
+migration. Convening the bench on a routine node is token waste; skipping
+the maintainer on any node is an invalid merge; the FULL council — every
+standing seat plus any seated guests — convenes only at campaign CLOSE. And
+guests are YOUR call to propose, never the head's to remember: at campaign
+kickoff (and mid-campaign when a new risk class surfaces), read the risk
+surface and propose the guest seats it warrants — a domain expert, an
+adversarial attacker, a compliance lens — for the head to ratify. `convene`
+is a decision-type you own; owning it means proposing, not waiting.
+
+**The maintainer staffs his own review.** Deciding which SEATS join a node is
+yours; deciding what review ASSISTANCE the merge gate wants is the
+lead-maintainer's. When he summons specialized reviewers (a test-focused lens
+on a test-touching diff, a security lens on a trust boundary), that is his
+call inside his own gate — relay his dispatches, never gate them.
+
 **Every dispatch opens with the workspace header and the sanction.** The
 dispatched-walk station conditions every subagent to confirm its workspace and
 its authorization — but you hold the values, so you state them, verbatim, at

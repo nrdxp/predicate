@@ -61,8 +61,10 @@ at every `RECONCILE` boundary:
 > **Goal Supremacy / Mutable DAG:** execution yields exponentially more
 > context than planning — the higher-level goal reigns over the
 > pre-specified DAG skeleton, not the reverse. At every `RECONCILE`
-> boundary the architect seat MUST reconsider whether the DAG still serves the
-> goal. DAG amendments — adding, editing, or removing nodes — are the
+> boundary the composer runs the cheap DAG-vs-goal check; the moment it
+> suggests the graph no longer serves the goal, the architect seat is
+> convened (this, not routine per-node review, is what summons it). DAG
+> amendments — adding, editing, or removing nodes — are the
 > **norm**, not a deviation; staying faithful to an arbitrary initial
 > structure while overlooking what execution revealed is the failure mode
 > this guards against. Each amendment is a new boundary — a `dag-amendment`
@@ -415,12 +417,21 @@ premises:
    `CLOSE`.
 5. **Verdict:**
    - `ACCEPT` — steps 1–4 clean and any dispatched review converged-pass.
-     This is the `reconcile-accept` verdict (the architect seat's); the merge
-     is a **separate** decision the delegation table routes to the
-     lead-maintainer, whose **affirmative merge-consent** is required before
-     the node merges and is marked `ACCEPTED` with its mitigated findings.
-     Where the project has a forge, merge-consent includes the
-     [forge audit](../forge/SKILL.md) over the surfaced PR(s).
+     For a **routine node** this decision lives entirely in the
+     lead-maintainer's merge gate: his **affirmative merge-consent** is the
+     `reconcile-accept` (the delegation table routes both to him), and it is
+     the ONLY seat a routine node's reconcile requires — green evaluators
+     necessary, his consent the accepting act. The architect — or any other
+     seat or guest — joins a node's review only when the composer convened
+     it as **exceptional** (load-bearing for the system architecture, wide
+     blast radius, a security boundary, an irreversible migration); the full
+     bench convenes only at CLOSE. Inside his gate the maintainer may summon
+     specialized review assistance (a test-focused reviewer on a
+     test-touching diff, a security lens on a trust boundary) — his call,
+     and the verdict remains his. On consent the node merges and is marked
+     `ACCEPTED` with its mitigated findings. Where the project has a forge,
+     merge-consent includes the [forge audit](../forge/SKILL.md) over the
+     surfaced PR(s).
    - `REWORK` — an evaluator, surface, or coherence check failed: emit a
      corrective delta IBC (error feedback in cheap space) and re-dispatch;
      the node returns to `PENDING`.
@@ -533,10 +544,13 @@ and the DAG is complete:
    machinery wired in and sufficient. A green gate proves execution; it
    cannot prove coverage. Procedure:
    [docs/orchestration-protocol.md §CLOSE](../../docs/orchestration-protocol.md#close).
-5. **COUNCIL_AS_JUDGE:** No worker output is accepted without a
-   `RECONCILE` judgment grounded in re-run evaluators — the `reconcile-accept`
-   verdict routes to the architect seat, and the merge requires the
-   lead-maintainer's affirmative consent. Worker self-certification is void.
+5. **COUNCIL_AS_JUDGE, PROPORTIONALLY:** No worker output is accepted without
+   a `RECONCILE` judgment grounded in re-run evaluators — for a routine node
+   that judgment is the lead-maintainer's affirmative merge-consent, the one
+   hard-required seat; exceptional nodes additionally convene the seats or
+   guests the composer judged warranted, and the full council (guests
+   included) convenes only at CLOSE. Worker self-certification is void;
+   so is reflexively convening the whole bench per node.
 6. **LIVING_PLAN:** `PLAN.md`, `ORCHESTRATION.md`, and pending prompts
    are living documents — realignment when reality diverges is
    mandatory, and every realignment is logged with its why.

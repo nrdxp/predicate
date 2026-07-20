@@ -103,7 +103,7 @@ delegation table; a project may declare its own.
 | `boundary-design` | architect | `'single` | — |
 | `dag-structure` | composer | `'single` | — |
 | `dag-amendment` | architect | `'single` | head-ratification |
-| `reconcile-accept` | architect | `'single` | — |
+| `reconcile-accept` | maintainer | `'single` | — |
 | `dispatch` | composer | `'single` | — |
 | `convene` | composer | `'single` | — |
 | `lifecycle` | composer | `'single` | — |

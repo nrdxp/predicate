@@ -19,11 +19,14 @@
 # coerce_constitution is idempotent on tags, so the same apply serves both this value
 # and the YAML fixture unchanged).
 #
-# Ownership (matches the reconciled council): reconcile-accept + head-ratified
-# dag-amendment -> architect; dispatch / convene / lifecycle / dag-structure ->
-# composer (the conductor); merge -> maintainer (with explicit merge-consent); residue
-# -> auditor; taste-fork / bar -> human (the head); close -> architect under FULL machine
-# consensus AND head ratification.
+# Ownership (matches the reconciled council): head-ratified dag-amendment ->
+# architect; dispatch / convene / lifecycle / dag-structure -> composer (the
+# conductor); reconcile-accept + merge -> maintainer (per-node acceptance lives in
+# the merge gate — the ONLY seat a routine node's reconcile requires; other seats
+# and guests join a node only when the composer convenes them for an exceptional
+# one); residue -> auditor; taste-fork / bar -> human (the head); close ->
+# architect under FULL machine consensus AND head ratification (the whole bench,
+# guests included, convenes only there).
 {
   seats = [
     { id = "architect",  role = "boundary / goal / strategy",       domain = "boundary",        standing = 'standing },
@@ -52,7 +55,10 @@
     { decision_type = "dag-structure",    owner = "composer",   required_assent = 'single },
     # head-ratified: architect owns it, but the head (human) MUST ratify.
     { decision_type = "dag-amendment",    owner = "architect",  required_assent = 'single, must_assent = ["human"] },
-    { decision_type = "reconcile-accept", owner = "architect",  required_assent = 'single },
+    # Per-node acceptance folds into the merge gate: for a routine node the
+    # maintainer's affirmative consent IS the accept; the architect joins only
+    # when convened for an exceptional (load-bearing) node.
+    { decision_type = "reconcile-accept", owner = "maintainer", required_assent = 'single },
     { decision_type = "dispatch",         owner = "composer",   required_assent = 'single },
     { decision_type = "convene",          owner = "composer",   required_assent = 'single },
     { decision_type = "lifecycle",        owner = "composer",   required_assent = 'single },
