@@ -256,10 +256,13 @@ Ingest the approved campaign $\text{IBC}^*$.
   toolchains, and the permission preflight (allowlist the campaign's
   foreseeable sensitive actions, above all the head-authorized final push)
   — proactively, never reactively after a disk-full or classifier block.
-- **Where the project has a forge, open the campaign's tracking pair**:
-  the integration branch's draft PR and the campaign's **meta tracking
+- **Where the project has a forge, bootstrap the forge surface**: push
+  the shared integration branch and open the campaign's **meta tracking
   issue** ([forge §6](../forge/SKILL.md)) — the durable index every
-  out-of-scope finding will link from.
+  out-of-scope finding will link from. The tracking PR is NOT opened
+  here: it follows the bootstrap sequence ([forge §1](../forge/SKILL.md))
+  and opens only once the first node's merge gives the shared branch
+  content — a PR against an empty branch is the recurring field failure.
 
 ### 2. CLARIFY
 

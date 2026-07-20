@@ -442,8 +442,8 @@ section wires its acts to driver states:
 
 | Driver state | Forge act |
 | :--- | :--- |
-| `DERIVE` (after gate rc 0) | open the integration branch's **draft PR** (forge MCP preferred; `gh pr create --draft` fallback — forge §0) — body per forge §2 (self-contained; no process-internal references, ever) |
-| `MERGE` / `CHECKPOINT` | keep the PR body accurate against the branch's *current* state; post review findings + triage as PR comments (forge §3) as they occur, not retrospectively |
+| `DERIVE` (after gate rc 0) | create the shared integration branch from the baseline and **push it** (covered by the campaign's recorded push authorization — preflighted at setup). **Open NO PR** — a PR needs content to merge and the branch is empty until the first node lands; opening one here is the recurring bootstrap failure (forge §1) |
+| `MERGE` / `CHECKPOINT` | surface each finished node as a **node PR targeting the shared branch** (forge MCP preferred; `gh` CLI fallback — forge §0); its consented merge lands in git and the push closes it. At the **first** node merge, open the **tracking PR** (draft, shared → default) with its checklist body (forge §2 — one `#N` item per node PR, checked as each merges), the first item already checked; thereafter keep the checklist and body accurate against the branch's *current* state, and post review findings + triage as PR comments (forge §3) as they occur, not retrospectively |
 | `CLOSE` | mark the PR ready; the composer runs the **forge audit** (forge §5) over the final forge surface — the maintainer's consent covers the code, never the prose; the merge lands per forge §4 (in git, on the head's say-so; any push only under the head's recorded per-campaign authorization — rules.md §3's one exception) — the driver never merges or pushes |
 
 No forge → this table is skipped in full; nothing else changes.

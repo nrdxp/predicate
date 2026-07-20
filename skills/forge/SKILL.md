@@ -45,9 +45,31 @@ API merge endpoint, ever.
 
 ## 1. Branch ↔ PR mapping
 
-- One integration branch, one PR. A campaign's `campaign/<TOPIC>` branch
-  surfaces as a single PR; independent workstreams get independent
-  branches and PRs, never one omnibus.
+Two PR tiers, one campaign:
+
+- **Per-node PRs.** Each finished node branch surfaces as a PR targeting
+  the campaign's shared integration branch — that PR is the node's
+  review record (findings, triage, the merge-consent trace). The merge
+  itself still happens in git (§4); pushing the merged shared branch is
+  what closes the PR.
+- **One tracking PR per campaign.** The `campaign/<TOPIC>` integration
+  branch surfaces as a single PR against the default branch; independent
+  workstreams get independent branches and PRs, never one omnibus. Its
+  body is the campaign checklist (§2).
+- **The bootstrap order is forced by the forge — follow it, never fight
+  it.** A PR cannot exist until its branch differs from its base, so:
+  1. At campaign setup, create the shared integration branch from the
+     baseline and PUSH it (covered by the campaign's recorded push
+     authorization — preflight it with the rest). Open NO PR yet.
+  2. When the FIRST node finishes, push its node branch and open the
+     first node PR, targeting the shared branch.
+  3. After that node's consented merge lands on the shared branch and is
+     pushed, the shared branch has content: NOW open the tracking PR
+     (draft) with its checklist body, the first item already checked.
+  4. Every later node repeats the rhythm of (2)–(3): node PR → consented
+     merge → its checklist item checked.
+  Opening the tracking PR at campaign start — before anything exists to
+  merge — is the recurring field failure this sequence exists to kill.
 - **Stacked PRs** are permitted for dependent work: base each PR on its
   prerequisite's branch. Know the forge's mechanics: when a base branch
   merges and is deleted, the dependent PR retargets (or auto-closes as
@@ -73,6 +95,14 @@ API merge endpoint, ever.
   issue bodies, review summaries) in a scratch file and run
   `gates/check_internal_ids.sh --files <draft>` over it before posting,
   the same standing gate merge review runs over shipped files.
+- **The tracking PR's body is a checklist.** After its summary prose,
+  one item per node PR, in schedule order, checked as each merges:
+  `- [x] #<node-PR-number> — <what it landed, in repository terms>`.
+  On GitHub use the bare `#N` reference — the forge renders the PR's
+  live title and state natively; on other forges use their native
+  reference syntax, a plain link as the primitive. Item text obeys the
+  same self-containment rule as everything else: describe the landing
+  in repository terms, never by campaign-internal node tokens.
 - Verification claims in PR prose follow the same honesty rules as
   commit messages: state what evaluators ran and their actual results;
   never imply coverage that does not exist.
