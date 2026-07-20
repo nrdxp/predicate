@@ -43,6 +43,7 @@ let personas : { _ : String } = {
   "spec-worker"    = import "personas/spec-worker.ncl",
   "boundary-worker" = import "personas/boundary-worker.ncl",
   "survey-worker"  = import "personas/survey-worker.ncl",
+  "test-worker"    = import "personas/test-worker.ncl",
 } in
 
 # Module segments. The producer carries the action PROCEDURE (the writer's test
@@ -90,6 +91,7 @@ let council : { _ : String } = {
   "architect-seat"       = import "personas/architect-seat.ncl",
   "lead-maintainer-seat" = import "personas/lead-maintainer-seat.ncl",
   "process-auditor-seat" = import "personas/process-auditor-seat.ncl",
+  "hacker-seat"          = import "personas/hacker-seat.ncl",
 } in
 
 # Constitution render. The single-sourced project constitution
@@ -174,6 +176,8 @@ in
     = compose [dispatched, producer] personas."form-worker",
   "spec-worker"    | HasCore | HasModule dispatched
     = compose [dispatched, producer] personas."spec-worker",
+  "test-worker"    | HasCore | HasModule dispatched
+    = compose [dispatched, producer] personas."test-worker",
   "boundary-worker" | HasCore | HasModule dispatched
     = compose [dispatched] personas."boundary-worker",
   "survey-worker"  | HasCore | HasModule dispatched
@@ -212,4 +216,6 @@ in
     = compose [dispatched, council_module] council."lead-maintainer-seat",
   "process-auditor-seat" | HasCore | HasModule dispatched | HasModule council_module
     = compose [dispatched, council_module] council."process-auditor-seat",
+  "hacker-seat"          | HasCore | HasModule dispatched | HasModule council_module
+    = compose [dispatched, council_module] council."hacker-seat",
 }

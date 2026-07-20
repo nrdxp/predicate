@@ -96,8 +96,8 @@ readonly END_MARK='# <<< predicate conditioning block <<<'
 readonly OUTPUT_STYLE_NAME='Predicate Composer'
 readonly OUTPUT_STYLE_FILE='predicate-composer.md'
 
-# The six worker roles materialized as persisted Claude agents.
-readonly WORKER_ROLES=(core-worker refine-worker doc-worker form-worker spec-worker boundary-worker survey-worker)
+# The worker roles materialized as persisted Claude agents.
+readonly WORKER_ROLES=(core-worker refine-worker doc-worker form-worker spec-worker boundary-worker survey-worker test-worker)
 # The nine reviewer roles — read-only adversarial lenses. A distinct class: each
 # composes the reviewer module (NOT producer), so they form a sibling list rather
 # than joining WORKER_ROLES. This declaration is kept byte-identical to the one in
@@ -106,7 +106,7 @@ readonly REVIEWER_ROLES=(refuter-reviewer hickey-reviewer lowy-reviewer api-revi
 # The three architect-tier council SEATS — a distinct class: each composes the
 # council module (NOT producer), a sibling list like REVIEWER_ROLES. Kept
 # byte-identical to the declaration in test_conditioning.sh (F6 lockstep).
-readonly COUNCIL_ROLES=(architect-seat lead-maintainer-seat process-auditor-seat)
+readonly COUNCIL_ROLES=(architect-seat lead-maintainer-seat process-auditor-seat hacker-seat)
 # Every role materialized as a persisted Claude agent (workers + reviewers + seats).
 readonly AGENT_ROLES=("${WORKER_ROLES[@]}" "${REVIEWER_ROLES[@]}" "${COUNCIL_ROLES[@]}")
 # All valid roles (for --role validation and dry-run targeting). The composer is
@@ -218,6 +218,7 @@ worker_description() {
     spec-worker)     printf 'Normative specification under /spec: machine-checkable invariants, permitted transitions, and forbidden states; every constraint names its evaluator.' ;;
     survey-worker)   printf 'Read-only cheap-tier territory mapping: locate and excerpt with file:line evidence, enumerate the universe before coverage claims, deposit findings and remainders; never judge, synthesize, or edit.' ;;
     boundary-worker) printf 'IBC authoring and refinement under /boundary: S1–S7 sufficiency contraction with deterministic acceptance criteria.' ;;
+    test-worker)     printf 'Red-first test engineering under /core + /robust-testing: derive test invariants from acceptance criteria, write them as runnable tests, verify each fails for the right reason; never implement the feature.' ;;
     refuter-reviewer)     printf 'Lens-free read-only adversarial reviewer: attack the artifact as a whole for any defect, decorrelated by fresh eyes alone; name defects, never edit.' ;;
     hickey-reviewer)      printf 'Read-only structural-simplicity reviewer (hickey lens): scan for complected concerns and concept multiplication; name defects, never edit.' ;;
     lowy-reviewer)        printf 'Read-only volatility-decomposition reviewer (lowy lens): test module boundaries against axes of change; name defects, never edit.' ;;
@@ -230,6 +231,7 @@ worker_description() {
     architect-seat)       printf 'Council seat — the BOUNDARY lens: goal-fit, strategy, and architecture coherence. Sovereign over boundary-design; drives dag-amendment. Convened for exceptional (load-bearing) nodes, structural faults, and campaign CLOSE — not routine reconciles.' ;;
     lead-maintainer-seat) printf 'Council seat — the MERGE GATE: the hostile elite engineer-maintainer who owns the maintenance burden. Every merge needs his affirmative consent; green gates are necessary but never sufficient.' ;;
     process-auditor-seat) printf 'Council seat — the PROCESS + RESIDUE auditor: checks the composer against the pact and the law, proposes bars, and hunts vestigial residue greedily. Independent; reads the durable record directly.' ;;
+    hacker-seat)          printf 'Council seat — the ATTACK lens: first-principles adversarial attacker of the system as built. Findings bind by demonstrated attack path; convened for security-consequential nodes and campaign CLOSE.' ;;
     *) printf 'Predicate worker persona.' ;;
   esac
 }
