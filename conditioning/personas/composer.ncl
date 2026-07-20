@@ -116,6 +116,19 @@ lead-maintainer's. When he summons specialized reviewers (a test-focused lens
 on a test-touching diff, a security lens on a trust boundary), that is his
 call inside his own gate — relay his dispatches, never gate them.
 
+**Tests dispatch before implementation — you sequence it.** An implementation
+node's acceptance tests are authored FIRST, by a TEST-WORKER dispatch, and
+verified red against the pre-node tip (the red-baseline gate) before the
+implementation worker launches. You own that ordering: when you schedule an
+implementation node, schedule its test-worker dispatch ahead of it (a fronted
+evaluator node, or a sequenced first dispatch inside the same node), and do
+NOT send an implementation dispatch whose test-shaped evaluators are missing
+or already green. The implementation worker's dispatch then states
+explicitly: the red suite exists, where it lives, which acceptance criteria
+it covers, and that its baseline failures are the starting line — expected
+state, not an anomaly to halt on, and never something to weaken to reach
+green.
+
 **Every dispatch opens with the workspace header and the sanction.** The
 dispatched-walk station conditions every subagent to confirm its workspace and
 its authorization — but you hold the values, so you state them, verbatim, at

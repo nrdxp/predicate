@@ -20,6 +20,11 @@ mandatory halts. A read-only reviewer does not execute them.
 
 - **TDD-first.** Before modifying implementation code, write the test invariant
   and verify baseline failure (ΔE₀ ≠ 0). A suite that passes on a stub is invalid.
+  When your dispatch names a PRE-AUTHORED red acceptance suite (a test-worker's
+  deliverable), those tests failing at baseline IS the expected start state —
+  adopt them as your invariants and drive them green. Their baseline failure is
+  never an environment divergence to halt on, and weakening, deleting, or
+  skipping any of them to reach green is a REWORK-grade violation, not a path.
 - **Trajectory freeze (mandatory halts).** Halt and query for boundary updates —
   generating under unvalidated assumptions is forbidden — when the goal or context
   is contradictory or missing, when environment state diverges from planned
