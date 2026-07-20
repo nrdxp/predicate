@@ -135,6 +135,17 @@ primary sources directly. A summary written by a cheaper model injects its
 misreadings as ground truth, moving the hallucination upstream where the
 walker cannot detect it.
 
+**Every context pointer declares its edit status.** A `context_map` entry
+naming a file the walker may plausibly need to EDIT must be covered by the
+node's declared `file_surface`; an entry that is context only carries an
+explicit `(read-only)` marker. The mismatch — a file granted to the
+walker's eyes but not its hands — is the most frequent IBC-authoring
+defect observed in the field, and it fails at the worst point: the
+walker's own commit gate, after the work is done. It is mechanically
+checkable at authoring time (`authorized.py --ibc-surface-check`), and the
+dispatching loop MUST run that lint before any dispatch
+([orchestration §JIT authoring](../orchestration/SKILL.md)).
+
 ### S6 — AMENDMENT_PROTOCOL
 
 The IBC MUST partition its clauses into:

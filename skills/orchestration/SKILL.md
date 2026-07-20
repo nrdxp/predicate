@@ -89,6 +89,32 @@ outside the recorder repo is malformed).
 
 ---
 
+## Campaign setup (once, before the first dispatch)
+
+Three environment hazards recur in worktree-per-node campaigns; each is
+foreseeable, so each is closed at setup, never discovered under pressure:
+
+- **Shared build output for compiled toolchains.** A campaign spawns many
+  concurrent worktrees; a compiled-language project (Cargo, Go, …) left to its
+  defaults builds a full per-worktree artifact tree and can silently consume
+  the disk mid-campaign. Configure a **repository-scoped** shared build-output
+  directory (e.g. a `.cargo/config.toml` at the project root — inherited by
+  every nested worktree via config resolution) plus a build-parallelism cap
+  that leaves the head's own concurrent work headroom. Repo-scoped, never
+  machine-global: a machine-global cache collides with unrelated projects the
+  head is developing on the same box.
+- **Permission preflight.** Enumerate the sensitive actions the campaign will
+  foreseeably need — above all the head-authorized final push of the
+  integration branch — and ensure the harness permission environment allows
+  them, so a mid-campaign classifier block never becomes the arbiter. A block
+  that fires anyway is surfaced to the head as an environment gap; it is never
+  routed around (in particular, never through a forge merge API).
+- **Hook content runs from the main checkout.** Installed hooks are symlinks
+  into the main checkout's tracked sources, live in every worktree with no
+  reinstall — but a campaign branch that *edits* hook or gate sources is not
+  live until those edits reach the main checkout. Nodes depending on changed
+  gate behavior must account for that.
+
 ## State
 
 The orchestrator's entire state is reconstructable from git + the sketch
@@ -155,18 +181,63 @@ so post-campaign ordinary commits revert to structural-only.
 | :--- | :--- | :--- | :--- |
 | `DERIVE` | `DRIVE` head, "Derived schedule" | `nickel export DAG --apply-contract ledger/contracts/dag_apply.ncl` (structural gate — `DAG` is a `.yaml` instance); then `nickel export LAYERS` → `{layer_count, layers}`; on rc 0: `printf '%s\n' "$DAG" > $root/.ledger/active-dag` | export rc≠0 → **HALT** (the DAG is malformed; not a driver decision). rc 0 → create `shared_branch` from HEAD, `tip := HEAD`, `k := 0` → `RUN_LAYER` |
 | `RUN_LAYER` | `RUN_LAYER` step 1 (`PARTITION`) | read `layers[k]`; split into `serial` (nodes with `serialize=true`) and `parallel := layer \ serial` — a *read of the validated DAG*, not a fresh conflict computation (`DagNoConflict` already proved the parallel set disjoint) | → `DISPATCH` for the parallel set |
-| `DISPATCH` | `RUN_LAYER` step 2, `DISPATCH` | per node: `git worktree add .scratch/worktrees/<id> -b node/<descriptive-slug> <base>` — the worktree **directory** stays the generic node `<id>` (so dirs don't proliferate), but the **branch** is a descriptive slug so stacked branches/PRs self-describe; hand the worker ONLY `PROMPTS/<id>-*.md` + its discipline; `STATUS := DISPATCHED` | all dispatched → `AWAIT` |
-| `AWAIT` | `RUN_LAYER` step 2, `AWAIT` | workers run autonomously, commit in their worktree under their discipline's commit gate, never push; collect each return | a worker FREEZE (surface-exceed) → `SURFACE_EXCEED`; FREEZE (refuted premise) → `REALIGN`; any other reserved halt → **[HUMAN SEAM]**; all returned → `RECONCILE` |
+| `DISPATCH` | `RUN_LAYER` step 2, `DISPATCH` | per node: `git worktree add .scratch/worktrees/<id> -b node/<descriptive-slug> <base>` — the worktree **directory** stays the generic node `<id>` (so dirs don't proliferate), but the **branch** is a descriptive slug so stacked branches/PRs self-describe; hand the worker ONLY `PROMPTS/<id>-*.md` + its discipline, opened with the [dispatch header](#the-dispatch-header-mandatory) — verbatim, every dispatch; `STATUS := DISPATCHED` | all dispatched → `AWAIT` |
+| `AWAIT` | `RUN_LAYER` step 2, `AWAIT` | workers run autonomously, commit in their worktree under their discipline's commit gate, never push; collect each return under the [supervision invariants](#supervision-during-await) (idle = stopped; verify state directly; stalled → fresh handoff) | a worker FREEZE (surface-exceed) → `SURFACE_EXCEED`; FREEZE (refuted premise) → `REALIGN`; any other reserved halt → **[HUMAN SEAM]**; all returned → `RECONCILE` |
 | `SURFACE_EXCEED` | `SURFACE_EXCEED` | `authorized.py --collision-check --path <req> --against-surfaces <concurrent surfaces>` | rc 0 (WIDEN) → widen node surface, re-validate DAG (`nickel export dag.yaml --apply-contract ledger/contracts/dag_apply.ncl`), resume worker → `AWAIT`. rc 3 (SERIALIZE) → mark `serialize: true` in the YAML, re-validate, re-schedule into `serial` → `RUN_LAYER` |
 | `RECONCILE` | `RECONCILE_AND_MERGE` (1)-(5) | for each LANDED node in **node-id order**, run the boundary checks (below); compute `VERDICT`. **Process-adherence gate (first node only):** `bash ledger/gate/adherence_audit.sh <baseline> <shared_branch>` — rc 1 → **HALT** (accidental flat-commits detected — commits with no node/* branch witness; surface diagnostic to human before any merge proceeds) | `ACCEPT` → `MERGE`; `REWORK` → emit corrective delta IBC, re-dispatch from current tip, `STATUS := PENDING` → `DISPATCH`; `ESCALATE` → `REALIGN` or **[HUMAN SEAM]** |
 | `MERGE` | `RECONCILE_AND_MERGE` (5) ACCEPT | **Merge-consent gate (before any `git merge`):** `bash ledger/gate/council_consent.sh <decision-ledger.yaml>` — rc≠0 → **HALT** (a `'merge` decision lacks the lead maintainer's recorded assent; green gates are necessary but never sufficient — the maintainer must affirmatively consent before the branch lands). Then merge the accepted node branch(es) into `shared_branch` with the strategy the situation calls for: a standard merge, or an **octopus** merge when a concurrent sibling layer lands together (the octopus legitimately makes a node branch the first parent — this is correct, not a bypass). Any merge strategy is valid; the adherence audit verifies worktree isolation by **branch reachability** (every non-merge first-parent commit traces to a node/* branch), not by merge shape. `STATUS := ACCEPTED`; mark mitigated findings | → `CHECKPOINT` |
 | `BOUNDARY` | `LAYER_BOUNDARY` | (1) **cumulative-diff coherence gate**: `coherence_impact.sh --removed <cut-set>` over the layer's cumulative diff. (2) **DAG vs goal re-examination** ([campaign §Goal Supremacy](../campaign/SKILL.md)): does the remaining DAG still serve the goal? If amendments (add/edit/remove nodes) are warranted, surface them as **[HUMAN SEAM]** — a node addition is a boundary the human signs off on before any affected node is re-dispatched. | coherence rc 1 → `ESCALATE`. rc 0, no DAG amendment → advance the tip. rc 0, amendment needed → **[HUMAN SEAM]**: halt, surface the amendment; on approval re-export `DAG + LAYERS`, then advance the tip. |
 | `CHECKPOINT` | `RECONCILE_AND_MERGE` (6) | append a RECONCILE_LOG round (judged verdicts, freshness, realignments) to the active sketch; commit it in the recorder (`git -C <recorder> commit`) | more nodes in layer → `RECONCILE`; layer done → `BOUNDARY`; `BOUNDARY` rc 0 and `k+1 < layer_count` → `tip := shared_branch HEAD`, `k++` → `RUN_LAYER`; last layer → `CLOSE`. `BOUNDARY` rc 1 → `ESCALATE` → architect seat realigns the plan/DAG (PLAN), then re-dispatch |
 | `REALIGN` | `REALIGN` | rewrite the node's premises/surface to current HEAD; if topology/surfaces change, re-export DAG + LAYERS (schedule may change); `STATUS := PENDING`; log it | → `DISPATCH` (or `RUN_LAYER` if the schedule changed) |
-| `CLOSE` | `CLOSE` ([Dual-CLOSE Invariant](../../docs/orchestration-protocol.md#close)) | **(a) Deterministic path:** assert every finding MITIGATED/accepted + every node ACCEPTED; run the full deterministic surface over `shared_branch`; **process-adherence gate:** `bash ledger/gate/adherence_audit.sh <baseline> <shared_branch>` — rc 1 → **HALT** (accidental flat-commits in history — commits with no node/* branch witness). **(b) Adversarial path — sufficiency review:** dispatch decorrelated, context-free reviewers to audit whether the gate machinery is wired in and sufficient ("what does no gate check, what is defined-but-unwired, what claim is hollow?") — route findings to follow-up nodes or tech-debt records before acceptance. **Integration-drift sweep:** ONE final decorrelated MBSS sweep over the cumulative diff for cross-node integration drift no single boundary could see. **Retrospective + close record:** **emit the retrospective** to `.ledger/log/` (commit `log: close <topic> retrospective` — content per [campaign §CLOSE](../campaign/SKILL.md)); the retrospective MUST include a `## Sufficiency Review` section with substantive content (reviewers, convergence, findings — the orchestrator's content responsibility). **recorder-close gate:** `bash ledger/gate/recorder_close_check.sh <topic>` — rc≠0 → **HALT** (verifies BOTH the close entry AND that its `## Sufficiency Review` section is present with non-empty content; a hollow heading fails the structural floor — content quality is the adversarial reviewer's job, not the gate's); produce the campaign report; `rm -f $root/.ledger/active-dag` | → **[HUMAN SEAM]**: HALT for human final acceptance + any push |
+| `CLOSE` | `CLOSE` ([Dual-CLOSE Invariant](../../docs/orchestration-protocol.md#close)) | **(a) Deterministic path:** assert every finding MITIGATED/accepted + every node ACCEPTED; run the full deterministic surface over `shared_branch`, including `gates/check_internal_ids.sh <baseline>..<shared_branch>` (the whole-campaign ID-leak sweep — per-node checks cannot see a leak in a file no later node touched); **process-adherence gate:** `bash ledger/gate/adherence_audit.sh <baseline> <shared_branch>` — rc 1 → **HALT** (accidental flat-commits in history — commits with no node/* branch witness). **(b) Adversarial path — sufficiency review:** dispatch decorrelated, context-free reviewers to audit whether the gate machinery is wired in and sufficient ("what does no gate check, what is defined-but-unwired, what claim is hollow?") — route findings to follow-up nodes or tech-debt records before acceptance. **Integration-drift sweep:** ONE final decorrelated MBSS sweep over the cumulative diff for cross-node integration drift no single boundary could see. **Retrospective + close record:** **emit the retrospective** to `.ledger/log/` (commit `log: close <topic> retrospective` — content per [campaign §CLOSE](../campaign/SKILL.md)); the retrospective MUST include a `## Sufficiency Review` section with substantive content (reviewers, convergence, findings — the orchestrator's content responsibility). **recorder-close gate:** `bash ledger/gate/recorder_close_check.sh <topic>` — rc≠0 → **HALT** (verifies BOTH the close entry AND that its `## Sufficiency Review` section is present with non-empty content; a hollow heading fails the structural floor — content quality is the adversarial reviewer's job, not the gate's); produce the campaign report; `rm -f $root/.ledger/active-dag` | → **[HUMAN SEAM]**: HALT for human final acceptance + any push |
 
 `sort` is node-id order throughout: a fixed reconcile order makes the run
 **replayable** — re-running from a checkpoint reproduces the same sequence.
+
+### The dispatch header (mandatory)
+
+Every dispatch prompt OPENS with this header — a literal template the
+composer fills with the node's values, never prose re-derived per node
+(inconsistent application is exactly how workers end up acting in a stale
+sibling worktree):
+
+```
+WORKSPACE — confirm before any other action:
+  cd <exact absolute worktree path>
+  git branch --show-current          # MUST print: node/<slug>
+  git merge-base --is-ancestor <base-tip-sha> HEAD   # MUST exit 0
+  Any mismatch: HALT and report. Do not proceed under an assumed identity.
+
+SANCTION: you run unattended in auto mode; no human is at your console —
+the composer is your only channel. This dispatch under the active campaign
+DAG is your standing authorization to commit at every logical boundary
+within your declared file_surface. Leaving finished work uncommitted at
+handoff is a protocol violation.
+
+EVALUATORS: capture every exit code explicitly (`cmd; echo EXIT=$?`);
+never report a status read through a pipe.
+```
+
+### Supervision during AWAIT
+
+Three hard invariants govern the wait — each a recurring field failure when
+left to judgment:
+
+- **Idle means stopped.** An idle notification from an agent that has not
+  delivered its final report means the agent has STOPPED and is waiting.
+  Respond with an immediate status/report request — no lookback heuristic,
+  no deferral. There is no "idle but still computing."
+- **Verify state directly.** Before trusting any status message — and before
+  accepting any "green"/"done" self-report — inspect the worktree: `git log`,
+  `git status`, process state, disk timestamps. Piped exit codes and worker
+  self-reports are not evidence; the header's explicit-capture rule exists
+  because the piped-status failure recurred across independent workers.
+- **A stalled worker gets a fresh handoff.** No report despite pings, and
+  direct inspection shows no progress → dispatch a NEW agent into the same
+  worktree and branch with a handoff brief (what is committed, what was
+  claimed but unconfirmed, what remains). The composer never finishes or
+  verifies the work itself — the role boundary holds precisely when breaking
+  it looks small.
 
 ### JIT per-layer IBC authoring
 
@@ -201,6 +272,14 @@ the IBC-authoring boundary, not only at the RECONCILE freshness-check.
    questions or canary bites route the IBC back to authoring, never
    forward to dispatch. The contract gate (2) checks shape; the probe
    checks that a stranger can actually walk it.
+2c. **Lint the surface**: `python3 ledger/gate/authorized.py --dag
+   <exported-DAG.json> --ibc-surface-check <id> --ibc <exported-ibc.json>`
+   — every path-bearing `context_map` entry must fall under the node's
+   `file_surface` or carry an explicit `(read-only)` marker. rc 1 routes
+   the IBC back to authoring (widen the surface or mark the entry), never
+   forward to dispatch: this was the single most common IBC-authoring
+   defect in the field, and every occurrence cost a worker HALT plus a
+   full widen/re-dispatch round-trip that this lint closes for free.
 3. In `INTERACTIVE` mode, surface next-layer IBCs to the head before
    `k++` advances to `RUN_LAYER` for that layer.
 
@@ -232,6 +311,12 @@ bash ledger/gate/coherence_impact.sh <repo-root> [--removed <workflow> ...]
 #   rc 0 -> machine-surface coherent; record any decorrelated-review DISPATCH
 #           lines and their converged verdict before ACCEPT (adversarial path)
 
+# (3b) INTERNAL-ID LEAK — no campaign token ships in a touched file.
+bash gates/check_internal_ids.sh <base>..HEAD   # run in the node's worktree
+#   rc 1 -> a shipped file cites a node/finding token: VERDICT := REWORK
+#           (rewrite in repository terms; the record lives in .ledger, not
+#           the artifact). Standing gate, not an ad hoc close-time grep.
+
 # (4) PREMISE-FRESHNESS — re-verify EVERY pending node against the new HEAD.
 for p in <pending nodes>; do
   bash ledger/gate/premise_fresh.sh <p-id> <p's tripwire spec>
@@ -239,7 +324,8 @@ for p in <pending nodes>; do
   #   rc 0 -> p stays FRESH
 done
 
-# (5) VERDICT: ACCEPT (1-4 clean, reviews converged) -> MERGE; else REWORK/ESCALATE.
+# (5) VERDICT: ACCEPT (1-4 incl. 3b clean, reviews converged) -> MERGE;
+#     else REWORK/ESCALATE.
 ```
 
 ### BOUNDARY — semantic coherence over the cumulative diff (not just file-surface)

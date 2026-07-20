@@ -236,6 +236,15 @@ Ingest the approved campaign $\text{IBC}^*$.
   the frame early is a success condition, not a failure.
 - Initialize `.scratch/<topic>/` and ensure `.scratch/` is git-ignored.
 - Open the campaign sketch in `.ledger/log/` (flight recorder) and commit.
+- **Run the environment setup** ([orchestration §Campaign setup](../orchestration/SKILL.md)):
+  repo-scoped shared build output + parallelism cap for compiled
+  toolchains, and the permission preflight (allowlist the campaign's
+  foreseeable sensitive actions, above all the head-authorized final push)
+  — proactively, never reactively after a disk-full or classifier block.
+- **Where the project has a forge, open the campaign's tracking pair**:
+  the integration branch's draft PR and the campaign's **meta tracking
+  issue** ([forge §6](../forge/SKILL.md)) — the durable index every
+  out-of-scope finding will link from.
 
 ### 2. CLARIFY
 
@@ -267,6 +276,18 @@ Derive the mitigation plan from the findings ledger.
 
 - Decompose into nodes sized for single-discipline worker walks, with
   explicit `DEPENDS_ON` edges and `MITIGATES` mappings back to findings.
+- **Batch by default; justify splitting, never merging.** Per-node ceremony
+  (IBC authoring, worktree, dispatch, merge-gate review, ledger round) is a
+  large, mostly size-independent fixed cost — in the field it was the
+  dominant driver of campaign wall-clock. One-node-per-finding is therefore
+  a smell, not a discipline: batch every finding that shares a discipline
+  and a compatible file surface into one node, with each finding keeping
+  its own premise/constraint/acceptance entries inside that node's IBC (no
+  loss of per-finding rigor or evaluator traceability). Split only when
+  (a) surfaces are genuinely disjoint and parallelism pays, (b) a finding
+  is large or risky enough to deserve isolated review attention, or
+  (c) findings arrive at different times and batching would block ready
+  work.
 - For each node, decide what is **meaningful to verify** — the acceptance
   invariants (property statements, metamorphic relations, theorem
   statements where formal models exist). The architect seat owns the *what* of
@@ -304,6 +325,13 @@ Manufacture the worker boundaries.
   comprehension probe ([boundary §Comprehension Probe](../boundary/SKILL.md));
   probe failures route back to the IBC (or to the committed docs it
   leans on), never forward to dispatch.
+- **Lint the surface before dispatch:** every path-bearing `context_map`
+  entry falls under the node's `file_surface` or carries an explicit
+  `(read-only)` marker (`authorized.py --ibc-surface-check`). The gap this
+  closes — a worker blocked by its own commit gate on a file the IBC told
+  it to read but the surface forgot to grant — was the most frequent
+  IBC-authoring defect in the field; the lint is mechanical and runs at
+  authoring time, never relying on the worker's HALT.
 - **Report the readiness numbers** (§Readiness Is Measurable) alongside
   the routing table: evaluator coverage with justified residue,
   seam-type completeness over DAG edges, red-test and golden-vector
@@ -419,6 +447,19 @@ breaches and appetite exhaustion route to the head (`HALT`).
 > machinery wired in and sufficient. A green gate suite is necessary but
 > not sufficient: it proves execution, not coverage. The procedure is
 > [docs/orchestration-protocol.md §CLOSE](../../docs/orchestration-protocol.md#close).
+
+> [!IMPORTANT]
+> **Fix beats accept-risk — the default is more nodes.** When residual
+> findings remain at CLOSE, the composer's default proposal is **DAG
+> amendment nodes that fix them**. `ACCEPTED_RISK` is the exception, not
+> the offered default: it is argued per item, each with its named reason,
+> and only for findings genuinely outside the campaign's stated scope (a
+> different subsystem or repository, a deliberately deferred design
+> question already on record) — never bundled into a blanket "accept
+> these". Where the project has a forge, every accepted item gets its own
+> tracked issue linked from the campaign's meta tracking issue
+> ([forge §6](../forge/SKILL.md)): acceptance is a routing decision with a
+> durable address, never a silent drop.
 
 When all findings are `MITIGATED` or head-accepted as `ACCEPTED_RISK`
 and the DAG is complete:
