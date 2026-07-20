@@ -119,7 +119,7 @@ foreseeable, so each is closed at setup, never discovered under pressure:
 
 The orchestrator's entire state is reconstructable from git + the sketch
 checkpoint (rules.md §2 Prime Invariant 5; [protocol §State](../../docs/orchestration-protocol.md)).
-Per node: `STATUS ∈ {PENDING, DISPATCHED, LANDED, ACCEPTED, REWORK, INVALIDATED}`,
+Per node: `STATUS ∈ {PENDING, DISPATCHED, LANDED, ACCEPTED, REWORK, QUARANTINED, INVALIDATED}`,
 its `worktree` and `branch`. Globally: `shared_branch` (the integration branch),
 `tip` (the commit the current layer branches from), `layers` (the derived Kahn
 schedule). No state lives only in the runner's memory — every transition lands in
@@ -156,6 +156,18 @@ rule, not a convenience:
    (step 2) *gates* whether a sketch is even opened: a sketch whose latest `log:`
    marker is `close` is an index entry, not working context. Only the in-flight
    episode is loaded.
+5. **Boot-gate the reconstruction before resuming.** A reconstructed state is
+   a CLAIM about history; validate it against the record before any dispatch:
+   (a) the bound `DAG` still exports under `dag_apply.ncl`; (b) the reconcile
+   log still exports under `reconcile_apply.ncl` — every recorded ACCEPT
+   names its evaluator; (c) `adherence_audit.sh <baseline> <shared_branch>`
+   exits 0 — every non-merge commit traces to a node branch; (d) status↔git
+   coherence — every ACCEPTED node's branch is merged into `shared_branch`
+   (`git merge-base --is-ancestor`), every DISPATCHED node's worktree exists.
+   Any check failing → **HALT** and surface to the head: resuming past a
+   corrupted or tampered record compounds the corruption. (Prior art:
+   librecode's journal boot-gate, which replays the whole trajectory against
+   its model invariants before any resume.)
 
 The log is the map; exactly one sketch is the territory. (Prime Invariant 5,
 "reconstruct, don't recall.")
@@ -354,8 +366,31 @@ for p in <pending nodes>; do
 done
 
 # (5) VERDICT: ACCEPT (1-4 incl. 3b clean, reviews converged) -> MERGE;
+#     an acceptance evaluator that CANNOT RUN (absent or broken checker —
+#     an absence, not a red result) -> QUARANTINE (see below);
 #     else REWORK/ESCALATE.
 ```
+
+### QUARANTINE — the degraded-gate path
+
+A landed node whose acceptance evaluator **cannot run** — the checker is
+absent, broken, or its fixture is missing; an *absence*, not a red result —
+is neither accepted nor reworked. It is **QUARANTINED**: the landed work is
+retained and the quarantine durably recorded in the reconcile log, but the
+node is NOT proven. Two consequences, both hard:
+
+- **A quarantined node blocks its dependents.** The dispatch precondition is
+  dependencies ACCEPTED, and quarantine is not acceptance — the schedule
+  genuinely does not advance past a pending gate.
+- **The only exits are explicit.** DISCHARGE — the evaluator restored and
+  re-run green, or the criterion closed by a converged decorrelated review
+  (the adversarial path, reviewers named in the record) — routes to ACCEPT;
+  a failed discharge routes to REWORK. Quarantine is never silently aged
+  into acceptance, and no dependent's deadline argues it into one.
+
+(Prior art: librecode's reference state machine, where this path is
+property-tested — a pending deposit can never be marked proven, and a
+dependent cannot dispatch past a quarantined parent.)
 
 ### BOUNDARY — semantic coherence over the cumulative diff (not just file-surface)
 

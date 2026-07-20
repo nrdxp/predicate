@@ -474,6 +474,14 @@ premises:
    - `REWORK` — an evaluator, surface, or coherence check failed: emit a
      corrective delta IBC (error feedback in cheap space) and re-dispatch;
      the node returns to `PENDING`.
+   - `QUARANTINE` — an acceptance evaluator **cannot run** (absent or
+     broken checker — an absence, not a failure): the landed work is
+     retained and recorded, the node is NOT accepted, and its dependents
+     do not dispatch. Exit only by explicit DISCHARGE — evaluator restored
+     and re-run, or a converged decorrelated review recorded by the
+     adversarial path — to `ACCEPT`, or a failed discharge to `REWORK`;
+     never silently aged into acceptance
+     ([orchestration §QUARANTINE](../orchestration/SKILL.md)).
    - `ESCALATE` — the fault is structural (the plan's, not the
      worker's): return to `PLAN` or `ORCHESTRATE` and realign.
 
