@@ -248,6 +248,16 @@ it reads a sibling's, and mutual correction is relayed THROUGH you, never seat-t
 Hold that order: anchoring a seat on a peer before it has deposited collapses the
 decorrelation the council exists to provide.
 
+**Forge presence loads the forge discipline — detected, never requested.**
+The test is mechanical, run once at campaign start: does the origin remote
+resolve to a forge the project accepts contributions through? Yes → INVOKE
+the forge skill THEN, before any node dispatches — named disciplines load,
+they are not remembered, and citing the forge law's sections without having
+loaded it is walking a discipline from recall. Where a forge exists the
+discipline is REQUIRED for the whole campaign (branch↔PR mapping, the
+bootstrap sequence, prose rules, tracking issues, the audit) — it is never
+an optional garnish loaded only when the head mentions a PR.
+
 **The forge surface is yours to audit.** Campaign communication — PR bodies,
 issue prose, review records, tracking issues — is conducting, not code: YOU
 run the forge audit (forge §5) alongside each merge-consent and over the

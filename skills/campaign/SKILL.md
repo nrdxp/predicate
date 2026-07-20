@@ -256,6 +256,13 @@ Ingest the approved campaign $\text{IBC}^*$.
   toolchains, and the permission preflight (allowlist the campaign's
   foreseeable sensitive actions, above all the head-authorized final push)
   — proactively, never reactively after a disk-full or classifier block.
+- **Detect the forge and LOAD the discipline.** The test is mechanical:
+  does the origin remote resolve to a forge the project accepts
+  contributions through? If yes, INVOKE the [forge skill](../forge/SKILL.md)
+  NOW — named disciplines load, they are not remembered, and every forge
+  reference in the states below assumes its law is in context. The
+  discipline is REQUIRED wherever a forge exists; it is never deferred
+  until a PR happens to come up.
 - **Where the project has a forge, bootstrap the forge surface**: push
   the shared integration branch and open the campaign's **meta tracking
   issue** ([forge §6](../forge/SKILL.md)) — the durable index every
@@ -621,6 +628,9 @@ and the DAG is complete:
     red-test/vector inventories) are reported with the routing table and
     approved with it. Prepare evaluators and seams, never solutions.
 11. **FORGE_WHEN_PRESENT:** Projects with a forge follow the
-    [forge discipline](../forge/SKILL.md) — self-contained PR prose,
-    review-on-record, consent-to-merge, the forge audit at merge-consent
-    and CLOSE. Projects without a forge owe nothing here.
+    [forge discipline](../forge/SKILL.md) — INVOKED at ABSORB when the
+    mechanical forge test passes, never left to be requested (a named
+    discipline loads, it is not remembered): self-contained PR prose,
+    the bootstrap sequence, review-on-record, consent-to-merge, issue
+    tagging, the forge audit at merge-consent and CLOSE. Projects
+    without a forge owe nothing here.

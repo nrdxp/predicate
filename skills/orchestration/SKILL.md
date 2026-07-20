@@ -58,7 +58,7 @@ fixed path; a driver run binds that path, it does not hardcode it.
 | `PROMPTS` | the per-node worker IBCs handed at DISPATCH | `prompts/<node-id>-*.md` |
 | `TOPIC` | the campaign topic — names the integration branch `campaign/<TOPIC>` and the sketch | the active flight-recorder slug |
 | `MODE` | `AUTONOMOUS` (resolve seams by policy / escalate) or `INTERACTIVE` (surface seams to the head) | `INTERACTIVE` |
-| `FORGE` | whether the origin remote resolves to a forge the project accepts contributions through — enables the [forge wiring](#forge-wiring) below | auto-detected |
+| `FORGE` | whether the origin remote resolves to a forge the project accepts contributions through — when present, the [forge skill](../forge/SKILL.md) is INVOKED at driver start (a named discipline loads, it is not remembered) and the [forge wiring](#forge-wiring) below applies | auto-detected |
 
 `layers.ncl` imports `DAG` internally; pointing the driver at a different DAG
 (e.g. a demonstration graph) means binding the import that `LAYERS` resolves, not
