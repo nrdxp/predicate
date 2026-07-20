@@ -829,22 +829,34 @@ mkdir -p "$fixdir/idleak"
 # the tokens via printf so this harness file itself carries none.
 printf 'Addresses %s12 and closes finding %s3 from the campaign.\n' N F \
   > "$fixdir/idleak/dirty.md"
+# A constraint-ID leak (the bare single-letter class real IBCs use).
+printf 'Satisfies constraint %s2 of the boundary contract.\n' C \
+  > "$fixdir/idleak/dirty_constraint.md"
 printf 'Corrects the merge-discipline diagnostic in the hook.\n' \
   > "$fixdir/idleak/clean.md"
 expect "file citing node/finding tokens -> leak (rc 1)" 1 \
   bash "$check_internal_ids" --files "$fixdir/idleak/dirty.md"
+expect "file citing a bare constraint token -> leak (rc 1)" 1 \
+  bash "$check_internal_ids" --files "$fixdir/idleak/dirty_constraint.md"
 expect "file naming only repo concepts -> clean (rc 0)" 0 \
   bash "$check_internal_ids" --files "$fixdir/idleak/clean.md"
+# Self-application regression: the gate's own source (comments, pattern
+# literal) must not trip its default grammar — a gate that fails on itself
+# fails every campaign diff that touches it.
+expect "gate run over its own source -> clean (rc 0)" 0 \
+  bash "$check_internal_ids" --files "$check_internal_ids"
 
 echo "== authorized.py --ibc-surface-check: context_map within file_surface =="
 authorized="$here/authorized.py"
 cat > "$fixdir/ibc_dag.json" <<'JSON'
 {"nodes":[{"id":"n-alpha","file_surface":["skills/demo/","docs/guide.md"]}]}
 JSON
-# Good IBC: covered paths, an explicit read-only entry, and a non-path clause.
+# Good IBC: covered paths — including one in the backtick-wrapped code-span
+# form templates/IBC.md prescribes for S5 entries — an explicit read-only
+# entry, and a non-path clause.
 cat > "$fixdir/ibc_good.json" <<'JSON'
 {"context_map":["skills/demo/SKILL.md:10-20 — the phase machine",
-"docs/guide.md — the target doc",
+"`docs/guide.md:1-40` — the target doc, load-bearing",
 "ledger/contracts/dag.ncl (read-only) — the shape only",
 "\"quoted spec clause with no path\""]}
 JSON

@@ -396,15 +396,17 @@ _READ_ONLY_MARK = "(read-only)"
 def _context_map_path(entry: str):
     """Extract the leading file path from a context_map entry, or None.
 
-    S5 entries lead with a pointer — "path", "path:12-40 — excerpt", "path: why
-    it matters". The path is the first whitespace token with any trailing
-    punctuation and :line suffix stripped. An entry whose first token does not
-    look like a path (no "/" and no ".") is non-path context (a quoted spec
-    clause, a command narrative) and is skipped rather than guessed at.
+    S5 entries lead with a pointer — "path", "path:12-40 — excerpt", or the
+    code-span form templates/IBC.md prescribes, "`path:120-180` — why". The
+    path is the first whitespace token with any markdown code-span backticks,
+    trailing punctuation, and :line suffix stripped. An entry whose first
+    token does not look like a path (no "/" and no ".") is non-path context
+    (a quoted spec clause, a command narrative) and is skipped rather than
+    guessed at.
     """
     token = entry.split()[0] if entry.split() else ""
-    token = token.rstrip(":,;")
-    token = token.split(":")[0]
+    token = token.strip("`").rstrip(":,;")
+    token = token.split(":")[0].strip("`")
     if "/" in token or "." in token:
         return token
     return None

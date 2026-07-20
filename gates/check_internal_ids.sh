@@ -15,18 +15,22 @@
 #   check_internal_ids.sh --files <f> [<f> ...]  scan the named files
 #
 # The token grammar is intentionally broad (bare node/finding-shaped tokens);
-# a legitimate collision ("P1 severity", an "L1 cache") is narrowed per-project
-# via INTERNAL_ID_PAT in .ledger/config.sh, the same override convention as
-# check_selfcontained.sh. Paths under .ledger/ and .scratch/ are exempt — they
-# ARE the internal record. Exit: 0 clean, 1 leak(s) found, 2 usage error.
+# a legitimate collision (a severity label, a CPU cache tier) is narrowed
+# per-project via INTERNAL_ID_PAT in .ledger/config.sh — the same override
+# mechanism as, but a distinct grammar from, check_selfcontained.sh's
+# commit-message pattern (file contents and commit messages leak different
+# forms). Paths under .ledger/ and .scratch/ are exempt — they ARE the
+# internal record. Exit: 0 clean, 1 leak(s) found, 2 usage error.
 set -u
 
 root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 # shellcheck source=/dev/null
 [ -f "$root/.ledger/config.sh" ] && source "$root/.ledger/config.sh"
-# Bare node/finding tokens plus the acceptance-criterion and constraint forms
-# the IBC template generates. Projects override via INTERNAL_ID_PAT.
-: "${INTERNAL_ID_PAT:=\b[NPF][1-9][0-9]*\b|\bAC-[A-Z]*[0-9]+\b|\bC-[NPF][0-9]+\b}"
+# Bare node/premise/finding/constraint tokens — the single-letter-plus-digits
+# ID classes predicate campaigns actually use in DAGs, IBCs, and findings
+# ledgers — plus the compound acceptance-criterion form observed in past
+# campaign artifacts. Projects override via INTERNAL_ID_PAT.
+: "${INTERNAL_ID_PAT:=\b[NPFC][1-9][0-9]*\b|\bAC-[A-Z]*[0-9]+\b}"
 pat="$INTERNAL_ID_PAT"
 
 files=()

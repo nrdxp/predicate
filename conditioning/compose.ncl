@@ -65,7 +65,7 @@ let dispatched : String = import "modules/dispatched.ncl" in
 let reviewer_module : String = import "modules/reviewer.ncl" in
 
 # Reviewer deltas: the lens-free refuter plus the eight lens overlays. Each is a
-# plain String delta (N3/N4 bodies); composed atop core ++ reviewer_module.
+# plain String delta; composed atop core ++ reviewer_module.
 let reviewers : { _ : String } = {
   "refuter-reviewer"    = import "personas/refuter-reviewer.ncl",
   "hickey-reviewer"     = import "personas/hickey-reviewer.ncl",
