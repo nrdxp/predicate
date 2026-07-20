@@ -84,6 +84,22 @@ if [ -n "${staged_orphans//[$'\n']/}" ]; then
   echo "  A staged file names a removed/demoted workflow as if it were live." >&2
   rc=1
 fi
+# --- 1b. SCRATCH CONTAINMENT (staged paths) --------------------------------
+# .scratch/ is the ephemeral working set — git-ignored by the three-store law
+# and never part of the deliverable. A staged path under it means a force-add
+# bypassed the ignore; block the commit.
+scratch_staged=""
+for s in "${staged[@]}"; do
+  case "$s" in
+    .scratch/*) scratch_staged+="  $s"$'\n' ;;
+  esac
+done
+if [ -n "$scratch_staged" ]; then
+  echo "pre-commit: STAGED FILES UNDER .scratch/ (never committed):" >&2
+  printf '%s' "$scratch_staged" >&2
+  echo "  Unstage with: git restore --staged .scratch" >&2
+  rc=1
+fi
 
 # --- 2. DOC LINKS (staged markdown) ----------------------------------------
 for f in "${staged[@]}"; do
