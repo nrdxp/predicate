@@ -329,6 +329,23 @@ Manufacture the worker boundaries.
     so RECONCILE can re-run them without trusting worker claims.
 - Write `ORCHESTRATION.md`: the routing table mapping each node to the
   **cheapest tier whose capability bounds the task**, with rationale.
+- **Classify every node's review tier in the routing table** — ROUTINE or
+  EXCEPTIONAL, decided by a four-trigger checklist run at IBC authoring,
+  never re-judged at reconcile. The row records the tier, the fired
+  trigger, and the seat it convenes; absent a fired trigger the node is
+  ROUTINE and its reconcile convenes the lead-maintainer's merge gate
+  ONLY. The triggers:
+
+  | Trigger | Fires when | Convenes |
+  | :--- | :--- | :--- |
+  | T1 shared contract | `file_surface` contains a public API, wire format/schema, or a type/contract imported by files outside the surface | architect |
+  | T2 trust boundary | surface or goal touches authn/authz, crypto, secret handling, or parsing of input crossing the trust boundary | security lens (+ hacker seat when the node changes what the system guarantees) |
+  | T3 irreversible | the effect cannot be undone by reverting the node's commits (data migration, data destruction, released-format change) | architect + head flagged at dispatch |
+  | T4 downstream pivot | two or more later nodes name this node in `depends_on` (counted from the validated DAG) | architect |
+
+  Uncertainty about whether a trigger fires is a fact question about the
+  surface or the DAG — resolve it by reading them (or one survey
+  dispatch), never by seating a review "to be safe."
 - **Probe before dispatch:** each emitted IBC passes the zero-context
   comprehension probe ([boundary §Comprehension Probe](../boundary/SKILL.md));
   probe failures route back to the IBC (or to the committed docs it
@@ -427,13 +444,14 @@ premises:
      lead-maintainer's merge gate: his **affirmative merge-consent** is the
      `reconcile-accept` (the delegation table routes both to him), and it is
      the ONLY seat a routine node's reconcile requires — green evaluators
-     necessary, his consent the accepting act. The architect — or any other
-     seat or guest — joins a node's review only when the composer convened
-     it as **exceptional** (load-bearing for the system architecture, wide
-     blast radius, a security boundary, an irreversible migration); the full
-     bench convenes only at CLOSE. Inside his gate the maintainer may summon
-     specialized review assistance (a test-focused reviewer on a
-     test-touching diff, a security lens on a trust boundary) — his call,
+     necessary, his consent the accepting act. Additional seats join a
+     node's review only when its routing-table row says so — the node was
+     classified **EXCEPTIONAL** at authoring because a review-tier trigger
+     fired (§5 ORCHESTRATE), and the row names the convened seat; nothing
+     is re-judged at reconcile, and the full bench convenes only at CLOSE.
+     Inside his gate the maintainer may summon specialized review
+     assistance (the test-reviewer persona on a test-touching diff, a
+     security lens on a trust boundary) — his call,
      and the verdict remains his. On consent the node merges and is marked
      `ACCEPTED` with its mitigated findings. Where the project has a forge,
      merge-consent includes the [forge audit](../forge/SKILL.md) over the

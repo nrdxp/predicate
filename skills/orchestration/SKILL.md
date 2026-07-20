@@ -280,7 +280,12 @@ the IBC-authoring boundary, not only at the RECONCILE freshness-check.
    forward to dispatch: this was the single most common IBC-authoring
    defect in the field, and every occurrence cost a worker HALT plus a
    full widen/re-dispatch round-trip that this lint closes for free.
-2d. **Red-baseline check (implementation nodes)**: for each acceptance
+2d. **Classify the review tier**: run the four review-tier triggers
+   ([campaign §5 ORCHESTRATE](../campaign/SKILL.md)) against the node's
+   surface and the validated DAG; record tier + fired trigger + convened
+   seat in the routing-table row. No trigger → ROUTINE → the
+   lead-maintainer's merge gate is the node's entire seat list.
+2e. **Red-baseline check (implementation nodes)**: for each acceptance
    criterion whose evaluator is a test command, run the evaluator against
    the pre-node tip (`cmd; echo EXIT=$?`) and require FAILURE — a
    criterion already green before the work exists is not testing the

@@ -73,19 +73,42 @@ lapses for that walk. Only when no persona covers the role may a generic agent r
 and then two obligations attach: inline the role's load-bearing rules into its IBC,
 and record the coverage gap as process-feedback (a missing-persona finding).
 
-**Convene proportionally inside a campaign; propose guests yourself.** A
-routine node's reconcile requires exactly ONE seat: the lead-maintainer's
-merge gate. The architect — or any other seat or guest — joins a node only
-when you convene it for an exceptional one: load-bearing for the system
-architecture, wide blast radius, a security boundary, an irreversible
-migration. Convening the bench on a routine node is token waste; skipping
-the maintainer on any node is an invalid merge; the FULL council — every
-standing seat plus any seated guests — convenes only at campaign CLOSE. And
-guests are YOUR call to propose, never the head's to remember: at campaign
-kickoff (and mid-campaign when a new risk class surfaces), read the risk
-surface and propose the guest seats it warrants — a domain expert, an
-adversarial attacker, a compliance lens — for the head to ratify. `convene`
-is a decision-type you own; owning it means proposing, not waiting.
+**Convene per node by trigger, not by feel.** A routine node's reconcile
+requires exactly ONE seat: the lead-maintainer's merge gate. Whether a node
+is ROUTINE or EXCEPTIONAL is not a judgment call — it is a four-trigger
+checklist you run when the node's IBC is authored, recording the result
+(tier, fired trigger, convened seat) in the routing table BEFORE dispatch:
+
+- **T1 shared contract** — the node's file_surface contains a public API, a
+  wire format or schema, or a type/contract that files OUTSIDE its surface
+  import. → convene the ARCHITECT at that node's reconcile.
+- **T2 trust boundary** — the surface or goal touches authentication,
+  authorization, cryptography, secret handling, or parsing of input that
+  crosses the trust boundary. → convene the SECURITY lens at reconcile; add
+  the HACKER seat when the node changes what the system guarantees, not
+  merely how it delivers it.
+- **T3 irreversible** — the node's effect cannot be undone by reverting its
+  commits: a data migration, data destruction, a change to an externally
+  released format or protocol. → convene the ARCHITECT, and flag the node
+  to the head at dispatch.
+- **T4 downstream pivot** — two or more later nodes name this node in their
+  `depends_on` (count the validated DAG's edges — mechanical). → convene
+  the ARCHITECT.
+
+No trigger fired = ROUTINE: the maintainer only — no architect, no extra
+seat; convening more is a proportionality violation, not diligence. Unsure
+whether a trigger fires? That is a FACT about the surface or the DAG:
+resolve it by reading them (or one survey dispatch), never by seating a
+review "to be safe." The FULL council — every standing seat plus any seated
+guests — convenes only at campaign CLOSE. Skipping the maintainer on any
+node is an invalid merge.
+
+**Propose guests yourself.** Guests are YOUR call to propose, never the
+head's to remember: at campaign kickoff (and mid-campaign when a new risk
+class surfaces), read the risk surface and propose the guest seats it
+warrants — a domain expert, an adversarial attacker, a compliance lens —
+for the head to ratify. `convene` is a decision-type you own; owning it
+means proposing, not waiting.
 
 **The maintainer staffs his own review.** Deciding which SEATS join a node is
 yours; deciding what review ASSISTANCE the merge gate wants is the
