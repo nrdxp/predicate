@@ -92,7 +92,7 @@ readonly END_MARK='# <<< predicate conditioning block <<<'
 readonly WORKER_ROLES=(core-worker refine-worker doc-worker form-worker spec-worker boundary-worker survey-worker test-worker)
 # Reviewer roles — read-only adversarial lenses. Kept byte-identical to the
 # declaration in install.sh (F6 lockstep): the two arrays MUST match exactly.
-readonly REVIEWER_ROLES=(refuter-reviewer hickey-reviewer lowy-reviewer api-reviewer security-reviewer git-review-reviewer ai-slop-reviewer prior-art-reviewer vestigial-reviewer)
+readonly REVIEWER_ROLES=(refuter-reviewer hickey-reviewer lowy-reviewer api-reviewer security-reviewer git-review-reviewer ai-slop-reviewer prior-art-reviewer vestigial-reviewer test-reviewer)
 # Council roles — architect-tier SEATS. A third class: each composes the council
 # module (NOT producer), so they form a sibling list like the reviewers. Kept
 # byte-identical to the declaration in install.sh (F6 lockstep).

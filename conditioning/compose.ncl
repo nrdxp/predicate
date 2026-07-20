@@ -77,6 +77,7 @@ let reviewers : { _ : String } = {
   "ai-slop-reviewer"    = import "personas/ai-slop-reviewer.ncl",
   "prior-art-reviewer"  = import "personas/prior-art-reviewer.ncl",
   "vestigial-reviewer"  = import "personas/vestigial-reviewer.ncl",
+  "test-reviewer"       = import "personas/test-reviewer.ncl",
 } in
 
 # Council-class module: the shared station every architect-tier SEAT carries (the
@@ -205,6 +206,8 @@ in
     = compose [dispatched, reviewer_module] reviewers."prior-art-reviewer",
   "vestigial-reviewer"  | HasCore | HasModule dispatched | HasModule reviewer_module | HasLens reviewers."vestigial-reviewer"
     = compose [dispatched, reviewer_module] reviewers."vestigial-reviewer",
+  "test-reviewer"       | HasCore | HasModule dispatched | HasModule reviewer_module | HasLens reviewers."test-reviewer"
+    = compose [dispatched, reviewer_module] reviewers."test-reviewer",
 
   # Council-seat fields: core ++ dispatched ++ council_module ++ seat-delta.
   # Each is HasCore + HasModule dispatched + HasModule council_module; the seat

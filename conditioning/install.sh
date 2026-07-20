@@ -46,10 +46,13 @@
 #                     flag does not narrow it. Accepted for back-compat.
 #                     One of: composer core-worker refine-worker doc-worker
 #                             form-worker spec-worker boundary-worker
+#                             survey-worker test-worker
 #                             refuter-reviewer hickey-reviewer lowy-reviewer
 #                             api-reviewer security-reviewer git-review-reviewer
 #                             ai-slop-reviewer prior-art-reviewer vestigial-reviewer
+#                             test-reviewer
 #                             architect-seat lead-maintainer-seat process-auditor-seat
+#                             hacker-seat
 #   --dry-run         Print the delivery plan (and, with --role, that role's full
 #                     composed prompt); write nothing to any surface.
 #   --uninstall       Remove every predicate-owned conditioning surface across
@@ -98,12 +101,12 @@ readonly OUTPUT_STYLE_FILE='predicate-composer.md'
 
 # The worker roles materialized as persisted Claude agents.
 readonly WORKER_ROLES=(core-worker refine-worker doc-worker form-worker spec-worker boundary-worker survey-worker test-worker)
-# The nine reviewer roles — read-only adversarial lenses. A distinct class: each
+# The reviewer roles — read-only adversarial lenses. A distinct class: each
 # composes the reviewer module (NOT producer), so they form a sibling list rather
 # than joining WORKER_ROLES. This declaration is kept byte-identical to the one in
 # test_conditioning.sh (F6 lockstep).
-readonly REVIEWER_ROLES=(refuter-reviewer hickey-reviewer lowy-reviewer api-reviewer security-reviewer git-review-reviewer ai-slop-reviewer prior-art-reviewer vestigial-reviewer)
-# The three architect-tier council SEATS — a distinct class: each composes the
+readonly REVIEWER_ROLES=(refuter-reviewer hickey-reviewer lowy-reviewer api-reviewer security-reviewer git-review-reviewer ai-slop-reviewer prior-art-reviewer vestigial-reviewer test-reviewer)
+# The architect-tier council SEATS — a distinct class: each composes the
 # council module (NOT producer), a sibling list like REVIEWER_ROLES. Kept
 # byte-identical to the declaration in test_conditioning.sh (F6 lockstep).
 readonly COUNCIL_ROLES=(architect-seat lead-maintainer-seat process-auditor-seat hacker-seat)
@@ -228,6 +231,7 @@ worker_description() {
     ai-slop-reviewer)     printf 'Read-only AI-generated-code reviewer (ai-slop lens): hunt hollow plausibility, hallucinated APIs, and transformer cadence; name defects, never edit.' ;;
     prior-art-reviewer)   printf 'Read-only outward reviewer (prior-art lens): measure the artifact against production-tested references and literature by citation; name defects, never edit.' ;;
     vestigial-reviewer)   printf 'Read-only drift-residue reviewer (vestigial lens): hunt dead code, orphaned scaffolding, and stale breadcrumbs by reachability; name defects, never edit.' ;;
+    test-reviewer)        printf 'Read-only test-surface reviewer (test lens): is the surface sufficient for the claims, and is every test earning its keep — hunt green-by-construction, mock-testing, weakened invariants, and superfluous tests to cut; name defects, never edit.' ;;
     architect-seat)       printf 'Council seat — the BOUNDARY lens: goal-fit, strategy, and architecture coherence. Sovereign over boundary-design; drives dag-amendment. Convened for exceptional (load-bearing) nodes, structural faults, and campaign CLOSE — not routine reconciles.' ;;
     lead-maintainer-seat) printf 'Council seat — the MERGE GATE: the hostile elite engineer-maintainer who owns the maintenance burden. Every merge needs his affirmative consent; green gates are necessary but never sufficient.' ;;
     process-auditor-seat) printf 'Council seat — the PROCESS + RESIDUE auditor: checks the composer against the pact and the law, proposes bars, and hunts vestigial residue greedily. Independent; reads the durable record directly.' ;;
