@@ -51,6 +51,14 @@ let personas : { _ : String } = {
 # *between* core and the role delta — core stays first.
 let producer : String = import "modules/producer.ncl" in
 
+# Dispatched-walk module: the station every DISPATCHED subagent carries — the
+# unattended/auto-mode ground truth, the composer-as-only-human-channel rule
+# (a relayed authorization IS human authorization), workspace confirmation,
+# explicit exit-code capture, and dispatch-is-commit-authorization. EVERY role
+# except the composer pulls it, first in its module list: the composer is the
+# dispatcher and human-facing conductor, so the station would be false for it.
+let dispatched : String = import "modules/dispatched.ncl" in
+
 # Reviewer-class module: the read-only adversarial-reviewer spine. Reviewers are
 # read-only — each composes [reviewer_module], NEVER [producer]; pulling producer
 # into a reviewer would erase the decorrelation the class exists to provide.
@@ -148,48 +156,60 @@ let compose : Array String -> String -> String = fun role_modules role_delta =>
 in
 
 # One field per role.  Every field is typed HasCore; export fails if core_text
-# is absent from the composed string. The four code-writer workers pull [producer];
-# the review-only roles (doc, boundary, survey) and the composer pull [] — the composer is a
-# moderator, not a code-writer, so the single output-style slot sheds the procedure.
+# is absent from the composed string. EVERY dispatched role (all but the
+# composer) pulls [dispatched] first — the unattended-walk station — and
+# carries HasModule dispatched so its omission fails the export. The four
+# code-writer workers additionally pull [producer]; the review-only roles
+# (doc, boundary, survey) pull no producer. The composer pulls neither — it is
+# the dispatcher and the human-facing conductor, not a dispatched walk.
 {
   composer         | HasCore = compose [council_render] personas.composer,
-  "core-worker"    | HasCore = compose [producer] personas."core-worker",
-  "refine-worker"  | HasCore = compose [producer] personas."refine-worker",
-  "doc-worker"     | HasCore = compose [] personas."doc-worker",
-  "form-worker"    | HasCore = compose [producer] personas."form-worker",
-  "spec-worker"    | HasCore = compose [producer] personas."spec-worker",
-  "boundary-worker" | HasCore = compose [] personas."boundary-worker",
-  "survey-worker"  | HasCore = compose [] personas."survey-worker",
+  "core-worker"    | HasCore | HasModule dispatched
+    = compose [dispatched, producer] personas."core-worker",
+  "refine-worker"  | HasCore | HasModule dispatched
+    = compose [dispatched, producer] personas."refine-worker",
+  "doc-worker"     | HasCore | HasModule dispatched
+    = compose [dispatched] personas."doc-worker",
+  "form-worker"    | HasCore | HasModule dispatched
+    = compose [dispatched, producer] personas."form-worker",
+  "spec-worker"    | HasCore | HasModule dispatched
+    = compose [dispatched, producer] personas."spec-worker",
+  "boundary-worker" | HasCore | HasModule dispatched
+    = compose [dispatched] personas."boundary-worker",
+  "survey-worker"  | HasCore | HasModule dispatched
+    = compose [dispatched] personas."survey-worker",
 
-  # Reviewer fields: core ++ reviewer_module ++ lens-delta. Each is HasCore +
-  # HasModule reviewer_module; the eight lenses also carry HasLens <their delta>.
-  # The lens-free refuter has NO HasLens. None pulls [producer] — read-only.
-  "refuter-reviewer"    | HasCore | HasModule reviewer_module
-    = compose [reviewer_module] reviewers."refuter-reviewer",
-  "hickey-reviewer"     | HasCore | HasModule reviewer_module | HasLens reviewers."hickey-reviewer"
-    = compose [reviewer_module] reviewers."hickey-reviewer",
-  "lowy-reviewer"       | HasCore | HasModule reviewer_module | HasLens reviewers."lowy-reviewer"
-    = compose [reviewer_module] reviewers."lowy-reviewer",
-  "api-reviewer"        | HasCore | HasModule reviewer_module | HasLens reviewers."api-reviewer"
-    = compose [reviewer_module] reviewers."api-reviewer",
-  "security-reviewer"   | HasCore | HasModule reviewer_module | HasLens reviewers."security-reviewer"
-    = compose [reviewer_module] reviewers."security-reviewer",
-  "git-review-reviewer" | HasCore | HasModule reviewer_module | HasLens reviewers."git-review-reviewer"
-    = compose [reviewer_module] reviewers."git-review-reviewer",
-  "ai-slop-reviewer"    | HasCore | HasModule reviewer_module | HasLens reviewers."ai-slop-reviewer"
-    = compose [reviewer_module] reviewers."ai-slop-reviewer",
-  "prior-art-reviewer"  | HasCore | HasModule reviewer_module | HasLens reviewers."prior-art-reviewer"
-    = compose [reviewer_module] reviewers."prior-art-reviewer",
-  "vestigial-reviewer"  | HasCore | HasModule reviewer_module | HasLens reviewers."vestigial-reviewer"
-    = compose [reviewer_module] reviewers."vestigial-reviewer",
+  # Reviewer fields: core ++ dispatched ++ reviewer_module ++ lens-delta. Each
+  # is HasCore + HasModule dispatched + HasModule reviewer_module; the eight
+  # lenses also carry HasLens <their delta>. The lens-free refuter has NO
+  # HasLens. None pulls [producer] — read-only.
+  "refuter-reviewer"    | HasCore | HasModule dispatched | HasModule reviewer_module
+    = compose [dispatched, reviewer_module] reviewers."refuter-reviewer",
+  "hickey-reviewer"     | HasCore | HasModule dispatched | HasModule reviewer_module | HasLens reviewers."hickey-reviewer"
+    = compose [dispatched, reviewer_module] reviewers."hickey-reviewer",
+  "lowy-reviewer"       | HasCore | HasModule dispatched | HasModule reviewer_module | HasLens reviewers."lowy-reviewer"
+    = compose [dispatched, reviewer_module] reviewers."lowy-reviewer",
+  "api-reviewer"        | HasCore | HasModule dispatched | HasModule reviewer_module | HasLens reviewers."api-reviewer"
+    = compose [dispatched, reviewer_module] reviewers."api-reviewer",
+  "security-reviewer"   | HasCore | HasModule dispatched | HasModule reviewer_module | HasLens reviewers."security-reviewer"
+    = compose [dispatched, reviewer_module] reviewers."security-reviewer",
+  "git-review-reviewer" | HasCore | HasModule dispatched | HasModule reviewer_module | HasLens reviewers."git-review-reviewer"
+    = compose [dispatched, reviewer_module] reviewers."git-review-reviewer",
+  "ai-slop-reviewer"    | HasCore | HasModule dispatched | HasModule reviewer_module | HasLens reviewers."ai-slop-reviewer"
+    = compose [dispatched, reviewer_module] reviewers."ai-slop-reviewer",
+  "prior-art-reviewer"  | HasCore | HasModule dispatched | HasModule reviewer_module | HasLens reviewers."prior-art-reviewer"
+    = compose [dispatched, reviewer_module] reviewers."prior-art-reviewer",
+  "vestigial-reviewer"  | HasCore | HasModule dispatched | HasModule reviewer_module | HasLens reviewers."vestigial-reviewer"
+    = compose [dispatched, reviewer_module] reviewers."vestigial-reviewer",
 
-  # Council-seat fields: core ++ council_module ++ seat-delta. Each is HasCore +
-  # HasModule council_module; the seat lens decorrelates them by ROLE. None pulls
-  # [producer] — seats reason about the architecture, they do not write code.
-  "architect-seat"       | HasCore | HasModule council_module
-    = compose [council_module] council."architect-seat",
-  "lead-maintainer-seat" | HasCore | HasModule council_module
-    = compose [council_module] council."lead-maintainer-seat",
-  "process-auditor-seat" | HasCore | HasModule council_module
-    = compose [council_module] council."process-auditor-seat",
+  # Council-seat fields: core ++ dispatched ++ council_module ++ seat-delta.
+  # Each is HasCore + HasModule dispatched + HasModule council_module; the seat
+  # lens decorrelates them by ROLE. None pulls [producer] — seats reason about
+  # the architecture, they do not write code.
+  "architect-seat"       | HasCore | HasModule dispatched | HasModule council_module
+    = compose [dispatched, council_module] council."architect-seat",
+  "lead-maintainer-seat" | HasCore | HasModule dispatched | HasModule council_module
+    = compose [dispatched, council_module] council."lead-maintainer-seat",
+  "process-auditor-seat" | HasCore | HasModule dispatched | HasModule council_module
+    = compose [dispatched, council_module] council."process-auditor-seat",
 }

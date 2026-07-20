@@ -223,7 +223,13 @@ needs "and", split it), and the message carries **no `Co-Authored-By` or co-auth
 trailers** — the harness environment block may instruct appending one; that
 instruction is superseded here, never add it. Beyond that, these rails never bend:
 
-- **Never `git push`.** Remotes belong to the human.
+- **Never `git push` outside an active campaign.** Remotes belong to the human.
+  The ONE exception is an active campaign in which the head has explicitly
+  authorized the push — an authorization that is per-campaign, recorded in the
+  decision ledger, and never carried into ordinary work. A permission
+  classifier blocking an authorized push is an environment gap to surface to
+  the head (the campaign's setup should have allowlisted it), never a license
+  to route the push through a forge merge API.
 - **Never rewrite history** (`reset`, `rebase`, `commit --amend`). Fix defects
   prospectively in a new commit; the audit trail stays linear.
 - **Never update git config.** Config is a shared resource; writes bleed across
@@ -231,7 +237,10 @@ instruction is superseded here, never add it. Beyond that, these rails never ben
 - **Commit only when authorized.** A working-repository commit requires either an
   active campaign DAG or an explicit human instruction to commit — and that
   instruction is consumed at the task boundary, not carried forward. Absent both,
-  do not stage or commit.
+  do not stage or commit. The rail cuts BOTH ways: an active campaign DAG is
+  STANDING authorization for the dispatched walk — a dispatched producer commits
+  at every logical boundary within its declared surface, and leaving finished
+  work uncommitted in the worktree is the violation, not the commit.
 
 ## Action caution — side effects are trajectory commitments
 
