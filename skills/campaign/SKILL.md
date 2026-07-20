@@ -299,7 +299,13 @@ Derive the mitigation plan from the findings ledger.
   verification surface — conformance fixtures, seam types/contracts,
   golden vectors, red acceptance tests — *before* any implementation
   node consumes them (§Readiness Is Measurable). Implementation nodes
-  then cite these artifacts in their S4 evaluator commands.
+  then cite these artifacts in their S4 evaluator commands. The
+  **test-worker persona** is the dispatch vehicle for the red acceptance
+  tests: it derives test invariants from the acceptance criteria and
+  verifies each fails for the right reason, and the dispatching loop's
+  red-baseline gate ([orchestration §JIT step 2d](../orchestration/SKILL.md))
+  makes tests-before-implementation a protocol step no implementation
+  worker can skip.
 - Write `PLAN.md`. In `INTERACTIVE` mode, **HALT for the head's approval** of
   the plan before any orchestration.
 
