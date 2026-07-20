@@ -822,6 +822,45 @@ expect "bad non-merge header -> violation (rc 1)" 1 \
 expect "good conventional header -> clean (rc 0)" 0 \
   python3 "$check_commit_msg" --message "feat: add a thing"
 
+echo "== check_internal_ids.sh: campaign-ID leak gate (file contents) =="
+check_internal_ids="$root/gates/check_internal_ids.sh"
+mkdir -p "$fixdir/idleak"
+# A shipped-file leak: node/finding-shaped tokens in prose. The fixture writes
+# the tokens via printf so this harness file itself carries none.
+printf 'Addresses %s12 and closes finding %s3 from the campaign.\n' N F \
+  > "$fixdir/idleak/dirty.md"
+printf 'Corrects the merge-discipline diagnostic in the hook.\n' \
+  > "$fixdir/idleak/clean.md"
+expect "file citing node/finding tokens -> leak (rc 1)" 1 \
+  bash "$check_internal_ids" --files "$fixdir/idleak/dirty.md"
+expect "file naming only repo concepts -> clean (rc 0)" 0 \
+  bash "$check_internal_ids" --files "$fixdir/idleak/clean.md"
+
+echo "== authorized.py --ibc-surface-check: context_map within file_surface =="
+authorized="$here/authorized.py"
+cat > "$fixdir/ibc_dag.json" <<'JSON'
+{"nodes":[{"id":"n-alpha","file_surface":["skills/demo/","docs/guide.md"]}]}
+JSON
+# Good IBC: covered paths, an explicit read-only entry, and a non-path clause.
+cat > "$fixdir/ibc_good.json" <<'JSON'
+{"context_map":["skills/demo/SKILL.md:10-20 — the phase machine",
+"docs/guide.md — the target doc",
+"ledger/contracts/dag.ncl (read-only) — the shape only",
+"\"quoted spec clause with no path\""]}
+JSON
+# Bad IBC: a path the worker plausibly edits, absent from file_surface and not
+# marked read-only — the exact authoring defect the lint exists to catch.
+cat > "$fixdir/ibc_bad.json" <<'JSON'
+{"context_map":["skills/demo/SKILL.md — phase machine",
+"hooks/pre-commit — the gate the worker must extend"]}
+JSON
+expect "covered + read-only + non-path entries -> lint clean (rc 0)" 0 \
+  python3 "$authorized" --dag "$fixdir/ibc_dag.json" \
+    --ibc-surface-check n-alpha --ibc "$fixdir/ibc_good.json"
+expect "uncovered unmarked context_map path -> lint fails (rc 1)" 1 \
+  python3 "$authorized" --dag "$fixdir/ibc_dag.json" \
+    --ibc-surface-check n-alpha --ibc "$fixdir/ibc_bad.json"
+
 if [ "$fails" -ne 0 ]; then
   echo "FAIL: $fails gate case(s) mismatched"; exit 1
 fi

@@ -32,6 +32,8 @@ The first three are decided by `authorized.ncl`; the last is the fnmatch fallbac
 Usage:
   authorized.py --dag <exported.json> --path skills/foo.py [--path ...]
   git diff --cached --name-only | authorized.py --dag <exported.json>
+  authorized.py --dag <exported.json> --ibc-surface-check <node-id> \
+      --ibc <exported-ibc.json>
 
 Exit codes: 0 = every path authorized, 1 = one or more paths unauthorized,
 2 = usage or input error.
@@ -385,6 +387,93 @@ def run_reconcile_node(args: argparse.Namespace) -> int:
     return 0
 
 
+# Marker an IBC author places on a context_map entry to declare it read-only
+# context: the worker will read it but never edit it, so it is exempt from the
+# surface-coverage lint below.
+_READ_ONLY_MARK = "(read-only)"
+
+
+def _context_map_path(entry: str):
+    """Extract the leading file path from a context_map entry, or None.
+
+    S5 entries lead with a pointer — "path", "path:12-40 — excerpt", "path: why
+    it matters". The path is the first whitespace token with any trailing
+    punctuation and :line suffix stripped. An entry whose first token does not
+    look like a path (no "/" and no ".") is non-path context (a quoted spec
+    clause, a command narrative) and is skipped rather than guessed at.
+    """
+    token = entry.split()[0] if entry.split() else ""
+    token = token.rstrip(":,;")
+    token = token.split(":")[0]
+    if "/" in token or "." in token:
+        return token
+    return None
+
+
+def run_ibc_surface_check(args: argparse.Namespace) -> int:
+    """Pre-dispatch lint: context_map ⊆ file_surface, or tagged read-only.
+
+    The most common IBC-authoring defect in the field: the context_map names a
+    file the worker will plausibly need to EDIT, but the node's declared
+    file_surface omits it — so the worker's own commit gate correctly blocks
+    an otherwise-correct change, costing a HALT, an investigation, a widen,
+    and a re-dispatch. Everything needed to prevent that round-trip is known
+    at authoring time, so this check runs BEFORE dispatch: every path-bearing
+    context_map entry must either fall under the node's declared file_surface
+    or carry the explicit "(read-only)" marker. Exit 0 = lint clean, 1 = at
+    least one unmarked, uncovered path, 2 = input error.
+    """
+    dag = load_dag(args.dag)
+    node = node_by_id(dag.get("nodes", []), args.ibc_surface_check)
+    if node is None:
+        sys.stderr.write(
+            f"ibc-surface-check: no node {args.ibc_surface_check!r} in DAG\n"
+        )
+        return 2
+    try:
+        with open(args.ibc, encoding="utf-8") as fh:
+            ibc = json.load(fh)
+    except (OSError, json.JSONDecodeError) as exc:
+        sys.stderr.write(f"cannot read IBC {args.ibc!r}: {exc}\n")
+        return 2
+    declared = node.get("file_surface", [])
+    entries = ibc.get("context_map", [])
+    checkable = []
+    for entry in entries:
+        if _READ_ONLY_MARK in entry:
+            print(f"RO    {entry}")
+            continue
+        path = _context_map_path(entry)
+        if path is None:
+            print(f"SKIP  {entry}  <- no leading path token")
+            continue
+        checkable.append((entry, path))
+    # One nickel export primes every (surface, path) pair before the loop.
+    prime_covers([(s, p) for _, p in checkable for s in declared])
+    uncovered = []
+    for entry, path in checkable:
+        if any(covers(s, path) for s in declared):
+            print(f"OK    {path}  <- declared surface of {args.ibc_surface_check}")
+        else:
+            uncovered.append((entry, path))
+    for entry, path in uncovered:
+        print(f"UNCOVERED {path}  <- context_map entry outside file_surface: {entry}")
+    if uncovered:
+        print(
+            f"FAIL: {len(uncovered)} context_map path(s) outside node "
+            f"{args.ibc_surface_check}'s file_surface — add each to "
+            f"file_surface (if the worker may edit it) or mark the entry "
+            f"{_READ_ONLY_MARK} (if it is context only). Do not rely on the "
+            "worker's HALT to catch this after dispatch."
+        )
+        return 1
+    print(
+        f"PASS: every path-bearing context_map entry of node "
+        f"{args.ibc_surface_check} is covered or read-only"
+    )
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="Authorize changed paths against a campaign DAG, and run "
@@ -407,9 +496,18 @@ def main() -> int:
         help="reconcile honesty: check a node's touched paths against its "
         "declared file_surface",
     )
+    mode.add_argument(
+        "--ibc-surface-check", metavar="NODE_ID",
+        help="pre-dispatch lint: every path-bearing context_map entry in "
+        "--ibc is covered by the node's file_surface or marked (read-only)",
+    )
     parser.add_argument(
         "--against-surfaces", action="append", metavar="S1,S2,...",
         help="comma-separated concurrent surfaces (collision-check mode)",
+    )
+    parser.add_argument(
+        "--ibc", metavar="IBC_JSON",
+        help="exported worker-IBC JSON (ibc-surface-check mode)",
     )
     args = parser.parse_args()
 
@@ -420,6 +518,11 @@ def main() -> int:
             sys.stderr.write("reconcile-node mode requires --dag\n")
             return 2
         return run_reconcile_node(args)
+    if args.ibc_surface_check:
+        if not args.dag or not args.ibc:
+            sys.stderr.write("ibc-surface-check mode requires --dag and --ibc\n")
+            return 2
+        return run_ibc_surface_check(args)
     # Default mode: authorize the change set against the whole DAG.
     if not args.dag:
         sys.stderr.write("authorize mode requires --dag\n")
