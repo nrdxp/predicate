@@ -60,11 +60,19 @@ API merge endpoint, ever.
 - The body MUST be comprehensible to a reader with the repository and
   the PR alone: summary, what changed and why, decisions taken (with
   their grounds), what is deliberately out of scope, and honest
-  verification status (what was run, what wasn't).
+  verification status (what was run, what wasn't). Write for the human
+  who will actually review it — a reader holding NONE of the campaign's
+  context, not a colleague inside the process.
 - **Zero process-internal references**: no `.scratch/`, no `.ledger/`,
-  no sketch or session links, no "as discussed". Where context is
-  load-bearing, use **permalinks pinned to a commit SHA** — branch-
-  relative links rot when branches are deleted.
+  no sketch or session links, no "as discussed" — and no campaign-
+  internal identifiers (node or finding tokens): to every reader outside
+  the process they are dangling labels. Where context is load-bearing,
+  use **permalinks pinned to a commit SHA** — branch-relative links rot
+  when branches are deleted.
+- The check is mechanical, not a memory: draft forge prose (PR bodies,
+  issue bodies, review summaries) in a scratch file and run
+  `gates/check_internal_ids.sh --files <draft>` over it before posting,
+  the same standing gate merge review runs over shipped files.
 - Verification claims in PR prose follow the same honesty rules as
   commit messages: state what evaluators ran and their actual results;
   never imply coverage that does not exist.
@@ -100,6 +108,12 @@ comments — the forge is where the review record survives:
   (closed-not-merged).
 - Agents never push to protected/default branches without the head's
   explicit instruction (rules.md §3 applies unchanged on forges).
+- **Preflight the authorized landing.** The final head-authorized push of
+  an integration branch onto a long-lived default branch is a foreseeable
+  campaign step: ensure at campaign setup that the permission environment
+  allows it. If a classifier blocks it anyway, surface the block to the
+  head as an environment gap — the merge is never rerouted through the
+  forge's merge API to satisfy a classifier (MERGE_IN_GIT holds).
 
 ## 5. The forge audit
 
@@ -120,6 +134,29 @@ verdict.
       correctly retargeted.
 - [ ] The PR set partitions the work meaningfully — a reader can
       navigate the campaign from the forge alone.
+- [ ] The tracking-issue record is whole (§6): the meta issue exists,
+      every out-of-scope finding has its own linked issue, and every
+      issue body reads self-contained.
+
+## 6. Campaign tracking issues
+
+Out-of-scope findings are work the campaign discovered but will not do —
+and undocumented, they evaporate with the campaign's scratch. The forge
+is their durable home:
+
+- **One meta tracking issue per campaign**, opened at campaign kickoff
+  alongside the tracking PR. It is the campaign's out-of-scope index —
+  a reader finds every deferred thread from this one issue.
+- **One issue per out-of-scope finding**, opened when the finding is
+  classified out of scope (at a reconcile boundary or at CLOSE), written
+  self-contained per §2 — the finding's substance in repository terms,
+  never its campaign-internal ID.
+- **Link them**: sub-issues of the meta issue where the forge supports
+  them (GitHub), plain cross-links otherwise. An unlinked issue is
+  filed, not indexed.
+- At CLOSE, every `ACCEPTED_RISK` disposition names its issue — the
+  audit (§5) checks the record is whole. Acceptance without an issue is
+  a silent drop wearing a disposition.
 
 ## Prime Directives
 
@@ -134,3 +171,7 @@ verdict.
 5. **MERGE_IN_GIT:** Merges happen in the git CLI, then push; the forge
    observes and records — it does not perform. The merge API is not an
    instrument.
+6. **TRACKED_OUT_OF_SCOPE:** Every out-of-scope finding gets its own
+   self-contained issue, linked from the campaign's meta tracking
+   issue. Deferral is a routing decision with a durable address, never
+   a silent drop.
