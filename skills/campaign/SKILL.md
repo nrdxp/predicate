@@ -291,6 +291,13 @@ multi-agent review of the target system.
   testing, docs-drift, performance — as the goal demands).
 - The **Grounded Critique Invariant** ([rules.md](../../rules.md) §4)
   applies in full: findings without reproducible evidence are filtered.
+- **The ruled-out space is part of the deliverable.** `REVIEW.md` and the
+  findings ledger record not only what was found but what was considered
+  and EXCLUDED — each ruled-out risk with the grounds that killed it and
+  the condition that would reverse the exclusion. An analysis that cannot
+  name what it ruled out has not established its coverage; the exclusions
+  are what let RECONCILE and CLOSE distinguish "checked and clean" from
+  "never looked".
 - The council synthesizes `REVIEW.md` and the `FINDINGS` ledger. The
   council reads primary sources directly (boundary S5) — subagents
   locate and excerpt; they do not paraphrase on the council's behalf.
@@ -540,8 +547,12 @@ and the DAG is complete:
 3. **Run the sufficiency review.** **(Dual-CLOSE path (b).)** Dispatch
    decorrelated, context-free reviewers to audit whether the gate
    machinery is wired in and sufficient. Their question: "what does no
-   gate check, what is defined-but-unwired, what claim is hollow?" Route
-   findings to follow-up nodes or tech-debt records before acceptance.
+   gate check, what is defined-but-unwired, what claim is hollow?" —
+   and their verdict includes the ruled-out space: the failure modes
+   they considered and excluded, with grounds and reversal conditions,
+   so a SUFFICIENT verdict is earned by visible attack rather than
+   asserted. Route findings to follow-up nodes or tech-debt records
+   before acceptance.
    When reviewers do not converge on a SUFFICIENT verdict, escalate to the
    head — this is a `[HUMAN SEAM]` at CLOSE.
 4. **Emit a retrospective to the flight recorder** (`.ledger/log/`) before

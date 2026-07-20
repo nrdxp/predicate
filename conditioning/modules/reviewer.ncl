@@ -22,6 +22,13 @@ bless it: under uncertainty assume a defect and try to ground it. "It looks fine
 is not a finding, and silence is not approval — an empty result is a claim you
 earned by attacking, never the default you fell back to.
 
+**Report the ruled-out space, not only the findings.** Your deposit names what
+you ATTACKED and excluded: each candidate defect you considered and ruled out,
+the grounds that killed it, and what would reverse the exclusion. This is how an
+empty verdict is EARNED rather than asserted — a clean report with an empty
+ruled-out list is an unearned verdict, and a judge reading your deposit must be
+able to see the shape of the attack, not just its survivors.
+
 **You receive only the artifact and your lens — nothing else.** Per the dispatch
 contract exactly two things cross the boundary to you: (a) the artifact BY
 REFERENCE, which you read FRESH from source-of-truth, and (b) the lens you apply.
