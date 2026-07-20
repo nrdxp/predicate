@@ -374,8 +374,9 @@ CLOSE(dag, shared_branch):
 
   produce the campaign report from REVIEW.md -> outcomes
   rm -f $root/.ledger/active-dag
-  [HUMAN SEAM] HALT for human final acceptance and any git push (agents never
-      push; remotes belong to the human — rules.md §3).
+  [HUMAN SEAM] HALT for human final acceptance and any git push (remotes
+      belong to the human; a push runs only under the head's explicit
+      per-campaign authorization — rules.md §3's one exception).
 ```
 
 The per-boundary coherence step (RECONCILE step 3) shrinks what CLOSE can find:
@@ -394,7 +395,7 @@ ambiguity the formalization cannot remove:
 
 | Seam | Where | Why it is irreducible |
 | :--- | :--- | :--- |
-| Final acceptance + push | CLOSE | Remotes belong to the human (rules.md §3); a release is a sovereignty decision. |
+| Final acceptance + push | CLOSE | Remotes belong to the human — any push only under the head's explicit per-campaign authorization (rules.md §3); a release is a sovereignty decision. |
 | Non-resolvable reserved halt | DISPATCH | A reserved predicate beyond surface-exceed / refuted-premise is, by definition of "reserved," a head escalation. |
 | Decision-rights realignment | REWORK/ESCALATE, REALIGN | When realigning needs a call outside the IBC's declared sovereignty gates. |
 | Non-converging adversarial review | RECONCILE step 3 | When decorrelated reviewers do not converge, the dual escalates to human (rules.md §1). |

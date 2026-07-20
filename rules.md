@@ -79,7 +79,7 @@ Every `git commit`, in every repository (the main repository, the independent `.
 5. **Record the boundary in the active sketch ledger** and commit that update in the `.ledger/` sub-repository; only then execute the main-repository commit.
 
 **Hard rails — no exceptions, all repositories:**
-- **Never `git push`.** Remotes belong to the human.
+- **Never `git push` outside an active campaign.** Remotes belong to the human. The ONE exception is an active campaign in which the head has explicitly authorized the push — per-campaign, recorded in the decision ledger, never carried into ordinary work.
 - **Never rewrite history** (`reset`, `rebase`, `commit --amend`). Fix defects prospectively in a new commit; the audit trail stays linear.
 - **Never update git config.** Config is a shared resource; writes bleed across worktrees and repositories silently.
 - **Commit only when authorized.** A working-repository commit requires one of exactly two authorizations: an active campaign DAG (the `.ledger/active-dag` pointer file is present), or an explicit human instruction to commit. An explicit instruction authorizes commits only for the current task — it is consumed at the task boundary and does not carry to a later task or a subsequent turn once the task is done. Absent both, do not stage or commit in the working repository. The `.ledger/` sub-repository's Sketch Commit Discipline is scoped to ledger management and does not authorize working-repository commits.

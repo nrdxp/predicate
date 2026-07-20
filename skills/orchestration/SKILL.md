@@ -380,7 +380,7 @@ section wires its acts to driver states:
 | :--- | :--- |
 | `DERIVE` (after gate rc 0) | open the integration branch's **draft PR** (forge MCP preferred; `gh pr create --draft` fallback — forge §0) — body per forge §2 (self-contained; no process-internal references, ever) |
 | `MERGE` / `CHECKPOINT` | keep the PR body accurate against the branch's *current* state; post review findings + triage as PR comments (forge §3) as they occur, not retrospectively |
-| `CLOSE` | mark the PR ready; the lead-maintainer's merge-consent includes the **forge audit** (forge §5); the head merges — the driver never does (rules.md §3) |
+| `CLOSE` | mark the PR ready; the lead-maintainer's merge-consent includes the **forge audit** (forge §5); the merge lands per forge §4 (in git, on the head's say-so; any push only under the head's recorded per-campaign authorization — rules.md §3's one exception) — the driver never merges or pushes |
 
 No forge → this table is skipped in full; nothing else changes.
 
@@ -424,13 +424,14 @@ everything else is deterministic-or-dispatched. At each seam, `MODE` decides:
 
 | Seam | Where (state) | `AUTONOMOUS` | `INTERACTIVE` |
 | :--- | :--- | :--- | :--- |
-| Final acceptance + push | `CLOSE` | resolve-by-policy is **forbidden** — a release is a sovereignty decision; HALT and escalate regardless | HALT; surface the CLOSE report; the head accepts + pushes (agents never push — rules.md §3) |
+| Final acceptance + push | `CLOSE` | resolve-by-policy is **forbidden** — a release is a sovereignty decision; HALT and escalate regardless | HALT; surface the CLOSE report; the head accepts, and any push runs only under the head's explicit per-campaign authorization — the law's one push exception (rules.md §3) |
 | Non-resolvable reserved halt | `AWAIT`/`DISPATCH` | escalate to the head (a reserved predicate is, by definition, a head call) | surface the worker's freeze report |
 | Decision-rights realignment | `RECONCILE`/`REALIGN` | resolve only if inside the IBC's declared sovereignty gates; else escalate | surface the realignment question |
 | Non-converging adversarial review | `RECONCILE` step (3) | escalate (the dual escalates to human when decorrelated reviewers do not converge — rules.md §2 Invariant 1) | surface the divergence |
 
 Push and final acceptance are **never** resolved by policy in either mode:
-remotes belong to the human (rules.md §3). The other three seams resolve by
+remotes belong to the human, and an agent pushes only under the head's
+explicit per-campaign authorization (rules.md §3). The other three seams resolve by
 policy in `AUTONOMOUS` *only when the call is inside a declared sovereignty
 gate*, and surface in `INTERACTIVE`.
 
