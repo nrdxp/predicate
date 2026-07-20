@@ -178,14 +178,27 @@ reconcile log, and the live context map — are **not** redefined here. Their
 schemas are the locked Nickel contracts under
 [`ledger/contracts/`](../../ledger/contracts), each authored as a pure-data YAML
 instance and gated by a single `nickel export … --apply-contract` pass; the
-contracts stay Nickel, the instances are YAML:
+contracts stay Nickel, the instances are YAML.
+
+> [!IMPORTANT]
+> **These four are STATE, and state lives in the RECORDER — never in
+> scratch.** Each instance is authored under `.ledger/state/` and committed
+> in the recorder sub-repo at every checkpoint. Findings especially are the
+> surface the campaign re-derives context from ("did we miss anything?"):
+> a findings ledger written to `.scratch/` is a findings ledger LOST to
+> every future context, since scratch is disposable by law. Field campaigns
+> diverged on this exact point — some wrote findings to the recorder, some
+> to scratch — so the store is now explicit: `.scratch/<topic>/` holds only
+> the narrative working set (REVIEW.md, PLAN.md, ORCHESTRATION.md,
+> prompts/); the four contract-gated state instances live in
+> `.ledger/state/`.
 
 | Artifact | Apply-contract | Load-bearing invariant |
 | :--- | :--- | :--- |
-| Findings ledger (SURVEY) | [`findings_apply.ncl`](../../ledger/contracts/findings_apply.ncl) | **authored as YAML** (`<topic>/findings.yaml`), validated via `nickel export findings.yaml --apply-contract ledger/contracts/findings_apply.ncl`; a resolved finding (`'mitigated`/`'accepted_risk`) MUST name the `evaluator` that closed it; instances are YAML |
-| Campaign DAG (PLAN/ORCHESTRATE) | [`dag_apply.ncl`](../../ledger/contracts/dag_apply.ncl) (`Dag ∘ DagNoConflict`) | the DAG is **authored as YAML** (`<topic>/dag.yaml`) and validated via `nickel export dag.yaml --apply-contract ledger/contracts/dag_apply.ncl`; each node's `discipline` is one of `core`/`refine`/`doc`/`form`/`spec`; the graph is acyclic, referentially whole, and concurrent nodes carry disjoint `file_surface` or a `serialize` marker; contracts stay Nickel, instances are YAML |
-| Context map (tracker) | [`context_map_apply.ncl`](../../ledger/contracts/context_map_apply.ncl) | **authored as YAML** (`<topic>/context_map.yaml`), validated via `nickel export context_map.yaml --apply-contract ledger/contracts/context_map_apply.ncl`; every item MUST carry non-empty `grounding`, `last_validated`, and `signpost`; instances are YAML |
-| Reconcile log (RECONCILE) | [`reconcile_apply.ncl`](../../ledger/contracts/reconcile_apply.ncl) | **authored as YAML** (`<topic>/reconcile_log.yaml`), validated via `nickel export reconcile_log.yaml --apply-contract ledger/contracts/reconcile_apply.ncl`; an `'accept` judgment MUST name the `evaluator` that justified it; instances are YAML |
+| Findings ledger (SURVEY) | [`findings_apply.ncl`](../../ledger/contracts/findings_apply.ncl) | **authored as YAML** (`.ledger/state/<topic>-findings.yaml`), validated via `nickel export <topic>-findings.yaml --apply-contract ledger/contracts/findings_apply.ncl`; a resolved finding (`'mitigated`/`'accepted_risk`) MUST name the `evaluator` that closed it; instances are YAML |
+| Campaign DAG (PLAN/ORCHESTRATE) | [`dag_apply.ncl`](../../ledger/contracts/dag_apply.ncl) (`Dag ∘ DagNoConflict`) | the DAG is **authored as YAML** (`.ledger/state/dag.yaml` — the path the active-dag pointer and the orchestration driver's `DAG` input bind) and validated via `nickel export dag.yaml --apply-contract ledger/contracts/dag_apply.ncl`; each node's `discipline` is one of `core`/`refine`/`doc`/`form`/`spec`; the graph is acyclic, referentially whole, and concurrent nodes carry disjoint `file_surface` or a `serialize` marker; contracts stay Nickel, instances are YAML |
+| Context map (tracker) | [`context_map_apply.ncl`](../../ledger/contracts/context_map_apply.ncl) | **authored as YAML** (`.ledger/state/<topic>-context_map.yaml`), validated via `nickel export <topic>-context_map.yaml --apply-contract ledger/contracts/context_map_apply.ncl`; every item MUST carry non-empty `grounding`, `last_validated`, and `signpost`; instances are YAML |
+| Reconcile log (RECONCILE) | [`reconcile_apply.ncl`](../../ledger/contracts/reconcile_apply.ncl) | **authored as YAML** (`.ledger/state/<topic>-reconcile_log.yaml`), validated via `nickel export <topic>-reconcile_log.yaml --apply-contract ledger/contracts/reconcile_apply.ncl`; an `'accept` judgment MUST name the `evaluator` that justified it; instances are YAML |
 
 The `evaluator` field and the `discipline` enum are the campaign's two
 load-bearing couplings to these contracts: SURVEY and RECONCILE depend on the
@@ -454,8 +467,10 @@ premises:
      security lens on a trust boundary) — his call,
      and the verdict remains his. On consent the node merges and is marked
      `ACCEPTED` with its mitigated findings. Where the project has a forge,
-     merge-consent includes the [forge audit](../forge/SKILL.md) over the
-     surfaced PR(s).
+     the composer runs the [forge audit](../forge/SKILL.md) over the
+     surfaced PR(s) alongside the merge-consent — the audit is the
+     composer's (communication is conducting); the maintainer's gate is
+     the code.
    - `REWORK` — an evaluator, surface, or coherence check failed: emit a
      corrective delta IBC (error feedback in cheap space) and re-dispatch;
      the node returns to `PENDING`.
@@ -530,10 +545,12 @@ and the DAG is complete:
    responsibility, not the gate's.
 5. Produce the campaign report from `REVIEW.md` → outcomes: findings
    table with mitigation evidence, DAG execution trace, reconcile rounds,
-   realignments, residual risks. Where the project has a forge, run the
-   [forge audit](../forge/SKILL.md) over the campaign's whole forge
-   surface as part of the council review — prose accuracy against final
-   state, self-containment, the review record's visibility.
+   realignments, residual risks. Where the project has a forge, the
+   composer runs the [forge audit](../forge/SKILL.md) over the campaign's
+   whole forge surface — prose accuracy against final state,
+   self-containment, the review record's visibility, tracking-issue
+   completeness. The audit is the composer's own duty at CLOSE; the
+   maintainer's attention stays on the code.
 6. **HALT for the head's final acceptance.** Scratch MAY then be discarded;
    the sketch and git history carry the durable record.
 

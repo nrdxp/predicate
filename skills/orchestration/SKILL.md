@@ -409,7 +409,7 @@ section wires its acts to driver states:
 | :--- | :--- |
 | `DERIVE` (after gate rc 0) | open the integration branch's **draft PR** (forge MCP preferred; `gh pr create --draft` fallback — forge §0) — body per forge §2 (self-contained; no process-internal references, ever) |
 | `MERGE` / `CHECKPOINT` | keep the PR body accurate against the branch's *current* state; post review findings + triage as PR comments (forge §3) as they occur, not retrospectively |
-| `CLOSE` | mark the PR ready; the lead-maintainer's merge-consent includes the **forge audit** (forge §5); the merge lands per forge §4 (in git, on the head's say-so; any push only under the head's recorded per-campaign authorization — rules.md §3's one exception) — the driver never merges or pushes |
+| `CLOSE` | mark the PR ready; the composer runs the **forge audit** (forge §5) over the final forge surface — the maintainer's consent covers the code, never the prose; the merge lands per forge §4 (in git, on the head's say-so; any push only under the head's recorded per-campaign authorization — rules.md §3's one exception) — the driver never merges or pushes |
 
 No forge → this table is skipped in full; nothing else changes.
 

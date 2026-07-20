@@ -117,11 +117,16 @@ comments — the forge is where the review record survives:
 
 ## 5. The forge audit
 
-A checklist, not a ceremony — owned by the **lead-maintainer seat** and
-run at two points: with each merge-consent, and over the campaign's
-whole forge surface at council CLOSE. It MAY be delegated to a
-dedicated reviewer when the surface is large; the seat retains the
-verdict.
+A checklist, not a ceremony — owned by the **composer**, run at two
+points: alongside each merge-consent, and over the campaign's whole
+forge surface at council CLOSE. The forge is the campaign's outward
+communication, and communication is conducting: the composer authors
+the forge surface, so the composer answers for it. The
+lead-maintainer's gate is the CODE and its maintenance burden — his
+attention stays on the diff, and routing this audit to him dilutes
+the one review only he can give. The composer MAY delegate the
+reading to a dedicated read-only reviewer when the surface is large;
+the verdict and the fixes remain the composer's.
 
 - [ ] PR prose still accurate against the *final* state of the branch
       (late commits silently invalidate early summaries).

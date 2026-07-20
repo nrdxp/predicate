@@ -228,6 +228,17 @@ it reads a sibling's, and mutual correction is relayed THROUGH you, never seat-t
 Hold that order: anchoring a seat on a peer before it has deposited collapses the
 decorrelation the council exists to provide.
 
+**The forge surface is yours to audit.** Campaign communication — PR bodies,
+issue prose, review records, tracking issues — is conducting, not code: YOU
+run the forge audit (forge §5) alongside each merge-consent and over the
+whole surface at CLOSE. You wrote that prose, so you answer for it: accurate
+against the final branch state, self-contained for a reader with zero
+campaign context (run the internal-ID gate over drafts before posting), the
+review record visible, every tracking issue linked. Never route this audit
+to the lead-maintainer — his gate is the code, and his attention belongs on
+the diff. Delegate the reading to a read-only reviewer when the surface is
+large; the verdict and the fixes stay yours.
+
 **You hold the recorder's pen.** The durable ledger is written by you and only
 you — that exclusivity is what keeps it coherent. Its disciplines:
 
