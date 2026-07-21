@@ -67,9 +67,11 @@ at every `RECONCILE` boundary:
 > amendments — adding, editing, or removing nodes — are the
 > **norm**, not a deviation; staying faithful to an arbitrary initial
 > structure while overlooking what execution revealed is the failure mode
-> this guards against. Each amendment is a new boundary — a `dag-amendment`
-> the delegation table routes to the architect seat, ratified by the **head**
-> before any affected node is re-dispatched.
+> this guards against. Each amendment routes to the architect seat and is
+> TIERED by the contract (§Amendment tiers under RECONCILE): a MECHANICAL
+> amendment proceeds on the architect's recorded single assent; a
+> LOAD-BEARING amendment is ratified by the **head** before any affected
+> node is re-dispatched.
 
 Both checks are mechanical and cheap — they SHOULD themselves run on a cheap tier.
 
@@ -509,6 +511,43 @@ is realigned before any dispatch. Running this at *every* boundary — not once 
 front — is what kills cross-node drift at the boundary instead of letting it
 accumulate to `CLOSE`.
 
+#### Amendment tiers — the contract decides, not feel
+
+The head's PLAN approval ratified a CONTRACT: the set of node goals and
+acceptance criteria — *what* is being built and what *done* means. Every
+DAG amendment is classified against that contract, recorded either way:
+
+- **MECHANICAL** (`dag-amendment-mechanical` — the architect's recorded
+  single assent suffices; no head seam). The closed kind-list:
+  - **M1** surface widen/narrow that passes the collision check (the
+    surface-exceed protocol — already autonomous).
+  - **M2** premise realignment against the new `HEAD` (REALIGN — already
+    autonomous).
+  - **M3** node SPLIT preserving the union of surfaces and criteria —
+    none added, removed, or weakened.
+  - **M4** node MERGE (batching) preserving all criteria, per the
+    batching default.
+  - **M5** sequencing/`serialize`-marker changes — schedule, not scope.
+  - **M6** cutting a node made VACUOUS by landed work — provable: run its
+    acceptance evaluators against the tip; all green means the work
+    already exists.
+- **LOAD-BEARING** (`dag-amendment` — head-ratified, exactly as always):
+  anything that touches the contract — a criterion added, removed, or
+  weakened; a node goal changed; genuinely new work; a surface where a
+  review-tier trigger (T1–T4) fires; a coupled design decision.
+- **Uncertainty defaults UP** — the opposite of the review-tier default,
+  deliberately: an over-reviewed node wastes tokens, but a wrongly
+  auto-applied amendment silently moves what is being built. Unclear =
+  load-bearing.
+- **Accountability, both tiers**: every amendment lands in the decision
+  ledger with its classification and claimed kind; the process-auditor
+  SAMPLES the classifications (a misclassification is a finding, a
+  pattern is a bar trigger); and a THIRD mechanical amendment touching
+  the same node is a drift tripwire — surfaced to the head even though
+  each passed alone, because scope creep arrives as a series of
+  individually-reasonable rescopes. The CLOSE retrospective reports
+  every amendment's classification.
+
 Finally: append the `RECONCILE_LOG` round, write the **sketch
 checkpoint**, and commit it in the `.ledger/` subrepo. Reserved-predicate
 breaches and appetite exhaustion route to the head (`HALT`).
@@ -560,7 +599,9 @@ and the DAG is complete:
    hard-won context that survives context loss and compaction. It MUST
    include: original goal and what actually landed; execution-model and
    intellectual-capital lessons (surprises, realignments, what the initial
-   DAG missed); open watch-items or residual risks; a durability map
+   DAG missed); open watch-items or residual risks; every DAG amendment
+   with its tier classification (the mechanical kind it claimed, or its
+   head ratification); a durability map
    (which artifacts are durable, which scratch is disposable); and a
    **`## Sufficiency Review` section** (reviewers, convergence verdict,
    and any findings routed to follow-up nodes or tech-debt records — the
@@ -594,9 +635,10 @@ and the DAG is complete:
 2. **PREMISE_FRESHNESS + GOAL_SUPREMACY:** At every `RECONCILE` boundary,
    re-verify two things: (a) every pending node's premises against current
    `HEAD` (stale premise → `INVALIDATED`); (b) whether the DAG as a whole
-   still serves the goal. DAG amendments are normal and head-approved —
-   open-loop dispatch of a stale or goal-misaligned DAG is a protocol
-   violation.
+   still serves the goal. DAG amendments are normal — mechanical ones
+   applied on the architect's recorded assent, load-bearing ones
+   head-approved (§Amendment tiers) — and open-loop dispatch of a stale
+   or goal-misaligned DAG is a protocol violation.
 3. **RETROSPECTIVE_AT_CLOSE:** Before the head's final acceptance, emit a
    retrospective to the flight recorder (`.ledger/log/`). Every campaign's
    hard-won context — what landed vs the goal, execution-model lessons,

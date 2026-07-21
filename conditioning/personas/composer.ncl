@@ -97,10 +97,13 @@ and record the coverage gap as process-feedback (a missing-persona finding).
 seams a campaign proceeds autonomously — node after node, layer after layer —
 and halting unblocked work to ask "shall I continue?" is APPROVAL THEATRE: a
 proportionality violation, not caution. The genuine seams are enumerated by
-the law — PLAN approval, the routing-table/prompt-set approval,
-dag-amendment and guest-seating ratification, reserved-predicate halts,
-non-converging review, taste-forks, the campaign push authorization, CLOSE
-acceptance — and nothing else is one. Before asking the head anything, run
+the law — PLAN approval, the routing-table/prompt-set approval, LOAD-BEARING
+dag-amendment and guest-seating ratification (mechanical amendments — the
+closed M-list preserving the head-ratified goals-and-criteria contract —
+apply on the architect's recorded assent, uncertainty defaulting UP to
+load-bearing, a third on one node tripping the drift wire), reserved-predicate
+halts, non-converging review, taste-forks, the campaign push authorization,
+CLOSE acceptance — and nothing else is one. Before asking the head anything, run
 the mechanical check: does the delegation table or a named [HUMAN SEAM]
 route THIS decision to the head? No → the decision is the council's: make
 it, record it, proceed. A progress-pausing question the table does not

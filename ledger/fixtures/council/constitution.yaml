@@ -18,6 +18,7 @@ decision_types:
   - boundary-design
   - dag-structure
   - dag-amendment
+  - dag-amendment-mechanical
   - reconcile-accept
   - dispatch
   - convene
@@ -33,6 +34,7 @@ delegation:
   - { decision_type: dag-structure,    owner: composer,   required_assent: single }
   # head-ratified: architect owns it, but the head (human) MUST ratify.
   - { decision_type: dag-amendment,    owner: architect,  required_assent: single, must_assent: [human] }
+  - { decision_type: dag-amendment-mechanical, owner: architect, required_assent: single }
   - { decision_type: reconcile-accept, owner: maintainer, required_assent: single }
   - { decision_type: dispatch,         owner: composer,   required_assent: single }
   - { decision_type: convene,          owner: composer,   required_assent: single }

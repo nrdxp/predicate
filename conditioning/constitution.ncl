@@ -19,8 +19,12 @@
 # coerce_constitution is idempotent on tags, so the same apply serves both this value
 # and the YAML fixture unchanged).
 #
-# Ownership (matches the reconciled council): head-ratified dag-amendment ->
-# architect; dispatch / convene / lifecycle / dag-structure -> composer (the
+# Ownership (matches the reconciled council): dag-amendment -> architect, TIERED —
+# a MECHANICAL amendment (provably preserves the head-ratified contract: the set of
+# node goals + acceptance criteria; closed kind-list in campaign §Amendment tiers)
+# proceeds on the architect's recorded single assent; a LOAD-BEARING amendment
+# (touches the contract) requires head ratification. Uncertainty defaults UP.
+# dispatch / convene / lifecycle / dag-structure -> composer (the
 # conductor); reconcile-accept + merge -> maintainer (per-node acceptance lives in
 # the merge gate — the ONLY seat a routine node's reconcile requires; other seats
 # and guests join a node only when the composer convenes them for an exceptional
@@ -39,6 +43,7 @@
     "boundary-design",
     "dag-structure",
     "dag-amendment",
+    "dag-amendment-mechanical",
     "reconcile-accept",
     "dispatch",
     "convene",
@@ -53,8 +58,13 @@
   delegation = [
     { decision_type = "boundary-design",  owner = "architect",  required_assent = 'single },
     { decision_type = "dag-structure",    owner = "composer",   required_assent = 'single },
-    # head-ratified: architect owns it, but the head (human) MUST ratify.
+    # LOAD-BEARING amendments (the contract is touched): architect owns it, but
+    # the head (human) MUST ratify.
     { decision_type = "dag-amendment",    owner = "architect",  required_assent = 'single, must_assent = ["human"] },
+    # MECHANICAL amendments (contract provably preserved — closed kind-list):
+    # the architect's recorded single assent suffices; the process-auditor
+    # samples the classifications. Uncertainty defaults to the load-bearing tier.
+    { decision_type = "dag-amendment-mechanical", owner = "architect", required_assent = 'single },
     # Per-node acceptance folds into the merge gate: for a routine node the
     # maintainer's affirmative consent IS the accept; the architect joins only
     # when convened for an exceptional (load-bearing) node.

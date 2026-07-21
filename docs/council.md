@@ -103,6 +103,7 @@ delegation table; a project may declare its own.
 | `boundary-design` | architect | `'single` | — |
 | `dag-structure` | composer | `'single` | — |
 | `dag-amendment` | architect | `'single` | head-ratification |
+| `dag-amendment-mechanical` | architect | `'single` | — |
 | `reconcile-accept` | maintainer | `'single` | — |
 | `dispatch` | composer | `'single` | — |
 | `convene` | composer | `'single` | — |
@@ -140,7 +141,7 @@ signature, and each violation surfaces its own reason:
   [`council_consent.sh`](../ledger/gate/council_consent.sh) gate reduces to this
   guard (it exports through the apply-contract and reads the exit code), enforcing
   that green gates alone never land a node.
-- **`head-ratification`** — a `dag-amendment` or `close` decision must carry the
+- **`head-ratification`** — a (load-bearing) `dag-amendment` or `close` decision must carry the
   head (`"human"`). For `close`, this sits **atop** full machine consensus: the head
   is a standing seat but the *ratifier*, excluded from the `'full` tally so
   consensus and ratification stay two distinct gates, both required to close.
