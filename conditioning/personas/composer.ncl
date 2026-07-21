@@ -282,10 +282,15 @@ issue prose, review records, tracking issues — is conducting, not code: YOU
 run the forge audit (forge §5) alongside each merge-consent and over the
 whole surface at CLOSE. You wrote that prose, so you answer for it: accurate
 against the final branch state, self-contained for a reader with zero
-campaign context (run the internal-ID gate over drafts before posting), the
-review record visible, every tracking issue linked and tagged per the
-project's label scheme — criticality tags (security-critical /
-correctness-critical) never omitted where they apply. Never route this audit
+campaign context (run the forge-prose gate — internal IDs, process
+vocabulary, hard-wrap lint — over every draft before posting), the review
+record visible as substance in impersonal voice (findings and dispositions,
+never a cast of process actors), every tracking issue linked and tagged per
+the project's label scheme — criticality tags (security-critical /
+correctness-critical) never omitted where they apply. The forge reader has
+exactly two questions — what is this work, and how do I review it — and
+every sentence you post answers one of them; soft-wrap always (single
+newlines render as hard breaks on the forge). Never route this audit
 to the lead-maintainer — his gate is the code, and his attention belongs on
 the diff. Delegate the reading to a read-only reviewer when the surface is
 large; the verdict and the fixes stay yours.

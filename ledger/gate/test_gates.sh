@@ -899,6 +899,27 @@ expect "uncovered unmarked context_map path -> lint fails (rc 1)" 1 \
   python3 "$authorized" --dag "$fixdir/ibc_dag.json" \
     --ibc-surface-check n-alpha --ibc "$fixdir/ibc_bad.json"
 
+echo "== check_forge_prose.sh: forge-draft prose gate =="
+check_forge_prose="$root/gates/check_forge_prose.sh"
+mkdir -p "$fixdir/forge"
+# Clean draft: soft-wrapped paragraphs; the list and fence are exempt from the
+# wrap lint by design.
+printf 'Hardens the session parser against malformed range headers.\n\n- item one\n- item two\n\n```\ncode line one\ncode line two\n```\n' \
+  > "$fixdir/forge/clean.md"
+# Process narrative: zero banned ID tokens — the leak the token gate cannot
+# see, caught by the vocabulary scan.
+printf 'The council reconciled this after the merge gate consented.\n' \
+  > "$fixdir/forge/vocab.md"
+# Manual wrap: one sentence split across two lines renders as a hard break.
+printf 'Hardens the session parser\nagainst malformed range headers.\n' \
+  > "$fixdir/forge/wrapped.md"
+expect "soft-wrapped substance draft -> clean (rc 0)" 0 \
+  bash "$check_forge_prose" --files "$fixdir/forge/clean.md"
+expect "process-narrative draft -> vocab finding (rc 1)" 1 \
+  bash "$check_forge_prose" --files "$fixdir/forge/vocab.md"
+expect "hard-wrapped draft -> wrap finding (rc 1)" 1 \
+  bash "$check_forge_prose" --files "$fixdir/forge/wrapped.md"
+
 if [ "$fails" -ne 0 ]; then
   echo "FAIL: $fails gate case(s) mismatched"; exit 1
 fi

@@ -79,12 +79,31 @@ Two PR tiers, one campaign:
 
 ## 2. PR prose — self-contained, or broken
 
-- The body MUST be comprehensible to a reader with the repository and
-  the PR alone: summary, what changed and why, decisions taken (with
-  their grounds), what is deliberately out of scope, and honest
-  verification status (what was run, what wasn't). Write for the human
-  who will actually review it — a reader holding NONE of the campaign's
-  context, not a colleague inside the process.
+- **The audience model, stated positively:** the forge reader is a
+  potential reviewer of the CODE, with zero knowledge of — and zero
+  interest in — how the work was produced. Exactly two questions
+  matter: *what is this work?* and *how do I review it?* Every sentence
+  must serve one of the two, and the test is applied sentence by
+  sentence, not file by file.
+- What serves: a summary; what changed and why in terms of the
+  repository's own behavior and goals; DESIGN decisions with their
+  grounds (why this approach — never process decisions about who
+  approved what); what is deliberately out of scope; honest
+  verification status as facts about the repository (what was run, the
+  actual results, what wasn't run); known risks and tradeoffs.
+- **The production process is never content — relevance, not secrecy.**
+  Councils, seats, reviewers-as-cast, campaigns, nodes, layers,
+  reconcile rounds, dispatch mechanics: none of it helps a reader
+  review the change, so none of it appears — token-free *narrative*
+  about the process fails the two-question test just as hard as a
+  leaked ID. Campaign-scale context is carried by a plain link to the
+  meta tracking issue (§6), never by narrative.
+- **Formatting is mechanical fact, not taste:** GitHub renders single
+  newlines in PR/issue bodies as hard line breaks, so manually wrapped
+  prose renders as a staccato mess. Forge prose is SOFT-WRAPPED — one
+  paragraph is one logical line, blank lines separate paragraphs, and
+  visual structure comes from markdown (headings, lists, fences), never
+  from manual breaks.
 - **Zero process-internal references**: no `.scratch/`, no `.ledger/`,
   no sketch or session links, no "as discussed" — and no campaign-
   internal identifiers (node or finding tokens): to every reader outside
@@ -93,8 +112,11 @@ Two PR tiers, one campaign:
   when branches are deleted.
 - The check is mechanical, not a memory: draft forge prose (PR bodies,
   issue bodies, review summaries) in a scratch file and run
-  `gates/check_internal_ids.sh --files <draft>` over it before posting,
-  the same standing gate merge review runs over shipped files.
+  `gates/check_forge_prose.sh --files <draft>` over it before posting —
+  internal IDs, the process-vocabulary scan (advisory-with-override:
+  rewrite the sentence in substance terms, or narrow `FORGE_VOCAB_PAT`
+  in `.ledger/config.sh` for a genuine per-project collision), and the
+  hard-wrap lint, in one pass.
 - **The tracking PR's body is a checklist.** After its summary prose,
   one item per node PR, in schedule order, checked as each merges:
   `- [x] #<node-PR-number> — <what it landed, in repository terms>`.
@@ -112,10 +134,12 @@ Two PR tiers, one campaign:
 Decorrelated review findings and their triage belong ON the PR, as
 comments — the forge is where the review record survives:
 
-- When adversarial or council review produces findings, post the
-  findings (or a faithful summary) and the disposition of each —
-  confirmed-and-fixed (with the commit), refuted (with grounds),
-  deferred (with its follow-up home) — as PR comments.
+- When adversarial or council review produces findings, post them **as
+  substance, in impersonal voice** — what was found in the code and its
+  disposition: confirmed-and-fixed (with the commit), refuted (with
+  grounds), deferred (with its follow-up home) — as PR comments.
+  "Review found X; fixed in `<sha>`" — never a cast of process actors;
+  the record is the finding, not the machinery that produced it.
 - The triage comment is part of the merge record: a PR that merged
   after review with no visible trace of that review under-documents
   the merge.
@@ -162,6 +186,11 @@ the verdict and the fixes remain the composer's.
       (late commits silently invalidate early summaries).
 - [ ] Self-containment holds: zero process-internal references
       anywhere in bodies or comments; permalinks pinned to SHAs.
+- [ ] The two-question test holds sentence by sentence: everything
+      serves "what is this work" or "how do I review it" — no
+      production-process narrative, however token-free.
+- [ ] `check_forge_prose.sh` passes over every body and comment
+      drafted this round (IDs, vocabulary, hard wraps).
 - [ ] The review record is present: findings + triage visible on the
       PR for every review that gated the merge.
 - [ ] Forge state matches reality: merged PRs show merged (or carry
