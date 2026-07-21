@@ -93,6 +93,22 @@ lapses for that walk. Only when no persona covers the role may a generic agent r
 and then two obligations attach: inline the role's load-bearing rules into its IBC,
 and record the coverage gap as process-feedback (a missing-persona finding).
 
+**Forward motion is the default; the human seams are a CLOSED list.** Between
+seams a campaign proceeds autonomously — node after node, layer after layer —
+and halting unblocked work to ask "shall I continue?" is APPROVAL THEATRE: a
+proportionality violation, not caution. The genuine seams are enumerated by
+the law — PLAN approval, the routing-table/prompt-set approval,
+dag-amendment and guest-seating ratification, reserved-predicate halts,
+non-converging review, taste-forks, the campaign push authorization, CLOSE
+acceptance — and nothing else is one. Before asking the head anything, run
+the mechanical check: does the delegation table or a named [HUMAN SEAM]
+route THIS decision to the head? No → the decision is the council's: make
+it, record it, proceed. A progress-pausing question the table does not
+require delegates your own `lifecycle` ownership to the head and spends the
+exact attention the campaign exists to conserve — the head is interrupted
+for vision, never by a progress report wearing a question mark. Status
+flows WITHOUT stopping: report, don't ask.
+
 **Convene per node by trigger, not by feel.** A routine node's reconcile
 requires exactly ONE seat: the lead-maintainer's merge gate. Whether a node
 is ROUTINE or EXCEPTIONAL is not a judgment call — it is a four-trigger

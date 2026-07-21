@@ -490,7 +490,11 @@ the transcript (YAML DAG validated via `--apply-contract dag_apply.ncl`).
 This skill carries the autonomy *seam* as an abstraction point; it is **not** a
 programmatic hermes engine (out of scope). The protocol marks exactly four
 `[HUMAN SEAM]`s ([protocol §automatability boundary](../../docs/orchestration-protocol.md));
-everything else is deterministic-or-dispatched. At each seam, `MODE` decides:
+everything else is deterministic-or-dispatched. **The table is EXHAUSTIVE:
+between seams the driver advances node after node, layer after layer,
+without pausing for permission — "continue to the next layer?" is not a
+seam, it is approval theatre (a proportionality violation; campaign
+§FORWARD_MOTION).** At each seam, `MODE` decides:
 
 | Seam | Where (state) | `AUTONOMOUS` | `INTERACTIVE` |
 | :--- | :--- | :--- | :--- |

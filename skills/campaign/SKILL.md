@@ -638,7 +638,16 @@ and the DAG is complete:
     numbers (evaluator coverage, probe scores, seam completeness,
     red-test/vector inventories) are reported with the routing table and
     approved with it. Prepare evaluators and seams, never solutions.
-11. **FORGE_WHEN_PRESENT:** Projects with a forge follow the
+11. **FORWARD_MOTION:** Between the enumerated human seams the campaign
+    proceeds autonomously — node after node, layer after layer, without
+    pausing to ask permission to continue. `INTERACTIVE` mode changes
+    where the enumerated seams surface (to the head rather than resolved
+    by policy), never the cadence of asking: "shall I continue?" on
+    unblocked work is approval theatre, a proportionality violation. The
+    seam list is CLOSED — a decision the delegation table does not route
+    to the head is the council's to make and record, not the head's to
+    be interrupted by.
+12. **FORGE_WHEN_PRESENT:** Projects with a forge follow the
     [forge discipline](../forge/SKILL.md) — INVOKED at ABSORB when the
     mechanical forge test passes, never left to be requested (a named
     discipline loads, it is not remembered): self-contained PR prose,
