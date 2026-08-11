@@ -7,7 +7,9 @@
 The RECORD primitive extends the flight-log model to durable, machine-shaped
 records that live beyond a single campaign. Each record category has a defined
 contract, a `.ledger` home, and a recording trigger. Writing a record is a gate:
-structural conformance is machine-checkable and omission-proof.
+structural conformance is machine-checkable and omission-proof. Who signs and
+writes which record — and what backs each entry — is governed by the
+typed-claim vocabulary and the pen law in [`entries.md`](entries.md).
 
 ---
 

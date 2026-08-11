@@ -3,6 +3,11 @@
 # dag.ncl already exports `Node` meaning a campaign DAG node; reusing the word
 # would misread as DAG machinery to anyone outside this pass (ruling D-7).
 #
+# This file is the MACHINE half of the vocabulary; the prose half — the
+# backing × assertion product, the two evidence species, the self-vouch
+# policy, and the pen law — is docs/entries.md, the single home every other
+# statement references.
+#
 # Scope discipline: this contract's ONLY job is to make a ledger record
 # machine-checkable for well-formedness against the formalism. It deliberately
 # does NOT link claims to code — no markers, no evaluator runners, no register.

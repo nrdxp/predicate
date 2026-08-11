@@ -5,6 +5,11 @@ a procedure step.  The process gate validates it automatically on commit.
 
 **You write data.  The contract checks it.  You never write Nickel.**
 
+A deposit is **testimony**: signed by the walker that witnessed the work, and
+written by that walker — the evidence vocabulary it speaks (the two species,
+signers, witnesses) and the pen law naming who writes which record are defined
+once in [`entries.md`](entries.md).
+
 ---
 
 ## What a deposit looks like
