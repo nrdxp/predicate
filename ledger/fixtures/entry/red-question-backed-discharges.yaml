@@ -1,0 +1,31 @@
+# A BACKED question carrying a discharges edge — the case that isolates
+# DischargeBacked's ASSERTION clause. The predicate enumerates two violation
+# modes (wrong assertion axis, wrong backing species) and both sibling reds
+# carry `backing: unclosed`, so the BACKING clause is what fails in both: the
+# assertion clause survives its own deletion and the suite cannot tell.
+#
+# Here the backing clause is SATISFIED — the entry is vouched and names its
+# witness — so the only thing standing between this entry and a clean export is
+# the requirement that a discharger be a claim. Delete that clause and this
+# fixture exports green; delete the backing clause instead and it stays red.
+#
+# The shape is not a curiosity. Nothing constrains a question's backing (no
+# predicate reads the two axes together except this one), so a vouched question
+# is representable, and a vouched question that closes a sibling question is a
+# chain of testimony about something nobody ever asserted.
+id: q-vouched-closes
+statement: "A vouched question that presumes to close a sibling question."
+assertion: question
+backing: vouched
+signer:
+  kind: agent
+  name: composer
+witness:
+  name: the-head
+  at: "deadbeef0d"
+discharge: "The head reads the boundary and rules once."
+closer:
+  kind: human
+  name: nrd
+discharges:
+  - q-other

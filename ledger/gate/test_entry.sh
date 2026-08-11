@@ -133,11 +133,25 @@ expect "unattributed signer, vouched -> UnattributedUnclosed" 1 "UnattributedUnc
 expect "unattributed signer, corroborated -> UnattributedUnclosed" 1 "UnattributedUnclosed" \
   -- run "$fix/red-unattributed-corroborated.yaml"
 # Misclosure is unrepresentable by SHAPE: a discharges edge is valid only from
-# a corroborated or vouched CLAIM. Both reds below must name DischargeBacked.
+# a corroborated or vouched CLAIM. All three reds below must name
+# DischargeBacked, and each is here for a DIFFERENT clause of it — the
+# predicate enumerates two violation modes, and a suite that exercises one of
+# them twice leaves the other clause deletable without a red going green.
+# Verified by mutation, which is the only instrument that can see an
+# unexercised clause (keyword analysis structurally cannot):
+#   - drop the ASSERTION clause: only red-question-backed-discharges goes
+#     green. The two reds below survive it — both carry `backing: unclosed`,
+#     so the backing clause fails in both regardless.
+#   - drop the BACKING clause: only red-discharges-from-synthesis goes green.
+#   - red-question-discharges violates BOTH clauses, so it kills neither
+#     mutant on its own; it is kept as the both-modes case, not as a clause
+#     witness.
 expect "synthesis claim carrying discharges -> DischargeBacked" 1 "DischargeBacked" \
   -- run "$fix/red-discharges-from-synthesis.yaml"
 expect "question carrying discharges -> DischargeBacked" 1 "DischargeBacked" \
   -- run "$fix/red-question-discharges.yaml"
+expect "backed question carrying discharges -> DischargeBacked" 1 "DischargeBacked" \
+  -- run "$fix/red-question-backed-discharges.yaml"
 
 # --- shape reds --------------------------------------------------------------
 expect "empty statement -> NonEmptyString" 1 "NonEmptyString" \
