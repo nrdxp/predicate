@@ -1,0 +1,31 @@
+# Two rounds, string enum forms, every judgment anchored to the state it
+# judged and carrying its author -> export clean.
+rounds:
+  - round: 1
+    judged:
+      - node: P1
+        verdict: accept
+        evaluator: "bash ledger/gate/test_entry.sh -> 0"
+        at: "6afbc9d"
+        author: { kind: agent, name: lead-maintainer }
+      - node: P2
+        verdict: rework
+        evaluator: ""
+        at: "6afbc9d"
+        author: { kind: agent, name: lead-maintainer }
+    freshness:
+      - { node: P1, state: fresh }
+      - { node: P2, state: stale }
+    realignments:
+      - "P2 re-dispatched with the corrected base tip"
+    checkpoint_commit: "d4b8fde"
+  - round: 2
+    judged:
+      - node: P2
+        verdict: escalate
+        evaluator: ""
+        at: "9cdb776"
+        author: { kind: human, name: nrd }
+    freshness: []
+    realignments: []
+    checkpoint_commit: "5c81efa"

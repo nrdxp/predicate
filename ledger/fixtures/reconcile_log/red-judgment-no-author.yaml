@@ -1,0 +1,12 @@
+# A judgment with no author: nobody stands behind the verdict -> missing
+# field.
+rounds:
+  - round: 1
+    judged:
+      - node: P1
+        verdict: accept
+        evaluator: "suite green"
+        at: "6afbc9d"
+    freshness: []
+    realignments: []
+    checkpoint_commit: "d4b8fde"

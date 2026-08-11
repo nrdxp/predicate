@@ -1,0 +1,14 @@
+# CANARY (D-8 class): a STRING-verdict 'accept with an empty evaluator. A bare
+# `j.verdict == 'accept` against YAML strings is silently false and would pass
+# this ungrounded acceptance -> JudgmentGrounded must reject it.
+rounds:
+  - round: 1
+    judged:
+      - node: P3
+        verdict: accept
+        evaluator: ""
+        at: "6afbc9d"
+        author: { kind: agent, name: composer }
+    freshness: []
+    realignments: []
+    checkpoint_commit: "d4b8fde"

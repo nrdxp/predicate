@@ -1,0 +1,8 @@
+# A checkpoint that is not a commit hash -> CommitRef (the round's anchor is
+# a real record state, not prose).
+rounds:
+  - round: 1
+    judged: []
+    freshness: []
+    realignments: []
+    checkpoint_commit: "latest"

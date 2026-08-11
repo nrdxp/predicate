@@ -9,7 +9,13 @@ let c = import "../contracts/reconcile_log.ncl" in
     {
       round = 1,
       judged = [
-        { node = "P3", verdict = 'accept, evaluator = "" },
+        {
+          node = "P3",
+          verdict = 'accept,
+          evaluator = "",
+          at = "d4b8fde",
+          author = { kind = 'agent, name = "composer" },
+        },
       ],
       freshness = [],
       realignments = [],

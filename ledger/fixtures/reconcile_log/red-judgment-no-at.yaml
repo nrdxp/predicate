@@ -1,0 +1,12 @@
+# A judgment with no `at`: the state it judged is unrecoverable, so a node
+# definition changing between rounds stales it invisibly -> missing field.
+rounds:
+  - round: 1
+    judged:
+      - node: P1
+        verdict: accept
+        evaluator: "suite green"
+        author: { kind: agent, name: lead-maintainer }
+    freshness: []
+    realignments: []
+    checkpoint_commit: "d4b8fde"

@@ -1,0 +1,13 @@
+# An out-of-set verdict string -> Verdict (value restriction holds in string
+# form).
+rounds:
+  - round: 1
+    judged:
+      - node: P1
+        verdict: approve
+        evaluator: "suite green"
+        at: "6afbc9d"
+        author: { kind: agent, name: lead-maintainer }
+    freshness: []
+    realignments: []
+    checkpoint_commit: "d4b8fde"
