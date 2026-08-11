@@ -33,9 +33,10 @@
 #   INSTANCE / FIXTURE: nickel export <f>.yaml --apply-contract deposit_apply.ncl
 let e = import "entry.ncl" in
 {
-  # Re-exported core sentinel: downstream contracts (discovery.ncl,
-  # procedure.ncl, arsenal_registry.ncl) destructure NonEmptyString from this
-  # module; the definition lives in the core alone.
+  # Re-exported core sentinel: discovery.ncl destructures NonEmptyString from
+  # this module; the definition lives in the core alone. (procedure.ncl and
+  # arsenal_registry.ncl declare their own local NonEmptyString copies rather
+  # than importing this one — not this module's re-export to describe.)
   NonEmptyString = e.NonEmptyString,
 
   # The core anchors, extended with the OPTIONAL dirty marker (E-4). Record
@@ -130,12 +131,13 @@ let e = import "entry.ncl" in
 
   # ── DepositStore ─────────────────────────────────────────────────────────────
   # Intrinsic referential-integrity gate over an array of deposits. Enforces:
-  #   (a) per-element Deposit conformance (eager via std.deep_seq)
-  #   (b) per-element DepositRef conformance within each deposit's refs (eager)
-  #   (c) per-element EvidenceChecked conformance — shape + the two species
+  #   (a) per-element Deposit conformance (eager via std.deep_seq) — Deposit's
+  #       `refs | Array DepositRef` field means this fold already forces every
+  #       DepositRef; no separate per-ref fold is needed or present
+  #   (b) per-element EvidenceChecked conformance — shape + the two species
   #       predicates — within each deposit's evidence (eager)
-  #   (d) id uniqueness (I-G1)
-  #   (e) every ref.target resolves to a declared deposit id (I-G2)
+  #   (c) id uniqueness (I-G1)
+  #   (d) every ref.target resolves to a declared deposit id (I-G2)
   #
   # The `std.deep_seq (n | Contract) acc` annotation is what makes the contract
   # EAGER — `std.contract.apply` alone stays lazy and violations slip through
@@ -143,7 +145,8 @@ let e = import "entry.ncl" in
   DepositStore = std.contract.custom (fun _label value =>
     let deposits = value.deposits in
 
-    # (a) Per-deposit shape conformance (Deposit contract, eager).
+    # (a) Per-deposit shape conformance (Deposit contract, eager). Forces every
+    # DepositRef in `refs` as a side effect of forcing the Deposit shape.
     let _deposit_conformance =
       std.array.fold_left
         (fun acc d => std.deep_seq (d | Deposit) acc)
@@ -151,27 +154,21 @@ let e = import "entry.ncl" in
         deposits
     in
 
-    # (b+c) Per-ref and per-evidence conformance inside each deposit (eager).
+    # (b) Per-evidence conformance inside each deposit (eager).
     let _nested_conformance =
       std.array.fold_left
         (fun acc d =>
-          let _evs =
-            std.array.fold_left
-              (fun a2 ev => std.deep_seq (ev | EvidenceChecked) a2)
-              acc
-              d.evidence
-          in
           std.array.fold_left
-            (fun a3 r => std.deep_seq (r | DepositRef) a3)
-            _evs
-            d.refs)
+            (fun a2 ev => std.deep_seq (ev | EvidenceChecked) a2)
+            acc
+            d.evidence)
         null
         deposits
     in
 
     let ids = std.array.map (fun d => d.id) deposits in
 
-    # (d) Id uniqueness.
+    # (c) Id uniqueness.
     let dedup =
       std.array.fold_left
         (fun acc x => if std.array.elem x acc then acc else acc @ [x])
@@ -180,7 +177,7 @@ let e = import "entry.ncl" in
     in
     let unique_ids = std.array.length ids == std.array.length dedup in
 
-    # (e) Referential integrity: every ref.target must be a declared deposit id.
+    # (d) Referential integrity: every ref.target must be a declared deposit id.
     let all_refs_resolve =
       std.array.all
         (fun d =>
