@@ -64,18 +64,30 @@ let wi = import "../contracts/worker_ibc.ncl" in
     id          = "fake-ibc",
     tier        = "worker",
     discipline  = 'refine,
-    depends_on  = [],
-    goal        = "succeed",
-    non_goals   = ["fail"],
+    goal        = {
+      id = "g0",
+      statement = "succeed",
+      provenance = { kind = 'human, name = "nrd" },
+    },
+    non_goals   = [
+      { id = "ng1", statement = "fail", provenance = { kind = 'human, name = "nrd" } }
+    ],
     premises    = [
-      { id = "P1", statement = "true", check = "true", verified = "yes" }
+      { id = "P1",
+        statement = "true",
+        assertion = 'claim,
+        backing = 'corroborated,
+        signer = { kind = 'agent, name = "walker" },
+        check = { command = "true", ran = true, at = "6afbc9d" },
+        axes = { determined = true, certifiable = true, monotone = true } }
     ],
     delegated   = ["everything"],
     reserved    = ["nothing"],
     constraints = [],
     context_map = [],
     acceptance  = [
-      { id = "AC1", statement = "it works", eval = "echo ok" }
+      { id = "AC1", statement = "it works", eval = "echo ok",
+        provenance = { kind = 'agent, name = "walker" } }
     ],
     load_bearing = [],
     plastic      = [],

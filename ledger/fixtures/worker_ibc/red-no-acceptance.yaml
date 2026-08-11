@@ -1,0 +1,18 @@
+# An IBC with no acceptance criteria: without a definition of done the walk
+# is unbounded -> the WorkerIBC sufficiency gate.
+id: wx-unbounded
+tier: "worker (fable)"
+discipline: core
+goal:
+  id: g0
+  statement: "Do something, somehow."
+  provenance: { kind: human, name: nrd }
+non_goals: []
+premises: []
+delegated: []
+reserved: []
+constraints: []
+context_map: []
+acceptance: []
+load_bearing: []
+plastic: []

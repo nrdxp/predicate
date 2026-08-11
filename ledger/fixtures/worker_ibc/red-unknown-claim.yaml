@@ -1,0 +1,31 @@
+# A claim filed in the unknowns section: mis-filing dodges the discharge +
+# closer requirement -> UnknownIsQuestion.
+id: wx-hidden-claim
+tier: "worker (fable)"
+discipline: core
+goal:
+  id: g0
+  statement: "Hide a claim among the unknowns."
+  provenance: { kind: human, name: nrd }
+non_goals: []
+premises: []
+unknowns:
+  - id: u1
+    statement: "The instances all still validate."
+    assertion: claim
+    backing: corroborated
+    signer: { kind: agent, name: worker }
+    check: { command: "bash validate-all.sh", ran: true, at: "6afbc9d" }
+    axes: { determined: true, certifiable: true, monotone: false }
+    freshness: "re-run at reconcile"
+delegated: []
+reserved: []
+constraints: []
+context_map: []
+acceptance:
+  - id: b1
+    statement: "Done when done."
+    eval: "true"
+    provenance: { kind: human, name: nrd }
+load_bearing: []
+plastic: []

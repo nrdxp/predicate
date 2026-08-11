@@ -88,27 +88,44 @@ let d  = import "../contracts/discipline.ncl" in
     id          = "ibc-example-worker",
     tier        = "worker/sonnet",
     discipline  = 'refine,
-    depends_on  = [],
-    goal        = "Exhaustively audit and converge ledger/contracts/procedure.ncl to its fixed-point S*.",
-    non_goals   = ["implementing new features", "modifying sibling contracts not named in goal"],
+    goal        = {
+      id = "g0",
+      statement = "Exhaustively audit and converge ledger/contracts/procedure.ncl to its fixed-point S*.",
+      provenance = { kind = 'human, name = "nrd" },
+    },
+    non_goals   = [
+      { id = "ng1", statement = "implementing new features",
+        provenance = { kind = 'agent, name = "boundary-walker" } },
+      { id = "ng2", statement = "modifying sibling contracts not named in goal",
+        provenance = { kind = 'agent, name = "boundary-walker" } },
+    ],
     premises    = [
       { id        = "P1",
         statement = "procedure.ncl exists and typechecks",
-        check     = "nix run nixpkgs#nickel -- typecheck -I ledger/contracts ledger/contracts/procedure.ncl",
-        verified  = "2026-06-25 confirmed exit 0" }
+        assertion = 'claim,
+        backing   = 'corroborated,
+        signer    = { kind = 'agent, name = "boundary-walker" },
+        check     = {
+          command = "nix run nixpkgs#nickel -- typecheck -I ledger/contracts ledger/contracts/procedure.ncl",
+          ran = true,
+          at = "6afbc9d",
+        },
+        axes      = { determined = true, certifiable = true, monotone = true } }
     ],
     delegated   = ["step ordering within ITERATE", "choice of audit angles"],
     reserved    = ["amending procedure.ncl's CoreSteps set"],
     constraints = [
       { id        = "C1",
         statement = "all commits MUST pass the commit-gate",
-        evaluator = "python3 skills/commit-hygiene/scripts/check_commit_msg.py --message MSG" }
+        evaluator = "python3 skills/commit-hygiene/scripts/check_commit_msg.py --message MSG",
+        provenance = { kind = 'agent, name = "boundary-walker" } }
     ],
     context_map = ["ledger/contracts/procedure.ncl:1-180", "skills/refine/SKILL.md:1-50"],
     acceptance  = [
       { id        = "AC1",
         statement = "procedure.ncl typechecks cleanly",
-        eval      = "nix run nixpkgs#nickel -- typecheck -I ledger/contracts ledger/contracts/procedure.ncl; exit 0" }
+        eval      = "nix run nixpkgs#nickel -- typecheck -I ledger/contracts ledger/contracts/procedure.ncl; exit 0",
+        provenance = { kind = 'agent, name = "boundary-walker" } }
     ],
     load_bearing = ["goal", "CoreSteps set"],
     plastic      = ["step ordering", "audit angle selection"],

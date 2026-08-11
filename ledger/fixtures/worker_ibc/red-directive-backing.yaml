@@ -1,0 +1,24 @@
+# A directive carrying `backing`: a directive closes by authority, never by
+# evidence — the category error (E-1). The Directive record is closed, so the
+# field is rejected as an extra field with no enforcement code.
+id: wx-category-error
+tier: "worker (fable)"
+discipline: core
+goal:
+  id: g0
+  statement: "Attach evidence to a command."
+  provenance: { kind: human, name: nrd }
+  backing: vouched
+non_goals: []
+premises: []
+delegated: []
+reserved: []
+constraints: []
+context_map: []
+acceptance:
+  - id: b1
+    statement: "Done when done."
+    eval: "true"
+    provenance: { kind: human, name: nrd }
+load_bearing: []
+plastic: []

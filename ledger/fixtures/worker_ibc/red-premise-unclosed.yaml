@@ -1,0 +1,30 @@
+# A premise that is a legitimate synthesis ENTRY (unclosed, derived from an
+# edge) but carries neither check nor witness: as a core entry it is valid,
+# as a PREMISE it is an assumption -> PremiseClosed.
+id: wx-assume
+tier: "worker (fable)"
+discipline: core
+goal:
+  id: g0
+  statement: "Build on an assumption."
+  provenance: { kind: human, name: nrd }
+non_goals: []
+premises:
+  - id: p1
+    statement: "The downstream consumers tolerate the new shape."
+    assertion: claim
+    backing: unclosed
+    signer: { kind: agent, name: architect-seat }
+    because: [p0]
+    axes: { determined: true, certifiable: false, monotone: true }
+delegated: []
+reserved: []
+constraints: []
+context_map: []
+acceptance:
+  - id: b1
+    statement: "Done when done."
+    eval: "true"
+    provenance: { kind: human, name: nrd }
+load_bearing: []
+plastic: []

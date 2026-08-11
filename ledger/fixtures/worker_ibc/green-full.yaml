@@ -1,0 +1,58 @@
+# A complete reformed worker IBC: closed claim-entry premises, a routable
+# unknown, provenance-carrying directives (string enum forms throughout)
+# -> export clean.
+id: wx-demo
+tier: "worker (fable)"
+discipline: spec
+depends: [wx-upstream]
+goal:
+  id: g0
+  statement: "Reform the demo contract to extend the entry core."
+  provenance: { kind: human, name: nrd }
+non_goals:
+  - id: ng1
+    statement: "Editing the frozen core."
+    provenance: { kind: agent, name: architect-seat }
+premises:
+  - id: p1
+    statement: "The entry core is landed and green at 6afbc9d."
+    assertion: claim
+    backing: corroborated
+    signer: { kind: agent, name: architect-seat }
+    check: { command: "bash ledger/gate/test_entry.sh", ran: true, at: "6afbc9d" }
+    axes: { determined: true, certifiable: true, monotone: true }
+  - id: p2
+    statement: "The measured shapes for all eleven contracts exist."
+    assertion: claim
+    backing: vouched
+    signer: { kind: agent, name: architect-seat }
+    witness: { name: architect-seat, at: "6afbc9d" }
+    axes: { determined: false, monotone: true }
+unknowns:
+  - id: u1
+    statement: "Which .ledger/state instances break under the reformed shapes?"
+    assertion: question
+    backing: unclosed
+    signer: { kind: agent, name: architect-seat }
+    discharge: "run each instance against the reformed apply shims"
+    closer: composer
+delegated:
+  - "fixture naming and layout"
+reserved:
+  - "HALT if the core needs editing"
+constraints:
+  - id: g1
+    statement: "Every reformed contract typechecks."
+    evaluator: "nickel typecheck <file>; echo EXIT=$?"
+    provenance: { kind: agent, name: architect-seat }
+context_map:
+  - "ledger/contracts/entry.ncl (read-only) — the core"
+acceptance:
+  - id: b1
+    statement: "All suites green."
+    eval: "bash each suite; echo EXIT=$? -> 0"
+    provenance: { kind: agent, name: architect-seat }
+load_bearing:
+  - "the frozen core"
+plastic:
+  - "fixture layout"

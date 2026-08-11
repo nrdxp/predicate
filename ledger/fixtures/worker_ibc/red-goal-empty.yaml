@@ -1,0 +1,22 @@
+# An empty goal statement: the old sufficiency gate's empty-goal branch,
+# subsumed by the Directive's NonEmptyString statement -> NonEmptyString.
+id: wx-goalless
+tier: "worker (fable)"
+discipline: core
+goal:
+  id: g0
+  statement: ""
+  provenance: { kind: human, name: nrd }
+non_goals: []
+premises: []
+delegated: []
+reserved: []
+constraints: []
+context_map: []
+acceptance:
+  - id: b1
+    statement: "Done when done."
+    eval: "true"
+    provenance: { kind: human, name: nrd }
+load_bearing: []
+plastic: []

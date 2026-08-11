@@ -1,0 +1,31 @@
+# A question filed in the premises section: a premise asserts a truth-value
+# -> PremiseIsClaim. Carries a check so PremiseClosed is satisfied
+# (single-violation by construction).
+id: wx-misfiled
+tier: "worker (fable)"
+discipline: core
+goal:
+  id: g0
+  statement: "Stand on a question."
+  provenance: { kind: human, name: nrd }
+non_goals: []
+premises:
+  - id: p1
+    statement: "Does the shim lift strings?"
+    assertion: question
+    backing: unclosed
+    signer: { kind: agent, name: architect-seat }
+    discharge: "read the shim"
+    closer: worker
+    check: { command: "grep lift shim.ncl", ran: true, at: "6afbc9d" }
+delegated: []
+reserved: []
+constraints: []
+context_map: []
+acceptance:
+  - id: b1
+    statement: "Done when done."
+    eval: "true"
+    provenance: { kind: human, name: nrd }
+load_bearing: []
+plastic: []

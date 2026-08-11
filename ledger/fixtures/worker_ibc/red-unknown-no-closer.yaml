@@ -1,0 +1,29 @@
+# An unknown with a discharge condition but no named closer: not routable
+# -> QuestionRoutable (the core's own predicate, inherited by extension).
+id: wx-unroutable
+tier: "worker (fable)"
+discipline: core
+goal:
+  id: g0
+  statement: "File an unroutable unknown."
+  provenance: { kind: human, name: nrd }
+non_goals: []
+premises: []
+unknowns:
+  - id: u1
+    statement: "Who migrates the state instances?"
+    assertion: question
+    backing: unclosed
+    signer: { kind: agent, name: worker }
+    discharge: "someone owns the migration"
+delegated: []
+reserved: []
+constraints: []
+context_map: []
+acceptance:
+  - id: b1
+    statement: "Done when done."
+    eval: "true"
+    provenance: { kind: human, name: nrd }
+load_bearing: []
+plastic: []

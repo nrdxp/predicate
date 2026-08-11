@@ -8,8 +8,11 @@ let c = import "../contracts/worker_ibc.ncl" in
     id = "PX",
     tier = "worker / opus-class",
     discipline = 'core,
-    depends_on = [],
-    goal = "Do something, somehow.",
+    goal = {
+      id = "g0",
+      statement = "Do something, somehow.",
+      provenance = { kind = 'human, name = "nrd" },
+    },
     non_goals = [],
     premises = [],
     delegated = [],
