@@ -222,9 +222,16 @@ follow to the stated standard the extractor is correct against:
   `residual`) or `directive`, which is out-of-vocabulary for entries and
   extracts to a separate list with its `provenance::`.
 - **Companions.** Backticked `token:: value` spans inside the node's
-  paragraph. `check::` carries the corroborating command (the grade asserts
-  the run; the header anchor dates it). `source::` names the witness;
-  `source:: same` repeats the previous node's source. `derives-from::`
+  paragraph — the blank-line-delimited block opened by the node's own
+  `` `[ID] grade::` `` marker, and nothing past its closing blank line. A
+  companion that lands one paragraph late — a common slip in flowing prose,
+  where the provenance trails the claim it belongs to by a blank line — is
+  invisible to that paragraph and is reported as `orphaned-companion`, never
+  silently dropped: the extractor does not widen the node to "until the next
+  marker" and guess at attribution, because prose between two nodes is not
+  reliably either node's. `check::` carries the corroborating command (the
+  grade asserts the run; the header anchor dates it). `source::` names the
+  witness; `source:: same` repeats the previous node's source. `derives-from::`
   carries provenance: doc-local `[ID]` refs become edges, while
   `[[wikilinks]]` and free prose are **external provenance** — preserved in
   the export but never emitted as edges, which the corpus contract would

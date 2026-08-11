@@ -195,6 +195,21 @@ def report_unplaced(block: str, out: Extraction, doc: str) -> None:
                    f"`{hit.group(0)}` appears outside any node marker")
 
 
+def report_orphaned_companions(block: str, out: Extraction, doc: str,
+                                marker: str | None) -> None:
+    """A recognized companion span outside its node's own paragraph is
+    invisible to parse_node, which only ever walks that one paragraph — the
+    node scope docs/entries.md states. Report it against the nearest
+    preceding marker (None before the document's first node) rather than
+    letting it vanish with the field it would have filled."""
+    for span in SPAN_RE.finditer(block):
+        match = COMPANION_RE.match(span.group(1))
+        if match and match.group(1) in MAPPED:
+            out.report("orphaned-companion", doc, marker,
+                       f"`{match.group(1)}::` is outside its node's "
+                       "paragraph and cannot be attached to an entry")
+
+
 def extract_doc(path: Path, out: Extraction) -> None:
     text = path.read_text(encoding="utf-8")
     doc = path.stem
@@ -215,15 +230,19 @@ def extract_doc(path: Path, out: Extraction) -> None:
         return
     anchor = at_match.group(1)
     last_source: list[str] = []
+    last_marker: str | None = None
 
     for block in paragraphs(text):
         if block.startswith("#"):
-            continue
+            last_marker = None  # a heading is a section boundary: no
+            continue            # attribution crosses it
         marker_match = MARKER_RE.match(block)
         if marker_match is None:
             report_unplaced(block, out, doc)
+            report_orphaned_companions(block, out, doc, last_marker)
             continue
         marker, grade = marker_match.groups()
+        last_marker = marker
         node_id = f"{doc}:{marker}"
         rest = block[marker_match.end():]
         statement, companions = parse_node(rest, out, doc, marker, last_source)

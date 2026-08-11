@@ -117,6 +117,13 @@ expect "red: source:: same with no prior source is reported" 3 "\"kind\": \"unre
 expect "red: signer kind outside the five modes is reported" 3 "\"kind\": \"bad-header\"" \
   -- python3 "$extractor" "$fix/red-bad-header.md"
 
+expect "red: a companion one paragraph late is reported, exit 3" 3 "\"kind\": \"orphaned-companion\"" \
+  -- python3 "$extractor" "$fix/red-orphaned-companion.md"
+expect "red: orphaned companion names the marker it cannot attach to" 3 "\"marker\": \"X1\"" \
+  -- python3 "$extractor" "$fix/red-orphaned-companion.md"
+expect "red: the node itself still extracts, without the dropped edge" 3 "red-orphaned-companion:K1" \
+  -- python3 "$extractor" "$fix/red-orphaned-companion.md"
+
 # Duplicate markers: the extractor emits both and the CONTRACT's id-uniqueness
 # red catches the collision — the runner never re-implements an invariant.
 expect "red: duplicate marker extracts without extractor error" 0 "" \
