@@ -191,3 +191,60 @@ A deposit committed here satisfies the deliberation protocol's
 deposit-before-read ordering *durably*: the git history of the namespace is
 the corroborating evidence that the independent assessment preceded the
 deliberation.
+
+## The prose grammar
+
+Prose is the **source**; the data view is derived and regenerated, never
+maintained — a data block inside a note is dual maintenance by construction.
+The pipeline is three stages, and only the first is new code:
+[`ledger/derive/extract_entries.py`](../ledger/derive/extract_entries.py)
+extracts, the existing
+[`entry_apply.ncl`](../ledger/contracts/entry_apply.ncl) validates, and
+[`entries_query.ncl`](../ledger/contracts/entries_query.ncl) evaluates
+queries over the validated export. A query result is `proved` only relative
+to extractor fidelity, so the extractor carries golden-vector and mutation
+suites of its own
+([`test_entries_extract.sh`](../ledger/gate/test_entries_extract.sh)).
+
+This section promotes the de facto convention the graded documents already
+follow to the stated standard the extractor is correct against:
+
+- **Header.** A graded document opens with `` `signer:: <kind>[/<name>]` ``
+  and `` `at:: <commit>` `` spans (first occurrence of each governs). The
+  signer designates every node in the document; the anchor dates every check
+  and vouch. A document without both is **pre-standard**: its tokens are
+  countable, but nothing in it is extractable, and the extractor reports the
+  document rather than guessing.
+- **Node.** A paragraph opening with `` `[ID] grade::<grade>` ``. The marker
+  is unique within its document; the extracted entry id is namespaced
+  `<file-stem>:<ID>`. `<grade>` is a cell display name from the table above
+  (`proved`, `cited`, `synthesis`, `dispatchable`, `routed`, `frontier`,
+  `residual`) or `directive`, which is out-of-vocabulary for entries and
+  extracts to a separate list with its `provenance::`.
+- **Companions.** Backticked `token:: value` spans inside the node's
+  paragraph. `check::` carries the corroborating command (the grade asserts
+  the run; the header anchor dates it). `source::` names the witness;
+  `source:: same` repeats the previous node's source. `derives-from::`
+  carries provenance: doc-local `[ID]` refs become edges, while
+  `[[wikilinks]]` and free prose are **external provenance** — preserved in
+  the export but never emitted as edges, which the corpus contract would
+  rightly reject as dangling. `discharge::` and `closer::` carry a
+  question's two routable halves; `closer::` takes a designation
+  (`human/nrd`, `machine`, `agent/architect-seat`). `conversion-path::` is a
+  recognized annotation that stays in the statement. Any other token-shaped
+  span is reported, never silently discarded.
+- **Question backings.** Extracted questions carry `backing: unclosed`
+  (residual excepted), the entry fixtures' practice: `corroborated` and
+  `vouched` demand delivered evidence (`CorroborationBacked`,
+  `VouchBacked`), which a question by definition lacks. The prospective
+  cell reading — what *would* close it — survives as the prose grade in the
+  export's sidecar, which the queries consume.
+- **Axes.** No prose token carries axis coordinates or `freshness` yet.
+  Claims extract without `axes`, and the query lists them as *unassessed*
+  rather than presenting an empty cure report as a clean bill.
+- **Counts.** A count stored in prose is a second record that goes stale.
+  Ledger notes store **no** counts — the surface is computed from the
+  claims. A boundary document that must publish its own census does so in
+  one place, a `## 7` results section excluded from its own census scope
+  (the `sed -n '1,/^## 7/p'` discipline), and the extractor's `--census`
+  reproduces the published block byte-for-byte.
