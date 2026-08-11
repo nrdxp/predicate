@@ -1,0 +1,12 @@
+entries:
+  - id: e-vouch-nowit
+    statement: "A vouched claim naming no witness, shape-valid inside a corpus."
+    assertion: claim
+    backing: vouched
+    signer:
+      kind: agent
+      name: architect-seat
+    axes:
+      determined: true
+      certifiable: false
+      monotone: true

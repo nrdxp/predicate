@@ -1,0 +1,15 @@
+id: e-proved
+statement: "The draft contract typechecks clean under nickel 1.14.0."
+assertion: claim
+backing: corroborated
+signer:
+  kind: agent
+  name: architect-seat
+check:
+  command: "nickel typecheck ledger/contracts/entry.ncl"
+  ran: true
+  at: "deadbeef01"
+axes:
+  determined: true
+  certifiable: true
+  monotone: true

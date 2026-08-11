@@ -1,0 +1,14 @@
+id: r-signer-unnamed
+statement: "A non-derived signer that names no party."
+assertion: claim
+backing: corroborated
+signer:
+  kind: agent
+check:
+  command: "true"
+  ran: true
+  at: "deadbeef09"
+axes:
+  determined: true
+  certifiable: true
+  monotone: true

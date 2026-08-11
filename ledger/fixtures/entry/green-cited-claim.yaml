@@ -1,0 +1,14 @@
+id: e-cited
+statement: "The docket seam ruling resolved the assertion-vs-kind collision."
+assertion: claim
+backing: vouched
+signer:
+  kind: agent
+  name: architect-seat
+witness:
+  name: the-head
+  at: "deadbeef02"
+axes:
+  determined: true
+  certifiable: false
+  monotone: true

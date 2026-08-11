@@ -1,0 +1,25 @@
+entries:
+  - id: e-dup
+    statement: "First bearer of a colliding id."
+    assertion: claim
+    backing: corroborated
+    signer:
+      kind: agent
+      name: architect-seat
+    check:
+      command: "true"
+      ran: true
+      at: "deadbeef0c"
+    axes:
+      determined: true
+      certifiable: true
+      monotone: true
+  - id: e-dup
+    statement: "Second bearer of a colliding id."
+    assertion: question
+    backing: unclosed
+    signer:
+      kind: agent
+      name: architect-seat
+    discharge: "Rename one of them."
+    closer: architect-seat

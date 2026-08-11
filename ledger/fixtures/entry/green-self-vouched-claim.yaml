@@ -1,0 +1,15 @@
+id: e-selfvouch
+statement: "This seat's own deposit is coherent with the ruled taxonomy."
+assertion: claim
+backing: vouched
+signer:
+  kind: agent
+  name: architect-seat
+witness:
+  name: architect-seat
+  at: "deadbeef03"
+axes:
+  determined: true
+  certifiable: false
+  monotone: false
+freshness: "Stale once the taxonomy note is amended; re-vouch on amendment."

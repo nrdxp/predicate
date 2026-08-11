@@ -1,0 +1,11 @@
+id: q-dispatchable
+statement: "Is corpus referential integrity a store contract or a validator check?"
+assertion: question
+backing: unclosed
+signer:
+  kind: agent
+  name: architect-seat
+discharge: "The worker builds one of the two and records why."
+closer: architect-seat
+because:
+  - e-proved

@@ -1,0 +1,14 @@
+id: r-det-nocert
+statement: "A determined claim missing its certifiability coordinate."
+assertion: claim
+backing: corroborated
+signer:
+  kind: agent
+  name: architect-seat
+check:
+  command: "true"
+  ran: true
+  at: "deadbeef06"
+axes:
+  determined: true
+  monotone: true

@@ -1,0 +1,9 @@
+id: q-residual
+statement: "Which admission policy should a consuming gate adopt?"
+assertion: question
+backing: residual
+signer:
+  kind: agent
+  name: architect-seat
+discharge: "A consumer states its own admission rule; the shape never can."
+closer: the-head

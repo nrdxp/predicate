@@ -1,0 +1,15 @@
+id: r-undet-cert
+statement: "An undetermined claim positing certifiability anyway (rows 7-8)."
+assertion: claim
+backing: corroborated
+signer:
+  kind: agent
+  name: architect-seat
+check:
+  command: "true"
+  ran: true
+  at: "deadbeef07"
+axes:
+  determined: false
+  certifiable: true
+  monotone: true

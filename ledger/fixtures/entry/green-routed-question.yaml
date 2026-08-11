@@ -1,0 +1,11 @@
+id: q-routed
+statement: "Does the pass-1 dispatch carry commit authorization?"
+assertion: question
+backing: unclosed
+signer:
+  kind: agent
+  name: composer
+discharge: "The dispatch quotes the head's authorization verbatim."
+closer: composer
+depends:
+  - e-cited

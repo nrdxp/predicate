@@ -1,0 +1,37 @@
+entries:
+  - id: e-proved
+    statement: "The draft contract typechecks clean under nickel 1.14.0."
+    assertion: claim
+    backing: corroborated
+    signer:
+      kind: agent
+      name: architect-seat
+    check:
+      command: "nickel typecheck ledger/contracts/entry.ncl"
+      ran: true
+      at: "deadbeef01"
+    axes:
+      determined: true
+      certifiable: true
+      monotone: true
+  - id: e-derived
+    statement: "The typecheck result carries into the corpus aggregate."
+    assertion: claim
+    backing: unclosed
+    signer:
+      kind: derived
+    depends:
+      - e-proved
+    axes:
+      determined: true
+      certifiable: false
+      monotone: true
+  - id: q-frontier
+    statement: "What anchors a check that ran against a dirty working tree?"
+    assertion: question
+    backing: unclosed
+    signer:
+      kind: agent
+      name: architect-seat
+    discharge: "A ruled anchor shape for uncommitted state."
+    closer: the-head

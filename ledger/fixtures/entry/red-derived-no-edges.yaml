@@ -1,0 +1,14 @@
+id: r-derived-noedge
+statement: "A derived signer whose designation has no edges to be."
+assertion: claim
+backing: corroborated
+signer:
+  kind: derived
+check:
+  command: "true"
+  ran: true
+  at: "deadbeef0a"
+axes:
+  determined: true
+  certifiable: true
+  monotone: true

@@ -1,0 +1,11 @@
+id: r-residual-claim
+statement: "A claim asserting itself open by theorem."
+assertion: claim
+backing: residual
+signer:
+  kind: agent
+  name: architect-seat
+axes:
+  determined: true
+  certifiable: false
+  monotone: true

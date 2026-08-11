@@ -1,0 +1,18 @@
+entries:
+  - id: e-malformed
+    statement: ""
+    assertion: claim
+    backing: corroborated
+    signer:
+      kind: agent
+      name: architect-seat
+    check:
+      command: "true"
+      ran: true
+      at: "deadbeef0d"
+    depends:
+      - e-malformed
+    axes:
+      determined: true
+      certifiable: true
+      monotone: true

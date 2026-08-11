@@ -1,0 +1,11 @@
+id: r-corr-nocheck
+statement: "A corroborated claim naming no check at all."
+assertion: claim
+backing: corroborated
+signer:
+  kind: agent
+  name: architect-seat
+axes:
+  determined: true
+  certifiable: true
+  monotone: true

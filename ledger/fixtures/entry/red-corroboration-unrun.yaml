@@ -1,0 +1,15 @@
+id: r-corr-unrun
+statement: "A named-but-unrun check is not backing."
+assertion: claim
+backing: corroborated
+signer:
+  kind: agent
+  name: architect-seat
+check:
+  command: "nickel typecheck ledger/contracts/entry.ncl"
+  ran: false
+  at: "deadbeef04"
+axes:
+  determined: true
+  certifiable: true
+  monotone: true

@@ -1,0 +1,15 @@
+id: r-nonmono-nofresh
+statement: "A non-monotone claim naming no freshness mechanism."
+assertion: claim
+backing: corroborated
+signer:
+  kind: agent
+  name: architect-seat
+check:
+  command: "true"
+  ran: true
+  at: "deadbeef08"
+axes:
+  determined: true
+  certifiable: true
+  monotone: false

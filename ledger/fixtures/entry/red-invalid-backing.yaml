@@ -1,0 +1,11 @@
+id: r-bad-backing
+statement: "A backing value outside the ruled vocabulary."
+assertion: claim
+backing: vouchsafed
+signer:
+  kind: agent
+  name: architect-seat
+axes:
+  determined: true
+  certifiable: true
+  monotone: true

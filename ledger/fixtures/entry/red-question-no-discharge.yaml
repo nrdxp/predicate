@@ -1,0 +1,8 @@
+id: r-q-nodischarge
+statement: "A question with a closer but no discharge condition."
+assertion: question
+backing: unclosed
+signer:
+  kind: agent
+  name: architect-seat
+closer: the-head

@@ -1,0 +1,12 @@
+id: e-synth
+statement: "The vocabulary will survive contact with boundary documents."
+assertion: claim
+backing: unclosed
+signer:
+  kind: agent
+  name: architect-seat
+because:
+  - e-proved
+axes:
+  determined: false
+  monotone: true

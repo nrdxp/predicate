@@ -1,0 +1,15 @@
+id: r-bad-commit
+statement: "A check anchored to something that is not a commit."
+assertion: claim
+backing: corroborated
+signer:
+  kind: agent
+  name: architect-seat
+check:
+  command: "true"
+  ran: true
+  at: "not-a-hash"
+axes:
+  determined: true
+  certifiable: true
+  monotone: true

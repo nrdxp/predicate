@@ -1,0 +1,13 @@
+id: r-q-axes
+statement: "A question carrying axis coordinates it cannot have."
+assertion: question
+backing: unclosed
+signer:
+  kind: agent
+  name: architect-seat
+discharge: "Ruled either way."
+closer: the-head
+axes:
+  determined: true
+  certifiable: true
+  monotone: true

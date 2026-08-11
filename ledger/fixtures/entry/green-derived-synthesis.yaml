@@ -1,0 +1,13 @@
+id: e-derived
+statement: "Premises one and two jointly entail the enum-idiom requirement."
+assertion: claim
+backing: unclosed
+signer:
+  kind: derived
+depends:
+  - e-proved
+  - e-cited
+axes:
+  determined: true
+  certifiable: false
+  monotone: true
