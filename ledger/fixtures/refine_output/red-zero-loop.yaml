@@ -1,0 +1,14 @@
+# final_loop = 0: the loop never ran -> RefineOutput loop gate.
+workflow: refine
+depends:
+  - "ledger/contracts/procedure.ncl"
+final_loop: 0
+consecutive_clean_sweeps: 2
+maintainer_judgments:
+  - role: maintainer-architecture
+    verdict: approved
+    witness: { name: maintainer-architecture, at: "6afbc9d" }
+postmortem:
+  critique: "Converged without running."
+  witness: { name: adversarial-process-auditor, at: "6afbc9d" }
+fixed_point_hash: "sha256:aa"

@@ -1,0 +1,11 @@
+# An empty maintainer panel -> RefineOutput non-empty-judgments gate.
+workflow: refine
+depends:
+  - "ledger/contracts/procedure.ncl"
+final_loop: 3
+consecutive_clean_sweeps: 2
+maintainer_judgments: []
+postmortem:
+  critique: "Nobody judged this."
+  witness: { name: adversarial-process-auditor, at: "6afbc9d" }
+fixed_point_hash: "sha256:aa"

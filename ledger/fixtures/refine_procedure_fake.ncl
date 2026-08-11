@@ -42,13 +42,13 @@ let ro = import "../../skills/refine/refine_output.ncl" in
   # postmortem has no substance.
   output | ro.RefineReport | ro.RefineOutput = {
     workflow                 = "refine",
-    target_artifacts         = ["x"],
+    depends                  = ["x"],
     final_loop               = 1,
     consecutive_clean_sweeps = 1,
     maintainer_judgments     = [
-      { role = "a", verdict = 'approved },
+      { role = "a", verdict = 'approved, witness = { name = "a", at = "6afbc9d" } },
     ],
-    postmortem       = "k",
+    postmortem       = { critique = "k", witness = { name = "a", at = "6afbc9d" } },
     fixed_point_hash = "x",
   },
 }

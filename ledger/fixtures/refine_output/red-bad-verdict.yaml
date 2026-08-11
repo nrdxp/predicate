@@ -1,0 +1,15 @@
+# An out-of-set verdict string -> MaintainerVerdict (value restriction holds
+# in string form).
+workflow: refine
+depends:
+  - "ledger/contracts/procedure.ncl"
+final_loop: 3
+consecutive_clean_sweeps: 2
+maintainer_judgments:
+  - role: maintainer-architecture
+    verdict: vetoed
+    witness: { name: maintainer-architecture, at: "6afbc9d" }
+postmortem:
+  critique: "Verdict outside the ruled set."
+  witness: { name: adversarial-process-auditor, at: "6afbc9d" }
+fixed_point_hash: "sha256:aa"

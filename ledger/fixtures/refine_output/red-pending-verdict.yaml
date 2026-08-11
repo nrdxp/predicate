@@ -1,0 +1,16 @@
+# CANARY (D-8 class): a STRING pending verdict — a bare tag comparison
+# against YAML strings would count it approved-by-vacuity -> the unanimity
+# gate (EXIT_GATE_INVARIANCE).
+workflow: refine
+depends:
+  - "ledger/contracts/procedure.ncl"
+final_loop: 3
+consecutive_clean_sweeps: 2
+maintainer_judgments:
+  - role: maintainer-architecture
+    verdict: pending
+    witness: { name: maintainer-architecture, at: "6afbc9d" }
+postmortem:
+  critique: "Premature report."
+  witness: { name: adversarial-process-auditor, at: "6afbc9d" }
+fixed_point_hash: "sha256:aa"

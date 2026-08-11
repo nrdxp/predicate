@@ -151,18 +151,24 @@ let ro  = import "../../skills/refine/refine_output.ncl" in
   # Output instance — RefineReport | RefineOutput
   output | ro.RefineReport | ro.RefineOutput = {
     workflow                 = "refine",
-    target_artifacts         = [
+    depends                  = [
       "ledger/contracts/procedure.ncl",
       "ledger/contracts/core_steps.ncl",
     ],
     final_loop               = 4,
     consecutive_clean_sweeps = 4,
     maintainer_judgments     = [
-      { role = "maintainer-architecture", verdict = 'approved },
-      { role = "maintainer-complexity",   verdict = 'approved },
-      { role = "maintainer-documentation", verdict = 'approved },
+      { role = "maintainer-architecture", verdict = 'approved,
+        witness = { name = "maintainer-architecture", at = "6afbc9d" } },
+      { role = "maintainer-complexity", verdict = 'approved,
+        witness = { name = "maintainer-complexity", at = "6afbc9d" } },
+      { role = "maintainer-documentation", verdict = 'approved,
+        witness = { name = "maintainer-documentation", at = "6afbc9d" } },
     ],
-    postmortem = "The refiner overcorrected in loop 2 (added unnecessary helper fields later pruned in loop 3). Suggestion: run AUDIT with pruning check first. No scope deviations observed.",
+    postmortem = {
+      critique = "The refiner overcorrected in loop 2 (added unnecessary helper fields later pruned in loop 3). Suggestion: run AUDIT with pruning check first. No scope deviations observed.",
+      witness = { name = "adversarial-process-auditor", at = "6afbc9d" },
+    },
     fixed_point_hash = "sha256:a3f1c2b4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2",
   },
 }

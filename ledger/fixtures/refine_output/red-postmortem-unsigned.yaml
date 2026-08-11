@@ -1,0 +1,14 @@
+# A postmortem without its auditor witness: a prose reference is not
+# provenance -> missing definition for `witness`.
+workflow: refine
+depends:
+  - "ledger/contracts/procedure.ncl"
+final_loop: 3
+consecutive_clean_sweeps: 2
+maintainer_judgments:
+  - role: maintainer-architecture
+    verdict: approved
+    witness: { name: maintainer-architecture, at: "6afbc9d" }
+postmortem:
+  critique: "The auditor is named only in prose, which is the defect."
+fixed_point_hash: "sha256:aa"

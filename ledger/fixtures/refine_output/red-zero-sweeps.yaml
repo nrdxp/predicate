@@ -1,0 +1,15 @@
+# consecutive_clean_sweeps = 0: no convergence verified -> RefineOutput
+# convergence gate.
+workflow: refine
+depends:
+  - "ledger/contracts/procedure.ncl"
+final_loop: 3
+consecutive_clean_sweeps: 0
+maintainer_judgments:
+  - role: maintainer-architecture
+    verdict: approved
+    witness: { name: maintainer-architecture, at: "6afbc9d" }
+postmortem:
+  critique: "Never swept clean."
+  witness: { name: adversarial-process-auditor, at: "6afbc9d" }
+fixed_point_hash: "sha256:aa"
