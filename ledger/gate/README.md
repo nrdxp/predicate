@@ -171,6 +171,8 @@ Gates in `templates/project-gates/` are declared in `scopes.ncl` under the
 | `ledger-validate.sh` | The gate: portable runner + structure + authority. |
 | `authorized.py` | The authorization predicate over an exported DAG JSON. |
 | `project-gates.sh` | Project-local gate runner: discovers `.ledger/gates/` executables and runs them in sorted order. |
+| `recorder-pre-commit.sh` | The `.ledger` subrepo's OWN commit-time gate — validates staged tech-debt/process-feedback records against their contracts. See [`docs/gates.md`](../../docs/gates.md#recorder) (`recorder` scope). |
+| `install-recorder-hook.sh` | Composed installer for `recorder-pre-commit.sh`, wired from `bootstrap/install.sh init` (idempotent, symlink-based, mirrors `hooks/install-hooks.sh`). |
 | `gate-set.sh` | The scale-invariance check: proves `/core` gates ⊇ node gates by `comm -23`. |
 | `gate-sets/` | The two gate sets as data — `node.txt`, `core.txt`. |
 | `demo_unauthorized.sh` | Reproducible demo: an unauthorized staged change exits non-zero (baseline ΔE₀ ≠ 0); an authorized path passes. |

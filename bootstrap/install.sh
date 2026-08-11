@@ -11,8 +11,12 @@
 #
 #   init      PER-PROJECT, run inside each repo you want governed. Installs the
 #             git commit gate into that repo's .git/hooks (by COMPOSING
-#             hooks/install-hooks.sh, never inlining it) and inits the project's
-#             .ledger flight-recorder subrepo. No plugin registration here.
+#             hooks/install-hooks.sh, never inlining it), inits the project's
+#             .ledger flight-recorder subrepo, and installs THAT subrepo's OWN
+#             commit-time gate into its .git/hooks (by COMPOSING
+#             ledger/gate/install-recorder-hook.sh) — .ledger is a separate git
+#             repo, so the project's own gate never sees a commit made inside
+#             it. No plugin registration here.
 #
 # Harness mechanisms differ and are detected, not assumed:
 #   - claude-code: registers via the real Claude Code CLI — `claude plugin
@@ -176,6 +180,26 @@ install_hooks() {
   ( cd "$project" && bash "$hooks_installer" )
 }
 
+# --- step: install the RECORDER's own commit-time gate (COMPOSED, never inlined) --
+# .ledger/ is its own git repository (never part of the project repo, per
+# ledger/README.md), so the project's git hooks installed above never see a
+# commit made INSIDE .ledger — that gate only fires on the project tree. Every
+# record class (tech-debt, process-feedback) ships a Nickel contract, but
+# nothing ever invoked it at commit time: an invalid record could land in
+# .ledger cleanly. This installs a SEPARATE hook into the recorder's own
+# .git/hooks/, mirroring install_hooks() above: composes
+# ledger/gate/install-recorder-hook.sh (self-locating, idempotent, symlink-
+# based) rather than inlining its logic here. Requires the .ledger git dir to
+# already exist, so this must run after the git-init step below.
+install_recorder_hook() {
+  local ledger="$1"
+  local hook_installer="$plugin_src/ledger/gate/install-recorder-hook.sh"
+  if [ ! -f "$hook_installer" ]; then
+    echo "init: missing $hook_installer" >&2; exit 1
+  fi
+  ( cd "$ledger" && bash "$hook_installer" )
+}
+
 # Write the documented override-surface template. Each variable is the one the
 # parameterized gates/hooks read (sourced from .ledger/config.sh if present);
 # the values shown ARE predicate's own defaults, so the file is both accurate
@@ -223,6 +247,8 @@ init_ledger() {
   else
     echo "init: .ledger subrepo already present."
   fi
+  # Wire the recorder's own commit-time gate now that the git dir exists.
+  install_recorder_hook "$ledger"
   # Seed the topology the gates expect (a flight-recorder log dir).
   mkdir -p "$ledger/log" "$ledger/state"
   # Document the gate/hook override surface. This is an EXAMPLE template, never
@@ -438,6 +464,16 @@ phase_deinit() {
     echo "deinit: missing $hooks_uninstaller" >&2; exit 1
   fi
   ( cd "$project" && bash "$hooks_uninstaller" --uninstall )
+
+  # Recorder hook teardown: reverses install_recorder_hook, symmetrically.
+  # .ledger DATA (log, state, tech-debt, process-feedback, config.sh.example,
+  # and full git history) is untouched — only the predicate-owned pre-commit
+  # symlink is removed, and only if it still resolves to this plugin.
+  local ledger="$project/.ledger"
+  local recorder_hook_installer="$plugin_src/ledger/gate/install-recorder-hook.sh"
+  if [ -d "$ledger" ] && [ -f "$recorder_hook_installer" ]; then
+    ( cd "$ledger" && bash "$recorder_hook_installer" --uninstall )
+  fi
 
   echo "deinit: .ledger/ PRESERVED (flight-recorder history belongs to the human)."
   echo "deinit: done."

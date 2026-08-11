@@ -13,7 +13,7 @@ a new gate with no declared scope breaks the build (fails on omission).
 
 ---
 
-## The six scopes
+## The seven scopes
 
 ### `universal`
 
@@ -129,6 +129,29 @@ fi
 exit 0
 ```
 
+### `recorder`
+
+Fires on **every commit made INSIDE a `.ledger` subrepo** — a different commit
+path from every scope above, which all govern the *project* repo. `.ledger/`
+is its own git repository (never part of the project repo — see
+[`ledger/README.md`](../ledger/README.md)), so a commit made inside it is
+invisible to `hook/pre-commit` and every one of its tiers. Applies to **both
+humans and agents**.
+
+- **Record structure** (`ledger/gate/recorder-pre-commit.sh`) — a staged
+  `tech-debt/*.yaml` or `process-feedback/*.yaml` file must validate against
+  its class contract (`skills/record/tech_debt_apply.ncl` /
+  `skills/record/process_feedback_apply.ncl`). A staged file outside those two
+  namespaces is skipped. If a record is staged and `nickel` is not on PATH,
+  the gate fails (exit 2) rather than silently passing.
+
+Installed into `<ledger>/.git/hooks/pre-commit` by
+`ledger/gate/install-recorder-hook.sh`, composed from `bootstrap/install.sh
+init` the same way `hooks/install-hooks.sh` composes the project's own hooks
+(self-locating symlink, idempotent, never clobbers a foreign hook on
+teardown). `bootstrap/install.sh deinit` reverses it symmetrically, preserving
+every byte of `.ledger`'s data and history.
+
 ### `orchestration`
 
 **Not on the commit path.** These scripts are run by the orchestration driver
@@ -175,6 +198,8 @@ source. If the table and the manifest ever disagree, the manifest wins.
 | `ledger/gate/authorized.py` | campaign | called by ledger-validate.sh authorize | agent only |
 | `ledger/gate/process-gate.sh` | walk | walk-activated, validates procedure deposits | agent only |
 | `ledger/gate/project-gates.sh` | project_local | every commit; discovers + runs `.ledger/gates/` executables | human + agent |
+| `ledger/gate/recorder-pre-commit.sh` | recorder | every commit inside a `.ledger` subrepo; validates staged tech-debt/process-feedback records | human + agent |
+| `ledger/gate/install-recorder-hook.sh` | recorder | `bootstrap/install.sh init`; wires recorder-pre-commit.sh into `<ledger>/.git/hooks/pre-commit`, idempotently | human + agent |
 | `ledger/gate/check_scopes.sh` | orchestration | CI gate-scope step; fails on omission | agent only |
 | `ledger/gate/gate-set.sh` | orchestration | CI; scale-invariance proof | agent only |
 | `ledger/gate/adherence_audit.sh` | orchestration | RECONCILE + CLOSE; accidental-flat-commit / drift detector | agent only |
@@ -189,6 +214,7 @@ source. If the table and the manifest ever disagree, the manifest wins.
 | `ledger/gate/test_adherence.sh` | orchestration | CI gate-test step | agent only |
 | `ledger/gate/test_contract_typecheck.sh` | orchestration | CI contract-typecheck step | agent only |
 | `ledger/gate/test_fixture_sweep.sh` | orchestration | CI fixture-polarity-sweep step | agent only |
+| `ledger/gate/test_recorder_hook.sh` | orchestration | CI gate-test step; exercises recorder-pre-commit.sh + install-recorder-hook.sh init/deinit wiring | agent only |
 | `ledger/gate/demo_scale_invariant.sh` | orchestration | CI smoke + manual | agent only |
 | `ledger/gate/demo_unauthorized.sh` | orchestration | CI smoke + manual | agent only |
 | `gates/check_orphans.sh` | predicate_artifact | commit-time via orphan tier; standalone | human + agent |

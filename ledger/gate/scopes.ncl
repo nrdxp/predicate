@@ -14,16 +14,24 @@
 #
 # Fields per gate entry:
 #   gate        string identifier (repo-root-relative path or hook/<hook>:<tier>)
-#   scope       one of: universal | predicate_artifact | campaign | walk | orchestration
+#   scope       one of: universal | predicate_artifact | campaign | walk |
+#               project_local | recorder | orchestration
 #   fires_when  activation condition in plain language
 #   applies_to  "human + agent" or "agent only"
 #
 # Scope semantics
 # ───────────────
-#   universal          every commit, human or agent
+#   universal          every commit, human or agent, IN THE PROJECT REPO
 #   predicate_artifact every commit that stages a *.ncl or *.md file (structural tier)
 #   campaign           iff .ledger/active-dag present (authority tier)
 #   walk               iff .ledger/active-walk present (process tier)
+#   project_local      every commit; runs the consuming project's own .ledger/gates/
+#   recorder           every commit IN THE .ledger SUBREPO'S OWN git history — a
+#                       DIFFERENT commit path from all scopes above, which govern
+#                       the project repo. .ledger is its own git repository
+#                       (ledger/README.md), so a commit made inside it is
+#                       invisible to every project-repo hook; this scope is the
+#                       recorder's own gate, installed into its own .git/hooks/.
 #   orchestration      NOT on the commit path; run by orchestrator or CI
 
 let Scope = [|
@@ -32,6 +40,7 @@ let Scope = [|
   'campaign,
   'walk,
   'project_local,
+  'recorder,
   'orchestration,
 |] in
 
@@ -130,6 +139,20 @@ let GateEntry = {
       gate        = "ledger/gate/project-gates.sh",
       scope       = 'project_local,
       fires_when  = "every commit via hook/pre-commit:project-local; discovers and runs executable scripts in <project-root>/.ledger/gates/; no-op when directory is absent",
+      applies_to  = "human + agent",
+    } | GateEntry,
+
+    {
+      gate        = "ledger/gate/recorder-pre-commit.sh",
+      scope       = 'recorder,
+      fires_when  = "every commit made INSIDE a .ledger subrepo; validates staged tech-debt/*.yaml and process-feedback/*.yaml against their Nickel apply-contract shims; fails loudly (rc 2) if nickel is required but absent",
+      applies_to  = "human + agent",
+    } | GateEntry,
+
+    {
+      gate        = "ledger/gate/install-recorder-hook.sh",
+      scope       = 'recorder,
+      fires_when  = "installed by bootstrap/install.sh init (composed, never inlined); wires recorder-pre-commit.sh into <ledger>/.git/hooks/pre-commit, idempotently",
       applies_to  = "human + agent",
     } | GateEntry,
 
@@ -249,6 +272,13 @@ let GateEntry = {
       gate        = "ledger/gate/test_project_gates.sh",
       scope       = 'orchestration,
       fires_when  = "CI gate-test step; exercises project-gates.sh runner (runner unit tests) and the hook tier-6 integration (standalone consuming-project repo)",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
+      gate        = "ledger/gate/test_recorder_hook.sh",
+      scope       = 'orchestration,
+      fires_when  = "CI gate-test step; exercises recorder-pre-commit.sh (invalid/conformant records, nickel-absent) and install-recorder-hook.sh init/deinit wiring",
       applies_to  = "agent only",
     } | GateEntry,
 
