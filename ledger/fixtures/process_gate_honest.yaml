@@ -17,6 +17,8 @@ steps:
       - claim: R/I/U tracker loaded from .ledger/context_map.ncl
         method: review
         location: .ledger/context_map.ncl
+        signer: { kind: agent, name: boundary-walker }
+        witness: { name: boundary-walker, at: "6afbc9d" }
     cites:
       - .ledger/context_map.ncl
   - id: adversarial-review
@@ -31,6 +33,8 @@ steps:
       - claim: IBC candidate authored from templates/IBC.md
         method: lint
         location: .scratch/topic/campaign_ibc.ncl
+        signer: { kind: agent, name: boundary-walker }
+        check: { command: ".scratch/topic/campaign_ibc.ncl", ran: true, at: "6afbc9d" }
     cites:
       - templates/IBC.md
       - .scratch/topic/campaign_ibc.ncl
@@ -46,6 +50,8 @@ steps:
       - claim: S1-S7 objections resolved with evidence
         method: review
         location: .scratch/topic/campaign_ibc.ncl
+        signer: { kind: agent, name: boundary-walker }
+        witness: { name: boundary-walker, at: "6afbc9d" }
     cites:
       - .scratch/topic/campaign_ibc.ncl
   - id: approve
@@ -54,5 +60,7 @@ steps:
       - claim: human approved IBC after zero-objection sweep
         method: manual
         location: .scratch/topic/campaign_ibc.ncl
+        signer: { kind: agent, name: boundary-walker }
+        witness: { name: boundary-walker, at: "6afbc9d" }
     cites:
       - .scratch/topic/campaign_ibc.ncl
