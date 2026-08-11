@@ -19,11 +19,19 @@ Grammar (the docs/entries.md §grammar standard, ledger dialect):
   node        a paragraph opening with `[ID] grade::<grade>`.
   companions  backticked `token:: value` spans inside the node's paragraph:
               check / source / derives-from / discharge / closer / provenance
-              map to fields; conversion-path is recognized prose and stays in
-              the statement; anything else token-shaped is reported.
+              / axes / freshness / discharges / supersedes map to fields;
+              conversion-path is recognized prose and stays in the statement;
+              anything else token-shaped is reported.
   refs        derives-from carries doc-local `[ID]` refs (edges), `[[wiki]]`
               refs and free prose (external provenance — outside the corpus,
               so never emitted as edges the contract would reject as dangling).
+              The closure edges take doc-local refs ONLY: an unresolvable
+              closure target closes nothing, so it is reported, not preserved.
+  axes        `axes:: +determined -certifiable +monotone` — polarity tokens in
+              any order. `certifiable` is OMITTED where determination fails:
+              the coordinate is undefined there, not false, and the grammar
+              must be able to say so (CertifiabilityFibered enforces it).
+              `freshness:: <prose>` names the T3 cure a non-monotone claim owes.
   census      --census reproduces the two commands graded documents publish:
               per-grade counts (sort -rn semantics) then `---` then the bare
               `grade::` occurrence count, scoped to before any `## 7` heading.
@@ -70,9 +78,25 @@ CONTINUATION_RE = re.compile(r"^\s*,?\s*(?:`(\[\[[^\]]+\]\])`|(\[\[[^\]]+\]\]))"
 SIGNER_RE = re.compile(r"`signer::\s*([^`]+)`")
 AT_RE = re.compile(r"`at::\s*([0-9a-f]{7,40})`")
 
-MAPPED = {"check", "source", "derives-from", "discharge", "closer", "provenance"}
+# `discharge` (prospective prose) and `discharges` (retrospective edge) are
+# one letter apart on purpose — the source's own names, kept rather than
+# renamed. The hazard is stated in docs/entries.md; here they are simply two
+# distinct keys, and a typo lands on the wrong one loudly rather than quietly.
+CLOSURE_EDGES = ("discharges", "supersedes")
+MAPPED = {"check", "source", "derives-from", "discharge", "closer",
+          "provenance", "axes", "freshness"} | set(CLOSURE_EDGES)
 RECOGNIZED = MAPPED | {"conversion-path", "signer", "at", "grade"}
 SIGNER_KINDS = {"human", "agent", "source", "derived", "unattributed"}
+# A closer designates a party who COULD close; the signer modes that assert no
+# reachable party (derived, unattributed) are incoherent for it, so this set is
+# narrower by construction and mirrors the contract's CloserKind.
+CLOSER_KINDS = {"human", "agent", "source"}
+# `machine` is the legacy corpus's word for an unnamed agent, not a fourth
+# kind: the landed notes say `closer:: machine` and mean "any agent will do".
+CLOSER_ALIASES = {"machine": "agent"}
+AXIS_TOKEN_RE = re.compile(r"([+-])(determined|certifiable|monotone)\b")
+# The contract's own field order, so the export diffs cleanly against a golden.
+AXIS_ORDER = ("determined", "certifiable", "monotone")
 
 
 def census(text: str) -> str:
@@ -132,6 +156,24 @@ def parse_signer(raw: str) -> dict | None:
     if kind not in SIGNER_KINDS:
         return None
     return {"kind": kind, "name": name} if name else {"kind": kind}
+
+
+def parse_closer(raw: str) -> dict | None:
+    """`kind[/name]` into a designation record; None when it is neither."""
+    kind, _, name = raw.strip().partition("/")
+    kind = CLOSER_ALIASES.get(kind, kind)
+    if kind not in CLOSER_KINDS:
+        return None
+    return {"kind": kind, "name": name} if name else {"kind": kind}
+
+
+def parse_axes(raw: str) -> tuple[dict, str]:
+    """Polarity tokens into the contract's Axes shape, plus what it could not
+    place — an unreadable axis is reported, never a half-recorded coordinate
+    set that reads as a deliberate omission."""
+    found = {m.group(2): m.group(1) == "+" for m in AXIS_TOKEN_RE.finditer(raw)}
+    residue = AXIS_TOKEN_RE.sub("", raw).strip(" ,;")
+    return {name: found[name] for name in AXIS_ORDER if name in found}, residue
 
 
 def split_refs(value: str) -> tuple[list[str], list[str]]:
@@ -276,13 +318,43 @@ def extract_doc(path: Path, out: Extraction) -> None:
         if "discharge" in companions:
             entry["discharge"] = companions["discharge"]
         if "closer" in companions:
-            entry["closer"] = companions["closer"]
+            closer = parse_closer(companions["closer"])
+            if closer is None:
+                out.report("bad-closer", doc, marker,
+                           "closer designation is not `kind[/name]` over "
+                           f"{sorted(CLOSER_KINDS)}: `{companions['closer']}`")
+            else:
+                entry["closer"] = closer
         if "derives-from" in companions:
             local, external = split_refs(companions["derives-from"])
             if local:
                 entry["because"] = [f"{doc}:{ref}" for ref in local]
             if external:
                 out.external_refs.append({"entry": node_id, "refs": external})
+        if "axes" in companions:
+            axes, residue = parse_axes(companions["axes"])
+            if residue or not axes:
+                out.report("bad-axes", doc, marker,
+                           "axes:: expects +/- polarity tokens over "
+                           f"{list(AXIS_ORDER)}: `{companions['axes']}`")
+            if axes:
+                entry["axes"] = axes
+        if "freshness" in companions:
+            entry["freshness"] = companions["freshness"]
+        for token in CLOSURE_EDGES:
+            if token not in companions:
+                continue
+            local, external = split_refs(companions[token])
+            if local:
+                entry[token] = [f"{doc}:{ref}" for ref in local]
+            if external:
+                # A closure edge onto something outside the corpus closes
+                # nothing queryable, so unlike derives-from it is NOT
+                # preserved as an external ref — that would file it where
+                # provenance lives and quietly lose the closure.
+                out.report("bad-edge", doc, marker,
+                           f"`{token}::` takes bracketed doc-local ids; "
+                           f"cannot resolve {external}")
         out.entries.append(entry)
         out.grades[node_id] = grade
 
