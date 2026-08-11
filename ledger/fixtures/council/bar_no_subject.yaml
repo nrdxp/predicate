@@ -1,0 +1,16 @@
+# EXPECT: fail
+# Case 15: a `bar` with no `subject`. A bar always has a subject — it rules on a
+# named seat's conduct, and with no subject there is nothing to void. The
+# bar-without-subject guard is the chain's most specific check and its structural
+# precondition (export exit != 0, its own token).
+# A decisions ledger (no `seats`) -> DecisionLedger path.
+decisions:
+  - id: BS1
+    type: bar
+    proposer: { kind: human, name: nrd }
+    at: "df35300"
+    assent: [human]
+    verdict: "barred nobody"
+    grounding:
+      claim: "a bar that names no seat rules on nothing"
+      witness: { name: nrd, at: "df35300" }

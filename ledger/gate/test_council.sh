@@ -81,6 +81,41 @@ expect "close without head ratification -> head-ratification" 1 "head-ratificati
 # one judge fails even with the head present, proving the tally is the full judging set.
 expect "close missing one judging seat -> anti-unilateral" 1 "anti-unilateral" \
   -- run "$fix/close_missing_seat.yaml"
+# 9-12: the G-1 species-aware grounding. The bare string died; a grounding names a
+# run check XOR an admitted witness, and each defect surfaces its own token.
+expect "bare-string grounding -> grounding-speciesless" 1 "bare string is gone" \
+  -- run "$fix/grounding_bare.yaml"
+expect "grounding with no species anchor -> grounding-speciesless" 1 "neither check nor witness" \
+  -- run "$fix/grounding_speciesless.yaml"
+expect "grounding with both anchors -> grounding-species-ambiguous" 1 "grounding-species-ambiguous" \
+  -- run "$fix/grounding_both.yaml"
+expect "grounding check never run -> grounding-speciesless" 1 "named-but-unrun" \
+  -- run "$fix/grounding_unrun.yaml"
+# 13-14: the G-1 provenance fields — proposer (core Signer) and at (core CommitRef)
+# are required; Nickel's missing-definition red names the absent field.
+expect "decision without proposer -> missing definition" 1 "proposer" \
+  -- run "$fix/decision_no_proposer.yaml"
+expect "decision without at -> missing definition" 1 'missing definition for .at' \
+  -- run "$fix/decision_no_at.yaml"
+# 15-16: the G-2 subject machinery — a 'bar always names its subject, and the
+# subject's assent on a decision about its own conduct is void.
+expect "bar without subject -> bar-without-subject" 1 "bar-without-subject" \
+  -- run "$fix/bar_no_subject.yaml"
+expect "subject assenting to its own judgement -> self-assent" 1 "self-assent" \
+  -- run "$fix/self_assent.yaml"
+# 17: the G-8 ORDERING property — subject also barred and in assent trips BOTH
+# self-assent and no-barred; the chain must surface self-assent (intrinsic before
+# extrinsic). Asserted BOTH ways: the self-assent token present AND the no-barred
+# token absent, so a chain-order regression cannot pass on the first grep alone.
+expect "subject also barred -> self-assent surfaces first" 1 "self-assent" \
+  -- run "$fix/subject_also_barred.yaml"
+order_out="$( cd "$root" && run "$fix/subject_also_barred.yaml" 2>&1 )"
+if printf '%s' "$order_out" | grep -q -- "no-barred"; then
+  echo "FAIL  (ordering) subject_also_barred surfaced no-barred; self-assent must precede it"
+  fails=$((fails + 1))
+else
+  echo "PASS  (ordering) subject_also_barred does not surface no-barred"
+fi
 
 if [ "$fails" -ne 0 ]; then
   echo "FAIL: $fails council case(s) mismatched"; exit 1

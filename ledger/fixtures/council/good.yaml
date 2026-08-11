@@ -4,11 +4,81 @@
 # in constitution.yaml and council_apply.ncl threads it into DecisionLedger).
 # D1 is a routine owner-only `dispatch` — proof that proportional/standing convening
 # is lawful: you need NOT convene everyone for routine forward motion.
+# Post-reform (G-1/G-2): every decision carries its proposer, the record-state it
+# was decided against (`at`), and a species-aware grounding — a run check (D3) or
+# an admitted witness (the rest). D8 is the subjected green: a 'bar naming whose
+# conduct it rules on, with the subject absent from assent.
 decisions:
-  - { id: D1, type: dispatch,         assent: [composer],                                          verdict: "dispatched N1",    grounding: "routine forward motion; the owner alone suffices (proportional convening)" }
-  - { id: D2, type: reconcile-accept, assent: [maintainer],                                        verdict: "accepted",         grounding: "landed diff matches the IBC surface; per-node acceptance lives in the merge gate" }
-  - { id: D3, type: merge,            assent: [maintainer],                                        verdict: "merge",            grounding: "maintainer affirmatively accepts the maintenance burden" }
-  - { id: D4, type: dag-amendment,    assent: [architect, human],                                  verdict: "amended",          grounding: "node added mid-flight; the head ratifies the scope change" }
-  - { id: D7, type: dag-amendment-mechanical, assent: [architect],                                 verdict: "surface widened",  grounding: "collision check passed; criteria contract untouched — mechanical tier, recorded" }
-  - { id: D5, type: classification,   assent: [architect, maintainer],                             verdict: "procedure->module", grounding: "governing rule applied; quorum of 2 concur" }
-  - { id: D6, type: close,            assent: [architect, maintainer, auditor, human],             verdict: "closed",           grounding: "dual-CLOSE green + sufficiency; the three judging seats reach 'full machine consensus and the head ratifies — the composer conducts the tally, it does not vote in it" }
+  - id: D1
+    type: dispatch
+    proposer: { kind: agent, name: composer }
+    at: "df35300"
+    assent: [composer]
+    verdict: "dispatched N1"
+    grounding:
+      claim: "routine forward motion; the owner alone suffices (proportional convening)"
+      witness: { name: composer, at: "df35300" }
+  - id: D2
+    type: reconcile-accept
+    proposer: { kind: agent, name: maintainer }
+    at: "df35300"
+    assent: [maintainer]
+    verdict: "accepted"
+    grounding:
+      claim: "landed diff matches the IBC surface; per-node acceptance lives in the merge gate"
+      witness: { name: maintainer, at: "df35300" }
+  - id: D3
+    type: merge
+    proposer: { kind: agent, name: composer }
+    at: "df35300"
+    assent: [maintainer]
+    verdict: "merge"
+    grounding:
+      claim: "maintainer affirmatively accepts the maintenance burden; the node's gates ran green"
+      check: { command: "bash ledger/gate/test_council.sh", ran: true, at: "df35300" }
+  - id: D4
+    type: dag-amendment
+    proposer: { kind: agent, name: architect }
+    at: "df35300"
+    assent: [architect, human]
+    verdict: "amended"
+    grounding:
+      claim: "node added mid-flight; the head ratifies the scope change"
+      witness: { name: human, at: "df35300" }
+  - id: D7
+    type: dag-amendment-mechanical
+    proposer: { kind: agent, name: architect }
+    at: "df35300"
+    assent: [architect]
+    verdict: "surface widened"
+    grounding:
+      claim: "collision check passed; criteria contract untouched — mechanical tier, recorded"
+      witness: { name: architect, at: "df35300" }
+  - id: D5
+    type: classification
+    proposer: { kind: agent, name: architect }
+    at: "df35300"
+    assent: [architect, maintainer]
+    verdict: "procedure->module"
+    grounding:
+      claim: "governing rule applied; quorum of 2 concur"
+      witness: { name: architect, at: "df35300" }
+  - id: D6
+    type: close
+    proposer: { kind: agent, name: architect }
+    at: "df35300"
+    assent: [architect, maintainer, auditor, human]
+    verdict: "closed"
+    grounding:
+      claim: "dual-CLOSE green + sufficiency; the three judging seats reach 'full machine consensus and the head ratifies — the composer conducts the tally, it does not vote in it"
+      witness: { name: human, at: "df35300" }
+  - id: D8
+    type: bar
+    proposer: { kind: human, name: nrd }
+    at: "df35300"
+    subject: maintainer
+    assent: [human]
+    verdict: "maintainer barred from N2's reconcile"
+    grounding:
+      claim: "the maintainer authored N2's diff; a seat cannot judge its own artifact"
+      witness: { name: nrd, at: "df35300" }

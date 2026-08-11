@@ -1,0 +1,16 @@
+# EXPECT: fail
+# Case 16: the subject of a decision about its own conduct appears in `assent`.
+# NoSelfAssent voids the subject's vote exactly as the barring machinery voids a
+# barred seat's (export exit != 0, its own token).
+# A decisions ledger (no `seats`) -> DecisionLedger path.
+decisions:
+  - id: SA1
+    type: bar
+    proposer: { kind: human, name: nrd }
+    at: "df35300"
+    subject: maintainer
+    assent: [maintainer, human]
+    verdict: "barred with the subject's own blessing"
+    grounding:
+      claim: "the judged party voted on its own judgement"
+      witness: { name: nrd, at: "df35300" }

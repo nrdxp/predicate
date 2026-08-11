@@ -6,4 +6,12 @@
 # was missing; here the head is present and machine-consensus is missing.
 # A decisions ledger (no `seats`) -> DecisionLedger path.
 decisions:
-  - { id: U1, type: close, assent: [architect, human], verdict: "rammed through", grounding: "owner + head moved without convening the rest of the council" }
+  - id: U1
+    type: close
+    proposer: { kind: agent, name: architect }
+    at: "df35300"
+    assent: [architect, human]
+    verdict: "rammed through"
+    grounding:
+      claim: "owner + head moved without convening the rest of the council"
+      witness: { name: nrd, at: "df35300" }

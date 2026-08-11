@@ -1,0 +1,20 @@
+# EXPECT: fail
+# Case 17: the G-8 ORDERING fixture — the subject is ALSO barred, and appears in
+# assent, so BOTH self-assent and no-barred hold of this decision. The chain must
+# surface the SELF-ASSENT token: the subject's void is intrinsic to the decision's
+# own content, while barring is extrinsic state, and the intrinsic defect names the
+# conduct conflict (the more informative diagnosis). This makes the ruled ordering
+# a tested property, not a comment.
+# A decisions ledger (no `seats`) -> DecisionLedger path.
+decisions:
+  - id: OB1
+    type: bar
+    proposer: { kind: human, name: nrd }
+    at: "df35300"
+    subject: maintainer
+    barred: [maintainer]
+    assent: [maintainer, human]
+    verdict: "doubly void assent"
+    grounding:
+      claim: "subject and barred at once; the intrinsic defect surfaces first"
+      witness: { name: nrd, at: "df35300" }

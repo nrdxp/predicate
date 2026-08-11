@@ -1,0 +1,15 @@
+# EXPECT: fail
+# Case 14: a decision with no `at`. G-1 makes the record-state anchor (core
+# CommitRef) required — a decision that cannot say what state it was decided
+# against cannot be judged fresh or stale later (export exit != 0, Nickel's
+# missing-definition red on `at`).
+# A decisions ledger (no `seats`) -> DecisionLedger path.
+decisions:
+  - id: P2
+    type: dispatch
+    proposer: { kind: agent, name: composer }
+    assent: [composer]
+    verdict: "dispatched"
+    grounding:
+      claim: "anchor-free decision"
+      witness: { name: composer, at: "df35300" }

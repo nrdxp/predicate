@@ -2,6 +2,17 @@
 # Case 4: a `merge` decision whose assent lacks the maintainer. The explicit
 # merge-consent guard rejects it (export exit != 0) — green gates are necessary but
 # never sufficient; the merge requires the maintainer's recorded affirmative assent.
+# The decision is otherwise fully reformed (proposer, at, species grounding), so
+# merge-consent is the ONLY violation — council_consent.sh depends on the export
+# naming exactly this guard.
 # A decisions ledger (no `seats`) -> DecisionLedger path.
 decisions:
-  - { id: M1, type: merge, assent: [composer], verdict: "merged", grounding: "slipped past the maintainer" }
+  - id: M1
+    type: merge
+    proposer: { kind: agent, name: composer }
+    at: "df35300"
+    assent: [composer]
+    verdict: "merged"
+    grounding:
+      claim: "slipped past the maintainer"
+      witness: { name: composer, at: "df35300" }

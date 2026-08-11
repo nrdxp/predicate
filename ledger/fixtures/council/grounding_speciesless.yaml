@@ -1,0 +1,14 @@
+# EXPECT: fail
+# Case 10: a grounding record carrying its claim but NO species anchor — neither a
+# check nor a witness. The Verification Dual demands a species: a claim standing on
+# nothing is exactly the state the reform makes unrepresentable (export exit != 0).
+# A decisions ledger (no `seats`) -> DecisionLedger path.
+decisions:
+  - id: G2
+    type: dispatch
+    proposer: { kind: agent, name: composer }
+    at: "df35300"
+    assent: [composer]
+    verdict: "dispatched"
+    grounding:
+      claim: "asserted with no species anchor at all"

@@ -1,5 +1,7 @@
 # council.ncl — the council's law as a Nickel contract (two layers), a first-class
-# peer of dag.ncl / worker_ibc.ncl.
+# peer of dag.ncl / worker_ibc.ncl. EXTENDS THE ENTRY CORE (entry.ncl): the
+# provenance and evidence vocabulary (Signer, CommitRef, Check, Witness) is
+# defined once in the core and imported, never restated.
 #
 #   Constitution           (static, per-project): seats + decision_types + delegation.
 #   DecisionLedger(const)   (dynamic, per-campaign): decisions validated vs the
@@ -25,14 +27,24 @@
 #                      distinct gates, both required to close.
 # Both are encoded uniformly as `must_assent` on a DelegationRule and checked BEFORE
 # the assent-class predicate, so each violation surfaces its own named reason.
+#
+# The decision reform (G-1/G-2): every decision carries its proposer (core Signer —
+# who brought it), `at` (core CommitRef — the record-state it was decided against),
+# and a SPECIES-AWARE grounding: a run check XOR an admitted witness, the core's
+# corroborated/vouched cut applied at the decision grain. The bare grounding string
+# died; "never empty" became "never speciesless". A decision MAY name a `subject` —
+# the seat whose CONDUCT it is about (REQUIRED on 'bar: with no subject there is
+# nothing to void) — and the subject's assent on its own judgement is void
+# (self-assent), exactly as a barred seat's is. Chain order is a tested property:
+# intrinsic-content defects (bar-without-subject, self-assent) surface before
+# extrinsic state (no-barred) — a seat both subject and barred names the conduct
+# conflict, the more informative defect.
+let e = import "entry.ncl" in
 {
-  NonEmptyString = std.contract.from_predicate (fun v =>
-    std.is_string v && std.string.length v > 0),
-
   Seat = {
     id | String,
-    role | NonEmptyString,
-    domain | NonEmptyString,
+    role | e.NonEmptyString,
+    domain | e.NonEmptyString,
     standing | [| 'standing, 'guest |],
     # the head (human) is a standing seat but the RATIFIER, not a machine-council
     # member: excluded from the 'full machine-consensus tally and instead required
@@ -83,13 +95,47 @@
       else if !consent_seats_ok then 'Error { message = "anti-incoherence: a must_assent co-signer is not a declared seat" }
       else 'Ok value))),
 
+  # The species-aware grounding (G-1). Shape: the prose why (`claim` — kept from
+  # the old field so a stranger still reads the reason, not just the anchor) plus
+  # exactly one species anchor from the core: a Check that RAN (the corroborated
+  # cut — a named-but-unrun mechanism is a dispatchable question, not backing) or
+  # an admitted Witness. Hand-rolled like the rest of this file's law, so each
+  # defect surfaces its own token.
+  GroundingShape = {
+    claim | e.NonEmptyString,
+    check | e.Check | optional,
+    witness | e.Witness | optional,
+  },
+  Grounding = std.contract.custom (fun _label v =>
+    if !std.is_record v then
+      'Error { message = "grounding-speciesless: a grounding is a record naming its species (a run check or an admitted witness) — the bare string is gone" }
+    else
+      let shaped = v | GroundingShape in
+      let has_check = std.record.has_field "check" shaped in
+      let has_witness = std.record.has_field "witness" shaped in
+      if has_check && has_witness then
+        'Error { message = "grounding-species-ambiguous: both check and witness present — a grounding names exactly one species" }
+      else if !has_check && !has_witness then
+        'Error { message = "grounding-speciesless: neither check nor witness present — never speciesless" }
+      else if has_check && !shaped.check.ran then
+        'Error { message = "grounding-speciesless: a named-but-unrun check is not backing — run it or vouch it" }
+      else 'Ok shaped),
+
   Decision = {
     id | String,
     type | String,
+    proposer | e.Signer,                             # who brought the decision (G-1)
+    at | e.CommitRef,                                # the record-state decided against (G-1)
     assent | Array String,                           # seat ids that assented
     barred | Array String | optional | default = [], # seats ruled-out for this IBC
-    verdict | NonEmptyString,
-    grounding | NonEmptyString,                       # Verification Dual: never empty
+    # the seat whose CONDUCT this decision is about (G-2). REQUIRED on 'bar —
+    # enforced in the violation chain, where the defect gets its own token —
+    # and absent on decisions not about a party. The GENERAL "is this target
+    # the signer's own conduct" beyond an explicit subject is a review matter:
+    # gating it here would fake decidability.
+    subject | e.NonEmptyString | optional,
+    verdict | e.NonEmptyString,
+    grounding | Grounding,                           # Verification Dual: never speciesless
   },
 
   # DecisionLedger is a contract CONSTRUCTOR parameterized by the constitution, so each
@@ -97,7 +143,8 @@
   DecisionLedger = fun constitution =>
     std.contract.custom (fun _label value =>
       # normalize each decision THROUGH the Decision contract first: fills the `barred`
-      # default and validates shape/NonEmptyString. Checks then run on the normalized form.
+      # default and validates shape/species (proposer, at, grounding). Checks then run
+      # on the normalized form.
       let decisions = std.array.map (fun d => d | Decision) value.decisions in
       let deleg = std.array.map (fun r => r | DelegationRule) constitution.delegation in
       let seats = std.array.map (fun s => s | Seat) constitution.seats in
@@ -133,11 +180,22 @@
           "head-ratification: this decision requires the head (human) in assent"
         else "mandatory co-signer absent from assent" in
       let violation = fun d =>                        # "" iff the decision is lawful
-        if !(std.record.has_field d.type deleg_map) then
+        # guards ordered most-specific-first so each violation surfaces its OWN
+        # reason. INTRINSIC-CONTENT defects come before any read of extrinsic
+        # state (the delegation table, barring): bar-without-subject is the
+        # structural precondition of judging self-assent on a bar (no subject,
+        # nothing to void), and self-assent precedes no-barred because the
+        # subject's void is intrinsic to the decision's own content while
+        # barring is extrinsic — a seat both subject and barred surfaces the
+        # conduct conflict, the more informative defect (tested property).
+        if d.type == "bar" && !(std.record.has_field "subject" d) then
+          "bar-without-subject: a 'bar rules on a named seat's conduct — no subject, nothing to void"
+        else if std.record.has_field "subject" d && std.array.elem d.subject d.assent then
+          "self-assent: seat '%{d.subject}' is this decision's subject and its assent is void — a party does not assent to a ruling on its own conduct"
+        else if !(std.record.has_field d.type deleg_map) then
           "ungoverned: decision references a decision-type with no delegation rule"
         else
           let r = std.record.get d.type deleg_map in
-          # guards ordered most-specific-first so each violation surfaces its OWN reason.
           if !(no_barred d) then "no-barred: a barred seat appears in assent"
           else if !(consent_ok d r) then consent_reason r
           else if !(class_ok d r) then

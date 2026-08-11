@@ -1,6 +1,17 @@
 # EXPECT: fail
 # Case 5: a barred seat appears in `assent`. The no-barred predicate voids the
 # ruled-out seat's vote and rejects the decision (export exit != 0).
+# No `subject` is carried, so the intrinsic-content guards (bar-without-subject,
+# self-assent) pass through and no-barred is the surfaced reason.
 # A decisions ledger (no `seats`) -> DecisionLedger path.
 decisions:
-  - { id: B1, type: merge, assent: [maintainer], barred: [maintainer], verdict: "x", grounding: "a ruled-out seat still voted" }
+  - id: B1
+    type: merge
+    proposer: { kind: agent, name: composer }
+    at: "df35300"
+    assent: [maintainer]
+    barred: [maintainer]
+    verdict: "x"
+    grounding:
+      claim: "a ruled-out seat still voted"
+      witness: { name: composer, at: "df35300" }

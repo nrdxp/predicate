@@ -4,4 +4,12 @@
 # requires both the architect (owner) and the head's ratifying assent.
 # A decisions ledger (no `seats`) -> DecisionLedger path.
 decisions:
-  - { id: A1, type: dag-amendment, assent: [architect], verdict: "amended without ratification", grounding: "architect amended the DAG with no head sign-off" }
+  - id: A1
+    type: dag-amendment
+    proposer: { kind: agent, name: architect }
+    at: "df35300"
+    assent: [architect]
+    verdict: "amended without ratification"
+    grounding:
+      claim: "architect amended the DAG with no head sign-off"
+      witness: { name: architect, at: "df35300" }

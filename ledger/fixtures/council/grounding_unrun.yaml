@@ -1,0 +1,15 @@
+# EXPECT: fail
+# Case 12: a check-species grounding whose check was never RUN. The core's
+# corroborated cut applies at the decision grain: a named-but-unrun mechanism is a
+# dispatchable question, not backing (export exit != 0, its own token).
+# A decisions ledger (no `seats`) -> DecisionLedger path.
+decisions:
+  - id: G4
+    type: dispatch
+    proposer: { kind: agent, name: composer }
+    at: "df35300"
+    assent: [composer]
+    verdict: "dispatched"
+    grounding:
+      claim: "names a mechanism it never executed"
+      check: { command: "bash ledger/gate/test_council.sh", ran: false, at: "df35300" }

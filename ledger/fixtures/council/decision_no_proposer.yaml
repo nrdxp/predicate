@@ -1,0 +1,14 @@
+# EXPECT: fail
+# Case 13: a decision with no `proposer`. G-1 makes the proposer (core Signer)
+# required — a decision that cannot say who brought it is missing its provenance
+# (export exit != 0, Nickel's missing-definition red on `proposer`).
+# A decisions ledger (no `seats`) -> DecisionLedger path.
+decisions:
+  - id: P1
+    type: dispatch
+    at: "df35300"
+    assent: [composer]
+    verdict: "dispatched"
+    grounding:
+      claim: "provenance-free decision"
+      witness: { name: composer, at: "df35300" }

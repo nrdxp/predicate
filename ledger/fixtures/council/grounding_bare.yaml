@@ -1,0 +1,14 @@
+# EXPECT: fail
+# Case 9: the pre-reform bare-string grounding. G-1 killed it — a grounding is a
+# record naming its species (a run check or an admitted witness); "never empty"
+# became "never speciesless". The Grounding contract rejects the string with its
+# own token (export exit != 0).
+# A decisions ledger (no `seats`) -> DecisionLedger path.
+decisions:
+  - id: G1
+    type: dispatch
+    proposer: { kind: agent, name: composer }
+    at: "df35300"
+    assent: [composer]
+    verdict: "dispatched"
+    grounding: "a bare why-string, pre-reform shape"

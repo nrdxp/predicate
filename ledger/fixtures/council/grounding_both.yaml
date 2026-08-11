@@ -1,0 +1,16 @@
+# EXPECT: fail
+# Case 11: a grounding carrying BOTH species anchors. The species split is a xor —
+# a grounding is a run check or an admitted witness, never an ambiguous both
+# (export exit != 0, its own token).
+# A decisions ledger (no `seats`) -> DecisionLedger path.
+decisions:
+  - id: G3
+    type: dispatch
+    proposer: { kind: agent, name: composer }
+    at: "df35300"
+    assent: [composer]
+    verdict: "dispatched"
+    grounding:
+      claim: "two anchors, no single species"
+      check: { command: "true", ran: true, at: "df35300" }
+      witness: { name: composer, at: "df35300" }
