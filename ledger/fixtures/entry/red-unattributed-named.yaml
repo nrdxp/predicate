@@ -1,15 +1,12 @@
 id: r-unattributed-named
 statement: "An unattributed signer that names a party anyway — a contradiction."
 assertion: claim
-backing: corroborated
+backing: unclosed
 signer:
   kind: unattributed
   name: someone
-check:
-  command: "true"
-  ran: true
-  at: "deadbeef0b"
+because:
+  - e-migration-sweep
 axes:
-  determined: true
-  certifiable: true
+  determined: false
   monotone: true
