@@ -1,0 +1,47 @@
+# Corpus green: a supersession CHAIN two hops deep that bottoms out. Duplicates
+# merge transitively in practice — one question absorbs a second, which had
+# already absorbed a third — and the relation is well-formed exactly when the
+# walk terminates in an entry nothing supersedes.
+#
+# This is the bidirectional half of the termination reds beside it: a check
+# that refuses cycles by refusing every chain longer than one hop, or by
+# refusing supersession outright, would pass both reds and fail here. The
+# property is termination, never depth.
+entries:
+  - id: q-survivor
+    statement: "What termination condition does the supersedes relation carry?"
+    assertion: question
+    backing: unclosed
+    signer:
+      kind: agent
+      name: composer
+    discharge: "A ruled termination condition on the supersedes relation."
+    closer:
+      kind: human
+      name: nrd
+    supersedes:
+      - q-merged-once
+  - id: q-merged-once
+    statement: "Must a supersession chain end somewhere?"
+    assertion: question
+    backing: unclosed
+    signer:
+      kind: agent
+      name: architect-seat
+    discharge: "A ruled termination condition on the supersedes relation."
+    closer:
+      kind: human
+      name: nrd
+    supersedes:
+      - q-merged-twice
+  - id: q-merged-twice
+    statement: "Does supersession bottom out?"
+    assertion: question
+    backing: unclosed
+    signer:
+      kind: agent
+      name: architect-seat
+    discharge: "A ruled termination condition on the supersedes relation."
+    closer:
+      kind: human
+      name: nrd

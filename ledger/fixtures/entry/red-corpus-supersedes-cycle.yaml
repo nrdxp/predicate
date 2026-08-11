@@ -1,0 +1,40 @@
+# Corpus red: two duplicate questions each superseding the other. Every
+# reference resolves, so the corpus accepts it today — but the supersession
+# relation has no floor: follow either entry's exit and you arrive back where
+# you started, and the pair names no survivor to carry the question forward.
+#
+# This is the shape merging duplicates actually produces when two agents each
+# fold the other's question into their own, which is why the self-cycle alone
+# is not sufficient coverage: a termination check that only refuses a
+# self-reference passes this corpus unchanged.
+#
+# Both questions leave `awaiting_human` — each is named by a closure edge, so
+# each derives as closed — and the work they describe disappears from the
+# record while remaining, by the record's own account, unanswered.
+entries:
+  - id: q-dup-a
+    statement: "Does the supersedes relation admit mutual retirement?"
+    assertion: question
+    backing: unclosed
+    signer:
+      kind: agent
+      name: composer
+    discharge: "A ruled termination condition on the supersedes relation."
+    closer:
+      kind: human
+      name: nrd
+    supersedes:
+      - q-dup-b
+  - id: q-dup-b
+    statement: "May two duplicates each retire the other?"
+    assertion: question
+    backing: unclosed
+    signer:
+      kind: agent
+      name: architect-seat
+    discharge: "A ruled termination condition on the supersedes relation."
+    closer:
+      kind: human
+      name: nrd
+    supersedes:
+      - q-dup-a

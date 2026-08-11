@@ -1,0 +1,26 @@
+# Corpus red: a question that supersedes ITSELF. The reference resolves — the
+# id is declared, so the existing dangling-supersedes check is satisfied — and
+# resolution was the only thing the corpus ever asked of a supersession edge.
+#
+# `supersedes` means "this entry retires that one, unanswered", so a self-edge
+# says the question was merged into itself: an exit that leads back to its own
+# entrance. Nothing was retired and nothing survives to carry the work.
+#
+# The harm is the same shape as the misclosure: openness is DERIVED from the
+# closure edges, so the question counts as closed and leaves `awaiting_human`.
+# A question can therefore retire itself out of the record's work lists by
+# naming its own id, and no evaluator objects.
+entries:
+  - id: q-self-retires
+    statement: "Does the supersession relation have to bottom out anywhere?"
+    assertion: question
+    backing: unclosed
+    signer:
+      kind: agent
+      name: composer
+    discharge: "A ruled termination condition on the supersedes relation."
+    closer:
+      kind: human
+      name: nrd
+    supersedes:
+      - q-self-retires

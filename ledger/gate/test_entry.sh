@@ -11,7 +11,8 @@
 #
 # entry_apply.ncl is shape-dispatching: a value carrying `entries` is a corpus
 # (validated by EntryStore: per-entry shape, the full closed predicate set per
-# entry, id-uniqueness, and edge-resolution); otherwise it is a single entry
+# entry, id-uniqueness, edge-resolution, and supersession termination — the
+# relational properties no per-entry contract can see); otherwise a single entry
 # (Entry composed with the eleven lifted predicates). The two granularities
 # refuse the SAME defects — a predicate that fires only on a lone entry is a
 # predicate that never fires, because the corpus is the shape a record takes.
@@ -92,6 +93,11 @@ expect "corpus: discharges resolves to a declared question -> export clean" 0 ""
   -- run "$fix/green-corpus-discharge.yaml"
 expect "corpus: surviving question supersedes its duplicate -> export clean" 0 "" \
   -- run "$fix/green-corpus-superseded.yaml"
+# The bidirectional half of the supersession-termination reds below: the
+# property is that the walk BOTTOMS OUT, never that it is short. A check that
+# refuses cycles by refusing depth would pass both reds and fail here.
+expect "corpus: two-hop supersession chain bottoms out -> export clean" 0 "" \
+  -- run "$fix/green-corpus-supersedes-chain.yaml"
 
 # --- predicate reds: one per predicate, both directions where bidirectional --
 expect "CANARY: string-backed corroborated claim, check unrun -> CorroborationBacked" 1 "CorroborationBacked" \
@@ -179,6 +185,17 @@ expect "corpus: unresolved discharges ref -> EntryStore" 1 "dangling discharges"
   -- run "$fix/red-corpus-dangling-discharges.yaml"
 expect "corpus: unresolved supersedes ref -> EntryStore" 1 "dangling supersedes" \
   -- run "$fix/red-corpus-dangling-supersedes.yaml"
+# Resolution was the ONLY condition the corpus placed on a supersession edge,
+# and resolution does not bound the walk: a resolved cycle retires everything
+# it touches and delivers no survivor. Openness is derived from the closure
+# edges, so both reds below silently empty `awaiting_human` — the questions
+# leave the work lists while remaining, by the record's own account,
+# unanswered. Two shapes because one does not cover the other: a check that
+# refuses only a self-reference passes the mutual pair unchanged.
+expect "corpus: question supersedes itself -> SupersessionTerminates" 1 "SupersessionTerminates" \
+  -- run "$fix/red-corpus-supersedes-self.yaml"
+expect "corpus: two duplicates supersede each other -> SupersessionTerminates" 1 "SupersessionTerminates" \
+  -- run "$fix/red-corpus-supersedes-cycle.yaml"
 # Guards EntryStore's eager per-entry conformance fold (the deep_seq
 # machinery): deleting that fold lets a shape-malformed entry export clean
 # from a corpus. This is the only case that fails under that mutation.
