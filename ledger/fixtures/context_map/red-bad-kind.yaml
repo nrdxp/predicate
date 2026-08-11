@@ -1,0 +1,11 @@
+# An out-of-set kind string -> Kind (value-restricted tag-or-string: strings
+# are accepted, but only the ruled four).
+items:
+  - id: X1
+    kind: vibe
+    statement: "A row of no ruled class."
+    provenance: { kind: human, name: nrd }
+    grounding: "nowhere."
+    last_validated: "2026-08-10"
+    at: "6afbc9d"
+    signpost: "never."

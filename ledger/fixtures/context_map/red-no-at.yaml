@@ -1,0 +1,10 @@
+# A requirement without its record-state anchor -> missing definition for
+# `at`.
+items:
+  - id: R1
+    kind: requirement
+    statement: "Validated against an unknown state."
+    provenance: { kind: human, name: nrd }
+    grounding: "the tracker."
+    last_validated: "2026-08-10"
+    signpost: "the anchor turns out to matter."

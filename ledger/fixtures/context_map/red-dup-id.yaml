@@ -1,0 +1,18 @@
+# Two items sharing one id -> duplicate context-map item id.
+items:
+  - id: R1
+    kind: requirement
+    statement: "First."
+    provenance: { kind: human, name: nrd }
+    grounding: "here."
+    last_validated: "2026-08-10"
+    at: "6afbc9d"
+    signpost: "never."
+  - id: R1
+    kind: invariant
+    statement: "Duplicate id — the map must reject this."
+    provenance: { kind: human, name: nrd }
+    grounding: "there."
+    last_validated: "2026-08-10"
+    at: "6afbc9d"
+    signpost: "never."

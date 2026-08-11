@@ -9,10 +9,12 @@ let c = import "../contracts/context_map.ncl" in
   items = [
     {
       id = "R1",
-      statement = "All ledger contracts must export under the structure gate.",
       kind = 'requirement,
+      statement = "All ledger contracts must export under the structure gate.",
+      provenance = { kind = 'human, name = "nrd" },
       grounding = "",
-      last_validated = "2026-06-21",
+      last_validated = "2026-08-10",
+      at = "6afbc9d",
       signpost = "ledger-validate structure returns non-zero on any contract.",
     },
   ]

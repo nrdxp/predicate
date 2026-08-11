@@ -1,0 +1,11 @@
+# A directive row whose non-derived provenance names nobody: an anonymous
+# authority -> DirectiveDesignates.
+items:
+  - id: R1
+    kind: requirement
+    statement: "Commanded by no one in particular."
+    provenance: { kind: agent }
+    grounding: "the tracker."
+    last_validated: "2026-08-10"
+    at: "6afbc9d"
+    signpost: "an authority steps forward."

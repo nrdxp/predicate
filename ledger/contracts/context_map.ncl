@@ -2,82 +2,106 @@
 # unknowns (CONTRACT.md "Carrier roles"). Where AGENTS.md is the slow-changing
 # persistent anchor and the flight log is narrative history, the context-map is
 # current state: what the walk is actively holding, each item carrying the
-# evidence that grounds it, when it was last checked against reality, and the
-# signpost that would resolve or defeat it.
+# evidence that grounds it, when it was last checked against reality, and what
+# would resolve or defeat it.
 #
-# Intrinsic gate (the Verification Dual made unforgeable): an item that omits —
-# or empties — its `grounding`, `last_validated`, or `signpost` is a silent
-# omission, the exact failure this carrier exists to kill. `nickel export` exits
-# non-zero on any such item, so the single portable command IS the gate; a
-# headless walk cannot carry an ungrounded requirement forward unnoticed.
+# EXTENDS THE ENTRY CORE (entry.ncl) and the boundary's Directive (ruling E-3:
+# preserve-and-express — the map's structure is PRESERVED, its rows expressed
+# in core vocabulary rather than rebuilt):
 #
-# Unknowns are first-class, treated exactly like requirements (CONTRACT.md): the
-# same `Item` shape carries both. `signpost` reads as "what would resolve or
-# invalidate this" for an 'unknown, and "what would defeat this" for the others —
-# one field, both meanings, never empty.
+#   - requirement/invariant/constraint rows ARE directives (ruling E-1): they
+#     command rather than assert, so each is the boundary Directive record
+#     merge-extended with the map's own carrier fields. Its authority is its
+#     `provenance` signer; its `signpost` stays — the DEFEATER of a directive
+#     is map metadata, not a question's discharge condition (which E-1 forbids
+#     on directives).
+#   - `unknown` rows are QUESTION ENTRIES: the core Entry merge-extended with
+#     the same carrier fields. The old `signpost` maps onto the core
+#     `discharge`, and the row GAINS the closer it always lacked — both
+#     enforced by the core's own QuestionRoutable, inherited not restated.
+#
+# UNKNOWNS REMAIN FIRST-CLASS: one items array carries both row classes,
+# dispatched by `kind` (the entry_apply shape-dispatch idiom).
+#
+# Intrinsic gate (the Verification Dual made unforgeable): an item that omits
+# or empties its `grounding`, `last_validated`, or `signpost`/`discharge` is a
+# silent omission, the exact failure this carrier exists to kill — `nickel
+# export` exits non-zero on any such item. `last_validated` KEEPS its date
+# semantics: tracker_fresh.sh compares it against the HEAD commit date, and
+# that external interface may not silently break; the new `at` CommitRef
+# anchors the item to record state, which a date cannot.
+let e = import "entry.ncl" in
+let b = import "worker_ibc.ncl" in
 {
-  # A non-empty string. The empty string is the silent-omission sentinel, so it
-  # is rejected here rather than at each call site. `std.contract.from_predicate`
-  # raises EAGERLY when the value is forced, which the per-element `std.deep_seq`
-  # in `ContextMap` (below) guarantees — so a "" or omitted field fails the
-  # export rather than being skipped by laziness.
-  NonEmptyString = std.contract.from_predicate (fun value =>
-    std.is_string value && std.string.length value > 0
+  # Value-restricted tag-or-string (ruling D-6; was a bare enum that rejected
+  # every YAML string on arrival — the shim's lift is now unnecessary).
+  Kind = std.contract.custom (fun _label v =>
+    if e.matches v 'requirement "requirement" || e.matches v 'invariant "invariant"
+       || e.matches v 'constraint "constraint" || e.matches v 'unknown "unknown"
+    then 'Ok v
+    else 'Error { message = "Kind: expected requirement|invariant|constraint|unknown (tag or string)" }
   ),
 
-  # One context-map item. A requirement, invariant, constraint, or live unknown.
-  # `grounding`, `last_validated`, and `signpost` are mandatory and non-empty:
-  # the contract makes naming the evidence, the freshness, and the defeater a
-  # precondition of carrying the item at all.
+  # The carrier fields every row adds to its base record.
   #
-  # Hydration fields (P-TRACK / I14 — the AGENTS.md fusion):
-  # `hydration_source` is OPTIONAL. When present it records where this item was
-  # hydrated FROM — a path:section pointer into the project's AGENTS.md hierarchy.
-  # Absent = item originated in scratch (unoriented walk); present = item was
-  # hydrated from the persistent AGENTS.md anchor. This field feeds
-  # tracker_fresh.sh: a stale `last_validated` on a hydrated item means the
-  # persistent anchor may have drifted and reorientation is due.
-  #
-  # `hydration_source` shape when present: "<relative-path>#<section-heading>",
-  # e.g. "AGENTS.md#requirements" or "skills/orient/AGENTS.md#invariants".
-  # The empty string is the silent-omission sentinel and is therefore forbidden
-  # (same NonEmptyString discipline as the other evidence fields).
-  Item = {
-    id | String,
-    statement | String,                  # the requirement/unknown itself
-    kind | [| 'requirement, 'invariant, 'constraint, 'unknown |],
-    grounding | NonEmptyString,          # source/evidence; "" forbidden
-    last_validated | NonEmptyString,     # when last checked vs reality; "" forbidden
-    signpost | NonEmptyString,           # resolver (unknown) / defeater (others); "" forbidden
+  # `hydration_source` (P-TRACK / I14): OPTIONAL; when present it records the
+  # AGENTS.md path#section this item was hydrated from. Absent/null = item
+  # originated in scratch. Feeds tracker_fresh.sh: a stale `last_validated` on
+  # a hydrated item means the persistent anchor may have drifted. The empty
+  # string is the silent-omission sentinel and is forbidden.
+  carrier_fields = {
+    kind | Kind,
+    grounding | e.NonEmptyString,        # source/evidence; "" forbidden
+    last_validated | e.NonEmptyString,   # date last checked vs reality (tracker_fresh interface)
+    at | e.CommitRef,                    # the record state the item was validated against
     hydration_source
       | std.contract.from_predicate (fun v => v == null || (std.is_string v && std.string.length v > 0))
       | optional
       | default = null,                  # AGENTS.md path#section; null = scratch-originated
   },
 
-  # The context-map contract: a record holding an array of items, with the
-  # every-item-grounded invariant enforced intrinsically.
-  #
-  # Freshness gate (P-TRACK I-T3 / tracker_fresh.sh): tracker_fresh.sh reads
-  # `last_validated` from a serialised ContextMap instance and compares it to
-  # the current HEAD git commit date. Items with a `hydration_source` that are
-  # stale signal that the persistent AGENTS.md anchor may have drifted and
-  # reorientation is due. The contract itself enforces non-empty `last_validated`;
-  # the staleness check is a runtime gate (tracker_fresh.sh), not a static
-  # contract, because HEAD is not available at Nickel evaluation time.
+  # A requirement/invariant/constraint row: the boundary Directive plus the
+  # carrier fields and its defeater. Closed by merge — `backing` or `axes` on
+  # a directive row is still an extra-field rejection.
+  RicItem =
+    b.Directive
+    & carrier_fields
+    & { signpost | e.NonEmptyString },   # what would DEFEAT this; "" forbidden
+
+  RicChecked = std.contract.all_of [
+    RicItem,
+    e.asContract "DirectiveDesignates" b.DirectiveDesignates,
+  ],
+
+  # An unknown row: a full core question entry plus the carrier fields. The
+  # core's lifted predicates supply the routing rule (discharge AND closer)
+  # and the signer discipline; UnknownIsQuestion blocks mis-filing a claim
+  # under `kind: unknown` to dodge them.
+  UnknownItem = e.Entry & carrier_fields,
+
+  UnknownChecked = std.contract.all_of (
+    [UnknownItem]
+    @ e.lifted
+    @ [e.asContract "UnknownIsQuestion" b.UnknownIsQuestion]
+  ),
+
+  # Per-item shape dispatch on `kind` (the entry_apply idiom).
+  ItemChecked = std.contract.custom (fun label value =>
+    if std.is_record value
+       && std.record.has_field "kind" value
+       && e.matches value.kind 'unknown "unknown"
+    then std.contract.check UnknownChecked label value
+    else std.contract.check RicChecked label value
+  ),
+
+  # The context-map contract: a record holding an array of items, dispatched
+  # and applied EAGERLY per element (`std.contract.apply` alone stays lazy and
+  # a bad item slips through `nickel export`), with id uniqueness enforced.
   ContextMap = std.contract.custom (fun _label value =>
     let items = value.items in
-    # Per-element item conformance: annotate each item with the `Item` contract
-    # so the field shapes, the `kind` enum, AND the NonEmptyString fields are
-    # actually enforced. A contract defined but never applied is inert. The
-    # annotation form `(it | Item)` under `std.deep_seq` raises the violation
-    # EAGERLY — `std.contract.apply` alone stays lazy and a bad item slips
-    # through `nickel export`. deep_seq descends into the annotated fields so an
-    # empty `grounding` (or an omitted required field, or an out-of-enum `kind`)
-    # fails the export rather than being skipped.
     let _item_conformance =
       std.array.fold_left
-        (fun acc it => std.deep_seq (it | Item) acc)
+        (fun acc it => std.deep_seq (it | ItemChecked) acc)
         null
         items
     in
@@ -89,9 +113,6 @@
         ids
     in
     let unique_ids = std.array.length ids == std.array.length dedup in
-    # `std.seq _item_conformance` forces the per-element `Item` applications
-    # before the structural verdict, so a malformed item fails the contract
-    # eagerly rather than being skipped by laziness.
     std.seq _item_conformance (
       if !unique_ids then 'Error { message = "duplicate context-map item id" }
       else 'Ok value

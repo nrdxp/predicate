@@ -1,0 +1,15 @@
+# A claim filed under kind: unknown — mis-filing dodges the discharge +
+# closer requirement -> UnknownIsQuestion.
+items:
+  - id: U1
+    kind: unknown
+    statement: "The instances all still validate."
+    assertion: claim
+    backing: corroborated
+    signer: { kind: agent, name: walk }
+    check: { command: "bash validate-all.sh", ran: true, at: "6afbc9d" }
+    axes: { determined: true, certifiable: true, monotone: false }
+    freshness: "re-run at reconcile"
+    grounding: "the validation sweep."
+    last_validated: "2026-08-10"
+    at: "6afbc9d"

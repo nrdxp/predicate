@@ -1,0 +1,11 @@
+# A requirement row without provenance: a directive with no issuing authority
+# -> missing definition for `provenance` (the item-without-signer red, the
+# directive half).
+items:
+  - id: R1
+    kind: requirement
+    statement: "All ledger contracts must export under the structure gate."
+    grounding: "ledger/gate/ledger-validate.sh."
+    last_validated: "2026-08-10"
+    at: "6afbc9d"
+    signpost: "the gate returns non-zero on a contract."

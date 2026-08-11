@@ -1,0 +1,13 @@
+# An unknown row without a signer: a question entry names its asker -> missing
+# definition for `signer` (the item-without-signer red, the question half).
+items:
+  - id: U1
+    kind: unknown
+    statement: "Whose question even is this?"
+    assertion: question
+    backing: unclosed
+    discharge: "the asker steps forward"
+    closer: composer
+    grounding: "found unowned in the tracker."
+    last_validated: "2026-08-10"
+    at: "6afbc9d"

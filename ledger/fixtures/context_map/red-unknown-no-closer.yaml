@@ -1,0 +1,14 @@
+# An unknown with a discharge condition but no named closer -> QuestionRoutable
+# (the core's own predicate, inherited by extension — the closer the map
+# always lacked is now enforced).
+items:
+  - id: U1
+    kind: unknown
+    statement: "Who verifies the resolution?"
+    assertion: question
+    backing: unclosed
+    signer: { kind: agent, name: walk }
+    discharge: "someone confirms the fix in the field"
+    grounding: "raised at reconcile."
+    last_validated: "2026-08-10"
+    at: "6afbc9d"

@@ -1,0 +1,11 @@
+# A requirement with empty grounding: the silent omission this carrier exists
+# to kill -> NonEmptyString (the preserved intrinsic gate).
+items:
+  - id: R1
+    kind: requirement
+    statement: "All ledger contracts must export under the structure gate."
+    provenance: { kind: human, name: nrd }
+    grounding: ""
+    last_validated: "2026-08-10"
+    at: "6afbc9d"
+    signpost: "the gate returns non-zero on a contract."

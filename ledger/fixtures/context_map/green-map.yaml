@@ -1,0 +1,39 @@
+# A requirement, an invariant, a constraint (directive rows with provenance
+# and defeater) and a live unknown (a full question entry with discharge and
+# closer), string enum forms throughout -> export clean.
+items:
+  - id: R1
+    kind: requirement
+    statement: "Every ledger contract must export 0 under the structure gate."
+    provenance: { kind: human, name: nrd }
+    grounding: "ledger/gate/ledger-validate.sh (structure subcommand)."
+    last_validated: "2026-08-10"
+    at: "6afbc9d"
+    signpost: "ledger-validate structure returns non-zero on a contract."
+  - id: I1
+    kind: invariant
+    statement: "A required evidence field empty => export fails loudly."
+    provenance: { kind: agent, name: architect-seat }
+    grounding: "context_map_empty_grounding.ncl: rc != 0 on empty grounding."
+    last_validated: "2026-08-10"
+    at: "6afbc9d"
+    signpost: "the negative-control fixture begins to export rc 0."
+  - id: C1
+    kind: constraint
+    statement: "The core stays frozen this pass."
+    provenance: { kind: human, name: nrd }
+    grounding: "ibc-pass2 g14 (frozen-core diff empty)."
+    last_validated: "2026-08-10"
+    at: "6afbc9d"
+    signpost: "git diff --stat 6afbc9d -- ledger/contracts/entry.ncl is non-empty."
+  - id: U1
+    kind: unknown
+    statement: "Does the carrier need staleness checking on last_validated?"
+    assertion: question
+    backing: unclosed
+    signer: { kind: agent, name: walk }
+    discharge: "tracker_fresh.sh flags a stale hydrated item in the field"
+    closer: nrd
+    grounding: "raised during the P-TRACK design review."
+    last_validated: "2026-08-10"
+    at: "6afbc9d"
