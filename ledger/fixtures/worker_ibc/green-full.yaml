@@ -35,7 +35,7 @@ unknowns:
     backing: unclosed
     signer: { kind: agent, name: architect-seat }
     discharge: "run each instance against the reformed apply shims"
-    closer: composer
+    closer: { kind: agent, name: composer }
 delegated:
   - "fixture naming and layout"
 reserved:

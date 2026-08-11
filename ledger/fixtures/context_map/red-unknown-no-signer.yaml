@@ -7,7 +7,7 @@ items:
     assertion: question
     backing: unclosed
     discharge: "the asker steps forward"
-    closer: composer
+    closer: { kind: agent, name: composer }
     grounding: "found unowned in the tracker."
     last_validated: "2026-08-10"
     at: "6afbc9d"

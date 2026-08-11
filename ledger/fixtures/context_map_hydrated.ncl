@@ -40,7 +40,7 @@ let c = import "../contracts/context_map.ncl" in
       backing = 'unclosed,
       signer = { kind = 'source, name = "AGENTS.md#unknowns" },
       discharge = "a walk carries a stale AGENTS.md-sourced item without triggering reorientation",
-      closer = "nrd",
+      closer = { kind = 'human, name = "nrd" },
       grounding = "primitives-spec.md §P-TRACK: reorientation-on-staleness described.",
       last_validated = "2026-06-25",
       at = "6afbc9d",

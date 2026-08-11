@@ -37,7 +37,7 @@ let c = import "../contracts/context_map.ncl" in
       backing = 'unclosed,
       signer = { kind = 'agent, name = "walk" },
       discharge = "tracker_fresh.sh flags a stale hydrated item in the field",
-      closer = "nrd",
+      closer = { kind = 'human, name = "nrd" },
       grounding = "raised during the P-TRACK design review.",
       last_validated = "2026-08-10",
       at = "6afbc9d",

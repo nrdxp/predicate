@@ -16,7 +16,7 @@ premises:
     backing: unclosed
     signer: { kind: agent, name: architect-seat }
     discharge: "read the shim"
-    closer: worker
+    closer: { kind: agent, name: worker }
     check: { command: "grep lift shim.ncl", ran: true, at: "6afbc9d" }
 delegated: []
 reserved: []
