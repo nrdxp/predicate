@@ -1,0 +1,9 @@
+# A finding at accepted_risk with no evaluator at all -> ResolutionRun.
+findings:
+  - id: F1
+    severity: medium
+    statement: "Accepted as risk without naming what closed the assessment."
+    evidence: "see the reconcile record"
+    status: accepted_risk
+    signer: { kind: agent, name: worker }
+    at: "6afbc9d"

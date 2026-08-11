@@ -1,0 +1,10 @@
+# An out-of-set severity string -> Severity (value restriction holds in
+# string form).
+findings:
+  - id: F1
+    severity: catastrophic
+    statement: "Severity outside the ruled set."
+    evidence: "this fixture"
+    status: open
+    signer: { kind: agent, name: worker }
+    at: "6afbc9d"

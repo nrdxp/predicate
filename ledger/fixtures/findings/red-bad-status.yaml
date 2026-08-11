@@ -1,0 +1,10 @@
+# An out-of-set status string -> Status (value restriction holds in string
+# form).
+findings:
+  - id: F1
+    severity: low
+    statement: "Status outside the ruled lifecycle."
+    evidence: "this fixture"
+    status: wontfix
+    signer: { kind: agent, name: worker }
+    at: "6afbc9d"

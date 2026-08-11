@@ -1,0 +1,12 @@
+# CANARY (D-8 class): a STRING-status resolved finding whose evaluator was
+# named but never RUN. A bare tag comparison against "mitigated" would be
+# silently false and pass this -> ResolutionRun must reject it.
+findings:
+  - id: F1
+    severity: high
+    statement: "Claimed mitigated on a check that was only authored."
+    evidence: "the check exists but was never executed"
+    status: mitigated
+    evaluator: { command: "bash ledger/gate/test_findings.sh", ran: false, at: "6afbc9d" }
+    signer: { kind: agent, name: worker }
+    at: "6afbc9d"

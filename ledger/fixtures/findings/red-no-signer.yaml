@@ -1,0 +1,9 @@
+# A finding with no signer (required-field red) -> missing definition for
+# `signer`, caught by the store's eager per-finding conformance fold.
+findings:
+  - id: F1
+    severity: low
+    statement: "Nobody stands behind this finding."
+    evidence: "none"
+    status: open
+    at: "6afbc9d"

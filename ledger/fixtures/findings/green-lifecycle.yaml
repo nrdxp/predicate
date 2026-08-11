@@ -1,0 +1,26 @@
+# Open (no evaluator yet), planned, and resolved (evaluator ran) findings,
+# string enum forms, every finding signed and anchored -> export clean.
+findings:
+  - id: F1
+    severity: high
+    statement: "The gate compares tags against YAML strings and passes silently."
+    evidence: "ledger/contracts/findings.ncl:27 (pre-reform)"
+    status: open
+    signer: { kind: agent, name: survey-worker }
+    at: "6afbc9d"
+  - id: F2
+    severity: medium
+    statement: "The store never applies Finding per element (laziness gap)."
+    evidence: "nickel export skipped a malformed finding"
+    status: planned
+    signer: { kind: agent, name: survey-worker }
+    at: "6afbc9d"
+    because: [F1]
+  - id: F3
+    severity: low
+    statement: "The suite lacked a duplicate-id red."
+    evidence: "grep -c dup ledger/gate/test_findings.sh -> 0 (pre-reform)"
+    status: mitigated
+    evaluator: { command: "bash ledger/gate/test_findings.sh", ran: true, at: "6afbc9d" }
+    signer: { kind: agent, name: worker }
+    at: "6afbc9d"

@@ -1,0 +1,16 @@
+# Two findings sharing one id -> duplicate finding id.
+findings:
+  - id: F1
+    severity: low
+    statement: "First finding."
+    evidence: "here"
+    status: open
+    signer: { kind: agent, name: worker }
+    at: "6afbc9d"
+  - id: F1
+    severity: low
+    statement: "Duplicate id — the ledger must reject this."
+    evidence: "there"
+    status: open
+    signer: { kind: agent, name: worker }
+    at: "6afbc9d"

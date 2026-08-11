@@ -1,0 +1,8 @@
+# A finding with no record-state anchor -> missing definition for `at`.
+findings:
+  - id: F1
+    severity: low
+    statement: "Found against an unknown state; staleness is undecidable."
+    evidence: "file:line with no anchor"
+    status: open
+    signer: { kind: agent, name: worker }
