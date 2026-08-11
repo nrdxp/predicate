@@ -11,7 +11,7 @@
 #
 # entry_apply.ncl is shape-dispatching: a value carrying `entries` is a corpus
 # (validated by EntryStore: per-entry shape + id-uniqueness + edge-resolution);
-# otherwise it is a single entry (Entry composed with the nine lifted
+# otherwise it is a single entry (Entry composed with the ten lifted
 # predicates).
 #
 # CANARY: red-corroboration-unrun is the permanent regression tripwire for the
@@ -112,6 +112,14 @@ expect "derived signer, no edges -> SignerDesignates" 1 "SignerDesignates" \
   -- run "$fix/red-derived-no-edges.yaml"
 expect "unattributed signer, named -> SignerDesignates" 1 "SignerDesignates" \
   -- run "$fix/red-unattributed-named.yaml"
+# Both fixtures below are string-form YAML (backing and signer.kind carry
+# plain strings, never nickel tags), so a green here would mean
+# UnattributedUnclosed's `matches` comparison regressed to a bare `==` — the
+# same dual-comparison tripwire the CANARY above guards for CorroborationBacked.
+expect "unattributed signer, vouched -> UnattributedUnclosed" 1 "UnattributedUnclosed" \
+  -- run "$fix/red-unattributed-vouched.yaml"
+expect "unattributed signer, corroborated -> UnattributedUnclosed" 1 "UnattributedUnclosed" \
+  -- run "$fix/red-unattributed-corroborated.yaml"
 
 # --- shape reds --------------------------------------------------------------
 expect "empty statement -> NonEmptyString" 1 "NonEmptyString" \
@@ -131,7 +139,7 @@ expect "corpus with dangling edge -> EntryStore dangling" 1 "dangling edge" \
 # from a corpus. This is the only case that fails under that mutation.
 expect "corpus with shape-malformed entry (empty statement) -> per-entry conformance" 1 "NonEmptyString" \
   -- run "$fix/red-corpus-malformed-entry.yaml"
-# DELIBERATE ASYMMETRY, pinned: the corpus path applies NONE of the nine
+# DELIBERATE ASYMMETRY, pinned: the corpus path applies NONE of the ten
 # predicates — per-entry violation COLLECTION over a corpus is the future
 # batch validator's job (the design reason the predicates are bare booleans),
 # so a predicate-violating entry that is red alone exports GREEN inside a
@@ -182,18 +190,19 @@ check_cure "undet+non-mono -> T1+T3 (certifiable undefined)" \
   'T1+T3: an admitted signer, plus a freshness mechanism'
 
 # --- law-shape checks (c8, c9, c12) ------------------------------------------
-# c12: the predicate set is CLOSED — exactly the nine, the removed admission
+# c12: the predicate set is CLOSED — exactly the ten (UnattributedUnclosed
+# joined the nine per the unattributed-closure ruling), the removed admission
 # predicate absent (non-comment scope, per c6's structural-not-lexical rule).
 names="$(grep -v '^ *#' "$law" \
-  | grep -oE '(CorroborationBacked|VouchBacked|ProvenanceGate|QuestionRoutable|ResidualIsQuestion|ClaimHasAxes|CertifiabilityFibered|NonMonotoneNamesCure|SignerDesignates|NoSelfVouch)' \
+  | grep -oE '(CorroborationBacked|VouchBacked|ProvenanceGate|QuestionRoutable|ResidualIsQuestion|ClaimHasAxes|CertifiabilityFibered|NonMonotoneNamesCure|SignerDesignates|UnattributedUnclosed|NoSelfVouch)' \
   | sort -u)"
 want_names="$(printf '%s\n' CertifiabilityFibered ClaimHasAxes CorroborationBacked \
   NonMonotoneNamesCure ProvenanceGate QuestionRoutable ResidualIsQuestion \
-  SignerDesignates VouchBacked | sort)"
+  SignerDesignates UnattributedUnclosed VouchBacked | sort)"
 if [ "$names" = "$want_names" ]; then
-  echo "PASS  (0) c12: predicate set closed at exactly the nine"
+  echo "PASS  (0) c12: predicate set closed at exactly the ten"
 else
-  echo "FAIL  c12: exported predicate set diverges from the closed nine"
+  echo "FAIL  c12: exported predicate set diverges from the closed ten"
   diff <(printf '%s\n' "$want_names") <(printf '%s\n' "$names")
   fails=$((fails + 1))
 fi

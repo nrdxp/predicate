@@ -1,0 +1,14 @@
+id: r-unattributed-corroborated
+statement: "An unattributed signer with a corroborated backing — no party exists to attribute the run to."
+assertion: claim
+backing: corroborated
+signer:
+  kind: unattributed
+check:
+  command: "true"
+  ran: true
+  at: "deadbeef0d"
+axes:
+  determined: true
+  certifiable: true
+  monotone: true

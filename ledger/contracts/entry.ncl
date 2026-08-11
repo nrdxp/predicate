@@ -344,7 +344,26 @@
     then !(std.record.has_field "name" n.signer)
     else std.record.has_field "name" n.signer,
 
-  # The closed predicate set, lifted. Exactly these nine and no others.
+  # `proved` never means "I ran it" — it means a run happened AND is
+  # attributable. An `unattributed` signer's `ran: true` is testimony about a
+  # run from a party the record cannot name: indistinguishable from an
+  # asserted-ran, so it cannot ground CorroborationBacked's promise, and
+  # equally cannot ground VouchBacked's admitted witness — a vouch is
+  # testimony too, and an unattributed party cannot be the one testifying.
+  # The exists/ran cut this whole reform holds collapses without an
+  # attributable runner. Unattributed evidence — vouch or recorded check — is
+  # therefore INADMISSIBLE; the only honest backing for an unattributed
+  # signer is `unclosed`. This is party-independent of CorroborationBacked
+  # and VouchBacked (which never inspect `signer.kind`), so it is its own
+  # predicate rather than a clause folded into either. Closure stays
+  # reachable prospectively — a party-independent re-run today enters as
+  # freshly SIGNED evidence — docs/entries.md narrows accordingly
+  # ("can never close on its recorded evidence").
+  UnattributedUnclosed = fun n =>
+    !(matches n.signer.kind 'unattributed "unattributed")
+    || matches n.backing 'unclosed "unclosed",
+
+  # The closed predicate set, lifted. Exactly these ten and no others.
   # std.contract.all_of reports the FIRST failing contract, but every red
   # fixture is single-violation by construction (proved by reversing this
   # list: all cases still pass), so order is currently irrelevant to
@@ -360,6 +379,7 @@
     asContract "CertifiabilityFibered" CertifiabilityFibered,
     asContract "NonMonotoneNamesCure" NonMonotoneNamesCure,
     asContract "SignerDesignates" SignerDesignates,
+    asContract "UnattributedUnclosed" UnattributedUnclosed,
   ],
 
   # --- EntryStore: corpus-level integrity -----------------------------------
@@ -372,7 +392,7 @@
   # including the record-as-set idiom for O(1) membership.
   #
   # Deliberately MINIMAL: per-entry shape conformance plus the two corpus
-  # properties. The nine predicates are NOT applied here — a contract aborts
+  # properties. The ten predicates are NOT applied here — a contract aborts
   # at the first violation, and batch violation-collection over a corpus is
   # exactly the future batch-validator's job (the design reason the
   # predicates are bare booleans). Both edge kinds must resolve within the

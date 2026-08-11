@@ -123,10 +123,11 @@ inbound-edge stand-in for a party it cannot name at all. A **named**
 The classification consequence, stated as doctrine: **no `backing` value
 admits "unknown."** `corroborated` names a re-runnable check that ran;
 `vouched` names an admitted witness — neither slot has room for a party the
-record cannot name. An `unattributed`-signed claim therefore can never close:
-not because closure was withheld, but because the vocabulary has no cell for a
-witness that does not exist. Such claims stay `unclosed`, permanently and
-**visibly**, the same way a `synthesis` claim does. This is the
+record cannot name. An `unattributed`-signed claim therefore can never close
+**on its recorded evidence**: not because closure was withheld, but because
+the vocabulary has no cell for a witness that does not exist. Such claims
+stay `unclosed`, permanently and **visibly**, the same way a `synthesis`
+claim does. This is the
 [self-vouch policy](#the-self-vouch-policy)'s logic at its limit: the record
 shows what it cannot close rather than fabricating a witness to close it.
 

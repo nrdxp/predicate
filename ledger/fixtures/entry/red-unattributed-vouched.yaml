@@ -1,0 +1,12 @@
+id: r-unattributed-vouched
+statement: "An unattributed signer with a vouched backing — no party exists to be the witness."
+assertion: claim
+backing: vouched
+signer:
+  kind: unattributed
+witness:
+  name: the-head
+  at: "deadbeef0c"
+axes:
+  determined: false
+  monotone: true
