@@ -181,8 +181,9 @@ deliberate second**.
 3. **Integrate into a recorded decision.** Once every seat has deposited, the
    composer relays correction and integrates the deliberation into a **decision
    ledger** entry — a YAML `DecisionLedger` instance in `.ledger/state/`, validated
-   on each write by [`council.ncl`](../ledger/contracts/council.ncl). Assent without
-   non-empty `grounding` fails the export; there is no bare "yes."
+   on each write by [`council.ncl`](../ledger/contracts/council.ncl). Assent without a
+   species-anchored `grounding` (a run check XOR an admitted witness) fails the
+   export; there is no bare "yes."
 4. **The auditor reads the durable record.** Process and residue audits run against
    the committed decision ledger and deposits, never through the composer.
 
