@@ -1,0 +1,43 @@
+# EXPECT: fail
+# `consent_seats_ok` (council.ncl:90-91): a must_assent co-signer that is not
+# a declared seat. Identical to constitution.yaml except the `merge` rule's
+# must_assent names "phantom-seat" instead of "maintainer". Every other
+# predicate stays satisfied (merge is still declared once, its owner is
+# valid, its required_assent is 'single so quorum_ok is trivially skipped),
+# so only `consent_seats_ok` fires.
+seats:
+  - { id: architect,  role: "boundary / goal / strategy",        domain: boundary,           standing: standing }
+  - { id: composer,   role: "execution structure / scheduling",  domain: execution,          standing: standing, conductor: true }
+  - { id: maintainer, role: "lead developer / lead maintainer",   domain: merge,              standing: standing }
+  - { id: auditor,    role: "process + residue",                  domain: process,            standing: standing }
+  - { id: human,      role: "head / ultimate arbiter",            domain: "taste / release",  standing: standing, head: true }
+decision_types:
+  - boundary-design
+  - dag-structure
+  - dag-amendment
+  - dag-amendment-mechanical
+  - reconcile-accept
+  - dispatch
+  - convene
+  - lifecycle
+  - classification
+  - merge
+  - taste-fork
+  - residue
+  - bar
+  - close
+delegation:
+  - { decision_type: boundary-design,  owner: architect,  required_assent: single }
+  - { decision_type: dag-structure,    owner: composer,   required_assent: single }
+  - { decision_type: dag-amendment,    owner: architect,  required_assent: single, must_assent: [human] }
+  - { decision_type: dag-amendment-mechanical, owner: architect, required_assent: single }
+  - { decision_type: reconcile-accept, owner: maintainer, required_assent: single }
+  - { decision_type: dispatch,         owner: composer,   required_assent: single }
+  - { decision_type: convene,          owner: composer,   required_assent: single }
+  - { decision_type: lifecycle,        owner: composer,   required_assent: single }
+  - { decision_type: classification,   owner: architect,  required_assent: subset, quorum: 2 }
+  - { decision_type: merge,            owner: maintainer, required_assent: single, must_assent: [phantom-seat] }
+  - { decision_type: taste-fork,       owner: human,      required_assent: human }
+  - { decision_type: residue,          owner: auditor,    required_assent: single }
+  - { decision_type: bar,              owner: human,      required_assent: human }
+  - { decision_type: close,            owner: architect,  required_assent: full, must_assent: [human] }

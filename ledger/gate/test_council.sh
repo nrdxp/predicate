@@ -116,7 +116,27 @@ if printf '%s' "$order_out" | grep -q -- "no-barred"; then
 else
   echo "PASS  (ordering) subject_also_barred does not surface no-barred"
 fi
-# 18: the head/guest exclusion from the 'full machine-consensus tally
+# 18: `_sc` (council.ncl) forces every seat through Seat — a malformed seat
+# (empty role) is otherwise unmeasured by anything else in the Constitution
+# contract.
+expect "malformed seat (empty role) -> NonEmptyString" 1 "NonEmptyString" \
+  -- run "$fix/malformed_seat.yaml"
+# 19: a decision naming a decision-type with no delegation rule anywhere
+# (distinct from gap.yaml's constitution-level orphan decision_type).
+expect "decision references an ungoverned type -> ungoverned" 1 "ungoverned" \
+  -- run "$fix/ungoverned.yaml"
+# 20-23: the four anti-incoherence branches beyond `every_one` (covered by
+# gap.yaml) — each fixture violates exactly one predicate, isolating its own
+# named reason.
+expect "extra rule for an undeclared decision_type -> no_orphan" 1 "undeclared decision_type" \
+  -- run "$fix/incoherence_orphan_rule.yaml"
+expect "delegation owner not a declared seat -> owners_ok" 1 "owner is not a declared seat" \
+  -- run "$fix/incoherence_owner_undeclared.yaml"
+expect "subset rule with quorum 0 -> quorum_ok" 1 "0 < quorum" \
+  -- run "$fix/incoherence_quorum_invalid.yaml"
+expect "must_assent co-signer not a declared seat -> consent_seats_ok" 1 "must_assent co-signer" \
+  -- run "$fix/incoherence_consent_seat_undeclared.yaml"
+# 24: the head/guest exclusion from the 'full machine-consensus tally
 # (council.ncl:156-157, `!s.head` and the `standing` filter) is
 # constitution-inert under the canonical constitution.yaml the YAML+apply
 # harness threads — no fixture routed through council_fixture_apply.ncl can

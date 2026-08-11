@@ -1,0 +1,18 @@
+# EXPECT: fail
+# A decision naming a decision-type with no delegation rule at all (as
+# distinct from gap.yaml, which is a CONSTITUTION missing a rule for one of
+# its own declared decision_types). Here the constitution is the canonical
+# one, unmodified; the decision itself references a type that was never
+# declared anywhere. DecisionLedger's `violation` chain names this
+# "ungoverned" (council.ncl) before it ever reaches the delegation table, and
+# until this fixture landed no case in this suite exercised that branch.
+decisions:
+  - id: D1
+    type: phantom-decision-type
+    proposer: { kind: agent, name: architect }
+    at: "df35300"
+    assent: [architect]
+    verdict: "n/a"
+    grounding:
+      claim: "probes a decision-type with no delegation rule"
+      witness: { name: architect, at: "df35300" }

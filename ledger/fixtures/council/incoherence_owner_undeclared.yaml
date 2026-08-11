@@ -1,0 +1,44 @@
+# EXPECT: fail
+# `owners_ok` (council.ncl:87): a delegation rule's owner is not a declared
+# seat. Identical to constitution.yaml except the `residue` rule's owner is
+# typo'd to "auditor-x" (undeclared). Every other predicate stays satisfied —
+# residue is still declared exactly once (every_one, no_orphan), its
+# required_assent is 'single so quorum_ok is trivially skipped, and its
+# must_assent is empty so consent_seats_ok is trivially satisfied — so only
+# `owners_ok` fires.
+seats:
+  - { id: architect,  role: "boundary / goal / strategy",        domain: boundary,           standing: standing }
+  - { id: composer,   role: "execution structure / scheduling",  domain: execution,          standing: standing, conductor: true }
+  - { id: maintainer, role: "lead developer / lead maintainer",   domain: merge,              standing: standing }
+  - { id: auditor,    role: "process + residue",                  domain: process,            standing: standing }
+  - { id: human,      role: "head / ultimate arbiter",            domain: "taste / release",  standing: standing, head: true }
+decision_types:
+  - boundary-design
+  - dag-structure
+  - dag-amendment
+  - dag-amendment-mechanical
+  - reconcile-accept
+  - dispatch
+  - convene
+  - lifecycle
+  - classification
+  - merge
+  - taste-fork
+  - residue
+  - bar
+  - close
+delegation:
+  - { decision_type: boundary-design,  owner: architect,  required_assent: single }
+  - { decision_type: dag-structure,    owner: composer,   required_assent: single }
+  - { decision_type: dag-amendment,    owner: architect,  required_assent: single, must_assent: [human] }
+  - { decision_type: dag-amendment-mechanical, owner: architect, required_assent: single }
+  - { decision_type: reconcile-accept, owner: maintainer, required_assent: single }
+  - { decision_type: dispatch,         owner: composer,   required_assent: single }
+  - { decision_type: convene,          owner: composer,   required_assent: single }
+  - { decision_type: lifecycle,        owner: composer,   required_assent: single }
+  - { decision_type: classification,   owner: architect,  required_assent: subset, quorum: 2 }
+  - { decision_type: merge,            owner: maintainer, required_assent: single, must_assent: [maintainer] }
+  - { decision_type: taste-fork,       owner: human,      required_assent: human }
+  - { decision_type: residue,          owner: auditor-x,  required_assent: single }
+  - { decision_type: bar,              owner: human,      required_assent: human }
+  - { decision_type: close,            owner: architect,  required_assent: full, must_assent: [human] }
