@@ -1,0 +1,176 @@
+{
+  "entries": [
+    {
+      "id": "ledger-note:K1",
+      "statement": "The battery passes. → EXIT=0, run at this seat.",
+      "assertion": "claim",
+      "backing": "corroborated",
+      "signer": {
+        "kind": "agent",
+        "name": "composer"
+      },
+      "check": {
+        "command": "bash ledger/gate/test_entry.sh",
+        "ran": true,
+        "at": "abc1234"
+      }
+    },
+    {
+      "id": "ledger-note:K2",
+      "statement": "The maintainer consented at its gate.",
+      "assertion": "claim",
+      "backing": "vouched",
+      "signer": {
+        "kind": "agent",
+        "name": "composer"
+      },
+      "witness": {
+        "name": "lead-maintainer gate deposit",
+        "at": "abc1234"
+      }
+    },
+    {
+      "id": "ledger-note:K3",
+      "statement": "The consent covers the follow-on too.",
+      "assertion": "claim",
+      "backing": "vouched",
+      "signer": {
+        "kind": "agent",
+        "name": "composer"
+      },
+      "witness": {
+        "name": "lead-maintainer gate deposit",
+        "at": "abc1234"
+      }
+    },
+    {
+      "id": "ledger-note:K4",
+      "statement": "Five defects share one class.",
+      "assertion": "claim",
+      "backing": "vouched",
+      "signer": {
+        "kind": "agent",
+        "name": "composer"
+      },
+      "witness": {
+        "name": "[[log/2026-08-11-pass2-deposit-reform]], [[log/2026-08-11-pass3-pen-law]]",
+        "at": "abc1234"
+      }
+    },
+    {
+      "id": "ledger-note:X1",
+      "statement": "Typing makes error checkable rather than preventing it.",
+      "assertion": "claim",
+      "backing": "unclosed",
+      "signer": {
+        "kind": "agent",
+        "name": "composer"
+      },
+      "because": [
+        "ledger-note:K1",
+        "ledger-note:K2"
+      ]
+    },
+    {
+      "id": "ledger-note:X2",
+      "statement": "The fix is isolation, not vigilance.",
+      "assertion": "claim",
+      "backing": "unclosed",
+      "signer": {
+        "kind": "agent",
+        "name": "composer"
+      }
+    },
+    {
+      "id": "ledger-note:X3",
+      "statement": "A multiline companion span survives line joining. `conversion-path:: candidate for the boundary discipline alongside the vacuity rule`",
+      "assertion": "claim",
+      "backing": "unclosed",
+      "signer": {
+        "kind": "agent",
+        "name": "composer"
+      },
+      "because": [
+        "ledger-note:X1"
+      ]
+    },
+    {
+      "id": "ledger-note:Q1",
+      "statement": "Does the pattern survive a narrative log?",
+      "assertion": "question",
+      "backing": "unclosed",
+      "signer": {
+        "kind": "agent",
+        "name": "composer"
+      },
+      "discharge": "write the next notes this way and count the cost",
+      "closer": "machine"
+    },
+    {
+      "id": "ledger-note:R1",
+      "statement": "Ratify the bundle.",
+      "assertion": "question",
+      "backing": "unclosed",
+      "signer": {
+        "kind": "agent",
+        "name": "composer"
+      },
+      "discharge": "the head's ruling",
+      "closer": "human/nrd"
+    },
+    {
+      "id": "ledger-note:Q2",
+      "statement": "What level of scrutiny does each claim type garner? No discharge condition stated yet.",
+      "assertion": "question",
+      "backing": "unclosed",
+      "signer": {
+        "kind": "agent",
+        "name": "composer"
+      }
+    },
+    {
+      "id": "ledger-note:Z1",
+      "statement": "Whether an agent upholds the rules is conduct outside the record.",
+      "assertion": "question",
+      "backing": "residual",
+      "signer": {
+        "kind": "agent",
+        "name": "composer"
+      },
+      "witness": {
+        "name": "[[log/2026-08-11-escalation]]",
+        "at": "abc1234"
+      }
+    }
+  ],
+  "directives": [
+    {
+      "id": "ledger-note:C1",
+      "statement": "The extractor is the head's call, not a scope decision.",
+      "provenance": "the head's bar, lifted this session"
+    }
+  ],
+  "grades": {
+    "ledger-note:K1": "proved",
+    "ledger-note:K2": "cited",
+    "ledger-note:K3": "cited",
+    "ledger-note:K4": "cited",
+    "ledger-note:X1": "synthesis",
+    "ledger-note:X2": "synthesis",
+    "ledger-note:X3": "synthesis",
+    "ledger-note:Q1": "dispatchable",
+    "ledger-note:R1": "routed",
+    "ledger-note:Q2": "frontier",
+    "ledger-note:Z1": "residual",
+    "ledger-note:C1": "directive"
+  },
+  "external_refs": [
+    {
+      "entry": "ledger-note:X2",
+      "refs": [
+        "process-feedback/tc-concurrent-writer"
+      ]
+    }
+  ],
+  "findings": []
+}
