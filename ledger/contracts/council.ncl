@@ -23,8 +23,10 @@
 #   head-ratification  a 'dag-amendment OR 'close decision MUST carry the head (human)
 #                      in assent — for 'close, ATOP full machine consensus. The head
 #                      is a standing seat but the ratifier, excluded from the 'full
-#                      machine-consensus tally so consensus and ratification stay two
-#                      distinct gates, both required to close.
+#                      machine-consensus tally so its own assent never moves that
+#                      tally either way. Consensus and ratification stay two distinct
+#                      gates because `consent_ok` runs BEFORE `class_ok` regardless of
+#                      tally membership — the exclusion alone does not keep them apart.
 # Both are encoded uniformly as `must_assent` on a DelegationRule and checked BEFORE
 # the assent-class predicate, so each violation surfaces its own named reason.
 #
@@ -149,10 +151,13 @@ let e = import "entry.ncl" in
       let deleg = std.array.map (fun r => r | DelegationRule) constitution.delegation in
       let seats = std.array.map (fun s => s | Seat) constitution.seats in
       # the 'full machine-consensus set: standing seats MINUS the head AND MINUS the
-      # conductor. The head ratifies terminal decisions on top of consensus (via
-      # must_assent), so it is never in the tally. The conductor (composer) CONDUCTS the
-      # vote — it is a member but not a voter, excluded so it cannot self-certify the
-      # close it orchestrated. The tally is the independent JUDGING seats alone.
+      # conductor. The head is excluded so its own assent never counts toward, or
+      # substitutes for, machine consensus — ratification is a SEPARATE requirement,
+      # enforced via must_assent/consent_ok below, which runs before this tally
+      # regardless of whether the head is a tally member. The conductor (composer)
+      # CONDUCTS the vote — it is a member but not a voter, excluded so it cannot
+      # self-certify the close it orchestrated. The tally is the independent JUDGING
+      # seats alone.
       let machine_ids = std.array.map (fun s => s.id)
         (std.array.filter (fun s => s.standing == 'standing && !s.head && !s.conductor) seats) in
       let deleg_map = std.array.fold_left
