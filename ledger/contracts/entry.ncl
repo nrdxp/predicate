@@ -19,7 +19,7 @@
 #   - the two evidence species, and nothing between them
 #   - a recoverable signer on every entry, ENFORCED (ruling D-3)
 #   - the provenance gate, scoped to claims (ruling D-2)
-#   - questions carry a discharge condition AND a named closer
+#   - questions carry a discharge condition AND a designated closer
 #   - edges typed by consequence
 #
 # Two hard-won idioms govern every definition below; both were proved by run
@@ -92,6 +92,20 @@
     else 'Error { message = "SignerKind: expected human|agent|source|derived|unattributed (tag or string)" }
   ),
 
+  # `CloserKind` is deliberately NOT `SignerKind`, though both range over
+  # designation modes: a closer is the party who COULD close, so the modes
+  # that assert no reachable party are incoherent for it. `derived` designates
+  # by inbound edges — an entry that does not exist yet has none — and
+  # `unattributed` asserts nothing is recoverable, which routes to nobody.
+  # Reusing the signer's enum would admit both and make an unroutable question
+  # representable, so the closed set here is exactly human|agent|source.
+  CloserKind = std.contract.custom (fun _label v =>
+    if matches v 'human "human" || matches v 'agent "agent"
+       || matches v 'source "source"
+    then 'Ok v
+    else 'Error { message = "CloserKind: expected human|agent|source (tag or string)" }
+  ),
+
   # backing: the evidence species, per the formalism. `corroborated` is a
   # re-runnable check that HAS BEEN RUN — a named-but-unrun check is not
   # backing, it is a dispatchable question. `vouched` is a named admitted
@@ -128,6 +142,22 @@
   # was a comment, which is not an evaluator.
   Signer = {
     kind | SignerKind,
+    name | NonEmptyString | optional,
+  },
+
+  # --- Closer ---------------------------------------------------------------
+  #
+  # Who CAN close a question — the same designation shape as Signer, over a
+  # narrower set of modes (CloserKind above). It is PROSPECTIVE ROUTING
+  # METADATA, never accountability: the party class is often known where the
+  # individual is not, so `name` is optional here in a way `Signer`'s is not
+  # (SignerDesignates enforces the signer's; nothing enforces a closer's,
+  # deliberately). Accountability for a close rests on the CLAIM that closes
+  # it, whose own signer is strictly name-enforced, so a kind-only closer
+  # costs the record nothing. Machine-readable so escalation is a lookup
+  # rather than a string match: escalate iff `closer.kind` is human.
+  Closer = {
+    kind | CloserKind,
     name | NonEmptyString | optional,
   },
 
@@ -233,7 +263,7 @@
     # who can. `signpost` in the existing tech-debt contract is the condition
     # half; the closer half is missing everywhere today.
     discharge | NonEmptyString | optional,
-    closer | NonEmptyString | optional,
+    closer | Closer | optional,
 
     # Required on claims, absent on questions: a question asserts no
     # truth-value, so it has no axis coordinates to carry.
