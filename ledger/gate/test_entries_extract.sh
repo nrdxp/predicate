@@ -166,6 +166,82 @@ EOF
 expect "query: an invalid corpus never yields a result" 1 "duplicate entry id" \
   -- nickel export "$tmp/dup.yaml" --apply-contract "$query"
 
+# --- the amendment: recovered edges, designations, axes ----------------------
+#
+# amendment-note.md is the amendment's extraction golden: discharges:: and
+# supersedes:: parse to corpus-resolved edges, closer:: parses designations
+# (machine is a legacy alias for kind-agent-unnamed), and axes::/freshness::
+# parse into the contract's Axes shape (polarity tokens: `+determined
+# -certifiable`; certifiable omitted where determination fails — the fibering
+# must be expressible). The queries over its export prove openness (open = no
+# inbound discharges and no inbound supersedes among resolved edges) and the
+# chain-floor report. The golden pins entry field ORDER deliberately: the
+# existing emission blocks stay where they are, and the new fields append in
+# the order axes, freshness, discharges, supersedes.
+
+expect "amendment: clean amendment-dialect doc exits 0" 0 "" \
+  -- python3 "$extractor" "$fix/amendment-note.md" -o "$tmp/amendment-note.yaml"
+expect "amendment: output matches the expected JSON exactly" 0 "" \
+  -- diff "$fix/amendment-note.expected.json" "$tmp/amendment-note.yaml"
+expect "amendment: export passes the entry contract" 0 "" \
+  -- nickel export "$tmp/amendment-note.yaml" --apply-contract "$apply"
+
+nickel export "$tmp/amendment-note.yaml" --apply-contract "$query" \
+  > "$tmp/amendment-query.json" 2>/dev/null
+expect "amendment: openness filters the views; chain-floor reports" 0 "AMEND-VIEWS-OK" \
+  -- python3 - "$tmp/amendment-query.json" <<'EOF'
+import json, sys
+q = json.load(open(sys.argv[1]))
+ids = lambda view: [row["id"] for row in view]
+# R1 discharged by K1, Q3 superseded by R2: both leave awaiting_human.
+assert ids(q["awaiting_human"]) == ["amendment-note:R2"], q["awaiting_human"]
+# Q2 discharged by K2: it leaves runnable_now.
+assert ids(q["runnable_now"]) == ["amendment-note:Q1"], q["runnable_now"]
+# The chain-floor: where each claim's support bottoms out, transitively.
+floors = {row["id"]: sorted(row["floors"]) for row in q["chain_floor"]}
+assert floors["amendment-note:X1"] == ["closed"], floors
+assert floors["amendment-note:X2"] == ["closed", "unbacked"], floors
+assert floors["amendment-note:X3"] == ["external"], floors
+assert floors["amendment-note:X4"] == ["unbacked"], floors
+print("AMEND-VIEWS-OK")
+EOF
+
+# --- the mention/use rule ----------------------------------------------------
+#
+# An empty-valued span of ANY MAPPED token is a MENTION in prose, not a use:
+# excluded from extraction, never emitted as a field — and never allowed to
+# clobber a real use earlier in the node. Whether the extractor additionally
+# emits an informational finding is delegated, so the exit is allowed to be
+# 0 or 3; the pinned invariants are the export's fields and its validity.
+python3 "$extractor" "$fix/mention-empty-companion.md" \
+  -o "$tmp/mention.yaml" 2>"$tmp/mention.err"; mrc=$?
+nickel export "$tmp/mention.yaml" --apply-contract "$apply" \
+  > /dev/null 2>&1; nrc=$?
+mention_ok=1
+{ [ "$mrc" -eq 0 ] || [ "$mrc" -eq 3 ]; } || mention_ok=0
+[ "$nrc" -eq 0 ] || mention_ok=0
+python3 - "$tmp/mention.yaml" <<'EOF' || mention_ok=0
+import json, sys
+doc = json.load(open(sys.argv[1]))
+[k1] = [e for e in doc["entries"] if e["id"] == "mention-empty-companion:K1"]
+assert "discharge" not in k1, k1
+assert "closer" not in k1, k1
+assert "witness" not in k1, k1
+assert k1["check"]["command"] == "true", k1
+EOF
+if [ "$mention_ok" -eq 1 ]; then
+  echo "PASS  (extract=$mrc nickel=$nrc) mention: empty-valued known tokens are mentions, excluded"
+else
+  echo "FAIL  (extract=$mrc nickel=$nrc) mention: empty-valued known tokens are mentions, excluded"
+  fails=$((fails + 1))
+fi
+
+# An unparseable closer designation is REPORTED, never guessed.
+expect "red: unparseable closer designation is reported, exit 3" 3 "bad-closer" \
+  -- python3 "$extractor" "$fix/red-closer-unparseable.md"
+expect "red: unparseable closer names its marker" 3 "\"marker\": \"R1\"" \
+  -- python3 "$extractor" "$fix/red-closer-unparseable.md"
+
 echo
 if [ "$fails" -eq 0 ]; then echo "test_entries_extract: ALL PASS"; exit 0; fi
 echo "test_entries_extract: $fails FAILURE(S)"; exit 1

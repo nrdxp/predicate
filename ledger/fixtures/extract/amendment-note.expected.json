@@ -1,0 +1,200 @@
+{
+  "entries": [
+    {
+      "id": "amendment-note:K1",
+      "statement": "The ratification landed and the entry gate is green.",
+      "assertion": "claim",
+      "backing": "corroborated",
+      "signer": {
+        "kind": "agent",
+        "name": "composer"
+      },
+      "check": {
+        "command": "bash ledger/gate/test_entry.sh",
+        "ran": true,
+        "at": "abc1234"
+      },
+      "axes": {
+        "determined": true,
+        "certifiable": true,
+        "monotone": true
+      },
+      "discharges": [
+        "amendment-note:R1"
+      ]
+    },
+    {
+      "id": "amendment-note:K2",
+      "statement": "The alias ruling covers the legacy corpus.",
+      "assertion": "claim",
+      "backing": "vouched",
+      "signer": {
+        "kind": "agent",
+        "name": "composer"
+      },
+      "witness": {
+        "name": "the pen-law ratification log",
+        "at": "abc1234"
+      },
+      "axes": {
+        "determined": true,
+        "certifiable": false,
+        "monotone": false
+      },
+      "freshness": "re-run the closer census at reconcile",
+      "discharges": [
+        "amendment-note:Q2"
+      ]
+    },
+    {
+      "id": "amendment-note:X1",
+      "statement": "Openness is derivable once closure is an edge.",
+      "assertion": "claim",
+      "backing": "unclosed",
+      "signer": {
+        "kind": "agent",
+        "name": "composer"
+      },
+      "because": [
+        "amendment-note:K1"
+      ],
+      "axes": {
+        "determined": false,
+        "monotone": true
+      }
+    },
+    {
+      "id": "amendment-note:X2",
+      "statement": "The derived view will replace the authored one.",
+      "assertion": "claim",
+      "backing": "unclosed",
+      "signer": {
+        "kind": "agent",
+        "name": "composer"
+      },
+      "because": [
+        "amendment-note:X1",
+        "amendment-note:X4"
+      ]
+    },
+    {
+      "id": "amendment-note:X3",
+      "statement": "External support bottoms out outside the corpus.",
+      "assertion": "claim",
+      "backing": "unclosed",
+      "signer": {
+        "kind": "agent",
+        "name": "composer"
+      }
+    },
+    {
+      "id": "amendment-note:X4",
+      "statement": "A proposal with no stated support is the floor itself.",
+      "assertion": "claim",
+      "backing": "unclosed",
+      "signer": {
+        "kind": "agent",
+        "name": "composer"
+      }
+    },
+    {
+      "id": "amendment-note:R1",
+      "statement": "Ratify the closer designation shape.",
+      "assertion": "question",
+      "backing": "unclosed",
+      "signer": {
+        "kind": "agent",
+        "name": "composer"
+      },
+      "discharge": "the head rules once",
+      "closer": {
+        "kind": "human",
+        "name": "nrd"
+      }
+    },
+    {
+      "id": "amendment-note:R2",
+      "statement": "Approve the composer's pen follow-on.",
+      "assertion": "question",
+      "backing": "unclosed",
+      "signer": {
+        "kind": "agent",
+        "name": "composer"
+      },
+      "discharge": "the head rules the follow-on",
+      "closer": {
+        "kind": "human",
+        "name": "nrd"
+      },
+      "supersedes": [
+        "amendment-note:Q3"
+      ]
+    },
+    {
+      "id": "amendment-note:Q1",
+      "statement": "Does the extract suite cover the alias?",
+      "assertion": "question",
+      "backing": "unclosed",
+      "signer": {
+        "kind": "agent",
+        "name": "composer"
+      },
+      "discharge": "run the extract suite",
+      "closer": {
+        "kind": "agent"
+      }
+    },
+    {
+      "id": "amendment-note:Q2",
+      "statement": "Does the census survive the new tokens?",
+      "assertion": "question",
+      "backing": "unclosed",
+      "signer": {
+        "kind": "agent",
+        "name": "composer"
+      },
+      "discharge": "run the census cases",
+      "closer": {
+        "kind": "agent"
+      }
+    },
+    {
+      "id": "amendment-note:Q3",
+      "statement": "Ratify the designation shape, asked a second time.",
+      "assertion": "question",
+      "backing": "unclosed",
+      "signer": {
+        "kind": "agent",
+        "name": "composer"
+      },
+      "discharge": "the head rules once",
+      "closer": {
+        "kind": "human",
+        "name": "nrd"
+      }
+    }
+  ],
+  "directives": [],
+  "grades": {
+    "amendment-note:K1": "proved",
+    "amendment-note:K2": "cited",
+    "amendment-note:X1": "synthesis",
+    "amendment-note:X2": "synthesis",
+    "amendment-note:X3": "synthesis",
+    "amendment-note:X4": "synthesis",
+    "amendment-note:R1": "routed",
+    "amendment-note:R2": "routed",
+    "amendment-note:Q1": "dispatchable",
+    "amendment-note:Q2": "dispatchable",
+    "amendment-note:Q3": "routed"
+  },
+  "external_refs": [
+    {
+      "entry": "amendment-note:X3",
+      "refs": [
+        "prior-art/typed-ledgers"
+      ]
+    }
+  ],
+  "findings": []
+}

@@ -104,7 +104,9 @@
         "name": "composer"
       },
       "discharge": "write the next notes this way and count the cost",
-      "closer": "machine"
+      "closer": {
+        "kind": "agent"
+      }
     },
     {
       "id": "ledger-note:R1",
@@ -116,7 +118,10 @@
         "name": "composer"
       },
       "discharge": "the head's ruling",
-      "closer": "human/nrd"
+      "closer": {
+        "kind": "human",
+        "name": "nrd"
+      }
     },
     {
       "id": "ledger-note:Q2",
