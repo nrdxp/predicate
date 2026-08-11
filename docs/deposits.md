@@ -25,6 +25,8 @@ steps:
       - claim: R/I/U tracker loaded from .ledger/context_map.ncl
         method: review
         location: .ledger/context_map.ncl
+        signer: { kind: agent, name: boundary-walker }
+        witness: { name: boundary-walker, at: "df35300" }
     cites:
       - .ledger/context_map.ncl
   - id: adversarial-review
@@ -39,6 +41,8 @@ steps:
       - claim: IBC candidate authored from templates/IBC.md
         method: lint
         location: .scratch/topic/campaign_ibc.ncl
+        signer: { kind: agent, name: boundary-walker }
+        check: { command: "nickel export .scratch/topic/campaign_ibc.ncl", ran: true, at: "df35300" }
     cites:
       - templates/IBC.md
       - .scratch/topic/campaign_ibc.ncl
@@ -54,6 +58,8 @@ steps:
       - claim: S1-S7 objections resolved with evidence
         method: review
         location: .scratch/topic/campaign_ibc.ncl
+        signer: { kind: agent, name: boundary-walker }
+        witness: { name: boundary-walker, at: "df35300" }
     cites:
       - .scratch/topic/campaign_ibc.ncl
   - id: approve
@@ -62,6 +68,8 @@ steps:
       - claim: human approved IBC after zero-objection sweep
         method: manual
         location: .scratch/topic/campaign_ibc.ncl
+        signer: { kind: human, name: nrd }
+        witness: { name: nrd, at: "df35300" }
     cites:
       - .scratch/topic/campaign_ibc.ncl
 ```
@@ -111,25 +119,50 @@ An invoke step calls a registered sub-procedure.  It must carry `class` and
 
 ## Evidence item fields
 
-Each item in `evidence` is a structured sub-claim with three required fields:
+Each item in `evidence` is a structured sub-claim.  Four fields are always
+required; the fifth is the **species anchor** the item's method demands —
+a `check` or a `witness`, never neither and never both.
 
-| Field | Type | Allowed values | Description |
-| :---- | :--- | :------------- | :---------- |
-| `claim` | string (non-empty) | any | The falsifiable assertion this evidence supports. |
-| `method` | string | see below | How the claim was established. |
-| `location` | string (non-empty) | any | Where to look to reproduce or refute the claim: a file path, `file:line`, command, URL, or commit hash. |
+| Field | Type | Required | Description |
+| :---- | :--- | :------- | :---------- |
+| `claim` | string (non-empty) | always | The falsifiable assertion this evidence supports. |
+| `method` | string | always | The evaluator tier (see below); determines the species. |
+| `location` | string (non-empty) | always | Where to look to reproduce or refute the claim: a file path, `file:line`, command, URL, or commit hash. |
+| `signer` | Signer | always | Who asserts this item (see below). |
+| `check` | Check anchor | corroboration-species methods | The mechanism run: `{ command, ran, at }`. `ran` must be `true` — a named-but-unrun mechanism is a dispatchable question, not evidence. |
+| `witness` | Witness anchor | vouch-species methods | The admitted judgement: `{ name, at }`. `at` anchors the testimony to the record state it certified. |
 
-Allowed `method` values (weakest escalates to human review):
+Both anchors accept an optional `dirty: true` marker, meaning the check or
+review ran against `at` **plus uncommitted changes** — absent means the tree
+matched `at` exactly.
 
-| Value | Meaning |
-| :---- | :------ |
-| `proof` | Formal proof |
-| `type_check` | Type-system verification |
-| `property_test` | Property or fuzz test |
-| `example_test` | Example-based unit test |
-| `lint` | Static analysis or linter |
-| `review` | Decorrelated adversarial review |
-| `manual` | Human spot-check (weakest; requires explicit escalation) |
+### Method and species
+
+The `method` value ranks the evaluator (weakest escalates to human review) and
+fixes which anchor the item must carry:
+
+| Value | Species | Required anchor | Meaning |
+| :---- | :------ | :-------------- | :------ |
+| `proof` | corroboration | `check` (with `ran: true`) | Formal proof |
+| `type_check` | corroboration | `check` (with `ran: true`) | Type-system verification |
+| `property_test` | corroboration | `check` (with `ran: true`) | Property or fuzz test |
+| `example_test` | corroboration | `check` (with `ran: true`) | Example-based unit test |
+| `lint` | corroboration | `check` (with `ran: true`) | Static analysis or linter |
+| `review` | vouch | `witness` | Decorrelated adversarial review |
+| `manual` | vouch | `witness` | Human spot-check (weakest; requires explicit escalation) |
+
+The two species are the ledger's evidence vocabulary — a re-runnable check
+that **was run**, or a named admitted witness — defined once in
+[`entries.md`](entries.md).
+
+### Signer
+
+The `signer` names who asserts the item, in the core's designation modes:
+
+| Field | Type | Description |
+| :---- | :--- | :---------- |
+| `kind` | string | One of `human`, `agent`, `source`, `derived`, `unattributed`. |
+| `name` | string (non-empty) | The party's name.  Required for `human`/`agent`/`source`; absent for `derived` and `unattributed`. |
 
 ---
 
@@ -156,8 +189,9 @@ pre-commit hook:
    nickel export <deposit>.yaml --apply-contract ledger/contracts/<class>_apply.ncl
    ```
 3. The contract checks footprint-presence (all required step ids present),
-   id uniqueness, step grammar (leaf XOR invoke), evidence shape, and invoke
-   class membership.
+   id uniqueness, step grammar (leaf XOR invoke), evidence shape — including
+   the signer and the species anchor each method demands — and invoke class
+   membership.
 4. If validation fails, the commit is blocked with a diagnostic.
 
 The contract is applied **externally** — the deposit carries no Nickel logic.
