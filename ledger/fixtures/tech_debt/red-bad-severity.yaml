@@ -1,0 +1,11 @@
+# An out-of-set severity string -> Severity (value restriction holds in
+# string form).
+items:
+  - id: td-1
+    claim: "Severity outside the ruled set."
+    location: "somewhere"
+    severity: showstopper
+    why_deferred: "later"
+    discharge: "never"
+    signer: { kind: agent, name: worker }
+    at: "6afbc9d"

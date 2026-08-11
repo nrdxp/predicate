@@ -1,0 +1,9 @@
+# A debt with no record-state anchor -> missing definition for `at`.
+items:
+  - id: td-1
+    claim: "Found against an unknown state."
+    location: "somewhere"
+    severity: low
+    why_deferred: "later"
+    discharge: "when anchored"
+    signer: { kind: agent, name: worker }

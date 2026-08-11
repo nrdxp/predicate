@@ -19,11 +19,13 @@ items:
       isolation, not git hooks. The campaign's threat model explicitly excludes
       the determined-adversary scenario; the gate's guarantee is honest-claim
       only, and that claim was corrected in the CLOSE sweep.
-    signpost: >-
+    discharge: >-
       Resolved if a lower-layer isolation mechanism constrains the agent's file
       system and git ref namespace before the hook runs. Until then, the gate
       header, orchestration skill, and scopes doc must state the honest-claim
       guarantee rather than an adversary guarantee.
+    signer: { kind: agent, name: process-campaign-worker }
+    at: "3fbed02"
 
   - id: td-import-dos
     claim: >-
@@ -38,11 +40,13 @@ items:
       structurally — only contract edits staged by the agent itself remain.
       Adding a timeout requires choosing a value that doesn't false-positive on
       large contracts; lower-layer's job (OS timeout, CI time limit).
-    signpost: >-
+    discharge: >-
       Resolved by wrapping nickel calls in ledger-validate.sh with `timeout N`
       once an empirical bound for large-contract export time is established.
       Alternatively resolved by the agent never staging predicate-owned .ncl
       files — enforced via explicit file-surface declarations in the campaign DAG.
+    signer: { kind: agent, name: process-campaign-worker }
+    at: "3fbed02"
 
   - id: td-glob-over-auth
     claim: >-
@@ -55,11 +59,13 @@ items:
       DORMANT: no committed DAG uses glob surfaces. All current surface
       declarations are explicit paths. The defect only manifests when a glob
       surface is introduced, which has not occurred.
-    signpost: >-
+    discharge: >-
       Activated when a glob surface appears in a committed DAG. Resolved by
       either fixing fnmatch to use os.sep-aware pattern matching (e.g.
       pathlib.PurePath.match) or by documenting the glob-crosses-separator
       behavior as a known footgun in the DAG authoring guide.
+    signer: { kind: agent, name: process-campaign-worker }
+    at: "3fbed02"
 
   - id: td-demo-coverage
     claim: >-
@@ -72,7 +78,9 @@ items:
       requires either extending the fixture sweep to discover skills/**/*.ncl,
       adding a dedicated demo sweep, or moving the demo files under ledger/.
       Deferred pending the doc-accuracy node (A4) which owns this surface.
-    signpost: >-
+    discharge: >-
       Resolved by a CI step that runs `nickel export skills/orchestration/demo/dag.ncl`
       and `nickel typecheck skills/orchestration/demo/layers.ncl`. The doc-accuracy
       node (follow-ups.md A4) is the natural locus for this fix.
+    signer: { kind: agent, name: process-campaign-worker }
+    at: "3fbed02"

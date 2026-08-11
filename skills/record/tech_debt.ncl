@@ -5,37 +5,36 @@
 # limitations / tail" — making them trackable and actionable rather than
 # buried in prose flight-log entries.
 #
+# EXTENDS THE ENTRY CORE (ledger/contracts/entry.ncl): a debt is a claim, so
+# it carries a signer (who recorded it) and an `at` anchor (the record state
+# it was found against — without one, a debt whose surrounding code has moved
+# is undetectably stale). The old `signpost` is the core's `discharge`: the
+# condition that would resolve or invalidate the debt. The category fields
+# (severity, why_deferred, location) are the record's own and stay.
+#
 # Instance format: YAML (validated via:
 #   nickel export <file>.yaml --apply-contract skills/record/tech_debt_apply.ncl)
-#
-# `severity` mirrors findings.ncl's enum, using the same value-restricted
-# tag-or-string pattern so a YAML string ("medium") and a Nickel tag ('medium)
-# both satisfy the contract.
-#
-# `signpost` mirrors the signpost discipline from ambient.md §known-unknowns:
-# the observable that would resolve or invalidate the debt.
+let e = import "../../ledger/contracts/entry.ncl" in
 {
-  NonEmptyString = std.contract.from_predicate (fun v =>
-    std.is_string v && std.string.length v > 0
-  ),
-
-  # Severity: value-restricted tag-or-string so both Nickel tags ('medium) and
-  # YAML strings ("medium") satisfy the contract without modification.
-  Severity = std.contract.from_predicate (fun v =>
-    v == 'critical || v == "critical"
-    || v == 'high    || v == "high"
-    || v == 'medium  || v == "medium"
-    || v == 'low     || v == "low"
+  # Severity: value-restricted tag-or-string (ruling D-6) through the core's
+  # `matches`, named so a shape red carries its own token.
+  Severity = std.contract.custom (fun _label v =>
+    if e.matches v 'critical "critical" || e.matches v 'high "high"
+       || e.matches v 'medium "medium" || e.matches v 'low "low"
+    then 'Ok v
+    else 'Error { message = "Severity: expected critical|high|medium|low (tag or string)" }
   ),
 
   # One tech-debt record.
   TechDebt = {
-    id           | NonEmptyString,  # unique within the store
-    claim        | NonEmptyString,  # falsifiable statement of the debt
-    location     | NonEmptyString,  # file:line, gate, component, or system area
-    severity     | Severity,        # critical | high | medium | low
-    why_deferred | NonEmptyString,  # reason this was not fixed when discovered
-    signpost     | NonEmptyString,  # what would resolve or invalidate this debt
+    id           | e.NonEmptyString,  # unique within the store
+    claim        | e.NonEmptyString,  # falsifiable statement of the debt
+    location     | e.NonEmptyString,  # file:line, gate, component, or system area
+    severity     | Severity,          # critical | high | medium | low
+    why_deferred | e.NonEmptyString,  # reason this was not fixed when discovered
+    discharge    | e.NonEmptyString,  # what would resolve or invalidate this debt
+    signer       | e.Signer,          # who recorded the debt
+    at           | e.CommitRef,       # the record state it was found against
   },
 
   # Store contract: validates an array of records with id uniqueness enforced.

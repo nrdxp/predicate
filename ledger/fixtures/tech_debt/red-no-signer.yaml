@@ -1,0 +1,10 @@
+# A debt with no signer (required-field red) -> missing definition for
+# `signer`.
+items:
+  - id: td-1
+    claim: "Nobody recorded who found this."
+    location: "somewhere"
+    severity: low
+    why_deferred: "later"
+    discharge: "when owned"
+    at: "6afbc9d"

@@ -11,7 +11,9 @@ let c = import "../../skills/record/tech_debt.ncl" in
       location = "file.sh:10",
       severity = "low",
       why_deferred = "Deferred for now",
-      signpost = "Fix when Y",
+      discharge = "Fix when Y",
+      signer = { kind = 'agent, name = "worker" },
+      at = "6afbc9d",
     },
     {
       id = "td-x",
@@ -19,7 +21,9 @@ let c = import "../../skills/record/tech_debt.ncl" in
       location = "file.sh:20",
       severity = "medium",
       why_deferred = "Also deferred",
-      signpost = "Fix when Z",
+      discharge = "Fix when Z",
+      signer = { kind = 'agent, name = "worker" },
+      at = "6afbc9d",
     },
   ]
 } | c.TechDebtStore
