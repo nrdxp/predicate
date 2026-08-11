@@ -26,8 +26,9 @@ An entry's type is a **product of two dimensions**, never a flat list:
 
 The second axis is named **`assertion`, never `kind`**. `kind` is already
 taken twice in this codebase — a procedure step's `kind: leaf|invoke` and the
-signer designation's `kind: human|agent|source|derived` — and a third meaning
-invites silent misreads wherever the fields meet in one YAML file.
+signer designation's `kind: human|agent|source|derived|unattributed` — and a
+third meaning invites silent misreads wherever the fields meet in one YAML
+file.
 
 The cells of the product have display names. They are convenience vocabulary
 for prose; the record itself always carries the two dimensions as fields:
@@ -107,6 +108,27 @@ would make self-vouch detection return nothing, exactly when it is needed
 most. A solo walk's corpus is largely self-vouched, therefore largely
 unclosable, **and the record shows it** — that is a feature of the vocabulary,
 not a defect of the walk.
+
+## Unattributed — the migration mode
+
+`SignerKind` carries a fifth mode, `unattributed`: no party is recoverable for
+this record — it predates the signing regime. Designation stays total: every
+entry says *how* its party is designated, and "not recoverably" is a fifth
+answer, never an omission. Like `derived`, `unattributed` carries no `name`;
+unlike `derived`, it carries no edge requirement — a migrated record has no
+inbound-edge stand-in for a party it cannot name at all. A **named**
+`unattributed` is a contradiction, and the shape rejects it
+([`entry.ncl`](../ledger/contracts/entry.ncl) `SignerDesignates`).
+
+The classification consequence, stated as doctrine: **no `backing` value
+admits "unknown."** `corroborated` names a re-runnable check that ran;
+`vouched` names an admitted witness — neither slot has room for a party the
+record cannot name. An `unattributed`-signed claim therefore can never close:
+not because closure was withheld, but because the vocabulary has no cell for a
+witness that does not exist. Such claims stay `unclosed`, permanently and
+**visibly**, the same way a `synthesis` claim does. This is the
+[self-vouch policy](#the-self-vouch-policy)'s logic at its limit: the record
+shows what it cannot close rather than fabricating a witness to close it.
 
 ## Two cuts, never conflated
 

@@ -76,6 +76,8 @@ expect "self-vouched claim (admission is the consumer's, D-4) -> export clean" 0
   -- run "$fix/green-self-vouched-claim.yaml"
 expect "derived-signer synthesis (designation IS the edges) -> export clean" 0 "" \
   -- run "$fix/green-derived-synthesis.yaml"
+expect "unattributed signer (migration mode, name absent) -> export clean" 0 "" \
+  -- run "$fix/green-unattributed-signer.yaml"
 expect "corpus aggregate (unique ids, resolving edges) -> export clean" 0 "" \
   -- run "$fix/green-corpus.yaml"
 
@@ -108,6 +110,8 @@ expect "non-derived signer, unnamed -> SignerDesignates" 1 "SignerDesignates" \
   -- run "$fix/red-underived-unnamed.yaml"
 expect "derived signer, no edges -> SignerDesignates" 1 "SignerDesignates" \
   -- run "$fix/red-derived-no-edges.yaml"
+expect "unattributed signer, named -> SignerDesignates" 1 "SignerDesignates" \
+  -- run "$fix/red-unattributed-named.yaml"
 
 # --- shape reds --------------------------------------------------------------
 expect "empty statement -> NonEmptyString" 1 "NonEmptyString" \

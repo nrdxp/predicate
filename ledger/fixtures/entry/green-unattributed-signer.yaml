@@ -1,0 +1,11 @@
+id: e-legacy-migrated
+statement: "22 legacy process-feedback and tech-debt records predate the signing regime; no author is recoverable."
+assertion: claim
+backing: unclosed
+signer:
+  kind: unattributed
+because:
+  - e-migration-sweep
+axes:
+  determined: false
+  monotone: true

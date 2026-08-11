@@ -77,11 +77,19 @@
   # set in either form — the discipline.ncl / EvidenceMethod idiom, written as
   # named customs so a shape red carries its own token.
 
+  # `SignerKind`'s dimension is designation-MODE, not "who": `derived` is
+  # already a mode where the name is structurally absent and the designation
+  # lives in the edges. `unattributed` is the mode "no designation is
+  # recoverable — this record predates the signing regime", stated rather
+  # than omitted. Designation stays total: every entry says HOW its party is
+  # designated, including "not recoverably" (docs/entries.md carries the
+  # classification consequence — no closure Backing can admit "unknown").
   SignerKind = std.contract.custom (fun _label v =>
     if matches v 'human "human" || matches v 'agent "agent"
        || matches v 'source "source" || matches v 'derived "derived"
+       || matches v 'unattributed "unattributed"
     then 'Ok v
-    else 'Error { message = "SignerKind: expected human|agent|source|derived (tag or string)" }
+    else 'Error { message = "SignerKind: expected human|agent|source|derived|unattributed (tag or string)" }
   ),
 
   # backing: the evidence species, per the formalism. `corroborated` is a
@@ -113,8 +121,11 @@
   #
   # `derived` is the synthesis case: the designation IS the inbound edges, so
   # a derived entry's provenance is read off `depends`/`because` rather than a
-  # name. The name/kind coherence rule is ENFORCED by SignerDesignates below
-  # (ruling D-3) — in the draft it was a comment, which is not an evaluator.
+  # name. `unattributed` is the migration case: no party is recoverable at
+  # all, and no edges stand in for one either — the record says so, rather
+  # than fabricating a witness or omitting the field. The name/kind coherence
+  # rule is ENFORCED by SignerDesignates below (ruling D-3) — in the draft it
+  # was a comment, which is not an evaluator.
   Signer = {
     kind | SignerKind,
     name | NonEmptyString | optional,
@@ -313,16 +324,24 @@
     || std.record.has_field "freshness" n,
 
   # Signer designation, ENFORCED (ruling D-3; the draft carried this as a
-  # comment on Signer.name, which is not an evaluator). A non-derived signer
-  # names its party; a derived signer carries no name AND at least one inbound
-  # edge — the designation IS the edges. `kind` here is the Signer record's
-  # field (human|agent|source|derived), never docket's `kind` axis and never
-  # the assertion axis.
+  # comment on Signer.name, which is not an evaluator). A non-derived,
+  # non-unattributed signer names its party; a derived signer carries no name
+  # AND at least one inbound edge — the designation IS the edges.
+  # `unattributed` carries no name either, but requires NO edges: that
+  # requirement is `derived`'s alone, and a migrated record predating the
+  # signing regime has no inbound-edge stand-in for the party it cannot name.
+  # A NAMED `unattributed` is a contradiction — the mode asserts nothing is
+  # recoverable, so a name present is the entry lying about its own kind.
+  # `kind` here is the Signer record's field
+  # (human|agent|source|derived|unattributed), never docket's `kind` axis and
+  # never the assertion axis.
   SignerDesignates = fun n =>
     if matches n.signer.kind 'derived "derived"
     then
       !(std.record.has_field "name" n.signer)
       && std.array.length (edges_of n) > 0
+    else if matches n.signer.kind 'unattributed "unattributed"
+    then !(std.record.has_field "name" n.signer)
     else std.record.has_field "name" n.signer,
 
   # The closed predicate set, lifted. Exactly these nine and no others.
