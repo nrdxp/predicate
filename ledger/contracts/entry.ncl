@@ -20,7 +20,7 @@
 #   - a recoverable signer on every entry, ENFORCED (ruling D-3)
 #   - the provenance gate, scoped to claims (ruling D-2)
 #   - questions carry a discharge condition AND a designated closer
-#   - edges typed by consequence
+#   - edges typed by consequence, derivation and closure alike
 #
 # Two hard-won idioms govern every definition below; both were proved by run
 # before this file was written (the boundary's spike-first rule):
@@ -167,16 +167,26 @@
   # what happens when the target is deleted. `depends` — this entry breaks.
   # `because` — only its stated reason is orphaned. A single untyped reference
   # cannot express that difference, and the difference is the whole point.
+  #
+  # `discharges` and `supersedes` are the CLOSURE edges, and they run the
+  # other way: a derivation edge says where an entry came from, a closure edge
+  # says what it retires. They stay distinct from derivation because their
+  # consequences differ again — a discharged question was ANSWERED, a
+  # superseded one was merged into a survivor and never answered at all, and
+  # collapsing the two exits would lose which happened. Neither is a
+  # derivation edge, so neither designates a `derived` signer and neither
+  # satisfies the provenance gate: `edges_of` stays derivation-only.
   Ref = NonEmptyString,
 
-  # Both edge arrays are declared `optional` with NO fallback value, and every
+  # Every edge array is declared `optional` with NO fallback value, and every
   # consumer guards through this one helper: materializing an empty array via
   # a field fallback would make YAML fixtures depend on contract application
   # order, and the predicates must also run bare over raw YAML-parsed data.
+  refs_of | doc "the refs under an entry's optional array field; [] when absent"
+    = fun name n => if std.record.has_field name n then n."%{name}" else [],
+
   edges_of | doc "an entry's inbound derivation edges: depends and because combined"
-    = fun n =>
-      (if std.record.has_field "depends" n then n.depends else [])
-      @ (if std.record.has_field "because" n then n.because else []),
+    = fun n => refs_of "depends" n @ refs_of "because" n,
 
   # --- Check: a corroboration -----------------------------------------------
   #
@@ -261,7 +271,9 @@
 
     # Required on questions: the condition that would close it, and the party
     # who can. `signpost` in the existing tech-debt contract is the condition
-    # half; the closer half is missing everywhere today.
+    # half. The two halves are named for their tense and read as a pair:
+    # `discharge` is prospective prose, `discharges` below is the
+    # retrospective edge that pays it.
     discharge | NonEmptyString | optional,
     closer | Closer | optional,
 
@@ -277,6 +289,16 @@
 
     depends | Array Ref | optional,
     because | Array Ref | optional,
+
+    # The closure edges. `discharges` names questions this entry ANSWERS —
+    # gated by DischargeBacked below and target-typed by EntryStore, so a
+    # close is only ever claimed by something that carries evidence.
+    # `supersedes` names entries this one retires unanswered, and carries no
+    # backing condition: merging a duplicate question asserts nothing about
+    # the question, which is exactly why it is a second edge and not a second
+    # meaning for the first.
+    discharges | Array Ref | optional,
+    supersedes | Array Ref | optional,
   },
 
   # --- The constraints that make it worth having ----------------------------
@@ -301,6 +323,24 @@
   VouchBacked = fun n =>
     !(matches n.backing 'vouched "vouched")
     || std.record.has_field "witness" n,
+
+  # MISCLOSURE MADE UNREPRESENTABLE. A `discharges` edge asserts that this
+  # entry ANSWERS the question it names, so only an entry that itself carries
+  # closed evidence may bear one. Two ways to violate it, and both are real
+  # failure modes of the record this contract exists to stop: a `synthesis`
+  # claim (unclosed) is a PROPOSAL until something closes it, so letting it
+  # discharge would let an unratified answer retire the question that asked
+  # for ratification; and a `question` asserts no truth-value at all, so a
+  # question closing a question is a chain of things none of which is known.
+  # `residual` needs no clause — ResidualIsQuestion already forces it onto the
+  # question side, where this predicate refuses it. The rule is about the
+  # DISCHARGER's own backing; whether the target is really a question is a
+  # corpus property, decided by EntryStore where resolution already lives.
+  DischargeBacked = fun n =>
+    std.array.length (refs_of "discharges" n) == 0
+    || (matches n.assertion 'claim "claim"
+        && (matches n.backing 'corroborated "corroborated"
+            || matches n.backing 'vouched "vouched")),
 
   # THE PROVENANCE GATE — the structural definition of a hallucination. An
   # unbacked CLAIM with no inbound edge is not vaguely unsupported: it is a
@@ -393,7 +433,7 @@
     !(matches n.signer.kind 'unattributed "unattributed")
     || matches n.backing 'unclosed "unclosed",
 
-  # The closed predicate set, lifted. Exactly these ten and no others.
+  # The closed predicate set, lifted. Exactly these eleven and no others.
   # std.contract.all_of reports the FIRST failing contract, but every red
   # fixture is single-violation by construction (proved by reversing this
   # list: all cases still pass), so order is currently irrelevant to
@@ -402,6 +442,7 @@
   lifted = [
     asContract "CorroborationBacked" CorroborationBacked,
     asContract "VouchBacked" VouchBacked,
+    asContract "DischargeBacked" DischargeBacked,
     asContract "ProvenanceGate" ProvenanceGate,
     asContract "QuestionRoutable" QuestionRoutable,
     asContract "ResidualIsQuestion" ResidualIsQuestion,
@@ -421,14 +462,22 @@
   # (the council harness's own rule); mirrors DepositStore / dag.ncl,
   # including the record-as-set idiom for O(1) membership.
   #
-  # Deliberately MINIMAL: per-entry shape conformance plus the two corpus
-  # properties. The ten predicates are NOT applied here — a contract aborts
+  # Deliberately MINIMAL: per-entry shape conformance plus the corpus
+  # properties. The eleven predicates are NOT applied here — a contract aborts
   # at the first violation, and batch violation-collection over a corpus is
   # exactly the future batch-validator's job (the design reason the
-  # predicates are bare booleans). Both edge kinds must resolve within the
+  # predicates are bare booleans). Every edge kind must resolve within the
   # aggregate: the depends/because difference is what DELETION of the target
   # means for the record's evolution, not a license to author a reference
   # that never resolved at all.
+  #
+  # The closure edges add the one condition no per-entry contract can decide:
+  # `discharges` is claim -> QUESTION by type, and the target's assertion is
+  # only readable once the corpus is in hand. Target-typing therefore lands
+  # here, beside resolution, rather than growing the per-entry closed set —
+  # DischargeBacked already carries the half that IS per-entry (the
+  # discharger's own backing). `supersedes` types nothing beyond resolution:
+  # any entry may be retired unanswered by a survivor.
   EntryStore = std.contract.custom (fun _label value =>
     let entries = value.entries in
     # Per-element Entry conformance, EAGER: `std.contract.apply` alone stays
@@ -453,6 +502,17 @@
     let unique_ids =
       std.array.length ids == std.array.length (std.record.fields id_set)
     in
+    # resolves NAME: every entry's refs under that optional array field land
+    # on a declared id. One helper for all three kinds — the kinds differ in
+    # what they MEAN, never in whether they must resolve.
+    let resolves = fun name =>
+      std.array.all
+        (fun en =>
+          std.array.all
+            (fun r => std.record.has_field r id_set)
+            (refs_of name en))
+        entries
+    in
     let all_edges_resolve =
       std.array.all
         (fun en =>
@@ -461,12 +521,38 @@
             (edges_of en))
         entries
     in
+    # question set (record) — the same O(1) idiom as id_set, so discharges
+    # target-typing is a membership test rather than a scan per edge.
+    let question_set =
+      std.array.fold_left
+        (fun acc en =>
+          if matches en.assertion 'question "question"
+             && !(std.record.has_field en.id acc)
+          then std.record.insert en.id true acc
+          else acc)
+        {}
+        entries
+    in
+    let discharges_target_questions =
+      std.array.all
+        (fun en =>
+          std.array.all
+            (fun r => std.record.has_field r question_set)
+            (refs_of "discharges" en))
+        entries
+    in
     # Force the per-element applications before the structural verdict so a
     # malformed entry fails the contract rather than being skipped lazily.
     std.seq _entry_conformance (
       if !unique_ids then 'Error { message = "EntryStore: duplicate entry id" }
       else if !all_edges_resolve then
         'Error { message = "EntryStore: dangling edge — a depends/because ref does not resolve to a declared entry id" }
+      else if !(resolves "discharges") then
+        'Error { message = "EntryStore: dangling discharges — a closure edge does not resolve to a declared entry id" }
+      else if !(resolves "supersedes") then
+        'Error { message = "EntryStore: dangling supersedes — a supersession edge does not resolve to a declared entry id" }
+      else if !discharges_target_questions then
+        'Error { message = "EntryStore: discharges target is not a question — a claim answers questions, nothing else" }
       else 'Ok value
     )
   ),
