@@ -22,6 +22,11 @@ Grammar (the docs/entries.md §grammar standard, ledger dialect):
               / axes / freshness / discharges / supersedes map to fields;
               conversion-path is recognized prose and stays in the statement;
               anything else token-shaped is reported.
+  mentions    a span of ANY mapped token with an EMPTY value is a MENTION of
+              the token, not a use of it: prose ABOUT the grammar. It fills no
+              field, never overwrites an earlier real use, and stays in the
+              statement where it was written. The rule is general over the
+              mapped set — present and future — not a per-token exception.
   refs        derives-from carries doc-local `[ID]` refs (edges), `[[wiki]]`
               refs and free prose (external provenance — outside the corpus,
               so never emitted as edges the contract would reject as dangling).
@@ -206,6 +211,15 @@ def parse_node(rest: str, out: Extraction, doc: str, marker: str,
                     link = cont.group(1) or cont.group(2)
                     value = f"{value}, {link}" if value else link
                     end += cont.end()
+            if not value:
+                # MENTION, not use — the span names the token in prose about
+                # the grammar. Tested AFTER continuations, so `derives-from::`
+                # carrying only a trailing [[wiki]] ref is still a use. It
+                # fills no field, so it cannot clobber an earlier real value
+                # with the empty string the contract would then reject.
+                statement_parts.append(span.group(0))
+                pos = span.end()
+                continue
             if token == "source" and value == "same":
                 if last_source:
                     value = last_source[0]
