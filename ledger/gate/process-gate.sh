@@ -103,10 +103,12 @@ resolve_nickel() {
 apply_contract_file_for() {
   local class="$1"
   case "$class" in
-    boundary) echo "$plugin/ledger/contracts/boundary_apply.ncl" ;;
-    refine)   echo "$plugin/ledger/contracts/refine_apply.ncl" ;;
+    boundary)         echo "$plugin/ledger/contracts/boundary_apply.ncl" ;;
+    refine)           echo "$plugin/ledger/contracts/refine_apply.ncl" ;;
+    tech_debt)        echo "$plugin/skills/record/tech_debt_apply.ncl" ;;
+    process_feedback) echo "$plugin/skills/record/process_feedback_apply.ncl" ;;
     *)
-      echo "process-gate: unknown contract class '$class' (must be 'boundary' or 'refine')" >&2
+      echo "process-gate: unknown contract class '$class' (must be 'boundary', 'refine', 'tech_debt', or 'process_feedback')" >&2
       return 2
       ;;
   esac
