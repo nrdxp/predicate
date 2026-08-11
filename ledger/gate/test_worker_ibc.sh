@@ -58,10 +58,26 @@ expect "directive WITH backing (category error) -> closed-record extra field" 1 
   -- run "$fix/red-directive-backing.yaml"
 expect "non-derived provenance unnamed -> DirectiveDesignates" 1 "DirectiveDesignates" \
   -- run "$fix/red-directive-unnamed.yaml"
-expect "constraint without evaluator (required-field red) -> missing field" 1 "evaluator" \
+expect "constraint without evaluator (required-field red) -> missing field" 1 'missing definition for `evaluator`' \
   -- run "$fix/red-constraint-no-evaluator.yaml"
-expect "empty goal statement -> NonEmptyString (subsumed gate branch)" 1 "NonEmptyString" \
+expect "empty goal statement -> NonEmptyString (subsumed gate branch)" 1 'contract broken by the value of `statement`' \
   -- run "$fix/red-goal-empty.yaml"
+
+# --- e.lifted / DirectiveDesignates splice coverage (A1-A3, D6) -------------
+expect "corroborated premise with unrun check -> CorroborationBacked (grounds the PremiseChecked e.lifted splice)" 1 "CorroborationBacked" \
+  -- run "$fix/red-premise-unrun-check.yaml"
+expect "acceptance criterion without eval (required-field red) -> missing field" 1 'missing definition for `eval`' \
+  -- run "$fix/red-criterion-no-eval.yaml"
+expect "out-of-set discipline string -> Discipline" 1 'contract broken by the value of `discipline`' \
+  -- run "$fix/red-bad-discipline.yaml"
+expect "constraint under anonymous authority -> DirectiveDesignates (ConstraintChecked splice)" 1 "DirectiveDesignates" \
+  -- run "$fix/red-constraint-unnamed-authority.yaml"
+expect "acceptance criterion under anonymous authority -> DirectiveDesignates (CriterionChecked splice)" 1 "DirectiveDesignates" \
+  -- run "$fix/red-criterion-unnamed-authority.yaml"
+expect "derived non-goal, no name, inbound edge -> DirectiveDesignates derived arm holds, clean" 0 "" \
+  -- run "$fix/green-derived-nongoal.yaml"
+expect "derived non-goal that also names a party -> DirectiveDesignates" 1 "DirectiveDesignates" \
+  -- run "$fix/red-derived-nongoal-named.yaml"
 
 if [ "$fails" -ne 0 ]; then
   echo "FAIL: $fails worker-IBC case(s) mismatched"; exit 1

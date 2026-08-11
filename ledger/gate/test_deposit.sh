@@ -53,7 +53,7 @@ expect "mechanism evidence with unrun check -> CorroborationSpeciesRan" 1 "Corro
   -- run "$fix/red-corroboration-unrun.yaml"
 expect "mechanism evidence with no check -> CorroborationSpeciesRan" 1 "CorroborationSpeciesRan" \
   -- run "$fix/red-corroboration-no-check.yaml"
-expect "evidence without signer -> missing field (required-field red)" 1 "signer" \
+expect "evidence without signer -> missing field (required-field red)" 1 'missing definition for `signer`' \
   -- run "$fix/red-no-signer.yaml"
 
 # --- shape reds --------------------------------------------------------------
@@ -61,8 +61,10 @@ expect "out-of-set method string -> EvidenceMethod" 1 "EvidenceMethod: expected"
   -- run "$fix/red-bad-method.yaml"
 expect "empty evidence array -> NonEmptyEvidence" 1 "at least one evidence item" \
   -- run "$fix/red-empty-evidence.yaml"
-expect "deposit missing step (laziness guard) -> per-deposit conformance" 1 "step" \
+expect "deposit missing step (laziness guard) -> per-deposit conformance" 1 'missing definition for `step`' \
   -- run "$fix/red-malformed-deposit.yaml"
+expect "check anchor missing command (Check record shape, B1) -> missing field" 1 'missing definition for `command`' \
+  -- run "$fix/red-check-anchor-malformed.yaml"
 
 # --- store reds --------------------------------------------------------------
 expect "duplicate deposit id -> DepositStore duplicate" 1 "duplicate deposit id" \

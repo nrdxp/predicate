@@ -42,9 +42,9 @@ run() { nickel export "$1" --apply-contract "$apply"; }
 expect "seed instance (signed, anchored, discharge) -> export clean" 0 "" \
   -- run "$root/ledger/fixtures/tech_debt_seed.yaml"
 
-expect "debt without signer (required-field red) -> missing field" 1 "signer" \
+expect "debt without signer (required-field red) -> missing field" 1 'missing definition for `signer`' \
   -- run "$fix/red-no-signer.yaml"
-expect "debt without at -> missing field" 1 "at" \
+expect "debt without at -> missing field" 1 'missing definition for `at`' \
   -- run "$fix/red-no-at.yaml"
 expect "out-of-set severity string -> Severity" 1 "Severity: expected" \
   -- run "$fix/red-bad-severity.yaml"

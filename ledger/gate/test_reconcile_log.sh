@@ -51,14 +51,16 @@ expect "two rounds, string enums, anchored + authored judgments -> clean" 0 "" \
 
 expect "CANARY: string-verdict accept, empty evaluator -> JudgmentGrounded" 1 "JudgmentGrounded" \
   -- run "$fix/red-accept-empty-evaluator.yaml"
-expect "judgment without at (required-field red) -> missing field" 1 "at" \
+expect "judgment without at (required-field red) -> missing field" 1 'missing definition for `at`' \
   -- run "$fix/red-judgment-no-at.yaml"
-expect "judgment without author -> missing field" 1 "author" \
+expect "judgment without author -> missing field" 1 'missing definition for `author`' \
   -- run "$fix/red-judgment-no-author.yaml"
 expect "out-of-set verdict string -> Verdict" 1 "Verdict: expected" \
   -- run "$fix/red-bad-verdict.yaml"
 expect "non-hash checkpoint_commit -> CommitRef" 1 "CommitRef: expected" \
   -- run "$fix/red-malformed-checkpoint.yaml"
+expect "out-of-set freshness state -> FreshState" 1 "FreshState: expected" \
+  -- run "$fix/red-bad-fresh-state.yaml"
 
 if [ "$fails" -ne 0 ]; then
   echo "FAIL: $fails reconcile-log case(s) mismatched"; exit 1

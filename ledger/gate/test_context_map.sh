@@ -50,7 +50,7 @@ expect "R/I/C directives + question-entry unknown, string kinds -> clean" 0 "" \
 
 expect "unknown without closer -> QuestionRoutable (core, inherited)" 1 "QuestionRoutable" \
   -- run "$fix/red-unknown-no-closer.yaml"
-expect "directive row without provenance -> missing field" 1 "provenance" \
+expect "directive row without provenance -> missing field" 1 'missing definition for `provenance`' \
   -- run "$fix/red-ric-no-provenance.yaml"
 expect "directive row, unnamed authority -> DirectiveDesignates" 1 "DirectiveDesignates" \
   -- run "$fix/red-ric-unnamed-provenance.yaml"
@@ -58,14 +58,20 @@ expect "claim filed as unknown -> UnknownIsQuestion" 1 "UnknownIsQuestion" \
   -- run "$fix/red-unknown-claim.yaml"
 expect "unknown without signer -> missing field" 1 "signer" \
   -- run "$fix/red-unknown-no-signer.yaml"
-expect "empty grounding (preserved gate) -> NonEmptyString" 1 "NonEmptyString" \
+expect "empty grounding (preserved gate) -> NonEmptyString" 1 'contract broken by the value of `grounding`' \
   -- run "$fix/red-empty-grounding.yaml"
 expect "out-of-set kind string -> Kind" 1 "Kind: expected" \
   -- run "$fix/red-bad-kind.yaml"
-expect "directive row without at (required-field red) -> missing field" 1 "at" \
+expect "directive row without at (required-field red) -> missing field" 1 'missing definition for `at`' \
   -- run "$fix/red-no-at.yaml"
 expect "duplicate item id -> ContextMap duplicate" 1 "duplicate context-map item id" \
   -- run "$fix/red-dup-id.yaml"
+expect "empty last_validated (preserved gate) -> NonEmptyString" 1 'contract broken by the value of `last_validated`' \
+  -- run "$fix/red-empty-last-validated.yaml"
+expect "empty signpost (preserved gate) -> NonEmptyString" 1 'contract broken by the value of `signpost`' \
+  -- run "$fix/red-empty-signpost.yaml"
+expect "empty hydration_source (the silent-omission sentinel, forbidden) -> from_predicate" 1 'contract broken by the value of `hydration_source`' \
+  -- run "$fix/red-empty-hydration-source.yaml"
 
 # The external interface (g6): tracker_fresh.sh still reads a reformed
 # instance. Freshness itself is date-relative (rc 0 fresh / rc 1 stale); the

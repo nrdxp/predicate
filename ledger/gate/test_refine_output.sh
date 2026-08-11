@@ -9,9 +9,13 @@
 # RefineReport + RefineOutput EXTERNALLY. Each FAIL case asserts the error
 # names its OWN predicate, matched against that case's own output only.
 #
-# CANARY: red-pending-verdict is string-backed — the unanimity gate compares
-# through the core `matches`; a bare tag comparison against YAML strings would
-# approve-by-vacuity (the D-8 defect class).
+# D-8 REGRESSION DETECTOR: green-report.yaml, not red-pending-verdict.yaml — a
+# bare tag comparison (`j.verdict == 'approved`) against YAML strings makes
+# EVERY judgment compare false, so `all_approved` becomes false for everything.
+# That makes the gate OVER-strict, not vacuous: red-pending-verdict (already
+# expected to fail) stays failing either way and proves nothing; green-report
+# (expected to pass) starts failing under the mutant and is the actual killer.
+# Verified by reversing the mutant's effect on each case (2026-08 pass-2 gate).
 #
 # Usage: test_refine_output.sh
 # Exit:  0 = every case matched, 1 = a case mismatched, 2 = environment error.
@@ -44,14 +48,14 @@ expect() {
 
 run() { nickel export "$1" --apply-contract "$apply"; }
 
-expect "converged report, vouched judgments, signed postmortem -> clean" 0 "" \
+expect "D-8 REGRESSION DETECTOR: converged report, vouched judgments, signed postmortem -> clean" 0 "" \
   -- run "$fix/green-report.yaml"
 
-expect "judgment witness without at -> missing field" 1 "at" \
+expect "judgment witness without at -> missing field" 1 'missing definition for `at`' \
   -- run "$fix/red-judgment-no-at.yaml"
-expect "postmortem without auditor witness (required-field red)" 1 "witness" \
+expect "postmortem without auditor witness (required-field red)" 1 'missing definition for `witness`' \
   -- run "$fix/red-postmortem-unsigned.yaml"
-expect "CANARY: string pending verdict -> unanimity gate" 1 "EXIT_GATE_INVARIANCE" \
+expect "string pending verdict -> unanimity gate (NOT the D-8 canary; see header)" 1 "EXIT_GATE_INVARIANCE" \
   -- run "$fix/red-pending-verdict.yaml"
 expect "no refined targets -> depends gate" 1 "depends must be non-empty" \
   -- run "$fix/red-no-depends.yaml"
@@ -59,10 +63,12 @@ expect "final_loop 0 -> loop gate" 1 "loop never ran" \
   -- run "$fix/red-zero-loop.yaml"
 expect "zero clean sweeps -> convergence gate" 1 "no convergence verified" \
   -- run "$fix/red-zero-sweeps.yaml"
-expect "empty maintainer panel -> non-empty-judgments gate" 1 "must be non-empty" \
+expect "empty maintainer panel -> non-empty-judgments gate" 1 "maintainer_judgments must be non-empty" \
   -- run "$fix/red-no-judgments.yaml"
 expect "out-of-set verdict string -> MaintainerVerdict" 1 "MaintainerVerdict: expected" \
   -- run "$fix/red-bad-verdict.yaml"
+expect "maintainer judgment with no witness at all (D10)" 1 'missing definition for `witness`' \
+  -- run "$fix/red-judgment-unsigned.yaml"
 
 if [ "$fails" -ne 0 ]; then
   echo "FAIL: $fails refine-output case(s) mismatched"; exit 1

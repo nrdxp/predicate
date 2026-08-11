@@ -49,9 +49,9 @@ expect "CANARY: string-status resolved, evaluator unrun -> ResolutionRun" 1 "Res
   -- run "$fix/red-resolved-unrun.yaml"
 expect "resolved with no evaluator -> ResolutionRun" 1 "ResolutionRun" \
   -- run "$fix/red-resolved-no-evaluator.yaml"
-expect "finding without signer (required-field red) -> missing field" 1 "signer" \
+expect "finding without signer (required-field red) -> missing field" 1 'missing definition for `signer`' \
   -- run "$fix/red-no-signer.yaml"
-expect "finding without at -> missing field" 1 "at" \
+expect "finding without at -> missing field" 1 'missing definition for `at`' \
   -- run "$fix/red-no-at.yaml"
 expect "out-of-set severity string -> Severity" 1 "Severity: expected" \
   -- run "$fix/red-bad-severity.yaml"
@@ -59,6 +59,10 @@ expect "out-of-set status string -> Status" 1 "Status: expected" \
   -- run "$fix/red-bad-status.yaml"
 expect "duplicate finding id -> Findings duplicate" 1 "duplicate finding id" \
   -- run "$fix/red-dup-id.yaml"
+expect "pre-reform bare-name evaluator, still open (B2 headline type-change)" 1 "expected a Record" \
+  -- run "$fix/red-evaluator-bare-string.yaml"
+expect "malformed at (not a commit hash, D9) -> CommitRef" 1 "CommitRef: expected" \
+  -- run "$fix/red-malformed-at.yaml"
 
 if [ "$fails" -ne 0 ]; then
   echo "FAIL: $fails findings case(s) mismatched"; exit 1
