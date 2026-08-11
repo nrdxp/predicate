@@ -96,25 +96,25 @@ expect "extract: export passes the EXISTING entry contract" 0 "" \
 
 # --- report reds: nothing malformed is silently skipped ----------------------
 
-expect "red: unknown grade value is reported, exit 3" 3 "unknown-grade" \
-  -- python3 "$extractor" "$fix/red-unknown-grade.md" -o "$tmp/unknown.yaml"
+expect "red: unknown grade value is reported, exit 3" 3 "\"kind\": \"unknown-grade\"" \
+  -- python3 "$extractor" "$fix/red-unknown-grade.md"
 expect "red: unknown grade names the offending marker" 3 "K1" \
   -- python3 "$extractor" "$fix/red-unknown-grade.md"
 expect "red: well-formed sibling still extracted alongside the report" 3 "red-unknown-grade:K2" \
   -- python3 "$extractor" "$fix/red-unknown-grade.md"
 
-expect "red: vocabulary token outside a marker is reported" 3 "unplaced-token" \
+expect "red: vocabulary token outside a marker is reported" 3 "\"kind\": \"unplaced-token\"" \
   -- python3 "$extractor" "$fix/red-unplaced-token.md"
-expect "red: unknown companion token is reported" 3 "unknown-companion" \
+expect "red: unknown companion token is reported" 3 "\"kind\": \"unknown-companion\"" \
   -- python3 "$extractor" "$fix/red-unplaced-token.md"
 
-expect "red: pre-standard doc (no signer:: header) is reported whole" 3 "pre-standard" \
-  -- python3 "$extractor" "$fix/ibc-pass1.md" -o "$tmp/pass1.yaml"
+expect "red: pre-standard doc (no signer:: header) is reported whole" 3 "\"kind\": \"pre-standard-doc\"" \
+  -- python3 "$extractor" "$fix/ibc-pass1.md"
 
-expect "red: source:: same with no prior source is reported" 3 "unresolved-anaphora" \
+expect "red: source:: same with no prior source is reported" 3 "\"kind\": \"unresolved-anaphora\"" \
   -- python3 "$extractor" "$fix/red-orphan-same.md"
 
-expect "red: signer kind outside the five modes is reported" 3 "bad-header" \
+expect "red: signer kind outside the five modes is reported" 3 "\"kind\": \"bad-header\"" \
   -- python3 "$extractor" "$fix/red-bad-header.md"
 
 # Duplicate markers: the extractor emits both and the CONTRACT's id-uniqueness
