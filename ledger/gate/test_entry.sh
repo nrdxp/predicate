@@ -10,9 +10,11 @@
 # coincidence.
 #
 # entry_apply.ncl is shape-dispatching: a value carrying `entries` is a corpus
-# (validated by EntryStore: per-entry shape + id-uniqueness + edge-resolution);
-# otherwise it is a single entry (Entry composed with the eleven lifted
-# predicates).
+# (validated by EntryStore: per-entry shape, the full closed predicate set per
+# entry, id-uniqueness, and edge-resolution); otherwise it is a single entry
+# (Entry composed with the eleven lifted predicates). The two granularities
+# refuse the SAME defects — a predicate that fires only on a lone entry is a
+# predicate that never fires, because the corpus is the shape a record takes.
 #
 # CANARY: red-corroboration-unrun is the permanent regression tripwire for the
 # tag-vs-string defect — a YAML (string-backed) corroborated claim with
@@ -168,14 +170,15 @@ expect "corpus: unresolved supersedes ref -> EntryStore" 1 "dangling supersedes"
 # from a corpus. This is the only case that fails under that mutation.
 expect "corpus with shape-malformed entry (empty statement) -> per-entry conformance" 1 "NonEmptyString" \
   -- run "$fix/red-corpus-malformed-entry.yaml"
-# DELIBERATE ASYMMETRY, pinned: the corpus path applies NONE of the ten
-# predicates — per-entry violation COLLECTION over a corpus is the future
-# batch validator's job (the design reason the predicates are bare booleans),
-# so a predicate-violating entry that is red alone exports GREEN inside a
-# corpus. This expectation FLIPS to rc=1 (VouchBacked) when the batch
-# validator lands; until then the corpus gate is the weaker one, on purpose.
-expect "corpus with predicate-violating entry (vouched, no witness) -> green TODAY" 0 "" \
-  -- run "$fix/green-corpus-pred-violation.yaml"
+# THE FLIP. This case was pinned green while the corpus path applied NONE of
+# the eleven predicates, on the reading that per-entry violation COLLECTION
+# over a corpus was a future batch validator's job. The pin named its own flip
+# condition — rc=1, VouchBacked — and that condition has arrived: the corpus is
+# the ONLY shape a real record takes, so a predicate that never runs there is a
+# predicate that never runs. Collection remains the batch validator's job;
+# REFUSAL is the contract's, at either granularity.
+expect "corpus with predicate-violating entry (vouched, no witness) -> VouchBacked" 1 "VouchBacked" \
+  -- run "$fix/red-corpus-pred-violation.yaml"
 
 # --- cure_for: pinned against the ibc-pass1.md §2b table, NOT its own branches
 # The six expected strings are HARDCODED here (sourced from the paper's cell

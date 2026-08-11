@@ -1,0 +1,21 @@
+# Corpus red: a vouched claim naming no witness, inside an aggregate. This is
+# the fixture the corpus/per-entry asymmetry was pinned on — it exported GREEN
+# while the identical entry was red on its own, because the corpus path applied
+# none of the eleven predicates. The predicate set is applied per entry now, so
+# the same defect is refused at either granularity.
+#
+# Deliberately a ONE-ENTRY corpus: it proves the per-entry fold runs even in the
+# degenerate aggregate. The multi-entry ordering discipline (violation second,
+# so a first-entry-only fold cannot pass) lives in the sibling corpus reds.
+entries:
+  - id: e-vouch-nowit
+    statement: "A vouched claim naming no witness, inside a corpus."
+    assertion: claim
+    backing: vouched
+    signer:
+      kind: agent
+      name: architect-seat
+    axes:
+      determined: true
+      certifiable: false
+      monotone: true
