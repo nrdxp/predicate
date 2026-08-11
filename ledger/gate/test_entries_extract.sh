@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Suite for the typed-claim extractor (ledger/derive/extract_entries.py) and
-# the query over its export (ledger/derive/entries_query.ncl).
+# the query over its export (ledger/contracts/entries_query.ncl).
 #
 # The extractor is TRUSTED MACHINERY: a query result is `proved` only relative
 # to extractor fidelity, so its fixture suite is golden-vector-driven:
@@ -24,7 +24,7 @@ here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 root="$(cd "$here/../.." && pwd)"
 fix="$root/ledger/fixtures/extract"
 extractor="$root/ledger/derive/extract_entries.py"
-query="$root/ledger/derive/entries_query.ncl"
+query="$root/ledger/contracts/entries_query.ncl"
 apply="$root/ledger/contracts/entry_apply.ncl"
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
@@ -123,6 +123,41 @@ expect "red: duplicate marker extracts without extractor error" 0 "" \
   -- python3 "$extractor" "$fix/red-dup-marker.md" -o "$tmp/dup.yaml"
 expect "red: duplicate marker is EntryStore's red" 1 "duplicate entry id" \
   -- nickel export "$tmp/dup.yaml" --apply-contract "$apply"
+
+# --- the query: a Nickel evaluation over the validated export ----------------
+#
+# Applying the query IS applying the law first: entries_query.ncl runs the
+# corpus through entry_apply.ncl before computing any view, so an invalid
+# export never yields a query result. Bash invokes; the assertions on the
+# result are decided in python over the parsed JSON, never in shell logic.
+
+expect "query: evaluates over the validated export" 0 "awaiting_human" \
+  -- nickel export "$tmp/ledger-note.yaml" --apply-contract "$query"
+nickel export "$tmp/ledger-note.yaml" --apply-contract "$query" \
+  > "$tmp/query.json" 2>/dev/null
+expect "query: the four views carry the fixture's known answers" 0 "VIEWS-OK" \
+  -- python3 - "$tmp/query.json" <<'EOF'
+import json, sys
+q = json.load(open(sys.argv[1]))
+ids = lambda view: [row["id"] for row in view]
+assert ids(q["awaiting_human"]) == ["ledger-note:R1"], q["awaiting_human"]
+assert ids(q["runnable_now"]) == ["ledger-note:Q1"], q["runnable_now"]
+assert q["unpaid_cures"]["violations"] == [], q["unpaid_cures"]
+assert q["unpaid_cures"]["unassessed"] == [
+    f"ledger-note:{m}" for m in ["K1", "K2", "K3", "K4", "X1", "X2", "X3"]
+], q["unpaid_cures"]
+unbacked = {row["id"]: row for row in q["unbacked"]}
+assert sorted(unbacked) == [f"ledger-note:{m}" for m in ["X1", "X2", "X3"]]
+assert unbacked["ledger-note:X1"]["backed"] is True
+assert unbacked["ledger-note:X2"]["backed"] is False
+assert unbacked["ledger-note:X2"]["external_refs"] == [
+    "process-feedback/tc-concurrent-writer"
+]
+print("VIEWS-OK")
+EOF
+
+expect "query: an invalid corpus never yields a result" 1 "duplicate entry id" \
+  -- nickel export "$tmp/dup.yaml" --apply-contract "$query"
 
 echo
 if [ "$fails" -eq 0 ]; then echo "test_entries_extract: ALL PASS"; exit 0; fi
