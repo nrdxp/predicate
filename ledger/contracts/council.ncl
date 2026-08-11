@@ -78,7 +78,6 @@ let e = import "entry.ncl" in
     # defaults and validates shape, so the checks below read total fields.
     let deleg = std.array.map (fun r => r | DelegationRule) value.delegation in
     let _sc = std.array.fold_left (fun acc s => std.deep_seq (s | Seat) acc) null seats in
-    let _rc = std.array.fold_left (fun acc r => std.deep_seq r acc) null deleg in
     let seat_ids = std.array.map (fun s => s.id) seats in
     let n = std.array.length seats in
     let rules_for = fun dt => std.array.filter (fun r => r.decision_type == dt) deleg in
@@ -89,13 +88,13 @@ let e = import "entry.ncl" in
       if r.required_assent == 'subset then r.quorum > 0 && r.quorum <= n else true) deleg in
     let consent_seats_ok = std.array.all (fun r =>
       std.array.all (fun sid => std.array.elem sid seat_ids) r.must_assent) deleg in
-    std.seq _sc (std.seq _rc (
+    std.seq _sc (
       if !every_one then 'Error { message = "anti-incoherence: a decision_type lacks exactly one delegation rule" }
       else if !no_orphan then 'Error { message = "delegation rule references an undeclared decision_type" }
       else if !owners_ok then 'Error { message = "delegation owner is not a declared seat" }
       else if !quorum_ok then 'Error { message = "subset rule needs 0 < quorum <= |seats|" }
       else if !consent_seats_ok then 'Error { message = "anti-incoherence: a must_assent co-signer is not a declared seat" }
-      else 'Ok value))),
+      else 'Ok value)),
 
   # The species-aware grounding (G-1). Shape: the prose why (`claim` — kept from
   # the old field so a stranger still reads the reason, not just the anchor) plus
