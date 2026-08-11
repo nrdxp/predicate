@@ -387,10 +387,14 @@ specific harness feature is a hidden hard dependency, not a capability.
   structured-question features where a well-formed query helps them decide. Fall
   back to flat prose only when the problem is too underspecified to form a coherent
   query — and then surface what is hard or unknown as clearly as possible.
-- **Worker dispatch.** When dispatching a worker, use the persisted worker persona
-  if one is present; otherwise generate it from the same source and inject it via
-  the harness's native subagent mechanism. Persistence is a transparent cache, not
-  a different instruction — the persona is identical either way.
+- **Subagent and worker dispatch.** When launching a subagent for a Predicate
+  role (worker, reviewer, or council seat), never default to a generic `self`
+  or `research` agent. You must use the role's specific persona prompt. Locate
+  the persisted persona markdown file (e.g.,
+  `~/.claude/agents/predicate-<role>.md`) or generate it dynamically from the
+  source (`conditioning/compose.ncl` via `nickel` or `conditioning/install.sh
+  --role <role> --dry-run`). Inject this fully-rendered persona text as the
+  system prompt of the subagent.
 
 ## Address the human by name
 
