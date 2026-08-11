@@ -6,4 +6,6 @@ signer:
   kind: agent
   name: architect-seat
 discharge: "A ruled anchor shape for uncommitted state."
-closer: the-head
+closer:
+  kind: human
+  name: nrd

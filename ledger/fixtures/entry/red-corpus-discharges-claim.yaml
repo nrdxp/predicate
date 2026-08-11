@@ -1,0 +1,36 @@
+# Corpus red: a discharges edge resolves, but to a CLAIM. discharges is
+# claim -> question by type; an edge onto anything else is a misclosure the
+# aggregate must refuse.
+entries:
+  - id: e-closes
+    statement: "A claim whose closure edge lands on a sibling claim."
+    assertion: claim
+    backing: corroborated
+    signer:
+      kind: agent
+      name: composer
+    check:
+      command: "bash ledger/gate/test_entry.sh"
+      ran: true
+      at: "deadbeef01"
+    axes:
+      determined: true
+      certifiable: true
+      monotone: true
+    discharges:
+      - e-not-a-question
+  - id: e-not-a-question
+    statement: "A well-formed claim standing where a question should be."
+    assertion: claim
+    backing: corroborated
+    signer:
+      kind: agent
+      name: composer
+    check:
+      command: "bash ledger/gate/test_entry.sh"
+      ran: true
+      at: "deadbeef01"
+    axes:
+      determined: true
+      certifiable: true
+      monotone: true

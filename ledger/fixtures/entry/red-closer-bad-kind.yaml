@@ -1,0 +1,14 @@
+# `derived` is deliberately the probe kind: it IS a valid SignerKind, so this
+# red also catches an implementation that lazily reuses the signer's enum for
+# the closer. Nothing is closed by an unrecoverable party — the closer kinds
+# are exactly human|agent|source.
+id: q-closer-kind
+statement: "A question routed to a party class outside the designation set."
+assertion: question
+backing: unclosed
+signer:
+  kind: agent
+  name: composer
+discharge: "Someone would have to rule on it."
+closer:
+  kind: derived

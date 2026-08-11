@@ -1,0 +1,18 @@
+# Single violation by construction: everything here is valid except the
+# discharges edge from an unratified (unclosed) claim. Before ratification an
+# answer is a proposal — it may because-link the question, but it closes
+# nothing by SHAPE.
+id: x-proposal
+statement: "An unratified proposal that presumes to close the question."
+assertion: claim
+backing: unclosed
+signer:
+  kind: agent
+  name: composer
+because:
+  - e-support
+axes:
+  determined: false
+  monotone: true
+discharges:
+  - q-ratify

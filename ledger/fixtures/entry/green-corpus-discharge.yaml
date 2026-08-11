@@ -1,0 +1,32 @@
+# Corpus green: a corroborated claim's discharges edge resolves to a
+# declared question inside the aggregate. Openness is derived from exactly
+# this shape — the question has an inbound discharges edge, so it is closed.
+entries:
+  - id: e-closes
+    statement: "The ratification landed; this claim closes q-ratified."
+    assertion: claim
+    backing: corroborated
+    signer:
+      kind: agent
+      name: composer
+    check:
+      command: "bash ledger/gate/test_entry.sh"
+      ran: true
+      at: "deadbeef01"
+    axes:
+      determined: true
+      certifiable: true
+      monotone: true
+    discharges:
+      - q-ratified
+  - id: q-ratified
+    statement: "Does the head ratify the recovered-edges batch?"
+    assertion: question
+    backing: unclosed
+    signer:
+      kind: agent
+      name: composer
+    discharge: "The head reads the boundary and rules once."
+    closer:
+      kind: human
+      name: nrd

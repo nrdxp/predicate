@@ -1,0 +1,29 @@
+# Corpus green: a surviving question supersedes its merged duplicate.
+# supersedes carries no backing constraint — questions have no backing to
+# demand — and a superseded question was never answered, which is what keeps
+# the two exits (discharged vs superseded) distinguishable in the record.
+entries:
+  - id: q-survivor
+    statement: "Does the head ratify the recovered-edges batch?"
+    assertion: question
+    backing: unclosed
+    signer:
+      kind: agent
+      name: composer
+    discharge: "The head reads the boundary and rules once."
+    closer:
+      kind: human
+      name: nrd
+    supersedes:
+      - q-duplicate
+  - id: q-duplicate
+    statement: "Will the head approve the edge-recovery bundle?"
+    assertion: question
+    backing: unclosed
+    signer:
+      kind: agent
+      name: composer
+    discharge: "The head reads the boundary and rules once."
+    closer:
+      kind: human
+      name: nrd

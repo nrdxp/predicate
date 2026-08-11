@@ -22,4 +22,6 @@ entries:
       kind: agent
       name: architect-seat
     discharge: "Rename one of them."
-    closer: architect-seat
+    closer:
+      kind: agent
+      name: architect-seat

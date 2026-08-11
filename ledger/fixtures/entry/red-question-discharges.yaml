@@ -1,0 +1,16 @@
+# A question asserts nothing, so it can close nothing: a discharges edge is
+# valid only from a corroborated or vouched CLAIM. Routable halves are both
+# present so the discharges edge is the single violation.
+id: q-presumes
+statement: "A question that presumes to close a sibling question."
+assertion: question
+backing: unclosed
+signer:
+  kind: agent
+  name: composer
+discharge: "The head reads the boundary and rules once."
+closer:
+  kind: human
+  name: nrd
+discharges:
+  - q-other

@@ -6,7 +6,9 @@ signer:
   kind: agent
   name: architect-seat
 discharge: "Ruled either way."
-closer: the-head
+closer:
+  kind: human
+  name: nrd
 axes:
   determined: true
   certifiable: true

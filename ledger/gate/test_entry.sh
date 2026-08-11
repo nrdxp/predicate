@@ -11,7 +11,7 @@
 #
 # entry_apply.ncl is shape-dispatching: a value carrying `entries` is a corpus
 # (validated by EntryStore: per-entry shape + id-uniqueness + edge-resolution);
-# otherwise it is a single entry (Entry composed with the ten lifted
+# otherwise it is a single entry (Entry composed with the eleven lifted
 # predicates).
 #
 # CANARY: red-corroboration-unrun is the permanent regression tripwire for the
@@ -80,6 +80,16 @@ expect "unattributed signer (migration mode, name absent) -> export clean" 0 "" 
   -- run "$fix/green-unattributed-signer.yaml"
 expect "corpus aggregate (unique ids, resolving edges) -> export clean" 0 "" \
   -- run "$fix/green-corpus.yaml"
+expect "corroborated claim discharging a question -> export clean" 0 "" \
+  -- run "$fix/green-discharges-corroborated.yaml"
+expect "vouched claim discharging a question -> export clean" 0 "" \
+  -- run "$fix/green-discharges-vouched.yaml"
+expect "closer designation, kind without name -> export clean" 0 "" \
+  -- run "$fix/green-closer-unnamed.yaml"
+expect "corpus: discharges resolves to a declared question -> export clean" 0 "" \
+  -- run "$fix/green-corpus-discharge.yaml"
+expect "corpus: surviving question supersedes its duplicate -> export clean" 0 "" \
+  -- run "$fix/green-corpus-superseded.yaml"
 
 # --- predicate reds: one per predicate, both directions where bidirectional --
 expect "CANARY: string-backed corroborated claim, check unrun -> CorroborationBacked" 1 "CorroborationBacked" \
@@ -120,6 +130,12 @@ expect "unattributed signer, vouched -> UnattributedUnclosed" 1 "UnattributedUnc
   -- run "$fix/red-unattributed-vouched.yaml"
 expect "unattributed signer, corroborated -> UnattributedUnclosed" 1 "UnattributedUnclosed" \
   -- run "$fix/red-unattributed-corroborated.yaml"
+# Misclosure is unrepresentable by SHAPE: a discharges edge is valid only from
+# a corroborated or vouched CLAIM. Both reds below must name DischargeBacked.
+expect "synthesis claim carrying discharges -> DischargeBacked" 1 "DischargeBacked" \
+  -- run "$fix/red-discharges-from-synthesis.yaml"
+expect "question carrying discharges -> DischargeBacked" 1 "DischargeBacked" \
+  -- run "$fix/red-question-discharges.yaml"
 
 # --- shape reds --------------------------------------------------------------
 expect "empty statement -> NonEmptyString" 1 "NonEmptyString" \
@@ -128,12 +144,25 @@ expect "malformed commit ref -> CommitRef" 1 "CommitRef" \
   -- run "$fix/red-malformed-commit.yaml"
 expect "out-of-set backing string -> Backing enum" 1 "Backing: expected" \
   -- run "$fix/red-invalid-backing.yaml"
+# `derived` is a valid SignerKind, so this red also refutes an implementation
+# that reuses the signer's enum for the closer designation.
+expect "closer with out-of-set kind -> CloserKind" 1 "CloserKind" \
+  -- run "$fix/red-closer-bad-kind.yaml"
 
 # --- corpus reds (EntryStore) ------------------------------------------------
 expect "corpus with duplicate ids -> EntryStore duplicate" 1 "duplicate entry id" \
   -- run "$fix/red-corpus-dup-id.yaml"
 expect "corpus with dangling edge -> EntryStore dangling" 1 "dangling edge" \
   -- run "$fix/red-corpus-dangling-edge.yaml"
+# Target-typing lives with resolution at the corpus level: discharges targets
+# a question; supersedes targets a declared entry. Distinct tokens per red so
+# a wrong verdict cannot pass by coincidence.
+expect "corpus: discharges onto a claim -> EntryStore target type" 1 "discharges target" \
+  -- run "$fix/red-corpus-discharges-claim.yaml"
+expect "corpus: unresolved discharges ref -> EntryStore" 1 "dangling discharges" \
+  -- run "$fix/red-corpus-dangling-discharges.yaml"
+expect "corpus: unresolved supersedes ref -> EntryStore" 1 "dangling supersedes" \
+  -- run "$fix/red-corpus-dangling-supersedes.yaml"
 # Guards EntryStore's eager per-entry conformance fold (the deep_seq
 # machinery): deleting that fold lets a shape-malformed entry export clean
 # from a corpus. This is the only case that fails under that mutation.
@@ -190,19 +219,20 @@ check_cure "undet+non-mono -> T1+T3 (certifiable undefined)" \
   'T1+T3: an admitted signer, plus a freshness mechanism'
 
 # --- law-shape checks (c8, c9, c12) ------------------------------------------
-# c12: the predicate set is CLOSED — exactly the ten (UnattributedUnclosed
+# c12: the predicate set is CLOSED — exactly the eleven (DischargeBacked
+# joined the ten per the recovered-edges amendment; UnattributedUnclosed
 # joined the nine per the unattributed-closure ruling), the removed admission
 # predicate absent (non-comment scope, per c6's structural-not-lexical rule).
 names="$(grep -v '^ *#' "$law" \
-  | grep -oE '(CorroborationBacked|VouchBacked|ProvenanceGate|QuestionRoutable|ResidualIsQuestion|ClaimHasAxes|CertifiabilityFibered|NonMonotoneNamesCure|SignerDesignates|UnattributedUnclosed|NoSelfVouch)' \
+  | grep -oE '(CorroborationBacked|VouchBacked|ProvenanceGate|QuestionRoutable|ResidualIsQuestion|ClaimHasAxes|CertifiabilityFibered|NonMonotoneNamesCure|SignerDesignates|UnattributedUnclosed|DischargeBacked|NoSelfVouch)' \
   | sort -u)"
 want_names="$(printf '%s\n' CertifiabilityFibered ClaimHasAxes CorroborationBacked \
-  NonMonotoneNamesCure ProvenanceGate QuestionRoutable ResidualIsQuestion \
-  SignerDesignates UnattributedUnclosed VouchBacked | sort)"
+  DischargeBacked NonMonotoneNamesCure ProvenanceGate QuestionRoutable \
+  ResidualIsQuestion SignerDesignates UnattributedUnclosed VouchBacked | sort)"
 if [ "$names" = "$want_names" ]; then
-  echo "PASS  (0) c12: predicate set closed at exactly the ten"
+  echo "PASS  (0) c12: predicate set closed at exactly the eleven"
 else
-  echo "FAIL  c12: exported predicate set diverges from the closed ten"
+  echo "FAIL  c12: exported predicate set diverges from the closed eleven"
   diff <(printf '%s\n' "$want_names") <(printf '%s\n' "$names")
   fails=$((fails + 1))
 fi

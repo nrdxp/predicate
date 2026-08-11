@@ -1,0 +1,16 @@
+id: e-vouch-closes
+statement: "The head accepted the ruling; the question closes on that vouch."
+assertion: claim
+backing: vouched
+signer:
+  kind: agent
+  name: composer
+witness:
+  name: human/nrd
+  at: "deadbeef02"
+axes:
+  determined: true
+  certifiable: false
+  monotone: true
+discharges:
+  - q-ratify

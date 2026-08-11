@@ -1,0 +1,22 @@
+# Corpus red: a discharges ref that resolves to no declared entry id. At the
+# CONTRACT level an unresolved closure edge is refused outright — the
+# preserved-external escape is the extractor's, for prose refs that never
+# entered the corpus, and it never emits them as edges.
+entries:
+  - id: e-closes
+    statement: "A claim whose closure edge names a question nobody declared."
+    assertion: claim
+    backing: corroborated
+    signer:
+      kind: agent
+      name: composer
+    check:
+      command: "bash ledger/gate/test_entry.sh"
+      ran: true
+      at: "deadbeef01"
+    axes:
+      determined: true
+      certifiable: true
+      monotone: true
+    discharges:
+      - q-ghost

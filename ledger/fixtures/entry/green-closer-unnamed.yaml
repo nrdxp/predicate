@@ -1,0 +1,14 @@
+# A closer is prospective routing metadata: the party CLASS may be known
+# where the individual is not, so a designation with a kind and no name is
+# valid. Accountability never rests on it — a close is a discharges edge on
+# a claim whose own signer is strictly name-enforced.
+id: q-class-known
+statement: "Which agent runs the check once the batch lands?"
+assertion: question
+backing: unclosed
+signer:
+  kind: agent
+  name: composer
+discharge: "Any agent runs the check and records the captured exit."
+closer:
+  kind: agent

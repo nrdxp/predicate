@@ -5,4 +5,6 @@ backing: unclosed
 signer:
   kind: agent
   name: architect-seat
-closer: the-head
+closer:
+  kind: human
+  name: nrd

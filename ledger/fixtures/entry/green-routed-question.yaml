@@ -6,6 +6,8 @@ signer:
   kind: agent
   name: composer
 discharge: "The dispatch quotes the head's authorization verbatim."
-closer: composer
+closer:
+  kind: agent
+  name: composer
 depends:
   - e-cited

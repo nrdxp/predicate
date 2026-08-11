@@ -1,0 +1,17 @@
+# Corpus red: a supersedes ref that resolves to no declared entry id.
+# supersedes has no backing constraint, but its target must still be a
+# declared entry — superseding a phantom retires nothing.
+entries:
+  - id: q-survivor
+    statement: "A question that supersedes a duplicate nobody declared."
+    assertion: question
+    backing: unclosed
+    signer:
+      kind: agent
+      name: composer
+    discharge: "The head reads the boundary and rules once."
+    closer:
+      kind: human
+      name: nrd
+    supersedes:
+      - q-ghost
