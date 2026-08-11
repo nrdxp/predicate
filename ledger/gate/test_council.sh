@@ -116,6 +116,16 @@ if printf '%s' "$order_out" | grep -q -- "no-barred"; then
 else
   echo "PASS  (ordering) subject_also_barred does not surface no-barred"
 fi
+# 18: the head/guest exclusion from the 'full machine-consensus tally
+# (council.ncl:156-157, `!s.head` and the `standing` filter) is
+# constitution-inert under the canonical constitution.yaml the YAML+apply
+# harness threads — no fixture routed through council_fixture_apply.ncl can
+# reach it. This fixture threads DecisionLedger directly with its own bespoke
+# constitution (a 'full type with no must_assent) to make both filters
+# observable; see the fixture header for the two mutation exit codes that
+# prove it.
+expect "bespoke constitution: head+guest excluded from full tally -> export clean" 0 "" \
+  -- nickel export "$fix/bespoke_full_tally.ncl"
 
 if [ "$fails" -ne 0 ]; then
   echo "FAIL: $fails council case(s) mismatched"; exit 1
