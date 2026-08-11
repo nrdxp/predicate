@@ -1,0 +1,12 @@
+# An evidence item with no signer: the R3 gap the reform closes — every
+# evidence item carries its signer -> missing definition for `signer`.
+deposits:
+  - id: deposit-a
+    step: discovery
+    evidence:
+      - claim: "the tool is available on PATH"
+        method: example_test
+        location: "command -v nickel"
+        check: { command: "command -v nickel", ran: true, at: "6afbc9d" }
+    cites: []
+    refs: []

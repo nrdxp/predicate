@@ -1,0 +1,12 @@
+# A review-method (judgement-species) evidence item with no named witness:
+# testimony without an admitted party is not a vouch -> VouchSpeciesWitnessed.
+deposits:
+  - id: deposit-a
+    step: reconcile
+    evidence:
+      - claim: "the diff was reviewed and is coherent"
+        method: review
+        location: "ledger/contracts/deposit.ncl"
+        signer: { kind: agent, name: reviewer }
+    cites: []
+    refs: []

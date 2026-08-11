@@ -23,6 +23,7 @@ let ro  = import "../../skills/refine/refine_output.ncl" in
         evidence = [
           { claim = "R/I/U tracker re-surfaced; last_validated matches HEAD",
             method = 'review,
+            signer = { kind = 'agent, name = "walker" }, witness = { name = "walker", at = "6afbc9d" },
             location = ".ledger/context_map.ncl" }
         ],
         cites = [".ledger/context_map.ncl"],
@@ -43,6 +44,7 @@ let ro  = import "../../skills/refine/refine_output.ncl" in
         evidence = [
           { claim = "CTX.TARGET_ARTIFACTS set; worktree initialized at .worktrees/refine-topic; N_min=4 M_sweep=4 K_max=12",
             method = 'lint,
+            signer = { kind = 'agent, name = "walker" }, check = { command = ".worktrees/refine-topic", ran = true, at = "6afbc9d" },
             location = ".worktrees/refine-topic" }
         ],
         cites = [".worktrees/refine-topic", ".scratch/topic/refine.md"],
@@ -55,6 +57,7 @@ let ro  = import "../../skills/refine/refine_output.ncl" in
         evidence = [
           { claim = "scope ambiguity in goal resolved; assumption logged under CTX.ASSUMPTIONS",
             method = 'review,
+            signer = { kind = 'agent, name = "walker" }, witness = { name = "walker", at = "6afbc9d" },
             location = ".scratch/topic/refine.md:ASSUMPTIONS" }
         ],
         cites = [".scratch/topic/refine.md"],
@@ -67,6 +70,7 @@ let ro  = import "../../skills/refine/refine_output.ncl" in
         evidence = [
           { claim = "REF_LEDGER populated; d_p(S_1)=3; linter + typecheck run",
             method = 'lint,
+            signer = { kind = 'agent, name = "walker" }, check = { command = ".worktrees/refine-topic/ledger/contracts/procedure.ncl", ran = true, at = "6afbc9d" },
             location = ".worktrees/refine-topic/ledger/contracts/procedure.ncl" }
         ],
         cites = [".worktrees/refine-topic/ledger/contracts/procedure.ncl"],
@@ -79,6 +83,7 @@ let ro  = import "../../skills/refine/refine_output.ncl" in
         evidence = [
           { claim = "REF_LEDGER empty after corrections; d_p(S_2)=0; linter clean",
             method = 'lint,
+            signer = { kind = 'agent, name = "walker" }, check = { command = ".worktrees/refine-topic/ledger/contracts/procedure.ncl", ran = true, at = "6afbc9d" },
             location = ".worktrees/refine-topic/ledger/contracts/procedure.ncl" }
         ],
         cites = [".worktrees/refine-topic/ledger/contracts/procedure.ncl"],
@@ -91,6 +96,7 @@ let ro  = import "../../skills/refine/refine_output.ncl" in
         evidence = [
           { claim = "R1, R2, R3 resolved; commits recorded in TRACE.LOOPS[1].COMMITS",
             method = 'example_test,
+            signer = { kind = 'agent, name = "walker" }, check = { command = ".worktrees/refine-topic", ran = true, at = "6afbc9d" },
             location = ".worktrees/refine-topic" }
         ],
         cites = [".worktrees/refine-topic"],
@@ -119,6 +125,7 @@ let ro  = import "../../skills/refine/refine_output.ncl" in
         evidence = [
           { claim = "fixed-point S* reached; CONSECUTIVE_CLEAN_SWEEPS=4 >= M_sweep=4; human approved",
             method = 'review,
+            signer = { kind = 'agent, name = "walker" }, witness = { name = "walker", at = "6afbc9d" },
             location = ".scratch/topic/refine.md:REPORT" }
         ],
         cites = [".scratch/topic/refine.md"],
@@ -133,6 +140,7 @@ let ro  = import "../../skills/refine/refine_output.ncl" in
         evidence = [
           { claim = "HALT state defined; worktree cleanup procedure documented",
             method = 'lint,
+            signer = { kind = 'agent, name = "walker" }, check = { command = "skills/refine/SKILL.md:HALT", ran = true, at = "6afbc9d" },
             location = "skills/refine/SKILL.md:HALT" }
         ],
         cites = ["skills/refine/SKILL.md"],

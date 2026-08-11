@@ -1,0 +1,12 @@
+# A mechanism-species (type_check) evidence item with no check record at all
+# -> CorroborationSpeciesRan.
+deposits:
+  - id: deposit-a
+    step: verify
+    evidence:
+      - claim: "the contract typechecks"
+        method: type_check
+        location: "ledger/contracts/deposit.ncl"
+        signer: { kind: agent, name: worker }
+    cites: []
+    refs: []

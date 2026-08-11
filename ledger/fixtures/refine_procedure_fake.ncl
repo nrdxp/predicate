@@ -23,16 +23,16 @@ let ro = import "../../skills/refine/refine_output.ncl" in
   steps_instance | r.RefineProcedure = {
     workflow = "refine",
     steps = [
-      { id = "track",            kind = 'leaf,   evidence = [ { claim = "done", method = 'review, location = "x" } ], cites = [] },
+      { id = "track",            kind = 'leaf,   evidence = [ { claim = "done", method = 'review, location = "x", signer = { kind = 'agent, name = "walker" }, witness = { name = "walker", at = "6afbc9d" } } ], cites = [] },
       { id = "adversarial-review", kind = 'invoke, class = "adversarial-review", ref = { target = "r1", role = "sub-procedure-output" } },
-      { id = "absorb",           kind = 'leaf,   evidence = [ { claim = "done", method = 'review, location = "x" } ], cites = [] },
-      { id = "clarify",          kind = 'leaf,   evidence = [ { claim = "done", method = 'review, location = "x" } ], cites = [] },
-      { id = "audit",            kind = 'leaf,   evidence = [ { claim = "done", method = 'review, location = "x" } ], cites = [] },
-      { id = "iterate",          kind = 'leaf,   evidence = [ { claim = "done", method = 'review, location = "x" } ], cites = [] },
+      { id = "absorb",           kind = 'leaf,   evidence = [ { claim = "done", method = 'review, location = "x", signer = { kind = 'agent, name = "walker" }, witness = { name = "walker", at = "6afbc9d" } } ], cites = [] },
+      { id = "clarify",          kind = 'leaf,   evidence = [ { claim = "done", method = 'review, location = "x", signer = { kind = 'agent, name = "walker" }, witness = { name = "walker", at = "6afbc9d" } } ], cites = [] },
+      { id = "audit",            kind = 'leaf,   evidence = [ { claim = "done", method = 'review, location = "x", signer = { kind = 'agent, name = "walker" }, witness = { name = "walker", at = "6afbc9d" } } ], cites = [] },
+      { id = "iterate",          kind = 'leaf,   evidence = [ { claim = "done", method = 'review, location = "x", signer = { kind = 'agent, name = "walker" }, witness = { name = "walker", at = "6afbc9d" } } ], cites = [] },
       { id = "sweep",            kind = 'invoke, class = "adversarial-review", ref = { target = "r2", role = "sub-procedure-output" } },
       { id = "review",           kind = 'invoke, class = "adversarial-review", ref = { target = "r3", role = "sub-procedure-output" } },
-      { id = "report",           kind = 'leaf,   evidence = [ { claim = "done", method = 'review, location = "x" } ], cites = [] },
-      { id = "halt",             kind = 'leaf,   evidence = [ { claim = "done", method = 'review, location = "x" } ], cites = [] },
+      { id = "report",           kind = 'leaf,   evidence = [ { claim = "done", method = 'review, location = "x", signer = { kind = 'agent, name = "walker" }, witness = { name = "walker", at = "6afbc9d" } } ], cites = [] },
+      { id = "halt",             kind = 'leaf,   evidence = [ { claim = "done", method = 'review, location = "x", signer = { kind = 'agent, name = "walker" }, witness = { name = "walker", at = "6afbc9d" } } ], cites = [] },
     ],
   },
 

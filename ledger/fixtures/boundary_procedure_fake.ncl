@@ -22,7 +22,7 @@ let wi = import "../contracts/worker_ibc.ncl" in
       {
         id = "track",
         kind = 'leaf,
-        evidence = [ { claim = "done", method = 'review, location = "x" } ],
+        evidence = [ { claim = "done", method = 'review, location = "x", signer = { kind = 'agent, name = "walker" }, witness = { name = "walker", at = "6afbc9d" } } ],
         cites = [],
       },
       {
@@ -34,7 +34,7 @@ let wi = import "../contracts/worker_ibc.ncl" in
       {
         id = "draft",
         kind = 'leaf,
-        evidence = [ { claim = "done", method = 'review, location = "x" } ],
+        evidence = [ { claim = "done", method = 'review, location = "x", signer = { kind = 'agent, name = "walker" }, witness = { name = "walker", at = "6afbc9d" } } ],
         cites = [],
       },
       {
@@ -46,13 +46,13 @@ let wi = import "../contracts/worker_ibc.ncl" in
       {
         id = "revise",
         kind = 'leaf,
-        evidence = [ { claim = "done", method = 'review, location = "x" } ],
+        evidence = [ { claim = "done", method = 'review, location = "x", signer = { kind = 'agent, name = "walker" }, witness = { name = "walker", at = "6afbc9d" } } ],
         cites = [],
       },
       {
         id = "approve",
         kind = 'leaf,
-        evidence = [ { claim = "done", method = 'review, location = "x" } ],
+        evidence = [ { claim = "done", method = 'review, location = "x", signer = { kind = 'agent, name = "walker" }, witness = { name = "walker", at = "6afbc9d" } } ],
         cites = [],
       },
     ],

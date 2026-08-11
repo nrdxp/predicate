@@ -1,0 +1,22 @@
+# Two deposits sharing one id -> DepositStore duplicate-id rejection.
+deposits:
+  - id: deposit-a
+    step: discovery
+    evidence:
+      - claim: "first"
+        method: manual
+        location: "here"
+        signer: { kind: agent, name: worker }
+        witness: { name: worker, at: "6afbc9d" }
+    cites: []
+    refs: []
+  - id: deposit-a
+    step: verify
+    evidence:
+      - claim: "second"
+        method: manual
+        location: "there"
+        signer: { kind: agent, name: worker }
+        witness: { name: worker, at: "6afbc9d" }
+    cites: []
+    refs: []

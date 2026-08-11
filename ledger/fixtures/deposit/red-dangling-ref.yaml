@@ -1,0 +1,13 @@
+# A ref.target that resolves to no declared deposit id -> dangling DepositRef.
+deposits:
+  - id: deposit-a
+    step: discovery
+    evidence:
+      - claim: "prior work exists"
+        method: manual
+        location: "the record"
+        signer: { kind: agent, name: worker }
+        witness: { name: worker, at: "6afbc9d" }
+    cites: []
+    refs:
+      - { target: nonexistent-id, role: prior-work }

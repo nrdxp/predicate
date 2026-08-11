@@ -20,6 +20,7 @@ let d  = import "../contracts/discipline.ncl" in
         evidence = [
           { claim = "R/I/U tracker loaded from .ledger/context_map.ncl",
             method = 'review,
+            signer = { kind = 'agent, name = "walker" }, witness = { name = "walker", at = "6afbc9d" },
             location = ".ledger/context_map.ncl" }
         ],
         cites = [".ledger/context_map.ncl"],
@@ -40,6 +41,7 @@ let d  = import "../contracts/discipline.ncl" in
         evidence = [
           { claim = "IBC candidate authored from templates/IBC.md",
             method = 'lint,
+            signer = { kind = 'agent, name = "walker" }, check = { command = ".scratch/topic/campaign_ibc.ncl", ran = true, at = "6afbc9d" },
             location = ".scratch/topic/campaign_ibc.ncl" }
         ],
         cites = ["templates/IBC.md", ".scratch/topic/campaign_ibc.ncl"],
@@ -60,6 +62,7 @@ let d  = import "../contracts/discipline.ncl" in
         evidence = [
           { claim = "all S1–S7 objections resolved or rebutted with evidence",
             method = 'review,
+            signer = { kind = 'agent, name = "walker" }, witness = { name = "walker", at = "6afbc9d" },
             location = ".scratch/topic/campaign_ibc.ncl" }
         ],
         cites = [".scratch/topic/campaign_ibc.ncl"],
@@ -72,6 +75,7 @@ let d  = import "../contracts/discipline.ncl" in
         evidence = [
           { claim = "human approved IBC* after zero-objection ATTACK sweep",
             method = 'manual,
+            signer = { kind = 'agent, name = "walker" }, witness = { name = "walker", at = "6afbc9d" },
             location = ".scratch/topic/campaign_ibc.ncl" }
         ],
         cites = [".scratch/topic/campaign_ibc.ncl"],

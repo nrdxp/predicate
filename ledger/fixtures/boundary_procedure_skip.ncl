@@ -13,7 +13,7 @@ let b = import "../../skills/boundary/boundary_procedure.ncl" in
         id = "track",
         kind = 'leaf,
         evidence = [
-          { claim = "tracker loaded", method = 'review, location = ".ledger/context_map.ncl" }
+          { claim = "tracker loaded", method = 'review, location = ".ledger/context_map.ncl", signer = { kind = 'agent, name = "walker" }, witness = { name = "walker", at = "6afbc9d" } }
         ],
         cites = [".ledger/context_map.ncl"],
       },
@@ -29,7 +29,7 @@ let b = import "../../skills/boundary/boundary_procedure.ncl" in
         id = "draft",
         kind = 'leaf,
         evidence = [
-          { claim = "draft IBC authored", method = 'lint, location = ".scratch/t/ibc.ncl" }
+          { claim = "draft IBC authored", method = 'lint, location = ".scratch/t/ibc.ncl", signer = { kind = 'agent, name = "walker" }, check = { command = ".scratch/t/ibc.ncl", ran = true, at = "6afbc9d" } }
         ],
         cites = [".scratch/t/ibc.ncl"],
       },
@@ -39,7 +39,7 @@ let b = import "../../skills/boundary/boundary_procedure.ncl" in
         id = "revise",
         kind = 'leaf,
         evidence = [
-          { claim = "objections resolved", method = 'review, location = ".scratch/t/ibc.ncl" }
+          { claim = "objections resolved", method = 'review, location = ".scratch/t/ibc.ncl", signer = { kind = 'agent, name = "walker" }, witness = { name = "walker", at = "6afbc9d" } }
         ],
         cites = [".scratch/t/ibc.ncl"],
       },
@@ -48,7 +48,7 @@ let b = import "../../skills/boundary/boundary_procedure.ncl" in
         id = "approve",
         kind = 'leaf,
         evidence = [
-          { claim = "human approved", method = 'manual, location = ".scratch/t/ibc.ncl" }
+          { claim = "human approved", method = 'manual, location = ".scratch/t/ibc.ncl", signer = { kind = 'agent, name = "walker" }, witness = { name = "walker", at = "6afbc9d" } }
         ],
         cites = [".scratch/t/ibc.ncl"],
       },

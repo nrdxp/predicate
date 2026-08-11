@@ -1,0 +1,30 @@
+# Both species, string enum forms, signed evidence, a resolving ref, and one
+# E-4 dirty anchor (ran against `at` plus uncommitted changes) -> export clean.
+deposits:
+  - id: deposit-survey
+    step: discovery
+    evidence:
+      - claim: "the fixture sweep passes on the reformed shapes"
+        method: example_test
+        location: "ledger/gate/test_fixture_sweep.sh"
+        signer: { kind: agent, name: survey-worker }
+        check: { command: "bash ledger/gate/test_fixture_sweep.sh", ran: true, at: "6afbc9d" }
+      - claim: "the working tree carried uncommitted fixture edits at check time"
+        method: lint
+        location: "ledger/gate/ledger-validate.sh"
+        signer: { kind: agent, name: survey-worker }
+        check: { command: "bash ledger/gate/ledger-validate.sh structure f.ncl", ran: true, at: "6afbc9d", dirty: true }
+    cites:
+      - "ledger/contracts/deposit.ncl"
+    refs: []
+  - id: deposit-review
+    step: reconcile
+    evidence:
+      - claim: "the survey deposit's excerpts match the files they cite"
+        method: review
+        location: ".scratch/typed-claims/deposit-shapes-a.md"
+        signer: { kind: agent, name: architect-seat }
+        witness: { name: architect-seat, at: "6afbc9d" }
+    cites: []
+    refs:
+      - { target: deposit-survey, role: prior-discovery }

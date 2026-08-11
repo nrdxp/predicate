@@ -12,19 +12,19 @@ let required = c.CoreSteps @ ["specify"] in
     workflow = "iterates-to-fixed-point",
     steps = [
       { id = "track", kind = 'leaf,
-        evidence = [ { claim = "tracker fresh", method = 'review, location = "cm.ncl" } ],
+        evidence = [ { claim = "tracker fresh", method = 'review, location = "cm.ncl", signer = { kind = 'agent, name = "walker" }, witness = { name = "walker", at = "6afbc9d" } } ],
         cites = ["cm.ncl"] },
       { id = "specify", kind = 'leaf,
-        evidence = [ { claim = "spec authored", method = 'type_check, location = "s.ncl:1" } ],
+        evidence = [ { claim = "spec authored", method = 'type_check, location = "s.ncl:1", signer = { kind = 'agent, name = "walker" }, check = { command = "s.ncl:1", ran = true, at = "6afbc9d" } } ],
         cites = ["s.ncl"] },
       # the correction loop: two iterations of the same concern as distinct ids,
       # each depositing its own iteration's evidence (the LOOPS:n discipline made
       # a footprint trail).
       { id = "refine-pass-1", kind = 'leaf,
-        evidence = [ { claim = "iteration 1: 2 findings folded", method = 'example_test, location = "test.log:1" } ],
+        evidence = [ { claim = "iteration 1: 2 findings folded", method = 'example_test, location = "test.log:1", signer = { kind = 'agent, name = "walker" }, check = { command = "test.log:1", ran = true, at = "6afbc9d" } } ],
         cites = ["test.log"] },
       { id = "refine-pass-2", kind = 'leaf,
-        evidence = [ { claim = "iteration 2: converged, dE=0", method = 'example_test, location = "test.log:42" } ],
+        evidence = [ { claim = "iteration 2: converged, dE=0", method = 'example_test, location = "test.log:42", signer = { kind = 'agent, name = "walker" }, check = { command = "test.log:42", ran = true, at = "6afbc9d" } } ],
         cites = ["test.log"] },
       { id = "adversarial-review", kind = 'invoke,
         class = "adversarial-review",

@@ -11,17 +11,17 @@ let required = c.CoreSteps @ ["specify"] in
     workflow = "conflates-leaf-and-invoke",
     steps = [
       { id = "track", kind = 'leaf,
-        evidence = [ { claim = "tracker fresh", method = 'review, location = "cm.ncl" } ],
+        evidence = [ { claim = "tracker fresh", method = 'review, location = "cm.ncl", signer = { kind = 'agent, name = "walker" }, witness = { name = "walker", at = "6afbc9d" } } ],
         cites = ["cm.ncl"] },
       { id = "specify", kind = 'leaf,
-        evidence = [ { claim = "spec authored", method = 'type_check, location = "s.ncl:1" } ],
+        evidence = [ { claim = "spec authored", method = 'type_check, location = "s.ncl:1", signer = { kind = 'agent, name = "walker" }, check = { command = "s.ncl:1", ran = true, at = "6afbc9d" } } ],
         cites = ["s.ncl"] },
       # FORBIDDEN: declares 'invoke but ALSO smuggles a leaf `evidence` payload.
       # The XOR must reject it — split into a leaf state and an invoke state.
       { id = "adversarial-review", kind = 'invoke,
         class = "adversarial-review",
         ref = { target = "r", role = "sub-procedure-output" },
-        evidence = [ { claim = "also did local work", method = 'lint, location = "x:1" } ] },
+        evidence = [ { claim = "also did local work", method = 'lint, location = "x:1", signer = { kind = 'agent, name = "walker" }, check = { command = "x:1", ran = true, at = "6afbc9d" } } ] },
     ],
   },
 }

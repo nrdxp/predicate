@@ -11,7 +11,7 @@ let r = import "../../skills/refine/refine_procedure.ncl" in
       {
         id = "track",
         kind = 'leaf,
-        evidence = [ { claim = "tracker loaded", method = 'review, location = ".ledger/context_map.ncl" } ],
+        evidence = [ { claim = "tracker loaded", method = 'review, location = ".ledger/context_map.ncl", signer = { kind = 'agent, name = "walker" }, witness = { name = "walker", at = "6afbc9d" } } ],
         cites = [".ledger/context_map.ncl"],
       },
       {
@@ -23,25 +23,25 @@ let r = import "../../skills/refine/refine_procedure.ncl" in
       {
         id = "absorb",
         kind = 'leaf,
-        evidence = [ { claim = "absorb complete", method = 'lint, location = ".worktrees/t" } ],
+        evidence = [ { claim = "absorb complete", method = 'lint, location = ".worktrees/t", signer = { kind = 'agent, name = "walker" }, check = { command = ".worktrees/t", ran = true, at = "6afbc9d" } } ],
         cites = [".worktrees/t"],
       },
       {
         id = "clarify",
         kind = 'leaf,
-        evidence = [ { claim = "no ambiguity", method = 'review, location = ".scratch/t.md" } ],
+        evidence = [ { claim = "no ambiguity", method = 'review, location = ".scratch/t.md", signer = { kind = 'agent, name = "walker" }, witness = { name = "walker", at = "6afbc9d" } } ],
         cites = [".scratch/t.md"],
       },
       {
         id = "audit",
         kind = 'leaf,
-        evidence = [ { claim = "ledger populated", method = 'lint, location = ".worktrees/t/x.ncl" } ],
+        evidence = [ { claim = "ledger populated", method = 'lint, location = ".worktrees/t/x.ncl", signer = { kind = 'agent, name = "walker" }, check = { command = ".worktrees/t/x.ncl", ran = true, at = "6afbc9d" } } ],
         cites = [".worktrees/t/x.ncl"],
       },
       {
         id = "iterate",
         kind = 'leaf,
-        evidence = [ { claim = "items resolved", method = 'example_test, location = ".worktrees/t" } ],
+        evidence = [ { claim = "items resolved", method = 'example_test, location = ".worktrees/t", signer = { kind = 'agent, name = "walker" }, check = { command = ".worktrees/t", ran = true, at = "6afbc9d" } } ],
         cites = [".worktrees/t"],
       },
       # "sweep" DELIBERATELY OMITTED — footprint-presence must fail.
@@ -54,13 +54,13 @@ let r = import "../../skills/refine/refine_procedure.ncl" in
       {
         id = "report",
         kind = 'leaf,
-        evidence = [ { claim = "fixed point reached", method = 'review, location = ".scratch/t.md" } ],
+        evidence = [ { claim = "fixed point reached", method = 'review, location = ".scratch/t.md", signer = { kind = 'agent, name = "walker" }, witness = { name = "walker", at = "6afbc9d" } } ],
         cites = [".scratch/t.md"],
       },
       {
         id = "halt",
         kind = 'leaf,
-        evidence = [ { claim = "halt path defined", method = 'lint, location = "skills/refine/SKILL.md" } ],
+        evidence = [ { claim = "halt path defined", method = 'lint, location = "skills/refine/SKILL.md", signer = { kind = 'agent, name = "walker" }, check = { command = "skills/refine/SKILL.md", ran = true, at = "6afbc9d" } } ],
         cites = ["skills/refine/SKILL.md"],
       },
     ],

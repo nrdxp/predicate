@@ -1,0 +1,13 @@
+# A deposit missing its `step` field: caught only by the store's eager
+# per-deposit conformance fold (the laziness guard) -> missing definition for
+# `step`.
+deposits:
+  - id: deposit-a
+    evidence:
+      - claim: "shape holds"
+        method: manual
+        location: "here"
+        signer: { kind: agent, name: worker }
+        witness: { name: worker, at: "6afbc9d" }
+    cites: []
+    refs: []

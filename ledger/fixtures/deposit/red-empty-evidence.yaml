@@ -1,0 +1,7 @@
+# A deposit with an empty evidence array is vacuous -> NonEmptyEvidence.
+deposits:
+  - id: deposit-a
+    step: discovery
+    evidence: []
+    cites: []
+    refs: []

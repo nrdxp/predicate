@@ -14,6 +14,8 @@ let c = import "../contracts/deposit.ncl" in
           claim = "the outward-environment search confirmed the tool is available",
           method = 'example_test,
           location = "ledger/fixtures/deposit_dangling_ref.ncl:1",
+          signer = { kind = 'agent, name = "survey-worker" },
+          check = { command = "command -v nickel", ran = true, at = "6afbc9d" },
         },
       ],
       cites = [],

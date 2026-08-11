@@ -1,0 +1,14 @@
+# A mechanism-species (property_test) evidence item whose check was authored
+# but never RUN: a named-but-unrun mechanism is a dispatchable question, not
+# evidence -> CorroborationSpeciesRan.
+deposits:
+  - id: deposit-a
+    step: verify
+    evidence:
+      - claim: "the store rejects duplicate ids"
+        method: property_test
+        location: "ledger/fixtures/deposit/red-dup-id.yaml"
+        signer: { kind: agent, name: worker }
+        check: { command: "nickel export red-dup-id.yaml --apply-contract deposit_apply.ncl", ran: false, at: "6afbc9d" }
+    cites: []
+    refs: []

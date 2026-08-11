@@ -12,10 +12,10 @@ let required = c.CoreSteps @ ["specify"] in
     workflow = "reaches-outside-registry",
     steps = [
       { id = "track", kind = 'leaf,
-        evidence = [ { claim = "tracker fresh", method = 'review, location = "cm.ncl" } ],
+        evidence = [ { claim = "tracker fresh", method = 'review, location = "cm.ncl", signer = { kind = 'agent, name = "walker" }, witness = { name = "walker", at = "6afbc9d" } } ],
         cites = ["cm.ncl"] },
       { id = "specify", kind = 'leaf,
-        evidence = [ { claim = "spec authored", method = 'type_check, location = "s.ncl:1" } ],
+        evidence = [ { claim = "spec authored", method = 'type_check, location = "s.ncl:1", signer = { kind = 'agent, name = "walker" }, check = { command = "s.ncl:1", ran = true, at = "6afbc9d" } } ],
         cites = ["s.ncl"] },
       # FORBIDDEN: `database-migration` is not a registered sub-procedure class.
       { id = "adversarial-review", kind = 'invoke,

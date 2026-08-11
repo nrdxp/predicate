@@ -7,67 +7,96 @@
 # TWO-PURPOSE PRINCIPLE (primitives-spec.md): the schema is the reviewer's
 # checklist formalized. Each sub-field answers one question a reviewer would ask
 # anyway; the machine verifies presence + typing, the reviewer judges substance.
-# A single free-text blob fails both layers: the machine only checks "non-empty"
-# and the reviewer gets a blank page. The structured evidence below gives both
-# grip.
+#
+# EXTENDS THE ENTRY CORE (entry.ncl): the flat method enum used to rank the two
+# evidence species — corroboration (a re-runnable check that WAS RUN) and vouch
+# (a named admitted witness) — as peer values, which made any admission policy
+# unimplementable: nothing said whether a named mechanism was executed, or who
+# stood behind a judgement. Reformed, every evidence item carries its signer and
+# the anchor its species requires: methods that are deterministic mechanisms
+# carry a core `Check` (command, ran, at); methods that are judgements carry a
+# core `Witness` (name, at). The method field is KEPT — it is the evaluator-tier
+# information the species alone does not carry.
 #
 # Contracts exported:
-#   Evidence      — one reviewer-checkable sub-claim
+#   CheckAnchor / WitnessAnchor — core Check/Witness + the optional E-4 dirty
+#                   marker (absent = tree matched `at`; true = ran against `at`
+#                   plus uncommitted changes)
+#   Evidence      — one reviewer-checkable sub-claim, signed, species-anchored
+#   EvidenceChecked — Evidence composed with the two species predicates
 #   DepositRef    — typed pointer to a deposit by id, with an explicit role
-#   Deposit       — the P-GROUND footprint record (5 required top-level fields)
+#   Deposit       — the P-GROUND footprint record
 #   DepositStore  — intrinsic referential-integrity gate over an array of deposits
-#                   (ids unique; every ref.target resolves to a declared id)
-#
-# Composition pattern (mirrors dag.ncl / context_map.ncl):
-#   value | Deposit             — individual deposit shape check
-#   value | Deposit | DepositRef — individual ref shape check (on a ref record)
-#   { deposits = [...] } | DepositStore   — full store with referential integrity
 #
 # Verification:
 #   CONTRACT DEFINITIONS (this file): nickel typecheck
-#   INSTANCE / FIXTURE: nickel export (with -I pointing to this directory)
+#   INSTANCE / FIXTURE: nickel export <f>.yaml --apply-contract deposit_apply.ncl
+let e = import "entry.ncl" in
 {
-  # Non-empty string: the silent-omission sentinel (empty string) is rejected
-  # here so call sites are clean. `std.contract.from_predicate` raises eagerly
-  # when the value is forced under `std.deep_seq`.
-  NonEmptyString = std.contract.from_predicate (fun value =>
-    std.is_string value && std.string.length value > 0
+  # Re-exported core sentinel: downstream contracts (discovery.ncl,
+  # procedure.ncl, arsenal_registry.ncl) destructure NonEmptyString from this
+  # module; the definition lives in the core alone.
+  NonEmptyString = e.NonEmptyString,
+
+  # The core anchors, extended with the OPTIONAL dirty marker (E-4). Record
+  # merge extends the frozen core without editing it; the merged record stays
+  # closed (an undeclared extra field is still rejected).
+  CheckAnchor = e.Check & { dirty | Bool | optional },
+  WitnessAnchor = e.Witness & { dirty | Bool | optional },
+
+  # Value-restricted tag-or-string (the D-6 idiom, via the core's `matches`):
+  # the evaluator tier of one evidence item. review/manual are vouch-species;
+  # everything else is corroboration-species (see the two predicates below).
+  EvidenceMethod = std.contract.custom (fun _label v =>
+    if e.matches v 'proof "proof"
+       || e.matches v 'type_check "type_check"
+       || e.matches v 'property_test "property_test"
+       || e.matches v 'example_test "example_test"
+       || e.matches v 'lint "lint"
+       || e.matches v 'review "review"
+       || e.matches v 'manual "manual"
+    then 'Ok v
+    else 'Error { message = "EvidenceMethod: expected proof|type_check|property_test|example_test|lint|review|manual (tag or string)" }
   ),
 
-  # ── Evidence ────────────────────────────────────────────────────────────────
-  # The reviewer's checklist for ONE sub-claim within a deposit. Each field
-  # answers a distinct question:
-  #   claim    → WHAT is asserted (the falsifiable sub-claim)
-  #   method   → HOW it was established (determines the evaluator tier)
-  #   location → WHERE to look to reproduce or refute it (a file:line, command,
-  #              URL, or commit hash — not a narrative)
-  #
-  # Structured into three fields rather than one free-text blob because:
-  #   - The machine can gate each field non-empty independently.
-  #   - The reviewer can judge claim / method / location as distinct quality axes.
-  #   - A mis-typed method fails the contract; a mis-typed free-text blob passes.
-  # Value-restricted tag-or-string for Evidence.method.
-  # Accepts the enum tag 'proof/'type_check/… OR the matching string "proof"/
-  # "type_check"/… so a YAML deposit (which carries strings, not tags) validates
-  # without modification.  A bare [| 'proof, … |] rejects strings; a bare
-  # std.enum.TagOrString accepts ANY string and loses the value restriction.
-  # This contract implements: string ∈ allowed-set OR matching tag — the minimum
-  # that preserves both the YAML-compatibility and the value-restriction goals.
-  EvidenceMethod = std.contract.from_predicate (fun v =>
-    v == 'proof          || v == "proof"
-    || v == 'type_check  || v == "type_check"
-    || v == 'property_test || v == "property_test"
-    || v == 'example_test  || v == "example_test"
-    || v == 'lint        || v == "lint"
-    || v == 'review      || v == "review"
-    || v == 'manual      || v == "manual"
-  ),
-
+  # One reviewer-checkable sub-claim. `claim` = WHAT is asserted; `method` =
+  # the evaluator tier; `location` = WHERE to reproduce or refute it; `signer`
+  # = WHO asserts it (core Signer — the universal R3 gap, closed); the anchor
+  # (`check` or `witness`) = the species-shaped backing itself.
   Evidence = {
-    claim    | NonEmptyString,   # the falsifiable assertion
-    method   | EvidenceMethod,   # how it was established; accepts tag or string
-    location | NonEmptyString,   # file:line, command, URL, or commit to reproduce
+    claim | e.NonEmptyString,
+    method | EvidenceMethod,
+    location | e.NonEmptyString,
+    signer | e.Signer,
+    check | CheckAnchor | optional,
+    witness | WitnessAnchor | optional,
   },
+
+  # The method-to-species cut. Bare boolean predicates (the core's batch-
+  # validation design), lifted through the core's `asContract` so each red
+  # names its own predicate.
+  is_vouch_method | doc "true iff the method is judgement-species (review/manual)"
+    = fun m => e.matches m 'review "review" || e.matches m 'manual "manual",
+
+  # A judgement-species item must name its witness — testimony without a named
+  # admitted party is not a vouch.
+  VouchSpeciesWitnessed = fun ev =>
+    !(is_vouch_method ev.method) || std.record.has_field "witness" ev,
+
+  # A mechanism-species item must carry a check that WAS RUN — a named-but-
+  # unrun mechanism is a dispatchable question, not evidence (the core's
+  # corroborated/unclosed cut, applied at the evidence grain).
+  CorroborationSpeciesRan = fun ev =>
+    is_vouch_method ev.method
+    || (std.record.has_field "check" ev && ev.check.ran),
+
+  # The per-item contract the store applies: shape first, then the two species
+  # predicates (each failure carries its own token).
+  EvidenceChecked = std.contract.all_of [
+    Evidence,
+    e.asContract "VouchSpeciesWitnessed" VouchSpeciesWitnessed,
+    e.asContract "CorroborationSpeciesRan" CorroborationSpeciesRan,
+  ],
 
   # ── DepositRef ──────────────────────────────────────────────────────────────
   # A typed pointer from this deposit to another deposit by id. The `role` field
@@ -75,20 +104,26 @@
   # reviewers the context to judge whether the provenance claim is apt.
   DepositRef = {
     target | String,             # the id of the referenced deposit
-    role   | NonEmptyString,     # e.g. "discovery-footprint", "prior-work", "sub-procedure-output"
+    role   | e.NonEmptyString,   # e.g. "discovery-footprint", "prior-work", "sub-procedure-output"
   },
+
+  # At least one evidence item — a deposit with no sub-claims is vacuous.
+  # Named custom (not from_predicate) so the red carries its own token.
+  NonEmptyEvidence = std.contract.custom (fun _label v =>
+    if std.is_array v && std.array.length v > 0
+    then 'Ok v
+    else 'Error { message = "Deposit.evidence: at least one evidence item required" }
+  ),
 
   # ── Deposit ──────────────────────────────────────────────────────────────────
   # The P-GROUND footprint record. Invariants enforced at the record level:
-  #   I-G1  id and evidence non-empty (NonEmptyString + Evidence contract)
-  #   I-G1  evidence is a non-empty array (at least one sub-claim)
-  # Referential integrity (I-G2) is enforced at the store level by DepositStore.
+  #   I-G1  id non-empty; evidence a non-empty array
+  # Per-item Evidence conformance and referential integrity (I-G2) are enforced
+  # at the store level by DepositStore.
   Deposit = {
-    id       | NonEmptyString,         # unique within the instance
-    step     | NonEmptyString,         # the procedure step that wrote this deposit
-    evidence | std.contract.from_predicate (fun v =>
-                 std.is_array v && std.array.length v > 0
-               ),                      # array of Evidence; non-empty enforced here
+    id       | e.NonEmptyString,       # unique within the instance
+    step     | e.NonEmptyString,       # the procedure step that wrote this deposit
+    evidence | NonEmptyEvidence,       # array of Evidence; per-item check in the store
     cites    | Array String,           # file paths cited as supporting material
     refs     | Array DepositRef,       # typed pointers to other deposits (DepositRef)
   },
@@ -97,12 +132,11 @@
   # Intrinsic referential-integrity gate over an array of deposits. Enforces:
   #   (a) per-element Deposit conformance (eager via std.deep_seq)
   #   (b) per-element DepositRef conformance within each deposit's refs (eager)
-  #   (c) per-element Evidence conformance within each deposit's evidence (eager)
+  #   (c) per-element EvidenceChecked conformance — shape + the two species
+  #       predicates — within each deposit's evidence (eager)
   #   (d) id uniqueness (I-G1)
   #   (e) every ref.target resolves to a declared deposit id (I-G2)
   #
-  # Pattern mirrors dag.ncl's Dag contract exactly:
-  #   std.array.fold_left (fun acc n => std.deep_seq (n | Node) acc) null nodes
   # The `std.deep_seq (n | Contract) acc` annotation is what makes the contract
   # EAGER — `std.contract.apply` alone stays lazy and violations slip through
   # `nickel export`. `std.seq _conformance` forces the fold before the verdict.
@@ -118,14 +152,12 @@
     in
 
     # (b+c) Per-ref and per-evidence conformance inside each deposit (eager).
-    # Iterating evidence sub-items and refs with deep_seq ensures the nested
-    # NonEmptyString and enum contracts fire rather than being skipped lazily.
     let _nested_conformance =
       std.array.fold_left
         (fun acc d =>
           let _evs =
             std.array.fold_left
-              (fun a2 ev => std.deep_seq (ev | Evidence) a2)
+              (fun a2 ev => std.deep_seq (ev | EvidenceChecked) a2)
               acc
               d.evidence
           in

@@ -1,0 +1,14 @@
+# An out-of-set method string -> EvidenceMethod (value restriction holds in
+# string form). Carries a valid run check so the bad method is the ONLY
+# violation (single-violation by construction).
+deposits:
+  - id: deposit-a
+    step: verify
+    evidence:
+      - claim: "something was established somehow"
+        method: vibes
+        location: "nowhere"
+        signer: { kind: agent, name: worker }
+        check: { command: "true", ran: true, at: "6afbc9d" }
+    cites: []
+    refs: []
