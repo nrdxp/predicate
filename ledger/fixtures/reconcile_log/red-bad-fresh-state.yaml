@@ -1,0 +1,15 @@
+# An out-of-set freshness state -> FreshState (value-restricted tag-or-string,
+# named exactly like its sibling Verdict — which the suite already covers via
+# red-bad-verdict; FreshState had no case anywhere, A4).
+rounds:
+  - round: 1
+    judged:
+      - node: P1
+        verdict: accept
+        evaluator: "bash ledger/gate/test_entry.sh -> 0"
+        at: "6afbc9d"
+        author: { kind: agent, name: lead-maintainer }
+    freshness:
+      - { node: P1, state: maybe }
+    realignments: []
+    checkpoint_commit: "d4b8fde"

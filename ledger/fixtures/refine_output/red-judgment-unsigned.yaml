@@ -1,0 +1,18 @@
+# A maintainer judgment with no witness at all: the postmortem half already
+# has this red (red-postmortem-unsigned); the judgment half — a vouch is
+# testimony, and testimony with no named party is not a vouch — had none
+# (D10). Honest collision with red-postmortem-unsigned: both are missing-
+# witness reds on different records (MaintainerJudgment vs Postmortem), same
+# generic Nickel message, each the sole killer of its own record's shape.
+workflow: refine
+depends:
+  - "ledger/contracts/procedure.ncl"
+final_loop: 3
+consecutive_clean_sweeps: 2
+maintainer_judgments:
+  - role: maintainer-architecture
+    verdict: approved
+postmortem:
+  critique: "Fine."
+  witness: { name: adversarial-process-auditor, at: "6afbc9d" }
+fixed_point_hash: "sha256:aa"

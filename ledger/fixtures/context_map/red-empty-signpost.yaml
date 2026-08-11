@@ -1,0 +1,12 @@
+# An empty signpost: the defeater of a directive row is map metadata, and an
+# empty one silently omits the one thing that would tell a reviewer this item
+# has expired -> contract broken by the value of `signpost`.
+items:
+  - id: R1
+    kind: requirement
+    statement: "Every ledger contract must export 0 under the structure gate."
+    provenance: { kind: human, name: nrd }
+    grounding: "ledger/gate/ledger-validate.sh (structure subcommand)."
+    last_validated: "2026-08-10"
+    at: "6afbc9d"
+    signpost: ""

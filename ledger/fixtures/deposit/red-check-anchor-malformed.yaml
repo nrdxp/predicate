@@ -1,0 +1,16 @@
+# A check anchor with `ran` but no `command`/`at`: every check anchor in every
+# OTHER deposit fixture is well-formed, so the reform's headline claim
+# ("mechanisms carry a core Check: command, ran, at") rested on nothing until
+# this case (B1). red-corroboration-{unrun,no-check} read `ev.check.ran` and
+# `has_field "check"` only — they never force the Check record's own shape.
+deposits:
+  - id: deposit-a
+    step: discovery
+    evidence:
+      - claim: "the fixture sweep passes"
+        method: example_test
+        location: "ledger/gate/test_fixture_sweep.sh"
+        signer: { kind: agent, name: survey-worker }
+        check: { ran: true }
+    cites: []
+    refs: []

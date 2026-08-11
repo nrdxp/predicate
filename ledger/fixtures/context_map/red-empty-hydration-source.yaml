@@ -1,0 +1,14 @@
+# hydration_source explicitly set to the empty string: the header names "" as
+# the silent-omission sentinel and forbids it (null = scratch-originated is
+# the only way to say "no source") -> contract broken by the value of
+# `hydration_source`.
+items:
+  - id: R1
+    kind: requirement
+    statement: "Every ledger contract must export 0 under the structure gate."
+    provenance: { kind: human, name: nrd }
+    grounding: "ledger/gate/ledger-validate.sh (structure subcommand)."
+    last_validated: "2026-08-10"
+    at: "6afbc9d"
+    signpost: "ledger-validate structure returns non-zero on a contract."
+    hydration_source: ""

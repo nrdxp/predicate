@@ -1,0 +1,13 @@
+# A pre-reform bare-name evaluator (the shape the reform replaced with the
+# core Check anchor): the finding is still OPEN, so ResolutionRun does not
+# fire — this is B2's headline type-change, otherwise untested by any
+# fixture -> expected a Record.
+findings:
+  - id: F1
+    severity: low
+    statement: "Pre-reform bare-name evaluator, still open."
+    evidence: "none"
+    status: open
+    evaluator: "make test"
+    signer: { kind: agent, name: worker }
+    at: "6afbc9d"

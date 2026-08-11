@@ -15,12 +15,13 @@ findings:
     status: planned
     signer: { kind: agent, name: survey-worker }
     at: "6afbc9d"
+    depends: [F3]
     because: [F1]
   - id: F3
     severity: low
     statement: "The suite lacked a duplicate-id red."
     evidence: "grep -c dup ledger/gate/test_findings.sh -> 0 (pre-reform)"
     status: mitigated
-    evaluator: { command: "bash ledger/gate/test_findings.sh", ran: true, at: "6afbc9d" }
+    evaluator: { command: "bash ledger/gate/test_findings.sh", ran: true, at: "6afbc9d", dirty: true }
     signer: { kind: agent, name: worker }
     at: "6afbc9d"

@@ -1,0 +1,21 @@
+# An acceptance criterion without its eval (required-field red): a criterion
+# names HOW compliance is checked -> missing definition for `eval`.
+id: wx-criterion-no-eval
+tier: "worker (fable)"
+discipline: core
+goal:
+  id: g0
+  statement: "Ship it."
+  provenance: { kind: human, name: nrd }
+non_goals: []
+premises: []
+delegated: []
+reserved: []
+constraints: []
+context_map: []
+acceptance:
+  - id: b1
+    statement: "Done when done."
+    provenance: { kind: human, name: nrd }
+load_bearing: []
+plastic: []

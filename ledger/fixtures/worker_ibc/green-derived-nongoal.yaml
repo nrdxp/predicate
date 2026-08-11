@@ -1,0 +1,27 @@
+# A derived directive (a non-goal read off the goal's own synthesis): no
+# name, at least one inbound edge -> DirectiveDesignates's derived arm holds,
+# export clean. Pins the derived cell the suite otherwise never inhabits (A3).
+id: wx-derived-nongoal
+tier: "worker (fable)"
+discipline: core
+goal:
+  id: g0
+  statement: "Root the walk."
+  provenance: { kind: human, name: nrd }
+non_goals:
+  - id: ng1
+    statement: "Anything the goal's synthesis already forbids."
+    provenance: { kind: derived }
+    depends: [g0]
+premises: []
+delegated: []
+reserved: []
+constraints: []
+context_map: []
+acceptance:
+  - id: b1
+    statement: "Done when done."
+    eval: "true"
+    provenance: { kind: human, name: nrd }
+load_bearing: []
+plastic: []

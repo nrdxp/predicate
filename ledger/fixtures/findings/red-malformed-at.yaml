@@ -1,0 +1,12 @@
+# A malformed `at` (not a commit hash): CommitRef's shape is never verified on
+# any `at` field in the pass — every red-no-at fixture proves presence, never
+# shape (D9). Pinned here since `at` is the most load-bearing anchor in this
+# suite (the record state a finding was found against).
+findings:
+  - id: F1
+    severity: low
+    statement: "Found against a malformed record-state anchor."
+    evidence: "none"
+    status: open
+    signer: { kind: agent, name: worker }
+    at: "not-a-commit-hash"

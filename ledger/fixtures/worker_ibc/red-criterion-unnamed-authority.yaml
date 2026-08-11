@@ -1,0 +1,24 @@
+# An acceptance criterion under anonymous, non-derived authority: the
+# DirectiveDesignates splice on CriterionChecked, distinct from the goal's own
+# splice (which the suite already covers via red-directive-unnamed) ->
+# DirectiveDesignates.
+id: wx-criterion-unnamed
+tier: "worker (fable)"
+discipline: core
+goal:
+  id: g0
+  statement: "Accept under anonymous authority."
+  provenance: { kind: human, name: nrd }
+non_goals: []
+premises: []
+delegated: []
+reserved: []
+constraints: []
+context_map: []
+acceptance:
+  - id: b1
+    statement: "Done when done."
+    eval: "true"
+    provenance: { kind: agent }
+load_bearing: []
+plastic: []

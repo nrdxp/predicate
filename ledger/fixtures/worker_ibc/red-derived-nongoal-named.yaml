@@ -1,0 +1,27 @@
+# A derived directive that ALSO carries a name: the designation is incoherent
+# -- derived means the edges alone designate, so a name defeats the derived
+# arm regardless of edges present -> DirectiveDesignates.
+id: wx-derived-named
+tier: "worker (fable)"
+discipline: core
+goal:
+  id: g0
+  statement: "Root the walk."
+  provenance: { kind: human, name: nrd }
+non_goals:
+  - id: ng1
+    statement: "A synthesis that also claims a name — incoherent designation."
+    provenance: { kind: derived, name: nrd }
+    depends: [g0]
+premises: []
+delegated: []
+reserved: []
+constraints: []
+context_map: []
+acceptance:
+  - id: b1
+    statement: "Done when done."
+    eval: "true"
+    provenance: { kind: human, name: nrd }
+load_bearing: []
+plastic: []

@@ -1,0 +1,27 @@
+# A constraint under anonymous, non-derived authority: the DirectiveDesignates
+# splice on ConstraintChecked, distinct from the goal's own splice (which the
+# suite already covers via red-directive-unnamed) -> DirectiveDesignates.
+id: wx-constraint-unnamed
+tier: "worker (fable)"
+discipline: core
+goal:
+  id: g0
+  statement: "Constrain under anonymous authority."
+  provenance: { kind: human, name: nrd }
+non_goals: []
+premises: []
+delegated: []
+reserved: []
+constraints:
+  - id: g1
+    statement: "The suite stays green."
+    evaluator: "bash suite.sh; echo EXIT=$?"
+    provenance: { kind: agent }
+context_map: []
+acceptance:
+  - id: b1
+    statement: "Done when done."
+    eval: "true"
+    provenance: { kind: human, name: nrd }
+load_bearing: []
+plastic: []

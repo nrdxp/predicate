@@ -1,0 +1,30 @@
+# A corroborated premise whose check was never run: the nine core predicates
+# (spliced in via `@ e.lifted`) apply to premises the same as any other entry
+# -> CorroborationBacked (grounds the PremiseChecked e.lifted splice, A1).
+id: wx-premise-unrun
+tier: "worker (fable)"
+discipline: core
+goal:
+  id: g0
+  statement: "Stand on a check that was never run."
+  provenance: { kind: human, name: nrd }
+non_goals: []
+premises:
+  - id: p1
+    statement: "The suite is green at 6afbc9d."
+    assertion: claim
+    backing: corroborated
+    signer: { kind: agent, name: architect-seat }
+    check: { command: "bash ledger/gate/test_entry.sh", ran: false, at: "6afbc9d" }
+    axes: { determined: true, certifiable: true, monotone: true }
+delegated: []
+reserved: []
+constraints: []
+context_map: []
+acceptance:
+  - id: b1
+    statement: "Done when done."
+    eval: "true"
+    provenance: { kind: human, name: nrd }
+load_bearing: []
+plastic: []

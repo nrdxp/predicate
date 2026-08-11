@@ -1,0 +1,12 @@
+# An empty last_validated (preserved gate, the tracker_fresh.sh date
+# interface): a silent omission on the staleness-check field -> contract
+# broken by the value of `last_validated`.
+items:
+  - id: R1
+    kind: requirement
+    statement: "Every ledger contract must export 0 under the structure gate."
+    provenance: { kind: human, name: nrd }
+    grounding: "ledger/gate/ledger-validate.sh (structure subcommand)."
+    last_validated: ""
+    at: "6afbc9d"
+    signpost: "ledger-validate structure returns non-zero on a contract."

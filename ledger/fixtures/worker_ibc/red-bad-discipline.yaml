@@ -1,0 +1,23 @@
+# An out-of-set discipline string -> Discipline (the shared T1.1 enum,
+# imported from discipline.ncl; a worker_ibc instance of it is otherwise
+# untested — the enum is exercised via dag.ncl only).
+id: wx-bad-discipline
+tier: "worker (fable)"
+discipline: vibes
+goal:
+  id: g0
+  statement: "Ship it."
+  provenance: { kind: human, name: nrd }
+non_goals: []
+premises: []
+delegated: []
+reserved: []
+constraints: []
+context_map: []
+acceptance:
+  - id: b1
+    statement: "Done when done."
+    eval: "true"
+    provenance: { kind: human, name: nrd }
+load_bearing: []
+plastic: []
