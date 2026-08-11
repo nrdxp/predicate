@@ -234,6 +234,15 @@ emit_config_example() {
 # REMOVED — bash array of demoted/removed workflow names the pre-commit hook
 # checks the staged surface does not reference as if still live. hooks/pre-commit.
 # REMOVED=(plan charter plan-review continue personalization sketch dialectic predicate planning)
+
+# UNATTRIBUTED_CEILING — max SignerKind == 'unattributed' records allowed
+# across tech-debt/ + process-feedback/ combined. Default 0: a fresh recorder
+# adopts signing from its first record, so nothing may claim to predate it.
+# Set this ONLY if this recorder did a real one-time legacy migration, to the
+# count that migration produced — and only ever LOWER it afterward (records
+# get superseded), never raise it; a rising ceiling turns the guard into a
+# rubber stamp. ledger/gate/recorder-pre-commit.sh.
+# UNATTRIBUTED_CEILING=0
 EOF
 }
 

@@ -37,10 +37,40 @@
 # overhead: nickel is never invoked and its absence never blocks unrelated
 # flight-log or state commits.
 #
-# Exit: 0 = every staged record validated against its contract (or none
+# --- The unattributed-designation ceiling ----------------------------------
+#
+# `SignerKind` (ledger/contracts/entry.ncl) admits `unattributed` — no party
+# is recoverable, stated for a record that predates a recorder's signing
+# regime. The architect's ruling on that addition was explicit: the abuse
+# guard is POLICY, not shape — no regime-boundary metadata belongs on the
+# Signer contract itself, because a flag excusing the signer field would make
+# designation-totality conditional again. So the guard lives here, at the
+# commit gate, as a plain count: whenever a tech-debt/ or process-feedback/
+# record is staged, count every record across BOTH namespaces (not just what
+# is staged — the ceiling bounds the recorder's whole history) that
+# designates `unattributed`, and block if it exceeds UNATTRIBUTED_CEILING.
+#
+# The default here is 0: a fresh recorder adopts signing from its first
+# record, so by default NO record may claim "predates the signing regime".
+# `unattributed` only has inhabitants where a recorder did a real one-time
+# legacy migration, and that is a PER-RECORDER fact — never a plugin-wide
+# one, since this script is shared machinery symlinked into every consuming
+# project's .ledger/. A recorder that has done that migration grandfathers
+# its frozen count via UNATTRIBUTED_CEILING in its own .ledger/config.sh
+# (see config.sh.example), the established override surface for exactly
+# this class of per-recorder policy constant (SELFCONTAINED_PAT,
+# ORPHAN_TARGETS, ...). The ceiling may only be LOWERED from there, never
+# raised — falling is legitimate (a record gets superseded), and a rising
+# ceiling converts the guard into a rubber stamp for the next agent who
+# reaches for `unattributed` rather than naming a real signer.
+#
+# Exit: 0 = every staged record validated against its contract, and the
+#           unattributed count is at or under the ceiling (or no record
 #           staged — true no-op)
-#       1 = a staged record failed its contract
-#       2 = a record is staged but nickel is not on PATH
+#       1 = a staged record failed its contract, or the unattributed
+#           ceiling was exceeded
+#       2 = a record is staged but nickel is not on PATH, or an existing
+#           record file could not be read while counting
 set -u
 
 # $plugin = predicate's own machinery, resolved from THIS script's own real
@@ -94,6 +124,58 @@ for i in "${!records[@]}"; do
     rc=1
   fi
 done
+
+# Per-recorder override surface (config.sh.example documents this and every
+# other overridable constant). Absent config.sh, the conservative default (0)
+# applies — see the header comment for why 0, not some inherited number.
+UNATTRIBUTED_CEILING="${UNATTRIBUTED_CEILING:-0}"
+[ -f "$root/config.sh" ] && . "$root/config.sh"
+
+# Sums SignerKind == 'unattributed' across every tracked record file in BOTH
+# namespaces, not just what this commit stages — the ceiling bounds the
+# recorder's whole history. Reads from disk ($root/...), the same
+# working-tree-trusts-index simplification the per-record loop above already
+# makes. nickel's JSON export pretty-prints one field per line, so a plain
+# line-count of `"kind": "unattributed"` is exact — that literal string is
+# only ever a SignerKind value (ledger/contracts/entry.ncl); a
+# process-feedback record's own top-level `kind` field draws from a disjoint
+# vocabulary (improvement, miss, ...) and cannot collide.
+count_unattributed() {
+  local total=0 f out status
+  shopt -s nullglob
+  for f in "$root"/tech-debt/*.yaml "$root"/process-feedback/*.yaml; do
+    out="$(nickel export "$f" --format json 2>&1)"
+    status=$?
+    if [ "$status" -ne 0 ]; then
+      echo "recorder-pre-commit: could not read $f while counting unattributed designations:" >&2
+      printf '%s\n' "$out" | sed 's/^/  /' >&2
+      shopt -u nullglob
+      return 2
+    fi
+    total=$(( total + $(printf '%s\n' "$out" | grep -c '"kind": "unattributed"') ))
+  done
+  shopt -u nullglob
+  printf '%d' "$total"
+}
+
+# Only runs when a record file is staged (mirrors the true-no-op above): a
+# commit that never touches tech-debt/ or process-feedback/ cannot have
+# changed the count since the last commit, which already passed this gate.
+if [ "${#records[@]}" -gt 0 ]; then
+  unattributed_count="$(count_unattributed)"
+  count_status=$?
+  if [ "$count_status" -ne 0 ]; then
+    rc=1
+  elif [ "$unattributed_count" -gt "$UNATTRIBUTED_CEILING" ]; then
+    echo "recorder-pre-commit: unattributed-designation ceiling exceeded ($unattributed_count > $UNATTRIBUTED_CEILING) — commit blocked." >&2
+    echo "  'unattributed' designates a record predating this recorder's signing regime." >&2
+    echo "  The ceiling is frozen at the count fixed by that one-time migration and may" >&2
+    echo "  only fall (as records are superseded), never grow. A new record claiming" >&2
+    echo "  'unattributed' is not a migration — name its real signer instead" >&2
+    echo "  (human|agent|source|derived)." >&2
+    rc=1
+  fi
+fi
 
 if [ "$rc" -ne 0 ]; then
   echo "recorder-pre-commit: staged record gate failed — commit blocked." >&2

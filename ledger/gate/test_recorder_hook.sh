@@ -186,6 +186,95 @@ fi
 rm -f /tmp/test_recorder_hook.nickel_absent_out.$$
 rm -rf "$fx"
 
+echo "== recorder gate: unattributed-designation ceiling =="
+# The ceiling (recorder-pre-commit.sh: UNATTRIBUTED_CEILING, default 0,
+# overridable via .ledger/config.sh) bounds SignerKind == 'unattributed'
+# records across tech-debt/ + process-feedback/ COMBINED, counted over the
+# whole recorder history — not just what a commit stages. A small ceiling (3)
+# keeps these fixtures cheap; the mechanism is identical at any N, and the
+# live recorder (ceiling 22) is checked separately below in the real repo.
+
+# Writes N unattributed tech-debt items into $1, ids prefixed by $2.
+write_unattributed_batch() {
+  local file="$1" prefix="$2" n="$3" i
+  { echo "items:"
+    for ((i = 1; i <= n; i++)); do
+      cat <<YAML
+  - id: ${prefix}-${i}
+    claim: "unattributed ceiling fixture record ${prefix}-${i}"
+    location: nowhere:1
+    severity: low
+    why_deferred: "fixture"
+    discharge: "fixture"
+    signer:
+      kind: unattributed
+    at: "deadbeef"
+YAML
+    done
+  } > "$file"
+}
+
+fx="$(make_recorder_fixture)"
+echo "UNATTRIBUTED_CEILING=3" > "$fx/config.sh"
+write_unattributed_batch "$fx/tech-debt/legacy-a.yaml" legacy-a 2
+cat > "$fx/process-feedback/legacy-b.yaml" <<'EOF'
+items:
+  - id: legacy-b-1
+    kind: improvement
+    context: "unattributed ceiling fixture record legacy-b-1"
+    outcome: "counts toward the ceiling from the process-feedback namespace"
+    signer:
+      kind: unattributed
+    at: "deadbeef"
+EOF
+git "${git_id[@]}" -C "$fx" add tech-debt/legacy-a.yaml process-feedback/legacy-b.yaml
+expect "(u1) unattributed total AT the ceiling (3, split across both namespaces) PASSES" 0 \
+  git "${git_id[@]}" -C "$fx" commit -m "feat: seed unattributed records at the ceiling"
+
+write_unattributed_batch "$fx/tech-debt/legacy-c.yaml" legacy-c 1
+git "${git_id[@]}" -C "$fx" add tech-debt/legacy-c.yaml
+expect "(u2) a record pushing the total OVER the ceiling (4 > 3) is BLOCKED" 1 \
+  git "${git_id[@]}" -C "$fx" commit -m "feat: stage a record crossing the unattributed ceiling"
+rm -rf "$fx"
+
+fx="$(make_recorder_fixture)"
+echo "UNATTRIBUTED_CEILING=3" > "$fx/config.sh"
+write_unattributed_batch "$fx/tech-debt/few.yaml" few 1
+git "${git_id[@]}" -C "$fx" add tech-debt/few.yaml
+expect "(u3) fewer unattributed than the ceiling (1 < 3) PASSES" 0 \
+  git "${git_id[@]}" -C "$fx" commit -m "feat: seed one unattributed record, below the ceiling"
+rm -rf "$fx"
+
+fx="$(make_recorder_fixture)"
+# No config.sh — default ceiling (0) applies. Any number of REAL-signer
+# records must still pass: the ceiling counts 'unattributed' only.
+for n in 1 2 3 4 5; do
+  cat >> "$fx/tech-debt/attributed-$n.yaml" <<EOF
+items:
+  - id: attributed-$n
+    claim: "a real-signer record, ceiling-irrelevant"
+    location: nowhere:1
+    severity: low
+    why_deferred: "fixture"
+    discharge: "fixture"
+    signer: { kind: agent, name: test-recorder-hook }
+    at: "deadbeef"
+EOF
+  git "${git_id[@]}" -C "$fx" add "tech-debt/attributed-$n.yaml"
+done
+expect "(u4) any number of real-signer records PASSES under the default (0) ceiling" 0 \
+  git "${git_id[@]}" -C "$fx" commit -m "feat: seed five attributed records"
+rm -rf "$fx"
+
+fx="$(make_recorder_fixture)"
+echo "UNATTRIBUTED_CEILING=3" > "$fx/config.sh"
+printf 'a flight-log note\n' > "$fx/log/ceiling-note.md"
+git "${git_id[@]}" -C "$fx" add log/ceiling-note.md
+no_nickel_path="$(path_without_nickel)"
+expect "(u5) a commit touching no records PASSES even with nickel absent (ceiling check never invoked)" 0 \
+  env PATH="$no_nickel_path" git "${git_id[@]}" -C "$fx" commit -m "docs: a record-free commit under an active ceiling config"
+rm -rf "$fx"
+
 # ─── LEVEL 2: INIT/DEINIT WIRING ─────────────────────────────────────────────
 
 echo "== init: recorder hook wiring via bootstrap/install.sh =="
