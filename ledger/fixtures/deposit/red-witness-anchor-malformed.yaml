@@ -1,0 +1,17 @@
+# A witness anchor with `name` but no `at`: every witness anchor in every
+# OTHER deposit fixture is well-formed, so the reform's headline claim
+# ("judgements carry a core Witness: name, at") rested on nothing until this
+# case — the vouch-species counterpart to red-check-anchor-malformed.yaml (B1).
+# VouchSpeciesWitnessed reads `has_field "witness"` only — it never forces the
+# Witness record's own shape; only the WitnessAnchor contract does that.
+deposits:
+  - id: deposit-a
+    step: reconcile
+    evidence:
+      - claim: "the survey deposit's excerpts match the files they cite"
+        method: review
+        location: ".scratch/typed-claims/deposit-shapes-a.md"
+        signer: { kind: agent, name: architect-seat }
+        witness: { name: architect-seat }
+    cites: []
+    refs: []

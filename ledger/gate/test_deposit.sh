@@ -65,6 +65,8 @@ expect "deposit missing step (laziness guard) -> per-deposit conformance" 1 'mis
   -- run "$fix/red-malformed-deposit.yaml"
 expect "check anchor missing command (Check record shape, B1) -> missing field" 1 'missing definition for `command`' \
   -- run "$fix/red-check-anchor-malformed.yaml"
+expect "witness anchor missing at (Witness record shape, B1) -> missing field" 1 'missing definition for `at`' \
+  -- run "$fix/red-witness-anchor-malformed.yaml"
 
 # --- store reds --------------------------------------------------------------
 expect "duplicate deposit id -> DepositStore duplicate" 1 "duplicate deposit id" \
