@@ -8,35 +8,39 @@
 # makes process changes first-class and durable rather than living only in
 # conversation recall.
 #
+# EXTENDS THE ENTRY CORE (ledger/contracts/entry.ncl): feedback is a claim
+# about what happened in the process, so it carries a signer (who observed it)
+# and an `at` anchor (the record state the observation was made against). The
+# category model — `kind`, with AMENDMENT's higher bar than improvement — is
+# the record's own and stays.
+#
 # Instance format: YAML (validated via:
 #   nickel export <file>.yaml --apply-contract skills/record/process_feedback_apply.ncl)
-#
-# `kind` uses the same value-restricted tag-or-string pattern as other enums in
-# this codebase: a YAML string ("amendment") and a Nickel tag ('amendment) both
-# satisfy the contract without modification.
+let e = import "../../ledger/contracts/entry.ncl" in
 {
-  NonEmptyString = std.contract.from_predicate (fun v =>
-    std.is_string v && std.string.length v > 0
-  ),
-
   # Kind: friction = the process caused unnecessary resistance;
   #       miss = a signal was missed, process didn't catch it;
   #       improvement = a refinement that made the process better;
   #       amendment = the agent changed the process and it was a good idea
   #                   (higher bar than improvement — a live rule was revised).
-  Kind = std.contract.from_predicate (fun v =>
-    v == 'friction    || v == "friction"
-    || v == 'miss       || v == "miss"
-    || v == 'improvement || v == "improvement"
-    || v == 'amendment  || v == "amendment"
+  # Value-restricted tag-or-string (ruling D-6) through the core's `matches`,
+  # named so a shape red carries its own token.
+  Kind = std.contract.custom (fun _label v =>
+    if e.matches v 'friction "friction" || e.matches v 'miss "miss"
+       || e.matches v 'improvement "improvement"
+       || e.matches v 'amendment "amendment"
+    then 'Ok v
+    else 'Error { message = "Kind: expected friction|miss|improvement|amendment (tag or string)" }
   ),
 
   # One process-feedback record.
   ProcessFeedback = {
-    id      | NonEmptyString,  # unique within the store
-    kind    | Kind,             # friction | miss | improvement | amendment
-    context | NonEmptyString,  # what situation triggered this feedback
-    outcome | NonEmptyString,  # what changed or what it means for the process
+    id      | e.NonEmptyString,  # unique within the store
+    kind    | Kind,              # friction | miss | improvement | amendment
+    context | e.NonEmptyString,  # what situation triggered this feedback
+    outcome | e.NonEmptyString,  # what changed or what it means for the process
+    signer  | e.Signer,          # who observed it
+    at      | e.CommitRef,       # the record state observed against
   },
 
   # Store contract: validates an array of records with id uniqueness enforced.

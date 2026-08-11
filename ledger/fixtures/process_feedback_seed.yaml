@@ -22,6 +22,8 @@ items:
       an agent invokes a claimed invariant, verify it against actual specs
       before enforcing it. This is now recorded in memory (no-ff-invariant-
       fabricated.md) and in this process-feedback record.
+    signer: { kind: agent, name: process-campaign-worker }
+    at: "3fbed02"
 
   - id: pf-yaml-d5-restoration
     kind: amendment
@@ -42,6 +44,8 @@ items:
       RECORD category model: each category's instances are YAML, each category's
       contract is Nickel. The architect gets no logic exemption: the campaign
       DAG is an instance, so it is YAML.
+    signer: { kind: agent, name: process-campaign-worker }
+    at: "3fbed02"
 
   - id: pf-project-local-gates
     kind: improvement
@@ -61,6 +65,8 @@ items:
       orchestration). This mechanism is also the interface through which a
       project validates its own RECORD instances (tech-debt + process-feedback)
       without polluting the global layer.
+    signer: { kind: agent, name: process-campaign-worker }
+    at: "3fbed02"
 
   - id: pf-skill-contract-relocation
     kind: improvement
@@ -82,3 +88,5 @@ items:
       All new skill contracts, including those created by this IBC
       (skills/record/tech_debt.ncl, skills/record/process_feedback.ncl),
       follow this principle.
+    signer: { kind: agent, name: process-campaign-worker }
+    at: "3fbed02"

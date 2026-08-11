@@ -1,0 +1,7 @@
+# Feedback with no record-state anchor -> missing definition for `at`.
+items:
+  - id: pf-1
+    kind: miss
+    context: "A signal slipped past the process."
+    outcome: "A tripwire was added."
+    signer: { kind: agent, name: worker }

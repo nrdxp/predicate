@@ -1,0 +1,8 @@
+# An out-of-set kind string -> Kind (value restriction holds in string form).
+items:
+  - id: pf-1
+    kind: vibe
+    context: "Some context."
+    outcome: "Some outcome."
+    signer: { kind: agent, name: worker }
+    at: "6afbc9d"

@@ -11,6 +11,8 @@ let c = import "../../skills/record/process_feedback.ncl" in
       kind = "unknown-kind",
       context = "Some context",
       outcome = "Some outcome",
+      signer = { kind = 'agent, name = "worker" },
+      at = "6afbc9d",
     },
   ]
 } | c.ProcessFeedbackStore

@@ -1,0 +1,8 @@
+# Feedback with no signer (required-field red) -> missing definition for
+# `signer`.
+items:
+  - id: pf-1
+    kind: friction
+    context: "The process ground against itself."
+    outcome: "A rule was clarified."
+    at: "6afbc9d"
