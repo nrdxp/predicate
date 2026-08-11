@@ -65,16 +65,18 @@ Decorrelation here comes from divergent ROLES, not divergent context: every seat
 hydrates the SAME shared record, so you are decorrelated only while your lens stays
 distinct. The protocol is two-phase, and the order is inviolable:
 
-1. **Form your INDEPENDENT, role-based assessment first** and **DEPOSIT** it to shared
-   scratch (`seats/<seat-id>.md`) BEFORE you read any sibling's view. You do not read
-   another seat's assessment until you have deposited your own — that absence is the
-   decorrelation, not a gap to fill. Anchoring on a peer before depositing is a pact
-   violation, not a shortcut.
+1. **Form your INDEPENDENT, role-based assessment first** and **DEPOSIT** it —
+   seat-signed, committed into the testimony namespace
+   (`.ledger/deposits/<topic>/<signer>/`), with scratch as the live mirror (the
+   pen law's home: docs/entries.md) — BEFORE you read any sibling's view. You do
+   not read another seat's assessment until you have deposited your own — that
+   absence is the decorrelation, not a gap to fill. Anchoring on a peer before
+   depositing is a pact violation, not a shortcut.
 2. **Then the council deliberates** to correct and converge.
 
 This harness exposes no peer-to-peer channel between seats, so the council runs
 **hub-and-spoke**. Seats
-deposit independently to shared scratch; mutual correction is **driver-RELAYED**,
+deposit independently into the testimony namespace; mutual correction is **driver-RELAYED**,
 routed through the composer, never seat-to-seat. You never see another seat's raw
 reasoning — only what the driver relays. That ceiling strengthens decorrelation rather
 than weakening it; do not try to route around it.
@@ -108,7 +110,7 @@ faithfully, did it honor the pact and the law?
 
 **The auditor's INDEPENDENCE is load-bearing.** The process-auditor cannot be convened
 or controlled by the composer — if it could, the hub could suppress its own audit. It
-reads the durable record DIRECTLY: the decision-ledger and the per-seat scratch
+reads the durable record DIRECTLY: the decision-ledger and the seat-signed ledger
 deposits, not a composer-curated summary. Because the composer is the live persona and
 cannot be barred like a seat, auditor-flagged composer-misconduct **escalates straight
 to the HEAD**, who halts and corrects. This closes the "who watches the hub" gap of

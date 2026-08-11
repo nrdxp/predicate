@@ -199,9 +199,15 @@ are law:
   part of the project repo. Zettelkasten-shaped: `log/` is the chronological
   process log, and the rest is open-ended, cross-referenced notes (decisions,
   tech-debt, process-feedback, whatever class the content needs) — notes link to
-  related notes, liberally. **The composer's pen alone:** workers, reviewers, and
-  seats never write the recorder — seats deposit to scratch and the composer
-  integrates.
+  related notes, liberally. **The pen law** (operative projection of
+  docs/entries.md §pen-law; on any divergence the home is canonical): the
+  recorder is ONE GRAPH; every node is signed by the party whose testimony it
+  is — one writer per node-kind-and-namespace. Testimony nodes are append-only,
+  seat- or worker-signed, committed by their witness directly into the
+  testimony namespace (`.ledger/deposits/<topic>/<signer>/`); synthesis,
+  decision, and narrative nodes are composer-signed. Solo — a walk with no
+  composer — the walker signs everything, and the self-vouch policy then does
+  honest work. Scratch is the MIRROR, never the record.
 - **The repository — the deliverable.** Self-contained by law: in-repo
   documentation and forge prose NEVER reference `.scratch/` or `.ledger/` — a
   committed artifact must read whole to a stranger holding only the repository.

@@ -29,12 +29,14 @@ contract (machine-checkable shape), a `.ledger` home, and a trigger
 
 ## Category model
 
-**Who holds the pen.** In an ensemble (campaign/council), the **composer
-alone** writes the recorder — workers and seats deposit to scratch and the
-composer classifies, promotes, and records. In a **solo** predicate walk
-there is no composer: the walker holds the pen and executes this skill
-directly. One pen per walk, whoever it is — two writers interleaving one
-recorder is how a zettelkasten becomes a shoebox.
+**Who holds the pen.** One writer per node-kind-and-namespace, whoever it
+is (the pen law — [`docs/entries.md`](../../docs/entries.md)): **testimony**
+is signed by the walker who witnessed it and committed by that walker,
+append-only, into `.ledger/deposits/<topic>/<signer>/`; **synthesis,
+decision, and narrative** nodes — and every promotion — are the composer's.
+In a **solo** predicate walk there is no composer: the walker signs
+everything and executes this skill directly. Two writers interleaving one
+namespace is how a zettelkasten becomes a shoebox.
 
 Each category = **{contract, .ledger home, trigger}**. Categories are
 extensible: adding a fourth later is cheap — add the contract, home,
@@ -195,7 +197,8 @@ Promotion is role-gated:
 
 | artifact class | who may promote |
 | :-- | :-- |
-| working detail / findings → ledger | any walker |
+| testimony (deposits, assessments, findings) → ledger | the witnessing walker, signed |
+| narrative / synthesis / promotion notes → ledger | the composer (solo: the walker) |
 | full architecture / spec → repo/docs | architect-tier |
 | doctrine edits (rules.md, ambient.md, formalism) | **Reserved halt** — human approval required before merge |
 

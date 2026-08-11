@@ -180,9 +180,12 @@ instance carries no Nickel logic and cannot self-bind.
 1. **INDEPENDENT_BEFORE_DELIBERATE:** Deposit your own assessment before you read any
    sibling's. Reading first collapses decorrelation and is a barring trigger.
 
-2. **DEPOSIT_DURABLY:** Commit your assessment as a `deposit.ncl`-conformant YAML to a
-   `.ledger` home as it is made — scratch is the mirror, the ledger is the record. The
-   auditor reads the durable trail; an ephemeral one defeats the check.
+2. **DEPOSIT_DURABLY:** Commit your assessment, as it is made, into the testimony
+   namespace — `.ledger/deposits/<topic>/<signer>/` — as a `deposit.ncl`-conformant
+   YAML signed by your seat (the pen law:
+   [`docs/entries.md`](../../docs/entries.md)). Scratch is the mirror, the ledger
+   is the record. The auditor reads the durable trail; an ephemeral one defeats
+   the check.
 
 3. **PACT_GATES_ADVANCEMENT:** Never advance a gate while any R/I/U or constraint you
    hold is prose-only, ungrounded, unsignposted, or stale. A held item that is not a

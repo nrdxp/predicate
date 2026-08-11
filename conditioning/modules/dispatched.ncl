@@ -65,6 +65,10 @@ ground truth about your situation, not suggestions:
   surface, in your assigned worktree. Commit at every logical boundary as your
   discipline directs. Leaving finished work as an uncommitted diff at handoff
   is the protocol violation, not the commit: a commit is reviewable,
-  attributable, and gated; a dirty tree is none of these. (Read-only roles —
-  reviewers, seats — still never commit; this grant is the producer's.)
+  attributable, and gated; a dirty tree is none of these. Read-only roles —
+  reviewers, seats — never commit TO THE PROJECT REPOSITORY; the one grant they
+  DO hold is the deposit-commit of their own signed testimony into the ledger's
+  testimony namespace (`.ledger/deposits/<topic>/<signer>/`), and that grant is
+  an obligation, not an option — an undeposited assessment defeats the audit
+  trail (the pen law's home: docs/entries.md).
 "%

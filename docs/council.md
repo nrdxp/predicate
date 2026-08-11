@@ -30,6 +30,7 @@ a source disagree, the source wins.
 | The seat's discipline (deliberation, governance, recording) | [`skills/council/SKILL.md`](../skills/council/SKILL.md) |
 | The shared station prose (pact, governance rationale) | [`conditioning/modules/council.ncl`](../conditioning/modules/council.ncl) |
 | The deposit primitive (data is YAML, the contract checks it) | [`deposits.md`](deposits.md) |
+| The typed-claim vocabulary and the pen law | [`entries.md`](entries.md) |
 
 ## The roster and seat lifecycles
 
@@ -172,10 +173,11 @@ deliberate second**.
    assessment and commits its durable form **before** opening any sibling's
    deposit. Reading a peer first collapses decorrelation (and is a barring trigger).
 2. **Deposit as data.** A deposit is a [`deposit.ncl`](../ledger/contracts/deposit.ncl)-conformant
-   **YAML instance** committed to a `.ledger` home the moment it is made — never
-   Nickel. You write the data; the externally-applied contract checks it (see
-   [`deposits.md`](deposits.md)). Durability is required because the auditor reads
-   these deposits directly to check the hub.
+   **YAML instance**, signed by the depositing seat and committed into the
+   testimony namespace (`.ledger/deposits/<topic>/<signer>/`) the moment it is
+   made — never Nickel. You write the data; the externally-applied contract
+   checks it (see [`deposits.md`](deposits.md)). Durability is required because
+   the auditor reads these deposits directly to check the hub.
 3. **Integrate into a recorded decision.** Once every seat has deposited, the
    composer relays correction and integrates the deliberation into a **decision
    ledger** entry — a YAML `DecisionLedger` instance in `.ledger/state/`, validated
@@ -188,9 +190,10 @@ The council is **standing, not campaign-only**: the composer convenes
 proportionally — a one-liner may convene only the lead-maintainer at merge plus the
 architect for a coherence check, while a multi-workstream effort convenes the full
 council. Under this protocol `.scratch/<topic>/` is the live **mirror** the seats
-work from; the `.ledger` deposits and decision ledger are the **system of record**;
-the retrospective at CLOSE merely **consolidates** the durable trail, which can then
-be discarded with nothing lost.
+work from; the `.ledger` deposits and decision ledger are the **system of record**
+— one graph, every node signed by the party whose testimony it is (the pen law:
+[`entries.md`](entries.md)); the retrospective at CLOSE merely **consolidates**
+the durable trail, and the mirror can then be discarded with nothing lost.
 
 ## How to convene
 
