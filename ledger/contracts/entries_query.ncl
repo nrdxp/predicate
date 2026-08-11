@@ -6,17 +6,27 @@
 # Validation is not re-implemented: the export runs through the EXISTING
 # entry_apply.ncl before any view is computed, so an invalid corpus never
 # yields a query result (a result over unvalidated data would be `proved`
-# relative to nothing). The four views:
+# relative to nothing).
 #
-#   awaiting_human — questions whose closer is a human designation: the work
-#                    only the head can clear.
-#   runnable_now   — questions the extractor graded `dispatchable`: a check
-#                    exists and has not been run. Grades live in the export's
-#                    sidecar because entries carry questions as `unclosed`
-#                    (the entry fixtures' practice — CorroborationBacked and
-#                    VouchBacked have no assertion guard); a corpus without
-#                    the sidecar therefore answers with an empty view rather
-#                    than a guessed one.
+# OPENNESS is DERIVED, never authored: a question is open iff no entry in the
+# corpus names it in a `discharges` or `supersedes` edge. Both question views
+# filter on it, so a question that has been answered — or merged into a
+# surviving duplicate — leaves the work lists by itself. Nothing marks a
+# question closed by hand, which is the point: a status field would have to be
+# maintained in step with the edges and would silently rot when it was not.
+#
+# The four views:
+#
+#   awaiting_human — OPEN questions whose closer designates a human: the work
+#                    only the head can clear. Reads `closer.kind` — a lookup
+#                    on the designation record, not a match against prose.
+#   runnable_now   — OPEN questions the extractor graded `dispatchable`: a
+#                    check exists and has not been run. Grades live in the
+#                    export's sidecar because entries carry questions as
+#                    `unclosed` (the entry fixtures' practice —
+#                    CorroborationBacked and VouchBacked have no assertion
+#                    guard); a corpus without the sidecar therefore answers
+#                    with an empty view rather than a guessed one.
 #   unpaid_cures   — claims whose axes demand a T3 cure nothing pays: a
 #                    non-monotone claim without its freshness obligation, the
 #                    cure text read from the law's own cure_for lookup. The
@@ -55,17 +65,42 @@ std.contract.custom (fun label value =>
           closer = get_or "closer" null e,
         }
       in
+
+      # --- openness -------------------------------------------------------
+      #
+      # The set of ids some entry closes, as a record used as a set (the
+      # id_set idiom the contract already uses): O(1) membership, so openness
+      # is a lookup per question rather than a scan of the whole corpus.
+      # EntryStore has already proved every one of these refs resolves, so a
+      # member here is always a real entry.
+      let add_all = fun acc refs =>
+        std.array.fold_left
+          (fun a r => if std.record.has_field r a then a else std.record.insert r true a)
+          acc
+          refs
+      in
+      let closed_ids =
+        std.array.fold_left
+          (fun acc e =>
+            add_all acc (law.refs_of "discharges" e @ law.refs_of "supersedes" e))
+          {}
+          entries
+      in
+      let is_open = fun e => !(std.record.has_field e.id closed_ids) in
+
       'Ok {
         awaiting_human =
           entries
           |> std.array.filter (fun e =>
             is_question e
-            && std.string.is_match "^human(/.*)?$" (get_or "closer" "" e))
+            && is_open e
+            && std.record.has_field "closer" e
+            && law.matches e.closer.kind 'human "human")
           |> std.array.map question_view,
         runnable_now =
           entries
           |> std.array.filter (fun e =>
-            is_question e && grade_of e == "dispatchable")
+            is_question e && is_open e && grade_of e == "dispatchable")
           |> std.array.map question_view,
         unpaid_cures = {
           violations =
