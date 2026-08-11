@@ -15,7 +15,7 @@
 # question closed by hand, which is the point: a status field would have to be
 # maintained in step with the edges and would silently rot when it was not.
 #
-# The four views:
+# The five views:
 #
 #   awaiting_human — OPEN questions whose closer designates a human: the work
 #                    only the head can clear. Reads `closer.kind` — a lookup
@@ -37,6 +37,17 @@
 #                    provenance edges and any external refs the extractor
 #                    preserved, so a claim with no inbound edge — the
 #                    structural definition of a hallucination — is visible.
+#   chain_floor    — where each claim's support BOTTOMS OUT, following
+#                    derivation edges transitively. `unbacked` answers this
+#                    one hop deep, which is the wrong depth: a claim can name
+#                    a well-formed edge and still rest on a proposal three
+#                    hops down, and reading that off the record by hand is
+#                    what makes an agent reach for an invented confidence
+#                    number instead. Three floors, and a claim may have
+#                    several because support branches: `closed` (a
+#                    corroborated or vouched leaf), `unbacked` (an unclosed
+#                    leaf with no support at all), `external` (support that
+#                    left the corpus, so the record cannot follow it).
 let apply = import "entry_apply.ncl" in
 let law = import "entry.ncl" in
 
@@ -88,6 +99,54 @@ std.contract.custom (fun label value =>
       in
       let is_open = fun e => !(std.record.has_field e.id closed_ids) in
 
+      # --- chain floors ---------------------------------------------------
+      #
+      # A least-fixed-point over the derivation edges, computed by iterating
+      # the one-step relation once per entry rather than by recursing: a
+      # `because` cycle would make the recursive reading diverge, and the
+      # record cannot rule cycles out (EntryStore requires resolution, not
+      # acyclicity). N iterations reach the fixed point for any acyclic
+      # chain, since no path is longer than the corpus; a cycle simply keeps
+      # the empty floor set, which reads correctly as "bottoms out nowhere".
+      let has_external = fun e =>
+        std.array.any (fun x => x.entry == e.id) externals
+      in
+      let is_closed_evidence = fun e =>
+        is_claim e
+        && (law.matches e.backing 'corroborated "corroborated"
+            || law.matches e.backing 'vouched "vouched")
+      in
+      # The leaf verdict, for an entry whose support the walk cannot continue
+      # through — either because the entry IS the floor, or because it has no
+      # derivation edges to follow.
+      let leaf_floor = fun e =>
+        if is_closed_evidence e then { closed = true }
+        else if has_external e then { external = true }
+        else { unbacked = true }
+      in
+      let step = fun prev =>
+        std.array.fold_left
+          (fun acc e =>
+            let edges = law.edges_of e in
+            let floors =
+              if is_closed_evidence e || std.array.length edges == 0 then
+                leaf_floor e
+              else
+                std.array.fold_left
+                  (fun u r => add_all u (std.record.fields prev."%{r}"))
+                  {}
+                  edges
+            in
+            std.record.insert e.id floors acc)
+          {}
+          entries
+      in
+      let floors_of =
+        std.array.fold_left
+          (fun acc _e => step acc)
+          (std.array.fold_left (fun acc e => std.record.insert e.id {} acc) {} entries)
+          entries
+      in
       'Ok {
         awaiting_human =
           entries
@@ -137,6 +196,11 @@ std.contract.custom (fun label value =>
               external_refs = ext,
               backed = std.array.length inbound > 0,
             }),
+        chain_floor =
+          entries
+          |> std.array.filter is_claim
+          |> std.array.map (fun e =>
+            { id = e.id, floors = std.record.fields floors_of."%{e.id}" }),
       },
   }
 )
