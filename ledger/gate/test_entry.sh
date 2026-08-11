@@ -180,6 +180,17 @@ expect "corpus with shape-malformed entry (empty statement) -> per-entry conform
 expect "corpus with predicate-violating entry (vouched, no witness) -> VouchBacked" 1 "VouchBacked" \
   -- run "$fix/red-corpus-pred-violation.yaml"
 
+# THE MISCLOSURE, on the live path: an unratified proposal (a claim whose own
+# backing is `unclosed`) discharging the question that asks for its
+# ratification. DischargeBacked names this case in its own comment and was
+# nevertheless never reached by it, because the predicate ran only on lone
+# entries. The corpus form exported clean, and openness being DERIVED from the
+# closure edges, the query then dropped the question from `awaiting_human` —
+# the record reporting no outstanding human work on the strength of a proposal
+# nobody ratified. This is the case whose absence let the defect through.
+expect "corpus: unratified proposal discharges its own question -> DischargeBacked" 1 "DischargeBacked" \
+  -- run "$fix/red-corpus-unratified-discharge.yaml"
+
 # --- cure_for: pinned against the ibc-pass1.md §2b table, NOT its own branches
 # The six expected strings are HARDCODED here (sourced from the paper's cell
 # table via the boundary); deriving them from cure_for itself would be the

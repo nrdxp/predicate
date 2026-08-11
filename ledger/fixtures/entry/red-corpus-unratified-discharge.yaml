@@ -1,0 +1,44 @@
+# Corpus red: THE MISCLOSURE, on the shape a record actually takes. An
+# unratified proposal — a claim whose own backing is `unclosed` — discharges
+# the very question that asks for its ratification. DischargeBacked exists to
+# make exactly this unrepresentable, and it named the case in its own comment
+# ("letting it discharge would let an unratified answer retire the question
+# that asked for ratification"), yet the predicate was applied only to lone
+# entries, so the corpus form exported clean.
+#
+# The harm is not merely a permitted violation: openness is DERIVED from the
+# closure edges, so the query reads q-ratify as answered and drops it from
+# `awaiting_human`. The record then reports no outstanding human work, on the
+# strength of a proposal nobody ratified — a silently confident wrong answer,
+# which is the failure mode the whole typed-claim record exists to refuse.
+#
+# Single violation by construction: the proposal's `because` edge satisfies the
+# provenance gate, its axes are complete and monotone, its signer is named, and
+# the question carries both routable halves. Only the discharges edge is wrong.
+entries:
+  - id: q-ratify
+    statement: "Does the head ratify the entry-store thickening?"
+    assertion: question
+    backing: unclosed
+    signer:
+      kind: agent
+      name: composer
+    discharge: "The head reads the amendment and rules once."
+    closer:
+      kind: human
+      name: nrd
+  - id: e-proposal
+    statement: "The entry-store thickening is ratified as drafted."
+    assertion: claim
+    backing: unclosed
+    signer:
+      kind: agent
+      name: composer
+    because:
+      - q-ratify
+    axes:
+      determined: true
+      certifiable: false
+      monotone: true
+    discharges:
+      - q-ratify
