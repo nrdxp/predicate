@@ -1,0 +1,16 @@
+# The same boundary as red-supersedes-empty-not-tether.yaml, for the other
+# widened clause: an `external_refs` field present but EMPTY names no
+# antecedent. Guards the same has_field-vs-length pitfall on the second
+# clause the fix adds. Single-violation by construction.
+id: r-external-refs-empty
+statement: "An unbacked claim carrying an empty external_refs array, which cites nothing at all."
+assertion: claim
+backing: unclosed
+signer:
+  kind: agent
+  name: architect-seat
+external_refs: []
+axes:
+  determined: true
+  certifiable: false
+  monotone: true

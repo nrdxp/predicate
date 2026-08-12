@@ -1,0 +1,35 @@
+# Corpus green: the supersedes-only tether at the granularity the real cases
+# actually live in — an unclosed CLAIM retiring a DECLARED corpus entry, named
+# by a closure edge and no derivation edge. Distinct from
+# green-corpus-superseded.yaml, which pins the same relation over QUESTIONS
+# (ProvenanceGate does not scope to them at all, so that fixture never
+# exercised this predicate). TODAY this fails ProvenanceGate on c-retraction.
+entries:
+  - id: c-superseded-claim
+    statement: "The prior ruling that a later one retracts without answering."
+    assertion: claim
+    backing: corroborated
+    signer:
+      kind: agent
+      name: architect-seat
+    check:
+      command: "true"
+      ran: true
+      at: "deadbeef01"
+    axes:
+      determined: true
+      certifiable: true
+      monotone: true
+  - id: c-retraction-tether
+    statement: "The retraction, tethered to the record only by the supersedes edge."
+    assertion: claim
+    backing: unclosed
+    signer:
+      kind: agent
+      name: architect-seat
+    supersedes:
+      - c-superseded-claim
+    axes:
+      determined: true
+      certifiable: false
+      monotone: true
