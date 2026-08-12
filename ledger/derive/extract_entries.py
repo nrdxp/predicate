@@ -80,7 +80,14 @@ VOCAB = tuple(GRADE_CELLS) + ("directive",)
 
 TOKEN_RE = re.compile(r"grade::(%s)" % "|".join(VOCAB))
 BARE_RE = re.compile(r"grade::")
-MARKER_RE = re.compile(r"^\s*(?:-\s+)?`\[([A-Za-z][A-Za-z0-9-]*)\]\s+grade::([a-z]+)`\s*")
+# The grade is captured as ANY non-space token, and the vocabulary below is the
+# only thing that judges it. A narrower capture judges the grade HERE, where a
+# rejection is not a finding but a paragraph that quietly stops being a node —
+# so a grade carrying a hyphen, a digit or a capital would take its whole claim
+# out of the record with nothing said, which is the failure every other report
+# in this file exists to prevent.
+MARKER_RE = re.compile(
+    r"^\s*(?:-\s+)?`\[([A-Za-z][A-Za-z0-9-]*)\]\s+grade::([^\s`]*)`\s*")
 SPAN_RE = re.compile(r"`([^`]+)`")
 COMPANION_RE = re.compile(r"^([a-z][a-z-]*)::\s*(.*)$", re.DOTALL)
 WIKILINK_RE = re.compile(r"\[\[([^\]]+)\]\]")
