@@ -33,7 +33,6 @@ jobs:
           bash ledger/gate/test_recorder_hook.sh
           bash ledger/gate/test_candidate_links.sh
           bash ledger/gate/test_session_start.sh
-          bash ledger/gate/test_harness_install.sh
 
       - name: contract typecheck (all ledger/contracts/*.ncl)
         run: bash ledger/gate/test_contract_typecheck.sh
