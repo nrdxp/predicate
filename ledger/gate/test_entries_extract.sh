@@ -103,6 +103,39 @@ expect "red: unknown grade names the offending marker" 3 "K1" \
 expect "red: well-formed sibling still extracted alongside the report" 3 "red-unknown-grade:K2" \
   -- python3 "$extractor" "$fix/red-unknown-grade.md"
 
+# The grade word above is spelled in plain letters, and that is the ONLY
+# invented grade the marker pattern matches: `grade::([a-z]+)`. A grade word
+# carrying a hyphen, a digit, or a capital does not match the pattern at all,
+# so the paragraph stops being a node before the vocabulary is ever consulted
+# and the report above cannot fire. The case below covers that half.
+
+expect "red: an invented grade word outside [a-z]+ is reported" 3 "" \
+  -- python3 "$extractor" "$fix/red-invented-grade.md" -o "$tmp/invented.json"
+
+expect "red: the invented grade is reported ON THE GRADE, not by accident" \
+  0 "INVENTED-REPORTED-OK" \
+  -- python3 - "$tmp/invented.json" <<'EOF'
+import json, sys
+export = json.load(open(sys.argv[1]))
+findings = export["findings"]
+# The accident this refuses: when a marker line fails to parse, its paragraph
+# is no longer a node, so any companion span inside it is reported as orphaned
+# — an exit 3 that names a stray token and says nothing about the grade, on a
+# node the reader is never told was dropped. The fixture carries no token span
+# in the offending paragraph so that path cannot fire, and the assertion
+# refuses it outright rather than trusting the fixture to stay that way.
+assert all(f["kind"] != "orphaned-companion" for f in findings), findings
+named = [f for f in findings if f["marker"] == "G1"]
+assert named, findings
+# A finding the reader cannot act on is not a report: it must name the word.
+assert any("self-evident" in f["reason"] for f in named), named
+# Preservation, stated as such: the well-formed sibling is untouched. This
+# clause is green at the pre-edit tree — it pins the blast radius, not the fix.
+assert [e["id"] for e in export["entries"]] == ["red-invented-grade:G2"], \
+    export["entries"]
+print("INVENTED-REPORTED-OK")
+EOF
+
 expect "red: vocabulary token outside a marker is reported" 3 "\"kind\": \"unplaced-token\"" \
   -- python3 "$extractor" "$fix/red-unplaced-token.md"
 expect "red: unknown companion token is reported" 3 "\"kind\": \"unknown-companion\"" \
