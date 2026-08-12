@@ -16,7 +16,7 @@
 # Usage:
 #   anchored_surface.sh --corpus <dir-or-file> --budget <N>
 #                        [--anchor <id>]... [--ranker anchored|recency]
-#                        [--self-evaluate]
+#                        [--self-evaluate] [--json]
 #
 # --budget has NO baked-in default: omitting it is a usage error, never a
 # silent fallback (ruling-open-surface-node.md [U8] names this as one of the
@@ -44,6 +44,18 @@
 # `excluded_backed`, decidable from the corpus alone, with no graph walk
 # required.
 #
+# --json stdout: the core's structured value verbatim — {candidates:
+# [{id, statement, distance}, ...], excluded_backed: {count, total}} — for a
+# caller that consumes fields rather than prose (node/surface-injection: the
+# SessionStart hook parses this rather than the rendered lines above). This
+# is exposure only: --budget is still required (unchanged validation) but
+# does not bound this mode's output, exactly as the core itself is not
+# budget-bounded — truncation is the renderer's job, not the core's, and a
+# structured caller does its own bounding over the parsed value. --json
+# takes precedence over --self-evaluate when both are given, since the
+# structured value already carries everything --self-evaluate's one line
+# reports (and more).
+#
 # Exit: 0 = rendered/evaluated successfully. 1 = the corpus failed
 # extraction or entry_apply.ncl validation (this primitive never works
 # around that — see the node's own report on the pre-existing corpus
@@ -57,7 +69,7 @@ CORE="$here/anchored_surface_core.ncl"
 APPLY="$root/ledger/contracts/entry_apply.ncl"
 
 usage() {
-  echo "usage: anchored_surface.sh --corpus <dir-or-file> --budget <N> [--anchor <id>]... [--ranker anchored|recency] [--self-evaluate]" >&2
+  echo "usage: anchored_surface.sh --corpus <dir-or-file> --budget <N> [--anchor <id>]... [--ranker anchored|recency] [--self-evaluate] [--json]" >&2
 }
 
 command -v nickel  >/dev/null 2>&1 || { echo "anchored_surface: nickel not on PATH" >&2; exit 2; }
@@ -70,6 +82,7 @@ corpus=""
 budget=""
 ranker="anchored"
 self_evaluate=0
+json_mode=0
 anchors=()
 
 while [ $# -gt 0 ]; do
@@ -88,6 +101,8 @@ while [ $# -gt 0 ]; do
       ranker="$2"; shift 2 ;;
     --self-evaluate)
       self_evaluate=1; shift ;;
+    --json)
+      json_mode=1; shift ;;
     -h|--help)
       usage; exit 0 ;;
     *)
@@ -174,6 +189,14 @@ if [ "$core_rc" -ne 0 ]; then
   exit 1
 fi
 printf '%s' "$core_out" > "$core_json"
+
+# --json: the core's structured value, unmodified, in place of any render
+# (see the header comment). Checked before --self-evaluate's own render
+# path, per the precedence documented there.
+if [ "$json_mode" -eq 1 ]; then
+  cat "$core_json"
+  exit 0
+fi
 
 # Rendering (line assembly, budget-fit truncation, the two evaluator lines)
 # is ordinary string/arithmetic work over an already-computed value, not

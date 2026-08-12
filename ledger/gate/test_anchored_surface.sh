@@ -726,6 +726,90 @@ fi
 # ════════════════════════════════════════════════════════════════════════════
 echo ""
 echo "════════════════════════════════════════════════════════════════════════"
+echo "SECTION 12 — node/surface-injection: --json exposes the core structured"
+echo "value, never the render"
+echo "════════════════════════════════════════════════════════════════════════"
+# THE --json FLAG DOES NOT EXIST YET at the tip this section was authored
+# against — red for that reason, same convention as Section 0's note.
+run_cmd s12a -- --corpus "$fix/reach-note.md" --budget 100000 --anchor reach-note:A1 --json
+if [ "$s12a_rc" -eq 0 ]; then
+  printf '%s' "$s12a_out" > "$TMP/s12a.json"
+  py_ok="$(python3 - "$TMP/s12a.json" <<'PY'
+import json, sys
+d = json.load(open(sys.argv[1]))
+ids = sorted(c["id"] for c in d["candidates"])
+want = sorted(["reach-note:B1", "reach-note:C1", "reach-note:H1"])
+has_fields = all({"id", "statement", "distance"} <= set(c.keys()) for c in d["candidates"])
+has_excluded = set(d.get("excluded_backed", {}).keys()) >= {"count", "total"}
+print("OK" if (ids == want and has_fields and has_excluded) else f"FAIL ids={ids} fields_ok={has_fields} excluded_ok={has_excluded}")
+PY
+)"
+  if [ "$py_ok" = "OK" ]; then
+    record red pass "--json emits the core value: candidates{id,statement,distance} + excluded_backed{count,total}"
+  else
+    record red fail "--json emits the core value: candidates{id,statement,distance} + excluded_backed{count,total}" "$py_ok"
+  fi
+else
+  record red fail "--json emits the core value: candidates{id,statement,distance} + excluded_backed{count,total}" "rc=$s12a_rc: $s12a_out"
+fi
+
+# The rendered lines (documentation contribution, "--- ... dropped ---" tail)
+# must be ABSENT from --json output — this is exposure of the structured
+# value, not a JSON wrapper around the same render.
+if [ "$s12a_rc" -eq 0 ]; then
+  if printf '%s' "$s12a_out" | grep -qiE 'documentation: declared|--- reproduce'; then
+    record red fail "--json output carries none of the rendered prose lines" "$s12a_out"
+  else
+    record red pass "--json output carries none of the rendered prose lines"
+  fi
+else
+  record red fail "--json output carries none of the rendered prose lines" "rc=$s12a_rc"
+fi
+
+# --json is not budget-bounded (the core itself isn't; truncation is the
+# renderer's job) — a tiny --budget still returns the full candidate set.
+run_cmd s12b -- --corpus "$fix/reach-note.md" --budget 1 --anchor reach-note:A1 --json
+if [ "$s12b_rc" -eq 0 ]; then
+  printf '%s' "$s12b_out" > "$TMP/s12b.json"
+  ok="$(python3 - "$TMP/s12b.json" <<'PY'
+import json, sys
+d = json.load(open(sys.argv[1]))
+print("OK" if len(d["candidates"]) == 3 else f"FAIL n={len(d['candidates'])}")
+PY
+)"
+  if [ "$ok" = "OK" ]; then
+    record red pass "--json ignores --budget's rendering-only truncation (still required by usage, but not applied here)"
+  else
+    record red fail "--json ignores --budget's rendering-only truncation" "$ok"
+  fi
+else
+  record red fail "--json ignores --budget's rendering-only truncation" "rc=$s12b_rc: $s12b_out"
+fi
+
+# --json carries excluded_backed unconditionally, without needing
+# --self-evaluate — reusing Section 8's own hand-scored golden (1/4).
+run_cmd s12c -- --corpus "$fix/holdout-note.md" --budget 100000 --json
+if [ "$s12c_rc" -eq 0 ]; then
+  printf '%s' "$s12c_out" > "$TMP/s12c.json"
+  ok="$(python3 - "$TMP/s12c.json" <<'PY'
+import json, sys
+d = json.load(open(sys.argv[1]))
+eb = d["excluded_backed"]
+print("OK" if (eb["count"] == 1 and eb["total"] == 4) else f"FAIL eb={eb}")
+PY
+)"
+  if [ "$ok" = "OK" ]; then
+    record red pass "--json's excluded_backed matches the hand-scored golden (1/4) without --self-evaluate"
+  else
+    record red fail "--json's excluded_backed matches the hand-scored golden (1/4)" "$ok"
+  fi
+else
+  record red fail "--json's excluded_backed matches the hand-scored golden (1/4)" "rc=$s12c_rc: $s12c_out"
+fi
+
+# ════════════════════════════════════════════════════════════════════════════
+echo ""
+echo "════════════════════════════════════════════════════════════════════════"
 echo "SUMMARY"
 echo "════════════════════════════════════════════════════════════════════════"
 echo "  PASS: $PASS_COUNT"
