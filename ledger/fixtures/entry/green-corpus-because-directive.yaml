@@ -1,0 +1,24 @@
+# Corpus green: a because-tagged CORPUS ref names a DIRECTIVE, not an entry.
+# ruling-terminal-composition [TC5]: a directive closes by authority and the
+# extractor routes it to the top-level `directives` list, out of `entries`
+# entirely — before this widening, id resolution never even looked there and
+# a correct citation of a real directive read as a dangling edge.
+directives:
+  - id: drafting-d3:D3D9
+    statement: "The three D3 terminal claims must convert to directive nodes."
+    provenance: "architect ruling on the terminal composition"
+entries:
+  - id: e-cites-directive
+    statement: "This synthesis cites the D3 terminal-conversion directive as its ground."
+    assertion: claim
+    backing: unclosed
+    signer:
+      kind: agent
+      name: architect-seat
+    because:
+      - kind: corpus
+        name: drafting-d3:D3D9
+    axes:
+      determined: true
+      certifiable: false
+      monotone: true

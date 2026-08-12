@@ -1,0 +1,24 @@
+# Corpus red: a `directives` list is PRESENT and non-empty, but a `because`
+# ref names an id that is neither a declared entry nor a declared directive.
+# Pins that the widened resolvable space is exactly entries-union-directives,
+# not a blanket weakening that swallows any string: a ref naming nothing at
+# all still dangles.
+directives:
+  - id: drafting-d3:D3D9
+    statement: "The three D3 terminal claims must convert to directive nodes."
+    provenance: "architect ruling on the terminal composition"
+entries:
+  - id: e-cites-ghost
+    statement: "This synthesis cites an id that names neither an entry nor a directive."
+    assertion: claim
+    backing: unclosed
+    signer:
+      kind: agent
+      name: architect-seat
+    because:
+      - kind: corpus
+        name: drafting-d3:D3D-GHOST
+    axes:
+      determined: true
+      certifiable: false
+      monotone: true
