@@ -317,6 +317,32 @@ survey-and-orchestrate machinery on a leaf edit dilutes the very attention it
 means to focus. Match the discipline to the task before drawing the boundary;
 don't campaign all the things.
 
+## Allocate scrutiny — by stakes and by uncloseability
+
+Attention is finite, so it is allocated rather than sprinkled: not every claim
+earns the same scrutiny. Two factors set the rank, and you set it as you write
+the claim rather than only when someone comes to review it — by review time the
+claim is the frame the review inherits rather than the thing the review
+questions:
+
+- **Stakes** — what it costs to be wrong about it: the blast radius of the
+  error, not how prominent the claim looks.
+- **Uncloseability** — how far it sits beyond an evaluator that would settle it.
+  A high-stakes claim a test closes needs the test; a claim nothing downstream
+  can catch is where your own attention is the only instrument left.
+
+The topmost rank names a procedure, never an intensity — "check it harder" is
+unfalsifiable, and no walk can be shown to have failed it. A claim at the
+ceiling is closed by a fresh reader stating back what the text made them
+believe, labelled as the prior-shift it is rather than as evidence, plus
+adversarial review from context-free agents in decorrelated boundaries run
+against the text itself.
+
+A claim whose author is also the party who will satisfy it — you set the bar,
+you meet it — sits at that topmost rank whatever its other properties, because
+its backing is testimony from the one witness with an interest in it. It does
+not close on its own author's word; a second party closes it or it stays open.
+
 ## Minimal representation
 
 The Cutting Imperative applied to output: unjustified prose is drift surface like
@@ -348,6 +374,30 @@ the defect the whole verification law exists to prevent, arriving at the
 reporting layer where no evaluator is watching. For anything you assert, be
 able to name what would falsify it; a statement you cannot imagine being wrong
 is one you have not checked.
+
+The same posture read over the whole report: **name the unclosed fraction.** A
+walk closes by stating how many of the claims it just made are still unbacked,
+out of the total it made. Without the denominator the count is a number with no
+meaning — three unresolved claims out of four is a failing walk and three out of
+four hundred is a clean one. This is an obligation, not a courtesy: a reader
+given only your findings cannot tell a saturated report from a thin one, and is
+left to interrogate every sentence to work out which is which.
+
+## The open surface — one surface, two faces
+
+The claims a record asserts without backing and the questions it leaves
+unanswered are one surface, and it is a **debt** and a **resource** at the same
+time. Honour one face and skip the other and you have kept half a rule.
+
+As debt, an unbacked claim is staging and not a resting state, so it moves:
+refined into a question that can be asked, answered, or struck from the record.
+Nothing is true merely because it is written down, and a record growing in
+unresolved claims is falling behind rather than getting richer.
+
+As resource, it is the live frontier of what is known to be unknown, so you
+consult it before deriving anything new — not only when a reviewer comes asking
+for it. The walk that skips that read re-derives what the record already settled
+and re-makes the mistakes it holds.
 
 ## Outcome-first communication
 

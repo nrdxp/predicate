@@ -304,6 +304,34 @@ let GateEntry = {
     } | GateEntry,
 
     {
+      gate        = "ledger/gate/test_report_fraction.sh",
+      scope       = 'orchestration,
+      fires_when  = "CI conditioning-sweep step; materializes the install into a throwaway HOME and asserts the always-on law obliges every walk to REPORT ITS UNCLOSED FRACTION — stated rather than merely computable, naming the denominator and the body of work it ranges over, at one rung and with the query mechanism kept out of the law",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
+      gate        = "ledger/gate/test_scrutiny_allocation.sh",
+      scope       = 'orchestration,
+      fires_when  = "CI conditioning-sweep step; materializes the install into a throwaway HOME and asserts the always-on law ALLOCATES SCRUTINY BY STAKES AND UNCLOSEABILITY rather than uniformly — binding at authoring rather than only at review, giving the top rank a named procedure rather than an intensity, and calling out the claim whose author is also the party who will satisfy it",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
+      gate        = "ledger/gate/test_open_surface.sh",
+      scope       = 'orchestration,
+      fires_when  = "CI conditioning-sweep step; materializes the install into a throwaway HOME and asserts the always-on law governs the record's OPEN SURFACE on both faces at once — an unbacked claim is debt that moves toward an answerable question, an answer or removal and is never true merely because it is written down, and that same surface is a resource consulted BEFORE new derivation rather than only at review — with the two faces stated together as one rule",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
+      gate        = "ledger/gate/test_record_first.sh",
+      scope       = 'orchestration,
+      fires_when  = "CI conditioning-sweep step; materializes the install into a throwaway HOME and asserts the COMPOSER PERSONA rung — not the always-on law — carries the record-first ordering WITH its ground: conversational output bounded on the stated occasion of the head approaching conversationally, head-facing output named as drift potential, the conductor's coherence named as upstream of the walks it dispatches, all stated with the ordering rather than apart from it, and present in the composer surface while absent from core and from every dispatched-role delta",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
       gate        = "ledger/gate/test_colocation_gate.sh",
       scope       = 'orchestration,
       fires_when  = "CI gate-test step; verifies that bootstrap/install.sh init installs templates/project-gates/* into .ledger/gates/ and that the colocation gate fires when a skill-owned contract is re-centralized",
