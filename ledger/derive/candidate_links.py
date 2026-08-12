@@ -197,31 +197,33 @@ def _resolved_targets(info: DocInfo, corpus: Dict[str, DocInfo]) -> FrozenSet[st
     return frozenset(r for r in (resolve_target(t, corpus) for t in info.targets) if r is not None)
 
 
-def co_citation_candidates(staged_id: str, corpus: Dict[str, DocInfo]) -> Dict[str, Candidate]:
-    """For every document A the staged document cites, every OTHER document
-    that also cites A contributes its remaining citations as candidates for
-    the staged document — "what tends to travel with what I already cite".
+def co_citation_candidates_for_anchors(
+    anchors: FrozenSet[str], corpus: Dict[str, DocInfo], exclude_id: Optional[str] = None
+) -> Dict[str, Candidate]:
+    """For every document A in `anchors`, every OTHER document that also
+    cites A contributes its remaining citations as candidates — "what tends
+    to travel with what I already cite". General over any anchor set, not
+    just one staged document's own citations: a SessionStart hook has no
+    staged document to derive anchors from, only recent activity, so this is
+    the primitive both `co_citation_candidates` and the hook build on.
 
     Traversal is per-anchor (A), not per shared-set: a candidate B may itself
-    be one of the staged document's OTHER citations (already_linked reports
-    that honestly rather than the traversal silently excluding it) — the only
-    exclusions are the trivial ones, B being the anchor itself or the staged
-    document."""
-    staged = corpus[staged_id]
-    anchors = _resolved_targets(staged, corpus)
-
+    be one of the anchors (already_linked reports that honestly rather than
+    the traversal silently excluding it) — the only exclusion is `exclude_id`,
+    a hypothetical document (e.g. a staged doc) that is not itself a real
+    citing source in the corpus."""
     anchors_seen: Dict[str, set] = {}  # candidate -> set of anchor A's that produced it
     co_citing_docs: Dict[str, set] = {}  # candidate -> set of doc_ids providing the evidence
 
     for a in anchors:
         for d_id, d_info in corpus.items():
-            if d_id == staged_id:
+            if d_id == exclude_id:
                 continue
             d_targets = _resolved_targets(d_info, corpus)
             if a not in d_targets:
                 continue
             for b in d_targets:
-                if b == a or b == staged_id:
+                if b == a or b == exclude_id:
                     continue
                 anchors_seen.setdefault(b, set()).add(a)
                 co_citing_docs.setdefault(b, set()).add(d_id)
@@ -238,31 +240,49 @@ def co_citation_candidates(staged_id: str, corpus: Dict[str, DocInfo]) -> Dict[s
     }
 
 
-def stem_candidates(staged_id: str, corpus: Dict[str, DocInfo]) -> Dict[str, Candidate]:
+def co_citation_candidates(staged_id: str, corpus: Dict[str, DocInfo]) -> Dict[str, Candidate]:
+    """Co-citation candidates for a staged document, from what IT cites."""
+    staged = corpus[staged_id]
+    anchors = _resolved_targets(staged, corpus)
+    return co_citation_candidates_for_anchors(anchors, corpus, exclude_id=staged_id)
+
+
+def token_overlap_candidates(
+    query_tokens: FrozenSet[str], corpus: Dict[str, DocInfo], exclude_ids: FrozenSet[str] = frozenset()
+) -> Dict[str, Candidate]:
     """A document whose filename STEM shares >= MIN_STEM_OVERLAP significant
-    tokens with the staged document's own stem-or-title is a candidate. The
-    comparison is deliberately asymmetric: the candidate side is its stem
-    ALONE (a title-vs-title comparison would just be co-citation's job done
-    badly), the staged side is stem UNION title (a document's title is often
-    the more legible summary of what it is about)."""
+    tokens with `query_tokens` is a candidate. General over any token query,
+    not just one staged document's stem-or-title: a SessionStart hook's query
+    may be a branch name or other free text with no corpus doc behind it.
+    `already_linked` is always False here — the caller decides linkage
+    against whatever citation set (if any) actually applies to its query."""
+    result: Dict[str, Candidate] = {}
+    for d_id, d_info in corpus.items():
+        if d_id in exclude_ids:
+            continue
+        overlap = query_tokens & d_info.stem_tokens
+        if len(overlap) >= MIN_STEM_OVERLAP:
+            result[d_id] = Candidate(
+                target=d_id, kind="stem", via=tuple(sorted(overlap)),
+                strength=len(overlap), already_linked=False,
+            )
+    return result
+
+
+def stem_candidates(staged_id: str, corpus: Dict[str, DocInfo]) -> Dict[str, Candidate]:
+    """Stem/title-overlap candidates for a staged document. The comparison is
+    deliberately asymmetric: the candidate side is its stem ALONE (a
+    title-vs-title comparison would just be co-citation's job done badly),
+    the staged side is stem UNION title (a document's title is often the
+    more legible summary of what it is about)."""
     staged = corpus[staged_id]
     anchors = _resolved_targets(staged, corpus)
     staged_side = staged.stem_tokens | staged.title_tokens
-
-    result: Dict[str, Candidate] = {}
-    for d_id, d_info in corpus.items():
-        if d_id == staged_id:
-            continue
-        overlap = staged_side & d_info.stem_tokens
-        if len(overlap) >= MIN_STEM_OVERLAP:
-            result[d_id] = Candidate(
-                target=d_id,
-                kind="stem",
-                via=tuple(sorted(overlap)),
-                strength=len(overlap),
-                already_linked=d_id in anchors,
-            )
-    return result
+    raw = token_overlap_candidates(staged_side, corpus, exclude_ids={staged_id})
+    return {
+        d_id: dataclasses.replace(c, already_linked=(d_id in anchors))
+        for d_id, c in raw.items()
+    }
 
 
 def report_for(staged_path: str, ledger_root: Path, corpus: Dict[str, DocInfo]) -> DocReport:
