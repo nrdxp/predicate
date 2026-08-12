@@ -310,11 +310,10 @@ follow to the stated standard the extractor is correct against:
   (`proved`, `cited`, `synthesis`, `dispatchable`, `routed`, `frontier`,
   `residual`) or `directive`, which is out-of-vocabulary for entries and
   extracts to a separate list with its `provenance::`. A `<grade>` outside
-  that set does not fall out of nodehood: the marker captures any run of
-  non-space, non-backtick characters — hyphens, digits and capitals included
-  — so the paragraph is still read as a node, and it is reported as
-  `unknown-grade`, naming the invented word itself, with the node dropped;
-  a well-formed sibling in the same document still extracts.
+  that set does not fall out of nodehood: the paragraph is still read as a
+  node, reported as `unknown-grade` rather than dropped in silence, with the
+  node itself left out of the extract; a well-formed sibling in the same
+  document still extracts.
 - **Unmarked assertions.** In a document carrying at least one node, a
   paragraph that asserts without opening a marker is reported as an
   `unmarked-assertion`. Every other report here fires on a claim that was
