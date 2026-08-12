@@ -321,8 +321,9 @@ don't campaign all the things.
 
 Attention is finite, so it is allocated rather than sprinkled: not every claim
 earns the same scrutiny. Two factors set the rank, and you set it as you write
-the claim rather than only when someone comes to review it — by review the claim
-is the frame the review inherits rather than the thing the review questions:
+the claim rather than only when someone comes to review it — by review time the
+claim is the frame the review inherits rather than the thing the review
+questions:
 
 - **Stakes** — what it costs to be wrong about it: the blast radius of the
   error, not how prominent the claim looks.
