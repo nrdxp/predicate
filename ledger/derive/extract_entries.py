@@ -98,6 +98,10 @@ BRACKET_REF_RE = re.compile(
     r"\[(?:([A-Za-z0-9][A-Za-z0-9-]*):)?([A-Za-z][A-Za-z0-9-]*)\]")
 # a source/derives-from value continues past its span as `, [[wiki]]` segments
 CONTINUATION_RE = re.compile(r"^\s*,?\s*(?:`(\[\[[^\]]+\]\])`|(\[\[[^\]]+\]\]))")
+# The record's assertive form: a paragraph led by a bolded sentence. It is the
+# shape an unmarked claim keeps when its writer declines to type it, and the
+# only handle the grammar has on a claim that opens no marker at all.
+BOLD_LEAD_RE = re.compile(r"^\*\*(.+?)\*\*")
 SIGNER_RE = re.compile(r"`signer::\s*([^`]+)`")
 AT_RE = re.compile(r"`at::\s*([0-9a-f]{7,40})`")
 
@@ -347,6 +351,27 @@ def report_orphaned_companions(block: str, out: Extraction, doc: str,
                        "paragraph and cannot be attached to an entry")
 
 
+def report_unmarked_assertions(leads: list[str], out: Extraction, doc: str,
+                               grades_its_claims: bool) -> None:
+    """A claim that opens no marker is invisible to every other report here.
+    They all fire on a claim that was marked and then malformed; simply
+    declining to mark one evades the discipline at no cost, so this is the
+    only report that can see that evasion.
+
+    Scoped on whether the DOCUMENT grades its claims, never on whether the
+    extractor could read it: the header is not the discriminator. Most of the
+    landed record is untyped prose under a header that parses perfectly, and
+    reporting that prose would bury this signal under an order of magnitude of
+    legacy — the finding would then be true and useless."""
+    if not grades_its_claims:
+        return
+    for lead in leads:
+        excerpt = lead if len(lead) <= 60 else lead[:57] + "..."
+        out.report("unmarked-assertion", doc, None,
+                   f"`{excerpt}` asserts with no `[ID] grade::` marker in a "
+                   "document that grades its claims; nothing types or counts it")
+
+
 def extract_doc(path: Path, out: Extraction) -> None:
     text = path.read_text(encoding="utf-8")
     doc = path.stem
@@ -368,6 +393,11 @@ def extract_doc(path: Path, out: Extraction) -> None:
     anchor = at_match.group(1)
     last_source: list[str] = []
     last_marker: str | None = None
+    # Held until the whole document has been read: whether an unmarked
+    # assertion is a defect depends on whether THIS document grades anything,
+    # and that is not known at the paragraph where the assertion is written.
+    unmarked: list[str] = []
+    grades_its_claims = False
 
     for block in paragraphs(text):
         if block.startswith("#"):
@@ -377,9 +407,12 @@ def extract_doc(path: Path, out: Extraction) -> None:
         if marker_match is None:
             report_unplaced(block, out, doc)
             report_orphaned_companions(block, out, doc, last_marker)
+            if (lead := BOLD_LEAD_RE.match(block)) is not None:
+                unmarked.append(lead.group(1))
             continue
         marker, grade = marker_match.groups()
         last_marker = marker
+        grades_its_claims = True
         node_id = f"{doc}:{marker}"
         rest = block[marker_match.end():]
         statement, companions = parse_node(rest, out, doc, marker, last_source)
@@ -450,6 +483,8 @@ def extract_doc(path: Path, out: Extraction) -> None:
                            f"qualified; cannot resolve {external}")
         out.entries.append(entry)
         out.grades[node_id] = grade
+
+    report_unmarked_assertions(unmarked, out, doc, grades_its_claims)
 
 
 def collect_files(args: list[str]) -> list[Path]:
