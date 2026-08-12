@@ -283,6 +283,13 @@ let GateEntry = {
     } | GateEntry,
 
     {
+      gate        = "ledger/gate/test_candidate_links.sh",
+      scope       = 'orchestration,
+      fires_when  = "CI gate-test step; exercises ledger/derive/candidate_links.py (co-citation and stem/title-overlap candidate surfacing over the corpus, structural-values assertions against its JSON export, a mutation-can-fail demonstration) and its wiring into recorder-pre-commit.sh's staged-*.md tier — advisory only, never gates, never a non-zero exit",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
       gate        = "ledger/gate/test_conditioning_sweep.sh",
       scope       = 'orchestration,
       fires_when  = "CI conditioning-sweep step; asserts every conditioning/*.ncl behaves per its declared polarity, machine-guarding the HasCore injection-rule proof",
