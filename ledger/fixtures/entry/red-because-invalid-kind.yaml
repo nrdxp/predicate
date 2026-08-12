@@ -1,0 +1,22 @@
+# The tagged ref's `kind` is a CLOSED two-variant enum (ruling-provenance-
+# representation [SR5]): `corpus` or `external`, nothing else. Refusing a
+# third kind is load-bearing — an open variant set over the antecedent kinds
+# the earlier discriminator observed (repository document, doctrine,
+# contract predicate, pre-standard deposit, dispatch report, artifact under
+# review) is worse than the sidecar it replaces, because the seventh kind
+# either grows the contract per kind of world or gets filed under the
+# nearest fit. Single-violation by construction.
+id: r-because-bad-kind
+statement: "A because entry whose kind names neither corpus nor external."
+assertion: claim
+backing: unclosed
+signer:
+  kind: agent
+  name: architect-seat
+because:
+  - kind: doctrine
+    name: some-antecedent
+axes:
+  determined: true
+  certifiable: false
+  monotone: true

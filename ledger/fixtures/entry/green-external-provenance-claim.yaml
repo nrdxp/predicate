@@ -1,13 +1,18 @@
-# Lone-entry green: an unclosed CLAIM whose sole provenance is the new
-# entry-level `external_refs` field the extractor mirrors from its own share
-# of the `external_refs` sidecar — no depends, no because, no supersedes. This
-# is the majority shape among the 22 (20 of them): a synthesis honestly citing
-# an antecedent that structurally cannot be a corpus entry (a repository
-# document, a doctrine, a pre-standard deposit, ...). TODAY this fails at
-# SHAPE — `external_refs` is not yet a field entry.ncl's `Entry` declares, so
-# the contract reports "extra field `external_refs`" before ProvenanceGate
-# ever runs. The fix both declares the field and widens ProvenanceGate to
-# consult it.
+# CORRECTED under ruling-provenance-representation (ledger commit f257f6f),
+# which WITHDRAWS the entry-level `external_refs` mirror this fixture
+# originally pinned. Provenance is now one representation: `because` carries
+# TAGGED refs (`{kind: corpus|external, name: ...}`), and only `because` —
+# `depends`, `discharges`, `supersedes` stay plain corpus ids.
+#
+# Lone-entry green: an unclosed CLAIM whose sole `because` entry is tagged
+# `external` — no depends, no supersedes. This is the majority shape among
+# the 22 (20 of them): a synthesis honestly citing an antecedent that
+# structurally cannot be a corpus entry (a repository document, a doctrine, a
+# pre-standard deposit, ...). TODAY this fails at SHAPE — `because` is
+# `Array Ref` (bare NonEmptyString), so a tagged record element breaks
+# `NonEmptyString`, before ProvenanceGate ever runs. The fix retypes
+# `because` to `Array ProvenanceRef` and switches ProvenanceGate from the
+# removed `edges_of` to the new `provenance_of` (every stated antecedent).
 id: c-cited-outside-corpus
 statement: "A synthesis whose named antecedent is a repository document, not a corpus entry."
 assertion: claim
@@ -15,8 +20,9 @@ backing: unclosed
 signer:
   kind: agent
   name: architect-seat
-external_refs:
-  - docs/entries.md
+because:
+  - kind: external
+    name: docs/entries.md
 axes:
   determined: true
   certifiable: false

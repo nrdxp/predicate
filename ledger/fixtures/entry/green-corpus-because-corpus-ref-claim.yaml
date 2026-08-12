@@ -1,0 +1,36 @@
+# Corpus green: the same because-tagged CORPUS ref shape as
+# green-because-corpus-ref-claim.yaml, at the corpus granularity, with the
+# referenced antecedent actually DECLARED — so this also exercises
+# EntryStore's edge resolution over `corpus_edges_of` (the walkable subset),
+# not just ProvenanceGate's per-entry read. TODAY this fails SHAPE for the
+# same reason as the lone-entry case.
+entries:
+  - id: e-some-antecedent
+    statement: "The antecedent the retraction below cites by a tagged corpus ref."
+    assertion: claim
+    backing: corroborated
+    signer:
+      kind: agent
+      name: architect-seat
+    check:
+      command: "true"
+      ran: true
+      at: "deadbeef01"
+    axes:
+      determined: true
+      certifiable: true
+      monotone: true
+  - id: c-because-corpus-ref
+    statement: "A synthesis whose derivation is a because-tagged corpus ref, nothing else."
+    assertion: claim
+    backing: unclosed
+    signer:
+      kind: agent
+      name: architect-seat
+    because:
+      - kind: corpus
+        name: e-some-antecedent
+    axes:
+      determined: true
+      certifiable: false
+      monotone: true

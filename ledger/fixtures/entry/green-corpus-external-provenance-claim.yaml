@@ -1,10 +1,14 @@
-# Corpus green: the same external-provenance-only shape as
-# green-external-provenance-claim.yaml, at the corpus granularity — a
-# predicate live on one branch and dead on the other is a predicate that
-# never fires (entry_apply.ncl's own doctrine), so this pins EntryStore's
-# per-entry conformance fold applying the same widened ProvenanceGate. TODAY
-# this fails at SHAPE for the same reason as the lone-entry case: `external_refs`
-# is an undeclared field on Entry.
+# CORRECTED under ruling-provenance-representation (ledger commit f257f6f) —
+# see green-external-provenance-claim.yaml for the full account of what
+# changed and why.
+#
+# Corpus green: the same external-provenance-only shape, at the corpus
+# granularity — a predicate live on one branch and dead on the other is a
+# predicate that never fires (entry_apply.ncl's own doctrine), so this pins
+# EntryStore's per-entry conformance fold applying the same widened
+# ProvenanceGate to a tagged `because` entry. TODAY this fails at SHAPE for
+# the same reason as the lone-entry case: `because` is `Array Ref`, and a
+# tagged record element breaks `NonEmptyString`.
 entries:
   - id: c-cited-outside-corpus
     statement: "A synthesis whose named antecedent is a repository document, not a corpus entry."
@@ -13,8 +17,9 @@ entries:
     signer:
       kind: agent
       name: architect-seat
-    external_refs:
-      - docs/entries.md
+    because:
+      - kind: external
+        name: docs/entries.md
     axes:
       determined: true
       certifiable: false

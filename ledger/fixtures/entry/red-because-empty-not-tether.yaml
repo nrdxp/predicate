@@ -1,0 +1,23 @@
+# REPLACES red-external-refs-empty-not-tether.yaml, deleted under
+# ruling-provenance-representation (ledger commit f257f6f): the entry-level
+# `external_refs` mirror it pinned was withdrawn, so its boundary case moved
+# to the field that actually carries tagged provenance now — `because`.
+#
+# A present-but-EMPTY `because` array names no tether, permanently, before
+# and after the fix — an empty array is shape-valid under both the old
+# (`Array Ref`) and new (`Array ProvenanceRef`) type, so this case's reason
+# (ProvenanceGate) is stable across the fix, unlike the deleted fixture's
+# (whose reason shifted from SHAPE to ProvenanceGate as the field came into
+# existence). Single-violation by construction.
+id: r-because-empty
+statement: "An unbacked claim carrying an empty because array, which names no tether at all."
+assertion: claim
+backing: unclosed
+signer:
+  kind: agent
+  name: architect-seat
+because: []
+axes:
+  determined: true
+  certifiable: false
+  monotone: true
