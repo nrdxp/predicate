@@ -27,8 +27,9 @@
 #     --ranker <name>          optional, default "anchored" — a real,
 #                             name-checked parameter (C7): an unknown name is
 #                             rejected by name, not silently ignored.
-#     --self-evaluate          switches to the ranker's own holdout evaluator
-#                             (C8) instead of rendering a surface.
+#     --self-evaluate          switches to the corpus-side exclusion count
+#                             (C8, narrowed by ruling-holdout-fate.md) instead
+#                             of rendering a surface.
 #
 #   Rendered-surface stdout: one line per open-surface member,
 #     "[<id>] <statement>"
@@ -37,18 +38,19 @@
 #     /^---.*[0-9]+.*dropped.*---$/ naming the dropped count and a
 #     reproduction command (C5, C10).
 #
-#   --self-evaluate stdout: two lines, both reported and neither gating the
-#     surface itself — a backed target fails open-surface membership on its
-#     own, not by distance, so charging the ranker for it would score a
-#     restriction the boundary imposes rather than the ranker's behaviour:
-#       a line matching /HOLDOUT-RECALL:\s*([0-9]+)\/([0-9]+)/ — a structural
-#         property of the graph: whether each open, unclosed derivation
-#         target lands inside the two-hop undirected neighbourhood of its
-#         deriving entry, invariant to ranker/anchor/budget, never the
-#         chosen ranker's own score;
-#       a line matching /HOLDOUT-INELIGIBLE:\s*([0-9]+)\/([0-9]+)/ — a corpus
+#   --self-evaluate stdout: one line, reported and never gating the surface
+#     itself — a backed target fails open-surface membership on its own, not
+#     by distance:
+#       a line matching /EXCLUDED-BACKED:\s*([0-9]+)\/([0-9]+)/ — a corpus
 #         property, not a ranker score: derivation edges whose target is
-#         backed and so structurally excluded regardless of ranker behaviour.
+#         backed and so structurally excluded regardless of anchor, ranker,
+#         or budget.
+#   C8 originally also asked for a "ranker recall" number here. Cut, not
+#   rebuilt (ruling-holdout-fate.md [HV4]): the label named ordering
+#   quality, decidable only against relevance ground truth no corpus in
+#   this system carries — every label-free construction of it degenerated
+#   into a self-consistency check or a restatement of the two-hop walk
+#   Section 1-3 already bind directly.
 #
 # ── WHY GOLDEN FIXTURES, NOT THE LIVE CORPUS, CARRY THE PASS/FAIL GATE ───────
 # ledger/fixtures/anchored_surface/reach-note.md, holdout-note.md, and the
@@ -56,9 +58,9 @@
 # headers state the arithmetic) — sections 1-8 below gate on them exclusively.
 #
 # Sections 9-10 attempt the boundary's OTHER explicit ask — reproduce the
-# architect's per-anchor budget-fit measurement and the holdout rate against
-# the REAL record — over a FROZEN snapshot of .ledger at the commit the
-# architect's own [A4] cites (151a79b), located worktree-correctly via
+# architect's per-anchor budget-fit measurement and the backed-exclusion rate
+# against the REAL record — over a FROZEN snapshot of .ledger at the commit
+# the architect's own [A4] cites (151a79b), located worktree-correctly via
 # --git-common-dir (the project's own established idiom, hooks/install-hooks.sh
 # and ledger/gate/install-recorder-hook.sh). They do NOT gate the suite's exit
 # code on the measured NUMBERS (the boundary is explicit that a bad rate is a
@@ -455,48 +457,50 @@ run_cmd s7a -- --corpus "$fix/reach-note.md" --budget 100000 --anchor reach-note
 # ════════════════════════════════════════════════════════════════════════════
 echo ""
 echo "════════════════════════════════════════════════════════════════════════"
-echo "SECTION 8 — C8: the ranker's own evaluator, on a hand-scored fixture"
+echo "SECTION 8 — C8 (narrowed): the backed-exclusion count, on a hand-scored fixture"
 echo "════════════════════════════════════════════════════════════════════════"
 # holdout-note.md pins the answer in its own header, and scans EVERY entry
 # carrying a derivation edge (not a hand-picked subset — the provenance gate
 # forces every unclosed claim to have one, so the fixture's "scaffolding"
 # entries score too): 4 pairs total. 3 target an eligible (unclosed) entry —
-# D1->SEED1, E1->D1, SEED1->Q1 — and all 3 are HITs. 1 targets an ineligible
-# (backed) entry — E2->D2, D2 corroborated/proved — and can never be a HIT at
-# any distance, because a backed entry fails open-surface membership on its
-# own, not by reachability. Collapsing these into one rate would charge the
-# ranker for a restriction the boundary imposes on it, so the fixture is
-# scored as two numbers instead of one:
-#   two-hop reachability over eligible targets: 3/3 = 1.0  (a structural
-#     graph property, invariant to ranker/anchor/budget — never a score the
-#     chosen ranker earns)
-#   structural ineligibility:             1/4 = 0.25 (a corpus property)
-# Both independently re-derived over the extractor's own export before being
+# D1->SEED1, E1->D1, SEED1->Q1. 1 targets a backed entry — E2->D2, D2
+# corroborated/proved — and can never surface at any distance, because a
+# backed entry fails open-surface membership on its own, not by
+# reachability. The golden is one number: 1/4 pairs target a backed entry.
+# Independently re-derived over the extractor's own export before being
 # pinned here.
+#
+# C8 originally also asked for a ranker "recall" number here (3/3 over the
+# eligible pairs, all reachable in one hop by construction). That number is
+# CUT, not rebuilt (ruling-holdout-fate.md [HV1]/[HV4]): it was the edge
+# list restated, never an independent measurement — every pair above is a
+# direct derivation edge, always exactly one hop from its own deriving
+# entry.
 run_cmd s8a -- --self-evaluate --corpus "$fix/holdout-note.md" --budget 100000
 if [ "$s8a_rc" -eq 0 ]; then
-  recall_line="$(printf '%s' "$s8a_out" | grep -oE 'HOLDOUT-RECALL:[[:space:]]*[0-9]+/[0-9]+' | head -1)"
-  ineligible_line="$(printf '%s' "$s8a_out" | grep -oE 'HOLDOUT-INELIGIBLE:[[:space:]]*[0-9]+/[0-9]+' | head -1)"
-  if [ -n "$recall_line" ] && [ -n "$ineligible_line" ]; then
-    r_hits="$(printf '%s' "$recall_line" | grep -oE '[0-9]+' | sed -n '1p')"
-    r_total="$(printf '%s' "$recall_line" | grep -oE '[0-9]+' | sed -n '2p')"
-    i_hits="$(printf '%s' "$ineligible_line" | grep -oE '[0-9]+' | sed -n '1p')"
-    i_total="$(printf '%s' "$ineligible_line" | grep -oE '[0-9]+' | sed -n '2p')"
-    if [ "$r_hits" = "3" ] && [ "$r_total" = "3" ]; then
-      record red pass "ranker recall over eligible targets on the hand-scored fixture reports exactly 3/3"
+  excluded_line="$(printf '%s' "$s8a_out" | grep -oE 'EXCLUDED-BACKED:[[:space:]]*[0-9]+/[0-9]+' | head -1)"
+  if [ -n "$excluded_line" ]; then
+    e_count="$(printf '%s' "$excluded_line" | grep -oE '[0-9]+' | sed -n '1p')"
+    e_total="$(printf '%s' "$excluded_line" | grep -oE '[0-9]+' | sed -n '2p')"
+    if [ "$e_count" = "1" ] && [ "$e_total" = "4" ]; then
+      record red pass "backed-exclusion count on the hand-scored fixture reports exactly 1/4"
     else
-      record red fail "ranker recall over eligible targets on the hand-scored fixture reports exactly 3/3" "got $r_hits/$r_total"
-    fi
-    if [ "$i_hits" = "1" ] && [ "$i_total" = "4" ]; then
-      record red pass "structural ineligibility on the hand-scored fixture reports exactly 1/4 (a corpus property, not a ranker miss)"
-    else
-      record red fail "structural ineligibility on the hand-scored fixture reports exactly 1/4" "got $i_hits/$i_total"
+      record red fail "backed-exclusion count on the hand-scored fixture reports exactly 1/4" "got $e_count/$e_total"
     fi
   else
-    record red fail "holdout output carries distinct HOLDOUT-RECALL: and HOLDOUT-INELIGIBLE: lines" "$s8a_out"
+    record red fail "self-evaluate output carries an EXCLUDED-BACKED: line" "$s8a_out"
   fi
 else
-  record red fail "holdout on the hand-scored fixture reports its two-number split" "rc=$s8a_rc: $s8a_out"
+  record red fail "self-evaluate on the hand-scored fixture reports the backed-exclusion count" "rc=$s8a_rc: $s8a_out"
+fi
+
+# Guard: the cut is real, not a rename-in-place — a HOLDOUT-RECALL line
+# reappearing would mean the cut ruling (ruling-holdout-fate.md [HV4]) had
+# silently regressed rather than landed.
+if printf '%s' "$s8a_out" | grep -qE 'HOLDOUT-RECALL|HOLDOUT-INELIGIBLE'; then
+  record guard fail "self-evaluate output carries no HOLDOUT-RECALL/HOLDOUT-INELIGIBLE line (cut, not renamed)" "$s8a_out"
+else
+  record guard pass "self-evaluate output carries no HOLDOUT-RECALL/HOLDOUT-INELIGIBLE line (cut, not renamed)"
 fi
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -579,37 +583,34 @@ fi
 # ════════════════════════════════════════════════════════════════════════════
 echo ""
 echo "════════════════════════════════════════════════════════════════════════"
-echo "SECTION 10 — C8: the real corpus's holdout rate (informational, not gating)"
+echo "SECTION 10 — C8: the real corpus's backed-exclusion rate (informational, not gating)"
 echo "════════════════════════════════════════════════════════════════════════"
 # Same frozen snapshot as Section 9, same corpus-validity caveat. When the
-# corpus is usable, this reports the ranker's real-world recall AND the
-# corpus's real-world structural-ineligibility fraction — the same split
-# Section 8 gates on the synthetic fixture — WITHOUT failing the suite on
-# either number, because the boundary is explicit that a bad rate here is a
-# finding about the ranker's DEFAULT to report to the composer, not a defect
+# corpus is usable, this reports the corpus's real-world backed-exclusion
+# fraction — the same count Section 8 gates on the synthetic fixture —
+# WITHOUT failing the suite on the number, because the boundary is explicit
+# that a bad rate here is a finding to report to the composer, not a defect
 # in this test suite or the command to route around.
 if [ -n "${frozen:-}" ] && [ -f "${extract_json:-/nonexistent}" ] && [ "${apply_rc:-1}" -eq 0 ]; then
   if [ -x "$CMD" ] || [ -f "$CMD" ]; then
     out="$("$CMD" --self-evaluate --corpus "$frozen" --budget 10000 2>&1)"; rc=$?
     if [ "$rc" -eq 0 ]; then
-      recall_line="$(printf '%s' "$out" | grep -oE 'HOLDOUT-RECALL:[[:space:]]*[0-9]+/[0-9]+' | head -1)"
-      ineligible_line="$(printf '%s' "$out" | grep -oE 'HOLDOUT-INELIGIBLE:[[:space:]]*[0-9]+/[0-9]+' | head -1)"
-      if [ -n "$recall_line" ] && [ -n "$ineligible_line" ]; then
-        echo "  real-corpus ranker recall (151a79b, budget 10000): $recall_line"
-        echo "  real-corpus structural ineligibility (151a79b, budget 10000): $ineligible_line"
-        echo "  (both reported, not gated — see this section's header comment)"
-        record guard pass "the holdout evaluator runs to completion over the real corpus"
+      excluded_line="$(printf '%s' "$out" | grep -oE 'EXCLUDED-BACKED:[[:space:]]*[0-9]+/[0-9]+' | head -1)"
+      if [ -n "$excluded_line" ]; then
+        echo "  real-corpus backed-exclusion count (151a79b, budget 10000): $excluded_line"
+        echo "  (reported, not gated — see this section's header comment)"
+        record guard pass "the backed-exclusion count runs to completion over the real corpus"
       else
-        record guard fail "the holdout evaluator runs to completion over the real corpus" "no HOLDOUT-RECALL:/HOLDOUT-INELIGIBLE: lines in output: $out"
+        record guard fail "the backed-exclusion count runs to completion over the real corpus" "no EXCLUDED-BACKED: line in output: $out"
       fi
     else
-      record guard fail "the holdout evaluator runs to completion over the real corpus" "rc=$rc: $out"
+      record guard fail "the backed-exclusion count runs to completion over the real corpus" "rc=$rc: $out"
     fi
   else
-    skip "real-corpus holdout measurement" "command does not exist yet"
+    skip "real-corpus backed-exclusion measurement" "command does not exist yet"
   fi
 else
-  skip "real-corpus holdout measurement" "frozen corpus unusable — see Section 9"
+  skip "real-corpus backed-exclusion measurement" "frozen corpus unusable — see Section 9"
 fi
 
 # ════════════════════════════════════════════════════════════════════════════

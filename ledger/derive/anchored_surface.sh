@@ -9,8 +9,8 @@
 # validation gate every corpus already passes through, and budget-bounded
 # rendering/truncation of what the Nickel core computes. The graph walk
 # itself — undirected two-hop reachability, the open-surface membership
-# filter, per-ranker ordering, and the holdout self-evaluator's two numbers —
-# is ledger/derive/anchored_surface_core.ncl (the Nickel-for-value-
+# filter, per-ranker ordering, and the backed-exclusion count — is
+# ledger/derive/anchored_surface_core.ncl (the Nickel-for-value-
 # transformation half of this node's convention).
 #
 # Usage:
@@ -31,16 +31,18 @@
 # yet, ruling-hooks-boundary.md B4) and a tail line naming the dropped count
 # and a reproduction command, present even when nothing was dropped.
 #
-# --self-evaluate stdout: two lines instead of a surface — HOLDOUT-RECALL (a
-# structural property of the graph: whether each open, unclosed derivation
-# target lands inside the two-hop undirected neighbourhood of its deriving
-# entry, via `edges_of` plus the closure edges — invariant to which ranker,
-# anchor, or budget the caller passes, never the chosen ranker's own score)
-# and HOLDOUT-INELIGIBLE (a corpus property: derivation targets that are
-# backed and so structurally excluded regardless of the ranker). Neither
-# gates the other; both come from anchored_surface_core.ncl's `holdout`,
-# which scores reachability alone, never a budget or a chosen ranker's
-# truncation (ruling-open-surface-node.md [U6]).
+# --self-evaluate stdout: one line instead of a surface — EXCLUDED-BACKED (a
+# corpus property, not a ranker score: derivation edges whose target is
+# backed and so structurally excluded from the open surface regardless of
+# anchor, ranker, or budget). This primitive previously also shipped a
+# ranker "recall" number here; it is CUT, not renamed alongside this one
+# (ruling-holdout-fate.md [HV4]/[HV6]) — the label named ordering quality,
+# which needs relevance ground truth no corpus in this system carries, and
+# every label-free construction of it either degenerated into a
+# self-consistency check or restated the two-hop walk this suite already
+# binds directly. EXCLUDED-BACKED comes from anchored_surface_core.ncl's
+# `excluded_backed`, decidable from the corpus alone, with no graph walk
+# required.
 #
 # Exit: 0 = rendered/evaluated successfully. 1 = the corpus failed
 # extraction or entry_apply.ncl validation (this primitive never works
@@ -143,9 +145,10 @@ if [ "$apply_rc" -ne 0 ]; then
 fi
 
 # Build the core's input record: the validated export's `entries`, plus the
-# run's own anchors/ranker. `--self-evaluate` needs neither budget nor
-# anchors to score (ruling [U6]: recall is reachability alone) so it is not
-# threaded into the core's input at all.
+# run's own anchors/ranker (unconditionally — this call is not special-cased
+# for `--self-evaluate`). `excluded_backed` ignores anchors/ranker/budget:
+# it is a corpus property, computed the same regardless of what a caller
+# passed for any of the three.
 request_json="$TMP/request.json"
 python3 - "$extract_json" "$request_json" "$ranker" "${anchors[@]}" <<'PYEOF'
 import json, sys
@@ -187,10 +190,8 @@ with open(core_path) as f:
     result = json.load(f)
 
 if self_evaluate:
-    recall = result["holdout"]["recall"]
-    ineligible = result["holdout"]["ineligible"]
-    print(f"HOLDOUT-RECALL: {recall['hits']}/{recall['total']}")
-    print(f"HOLDOUT-INELIGIBLE: {ineligible['count']}/{ineligible['total']}")
+    excluded = result["excluded_backed"]
+    print(f"EXCLUDED-BACKED: {excluded['count']}/{excluded['total']}")
     sys.exit(0)
 
 candidates = result["candidates"]  # already ranked by the core

@@ -4,7 +4,17 @@
 # gate, and budget-bounded rendering/truncation; this file owns everything
 # that is graph computation over an already-validated corpus: the undirected
 # two-hop reachability walk, the open-surface membership filter, per-ranker
-# ordering, and the holdout self-evaluator's two numbers.
+# ordering, and the backed-exclusion count.
+#
+# This file previously also computed a ranker "recall" number over
+# reachability. It is CUT (ruling-holdout-fate.md [HV4]): the label named
+# ordering quality, which is only decidable against relevance ground truth,
+# and no corpus in this system carries relevance labels — every label-free
+# construction of it degenerates, either into a self-consistency check or
+# into a restatement of the two-hop walk this file already performs and the
+# suite already binds directly. The backed-exclusion count below is the
+# half of the old split that measured a real, corpus-side property and
+# needed no labels to do it ([HV5]).
 #
 # Input shape: { entries = [Entry, ..], anchors = [String, ..], ranker = String }
 # `entries` is the validated export's own field — untouched, not re-shaped.
@@ -174,21 +184,21 @@ fun input =>
   # Named distinctly from the output field below it: a Nickel record is
   # recursively scoped, so a field literally named `candidates` initialized
   # from an outer `candidates` binding would shadow it with itself and
-  # diverge — the same hazard `hit_pairs`/`recall` sidestep further down.
+  # diverge — the same hazard `eligible_pairs`/`excluded_backed` sidestep
+  # further down.
   let ranked_candidates = std.array.sort cmp reachable_members in
 
-  # --- the holdout self-evaluator ---------------------------------------------
+  # --- the backed-exclusion count -------------------------------------------
   #
   # Every derivation edge (law.edges_of: because + depends) in the corpus is
   # one pair, deriving entry -> its named target — the provenance gate
   # already forces every unclosed claim to carry at least one, so this scans
-  # the whole corpus rather than a hand-picked subset ([the holdout fixture's
-  # own header]). Recall is measured over reachability ALONE, never over a
-  # budget or a ranker's truncation ([U6]: "recall over the set reachable IN
-  # PRINCIPLE, which is the ranker's score") — a direct derivation edge is
-  # always exactly one hop, always inside the two-hop bound, so this is a
-  # structural guarantee the walk must uphold rather than a number that
-  # varies with `--budget`/`--ranker`.
+  # the whole corpus rather than a hand-picked subset. A pair's target is
+  # excluded when it fails open-surface membership by being backed
+  # (corroborated/vouched, `is_member` above) — a property of the CORPUS,
+  # decidable without a graph walk, and true regardless of anchor, ranker,
+  # or budget: a backed target can never surface no matter how it is
+  # reached.
   let derivation_pairs =
     std.array.fold_left
       (fun acc e => acc @ (std.array.map (fun r => { from = e.id, to = r }) (law.edges_of e)))
@@ -197,25 +207,11 @@ fun input =>
   in
   let eligible = fun pr => std.record.has_field pr.to id_map && is_member (id_map."%{pr.to}") in
   let eligible_pairs = std.array.filter eligible derivation_pairs in
-  let is_hit = fun pr => std.record.has_field pr.to (bfs2 pr.from) in
-  let hit_pairs = std.array.filter is_hit eligible_pairs in
 
-  # Field names below are deliberately NOT the same identifiers as the `let`
-  # bindings feeding them: a Nickel record is recursively scoped, so a field
-  # named `hits` initialized from an outer `hits` binding would shadow it
-  # with itself and diverge (`infinite recursion`) rather than read the outer
-  # value — the counts are computed above under their own names for exactly
-  # this reason.
   {
     candidates = ranked_candidates,
-    holdout = {
-      recall = {
-        hits = std.array.length hit_pairs,
-        total = std.array.length eligible_pairs,
-      },
-      ineligible = {
-        count = std.array.length derivation_pairs - std.array.length eligible_pairs,
-        total = std.array.length derivation_pairs,
-      },
+    excluded_backed = {
+      count = std.array.length derivation_pairs - std.array.length eligible_pairs,
+      total = std.array.length derivation_pairs,
     },
   }
