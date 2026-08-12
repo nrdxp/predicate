@@ -35,6 +35,17 @@
 #       own) still resolves .ledger beside the MAIN checkout it shares —
 #       resolve_ledger_root(), not resolve_project_root() alone.
 #   (j2) same, through the full script's stdin/stdout contract.
+#   (m) node/dispatch-anchoring: a dispatch text (read from the walk's own
+#       transcript, via input_data.transcript_path) naming an entry id
+#       anchors on it EXCLUSIVELY — the most-recently-modified documents'
+#       own entries do NOT surface, proving the anchor is the dispatch and
+#       not the clock (ruling-hooks-boundary.md [A6] — the fix for the
+#       failure mode this hook shipped with: recency as the PRIMARY anchor
+#       rather than the fallback).
+#   (n) the same corpus with a dispatch naming nothing the corpus
+#       recognises: recency fallback still fires (`anchor_source ==
+#       "recency"`), proving the fallback survives the reordering.
+#   (m2) (m) again through the full script's stdin/stdout contract.
 #   (h) never a non-zero exit, across every fixture above.
 #
 #   MUTATION -- the anchor-exclusion filter is broken in a throwaway copy and
@@ -44,6 +55,10 @@
 #   MUTATION 2 -- the entry-anchor stem match (node/surface-injection's own
 #       addition) is broken and case (i) is re-run against it: the claim
 #       surface must go empty, proving (i) can fail.
+#   MUTATION 3 -- node/dispatch-anchoring's own dispatch-text extraction is
+#       broken (always returns no anchors) and case (m) is re-run against
+#       it: the mutant must fall back to recency and lose the
+#       dispatch-named entry, proving (m) can fail.
 #
 # Usage: test_session_start.sh
 # Exit:  0 = all cases matched, 1 = a case mismatched, 2 = environment error.
@@ -439,6 +454,124 @@ ctx = data.get("hookSpecificOutput", {}).get("additionalContext", "")
 ok = "## Record open surface" in ctx and "## Open claims near the work" in ctx and "near-claim:NEAR1" in ctx and "log/b" in ctx
 reason = f"ctx={ctx}"
 '
+rm -rf "$proj"
+
+# ─── (m)/(n)/(m2): node/dispatch-anchoring — dispatch text is the PRIMARY
+# anchor, recency the FALLBACK (ruling-hooks-boundary.md [A6]) ─────────────
+# Five decoy documents are touched LAST — the most-recent-five window
+# RECENT_ANCHOR_COUNT would anchor on under the shipped, wrong default —
+# while the document the dispatch names directly is touched FIRST (old).
+# The contrast is the point: (m) the dispatch-named entry must surface and
+# the decoys must NOT, proving the anchor came from the dispatch rather
+# than the clock; (n) reruns the same corpus with a dispatch that names
+# nothing the corpus recognises and the decoys MUST surface, proving the
+# fallback survives rather than going silent when the primary source finds
+# nothing.
+proj="$(make_git_repo)"
+mkdir -p "$proj/.ledger/log"
+cat > "$proj/.ledger/log/old-target.md" <<'EOF'
+# the document the dispatch names directly
+
+`signer:: agent/test` · `at:: 0000000`
+
+`[TARGET1] grade::frontier` An open question the dispatch text names by id.
+`discharge:: whatever eventually answers this` `closer:: agent/test`
+EOF
+touch -d "2018-01-01" "$proj/.ledger/log/old-target.md"
+for i in 1 2 3 4 5; do
+  cat > "$proj/.ledger/log/decoy$i.md" <<EOF
+# decoy document $i, touched most recently of all
+
+\`signer:: agent/test\` · \`at:: 0000000\`
+
+\`[DECOY$i] grade::frontier\` An open question recency would have anchored on.
+\`discharge:: whatever eventually answers this\` \`closer:: agent/test\`
+EOF
+  touch -d "2019-06-0$i" "$proj/.ledger/log/decoy$i.md"
+done
+
+transcript_named="$tmp/dispatch-transcript-named.jsonl"
+printf '%s\n' '{"type": "user", "message": {"role": "user", "content": "please pick up work near old-target:TARGET1 next"}}' > "$transcript_named"
+transcript_unnamed="$tmp/dispatch-transcript-unnamed.jsonl"
+printf '%s\n' '{"type": "user", "message": {"role": "user", "content": "lets keep going, nothing specific named here"}}' > "$transcript_unnamed"
+
+python3 - "$proj" "$transcript_named" <<PY
+import sys
+sys.path.insert(0, "$root/harness")
+sys.path.insert(0, "$root/ledger/derive")
+import session_start as ss
+from pathlib import Path
+proj = Path(sys.argv[1])
+claims = ss.compute_claim_surface(proj / ".ledger", {"transcript_path": sys.argv[2]})
+ok = (
+    claims.anchor_source == "dispatch"
+    and "old-target:TARGET1" in claims.text
+    and not any(f"decoy{i}:DECOY{i}" in claims.text for i in range(1, 6))
+)
+if not ok:
+    print(f"claims={claims}", file=sys.stderr)
+sys.exit(0 if ok else 1)
+PY
+if [ $? -eq 0 ]; then
+  pass "(m) dispatch text naming an entry anchors on it, not the most-recently-modified documents"
+else
+  fail "(m) dispatch text naming an entry anchors on it, not the most-recently-modified documents"
+fi
+
+python3 - "$proj" "$transcript_unnamed" <<PY
+import sys
+sys.path.insert(0, "$root/harness")
+sys.path.insert(0, "$root/ledger/derive")
+import session_start as ss
+from pathlib import Path
+proj = Path(sys.argv[1])
+claims = ss.compute_claim_surface(proj / ".ledger", {"transcript_path": sys.argv[2]})
+ok = claims.anchor_source == "recency" and any(f"decoy{i}:DECOY{i}" in claims.text for i in range(1, 6))
+if not ok:
+    print(f"claims={claims}", file=sys.stderr)
+sys.exit(0 if ok else 1)
+PY
+if [ $? -eq 0 ]; then
+  pass "(n) a dispatch naming no recognised anchor falls back to recency"
+else
+  fail "(n) a dispatch naming no recognised anchor falls back to recency"
+fi
+
+printf '{"cwd": "%s", "transcript_path": "%s"}' "$proj" "$transcript_named" | python3 "$hook" >"$tmp/stdout.json" 2>"$tmp/stderr.txt"
+rc=$?
+[ "$rc" -ne 0 ] && nonzero_exits=$((nonzero_exits + 1))
+if [ "$rc" -eq 0 ] && grep -q "old-target:TARGET1" "$tmp/stdout.json" && ! grep -q "DECOY1" "$tmp/stdout.json"; then
+  pass "(m2) full script surfaces the dispatch-named entry via stdin transcript_path"
+else
+  fail "(m2) full script surfaces the dispatch-named entry via stdin transcript_path"
+fi
+
+# ─── MUTATION 3: prove case (m) can fail ────────────────────────────────────
+# Breaks _dispatch_anchor_ids so it always returns no anchors regardless of
+# what the dispatch names — the mutant must fall back to recency, losing
+# the dispatch-named entry and surfacing a decoy instead, proving (m) can
+# discriminate this defect rather than passing by construction.
+mutant3="$tmp/mutant3_session_start.py"
+sed 's/^    return found$/    return []/' "$hook" > "$mutant3"
+python3 - "$proj" "$mutant3" "$transcript_named" <<PY
+import sys, importlib.util
+sys.path.insert(0, "$root/ledger/derive")
+proj_path, mutant_path, transcript = sys.argv[1], sys.argv[2], sys.argv[3]
+spec = importlib.util.spec_from_file_location("mutant3_ss", mutant_path)
+mutant_ss = importlib.util.module_from_spec(spec)
+sys.modules["mutant3_ss"] = mutant_ss
+spec.loader.exec_module(mutant_ss)
+from pathlib import Path
+proj = Path(proj_path)
+claims = mutant_ss.compute_claim_surface(proj / ".ledger", {"transcript_path": transcript})
+ok = claims.anchor_source != "dispatch" and "old-target:TARGET1" not in claims.text
+sys.exit(0 if ok else 1)
+PY
+if [ $? -eq 0 ]; then
+  pass "(mutation 3) breaking dispatch-anchor extraction falls back to recency, losing the dispatch-named entry"
+else
+  fail "(mutation 3) breaking dispatch-anchor extraction falls back to recency, losing the dispatch-named entry"
+fi
 rm -rf "$proj"
 
 # ─── (h) never a non-zero exit, across every fixture above ──────────────────

@@ -14,12 +14,23 @@ Two contributions, independently computed and independently degradable:
      recent activity (which documents were just touched) and the branch
      name (which often names the topic).
   2. OPEN CLAIMS NEAR THE WORK (compute_claim_surface, node/surface-
-     injection) — the same "what was just touched" anchor, but walked
-     through the typed-claim graph instead of the document-citation graph:
-     the entry ids declared inside recently-touched documents seed
-     ledger/derive/anchored_surface.sh's anchored-reachability open surface,
-     consumed via its --json structured export (candidates/excluded_backed
-     fields), never its rendered prose.
+     injection, anchoring corrected by node/dispatch-anchoring) — walked
+     through the typed-claim graph rather than the document-citation graph,
+     seeding ledger/derive/anchored_surface.sh's anchored-reachability open
+     surface, consumed via its --json structured export
+     (candidates/excluded_backed fields), never its rendered prose. The
+     anchor is the entry ids the WALK'S OWN DISPATCH names (ruling-hooks-
+     boundary.md [A6]) — read from the last user-authored message in its
+     own transcript, never from what happens to be freshest on disk — with
+     recency (entries declared inside recently-touched documents) as the
+     fallback for a walk whose dispatch names nothing the corpus
+     recognises. Recency-as-primary was this contribution's own shipped
+     defect: a filter that is green and useless, since the material most
+     likely to need re-surfacing is exactly the material recency cannot see
+     ([A3]). Contribution 1 above is untouched by this correction — its
+     ranking is a different mechanism (co-citation/token-overlap strength,
+     never anchored_surface.sh's anchored/recency ranker) and [A4]/[A6]
+     rule only the claim graph.
 
 BUDGET_CHARS splits evenly between the two (DOC_BUDGET/CLAIM_BUDGET): no
 corpus property makes one contribution a priori more valuable than the
@@ -66,6 +77,7 @@ from __future__ import annotations
 import dataclasses
 import json
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -86,10 +98,26 @@ DOC_BUDGET = BUDGET_CHARS // 2
 CLAIM_BUDGET = BUDGET_CHARS - DOC_BUDGET
 
 # How many of the most-recently-modified corpus documents anchor the
-# co-citation query. Small on purpose: this is "what was just touched", not
-# a history sweep — a large window dilutes toward "the whole corpus is
-# recent" in an actively-written record.
+# co-citation query (contribution 1, unconditionally) and the claim-surface
+# fallback (contribution 2, only when its dispatch names no anchor the
+# corpus recognises — see compute_claim_surface). Small on purpose: this is
+# "what was just touched", not a history sweep — a large window dilutes
+# toward "the whole corpus is recent" in an actively-written record.
 RECENT_ANCHOR_COUNT = 5
+
+# A qualified entry id (`stem:MARKER`, extract_entries.py's own id shape —
+# stems may lead with a date, so digits open them, matching BRACKET_REF_RE's
+# stem group in extract_entries.py) found anywhere in a walk's own dispatch
+# text. Matched against the corpus's real ids below, never trusted as-is —
+# free text is not a source of entry ids on its own say-so.
+DISPATCH_QUALIFIED_ID_RE = re.compile(
+    r"\b([A-Za-z0-9][A-Za-z0-9-]*):([A-Za-z][A-Za-z0-9-]*)\b")
+# A bare document stem (node/dispatch-anchoring, ruling-hooks-boundary.md
+# [A6]: "bare document stems may also be worth anchoring on") — the negative
+# lookahead excludes the stem half of an already-qualified id immediately
+# above, so "ruling-hooks-boundary:A6" anchors on A6 alone rather than also
+# expanding to every entry the document declares.
+DISPATCH_STEM_RE = re.compile(r"\b([A-Za-z0-9][A-Za-z0-9-]*)\b(?!:)")
 
 
 def _run(cmd: List[str], cwd: Path, timeout: int = 5) -> Optional[str]:
@@ -282,27 +310,23 @@ class ClaimSurface:
     included_count: int
     dropped_count: int
     text: str  # "" means nothing to inject
+    anchor_source: str = ""  # "dispatch", "recency", or "" (no anchors at all)
 
 
-def _entry_anchors_near_recent(ledger_root: Path, recent_ids: FrozenSet[str]) -> List[str]:
-    """Entry ids declared INSIDE the recently-touched documents themselves —
-    the anchor set for 'open claims near the work'. A different id space
-    than `recent_ids` (candidate_links' document ids, e.g. `log/foo`):
-    extract_entries.py qualifies an entry id with its document's own
-    filename STEM only, never a directory prefix (its own `[stem:ID]`
-    convention), so `recent_ids` is narrowed to bare stems before matching.
-
-    Runs extract_entries.py over the WHOLE corpus once, independently of
-    whatever anchored_surface.sh does with its own --corpus internally —
-    the two extractions serve different purposes (anchor DISCOVERY here,
-    reachability computation there) and this one tolerates partial corpus
-    findings that would make the other exit non-zero (the export is written
+def _export_entries(ledger_root: Path) -> List[dict]:
+    """Runs extract_entries.py over the WHOLE corpus once and returns its
+    `entries` list — the one extraction both anchor sources below draw from
+    (dispatch-named ids need it to confirm a match is real; the recency
+    fallback needs it to find what a recent document declares), so a single
+    hook invocation never pays for the extractor twice. Independent of
+    whatever anchored_surface.sh does with its own --corpus internally — the
+    two extractions serve different purposes (anchor discovery here,
+    reachability computation there) — and tolerant of partial corpus
+    findings that would make the other exit non-zero: the export is written
     even when extract_entries.py itself exits 3 for findings elsewhere in
-    the corpus; only the finding's own doc is missing entries, not every
-    doc). Never raises: any failure (missing script, bad exit with no
-    export, malformed JSON, timeout) degrades to no anchors found."""
-    if not recent_ids:
-        return []
+    the corpus, only the finding's own doc is missing entries, not every
+    doc. Never raises: any failure (missing script, bad exit with no
+    export, malformed JSON, timeout) degrades to an empty list."""
     extractor = PLUGIN_ROOT / "ledger" / "derive" / "extract_entries.py"
     try:
         with tempfile.TemporaryDirectory() as td:
@@ -316,10 +340,23 @@ def _entry_anchors_near_recent(ledger_root: Path, recent_ids: FrozenSet[str]) ->
             export = json.loads(out_path.read_text(encoding="utf-8"))
     except (OSError, subprocess.TimeoutExpired, json.JSONDecodeError):
         return []
+    return export.get("entries", [])
 
+
+def _entry_anchors_near_recent(entries: List[dict], recent_ids: FrozenSet[str]) -> List[str]:
+    """Entry ids declared INSIDE the recently-touched documents themselves —
+    the FALLBACK anchor set for 'open claims near the work', used only when
+    the walk's own dispatch names nothing the corpus recognises
+    (compute_claim_surface). A different id space than `recent_ids`
+    (candidate_links' document ids, e.g. `log/foo`): extract_entries.py
+    qualifies an entry id with its document's own filename STEM only, never
+    a directory prefix (its own `[stem:ID]` convention), so `recent_ids` is
+    narrowed to bare stems before matching."""
+    if not recent_ids:
+        return []
     recent_stems = {doc_id.rsplit("/", 1)[-1] for doc_id in recent_ids}
     anchors = []
-    for entry in export.get("entries", []):
+    for entry in entries:
         entry_id = entry.get("id", "")
         stem = entry_id.split(":", 1)[0] if ":" in entry_id else ""
         if stem in recent_stems:
@@ -327,25 +364,143 @@ def _entry_anchors_near_recent(ledger_root: Path, recent_ids: FrozenSet[str]) ->
     return anchors
 
 
-def compute_claim_surface(ledger_root: Path, budget: int = CLAIM_BUDGET) -> ClaimSurface:
+def _last_dispatch_message_text(transcript_path: Optional[str]) -> Optional[str]:
+    """The text of the most recent user-authored, non-meta message in the
+    walk's OWN transcript (the `transcript_path` SessionStart's stdin JSON
+    documents on every event) — the closest thing to 'the walk's dispatch'
+    reachable at this event (node/dispatch-anchoring, ruling-hooks-
+    boundary.md [A6]). For a freshly-dispatched subagent this is its one
+    and only user-role entry, written before the walk's first turn; for a
+    resumed or forked top-level session it is the most recent thing the
+    walk was asked to continue, which is what 'about to be re-derived' means
+    for that class of session. `isMeta` entries (harness-injected
+    system-reminders, not the walk's own words) are skipped. Never raises:
+    a missing path, an unreadable/malformed file, or a transcript with no
+    qualifying message all degrade to None — the same non-fatal path every
+    other resolution in this hook takes, and the caller's own fallback to
+    recency is exactly the degrade this produces."""
+    if not transcript_path:
+        return None
+    path = Path(transcript_path)
+    try:
+        raw = path.read_text(encoding="utf-8")
+    except OSError:
+        return None
+
+    last_text: Optional[str] = None
+    for line in raw.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            obj = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if obj.get("type") != "user" or obj.get("isMeta"):
+            continue
+        message = obj.get("message")
+        if not isinstance(message, dict) or message.get("role") != "user":
+            continue
+        content = message.get("content")
+        if isinstance(content, str):
+            text = content
+        elif isinstance(content, list):
+            text = "\n".join(
+                block.get("text", "") for block in content
+                if isinstance(block, dict) and block.get("type") == "text"
+            )
+        else:
+            continue
+        if text.strip():
+            last_text = text
+    return last_text
+
+
+def _dispatch_anchor_ids(text: str, entries: List[dict]) -> List[str]:
+    """Entry ids the walk's OWN dispatch text names — [A6]'s PRIMARY anchor
+    source, ahead of recency. A qualified `stem:MARKER` (DISPATCH_QUALIFIED_
+    ID_RE) names one entry directly; a bare document stem (DISPATCH_STEM_RE)
+    names the whole document and expands to every entry it declares — the
+    ruling leaves this choice to this node ('bare document stems may also be
+    worth anchoring on'), and expansion is what lets a document named without
+    a marker anchor as richly as the old recent-document sweep did. Both
+    forms are restricted to ids/stems that actually exist in the extracted
+    corpus: free text is not a trusted source of entry ids on its own say-so,
+    the same restriction anchored_surface.sh's own callers already hold to
+    — an anchor the two-hop walk cannot recognise is worse than no anchor,
+    since it silently contributes nothing while looking chosen."""
+    by_id = {e.get("id", ""): e for e in entries if e.get("id")}
+    by_stem: Dict[str, List[str]] = {}
+    for eid in by_id:
+        by_stem.setdefault(eid.split(":", 1)[0], []).append(eid)
+
+    found: List[str] = []
+    seen = set()
+
+    def _add(eid: str) -> None:
+        if eid not in seen:
+            seen.add(eid)
+            found.append(eid)
+
+    for m in DISPATCH_QUALIFIED_ID_RE.finditer(text):
+        candidate = f"{m.group(1)}:{m.group(2)}"
+        if candidate in by_id:
+            _add(candidate)
+
+    for m in DISPATCH_STEM_RE.finditer(text):
+        for eid in by_stem.get(m.group(1), []):
+            _add(eid)
+
+    return found
+
+
+def compute_claim_surface(
+    ledger_root: Path,
+    input_data: Optional[dict] = None,
+    budget: int = CLAIM_BUDGET,
+) -> ClaimSurface:
     """Second hook contribution: open claims/questions structurally near the
     just-touched work, via the anchored-reachability open-surface primitive
     (ledger/derive/anchored_surface.sh --json). Consumes the primitive's
     STRUCTURED value only (candidates/excluded_backed fields) — its own
     rendered prose is never parsed here, the same discipline `compute_surface`
-    and the candidate-links suite already hold to. Degrades to an empty
-    contribution whenever anchors can't be determined or the primitive
-    itself returns nothing (a pre-existing corpus defect, an unusable/absent
-    corpus, or a genuinely empty open surface) — never an error, matching
-    this hook's own never-block contract (module docstring)."""
+    and the candidate-links suite already hold to.
+
+    Anchor priority (node/dispatch-anchoring, ruling-hooks-boundary.md [A6]):
+    the entries the WALK'S OWN DISPATCH names, read from its transcript via
+    `_last_dispatch_message_text`, come first; recency (entries declared in
+    recently-touched documents) is the FALLBACK for a walk whose dispatch
+    names nothing the corpus recognises — including every walk this is
+    called for with `input_data` omitted, which keeps this contribution
+    testable without a transcript fixture. Recency-as-primary was this
+    contribution's own shipped defect and is not restored here even as a
+    tiebreak: a dispatch anchor, once found, is used exclusively.
+
+    Degrades to an empty contribution whenever no anchor is found by either
+    path or the primitive itself returns nothing (a pre-existing corpus
+    defect, an unusable/absent corpus, or a genuinely empty open surface) —
+    never an error, matching this hook's own never-block contract (module
+    docstring)."""
     from candidate_links import build_corpus
 
     corpus, _warnings = build_corpus(ledger_root)
     if not corpus:
         return ClaimSurface(0, 0, 0, 0, "")
 
-    recent_ids = recent_anchor_ids(corpus, ledger_root, RECENT_ANCHOR_COUNT)
-    anchors = sorted(set(_entry_anchors_near_recent(ledger_root, recent_ids)))
+    entries = _export_entries(ledger_root)
+
+    dispatch_text = _last_dispatch_message_text((input_data or {}).get("transcript_path"))
+    anchor_source = ""
+    anchors: List[str] = []
+    if dispatch_text:
+        anchors = sorted(set(_dispatch_anchor_ids(dispatch_text, entries)))
+        if anchors:
+            anchor_source = "dispatch"
+    if not anchors:
+        recent_ids = recent_anchor_ids(corpus, ledger_root, RECENT_ANCHOR_COUNT)
+        anchors = sorted(set(_entry_anchors_near_recent(entries, recent_ids)))
+        if anchors:
+            anchor_source = "recency"
     if not anchors:
         return ClaimSurface(0, 0, 0, 0, "")
 
@@ -357,22 +512,27 @@ def compute_claim_surface(ledger_root: Path, budget: int = CLAIM_BUDGET) -> Clai
         cmd += ["--anchor", a]
     out = _run(cmd, ledger_root, timeout=15)
     if out is None:
-        return ClaimSurface(len(anchors), 0, 0, 0, "")
+        return ClaimSurface(len(anchors), 0, 0, 0, "", anchor_source)
 
     try:
         result = json.loads(out)
         candidates = result["candidates"]
     except (json.JSONDecodeError, KeyError, TypeError):
-        return ClaimSurface(len(anchors), 0, 0, 0, "")
+        return ClaimSurface(len(anchors), 0, 0, 0, "", anchor_source)
 
     if not candidates:
-        return ClaimSurface(len(anchors), 0, 0, 0, "")
+        return ClaimSurface(len(anchors), 0, 0, 0, "", anchor_source)
 
+    anchor_clause = (
+        "entries the walk's own dispatch names" if anchor_source == "dispatch"
+        else "entries declared in recently-touched documents (the walk's "
+        "dispatch named none the corpus recognises)"
+    )
     lines = [
         "## Open claims near the work (structural, session-start)",
-        "Claims and questions reachable within two hops of entries declared "
-        "in recently-touched documents, via the anchored-reachability open-"
-        "surface primitive (ledger/derive/anchored_surface.sh).",
+        f"Claims and questions reachable within two hops of {anchor_clause}, "
+        "via the anchored-reachability open-surface primitive "
+        "(ledger/derive/anchored_surface.sh).",
         "",
     ]
     budget_for_lines = budget - sum(len(line) + 1 for line in lines) - 200  # headroom for the trailer
@@ -397,7 +557,7 @@ def compute_claim_surface(ledger_root: Path, budget: int = CLAIM_BUDGET) -> Clai
         + " ".join(f"--anchor {a}" for a in anchors)
     )
     text = "\n".join(lines)
-    return ClaimSurface(len(anchors), len(candidates), included, dropped, text)
+    return ClaimSurface(len(anchors), len(candidates), included, dropped, text, anchor_source)
 
 
 def main() -> int:
@@ -414,7 +574,7 @@ def main() -> int:
         ledger_root = resolve_ledger_root(project_root)
 
         surface = compute_surface(ledger_root, project_root, budget=DOC_BUDGET)
-        claims = compute_claim_surface(ledger_root, budget=CLAIM_BUDGET)
+        claims = compute_claim_surface(ledger_root, input_data, budget=CLAIM_BUDGET)
         parts = [s.text for s in (surface, claims) if s.text]
         if not parts:
             print(json.dumps({}))
