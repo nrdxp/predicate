@@ -1,0 +1,17 @@
+{
+  "description": "Injects the record's structural open surface (co-citation and stem/title-overlap candidates over .ledger) into a fresh agent's context at session start.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/harness/session_start.py\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

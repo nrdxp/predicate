@@ -283,6 +283,20 @@ let GateEntry = {
     } | GateEntry,
 
     {
+      gate        = "ledger/gate/test_candidate_links.sh",
+      scope       = 'orchestration,
+      fires_when  = "CI gate-test step; exercises ledger/derive/candidate_links.py as a standalone computation (co-citation and stem/title-overlap candidate surfacing over the corpus, structural-value assertions against its JSON export, a mutation-can-fail demonstration) — never a non-zero exit; consumed by the harness SessionStart hook, not by any git hook",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
+      gate        = "ledger/gate/test_session_start.sh",
+      scope       = 'orchestration,
+      fires_when  = "CI gate-test step; exercises harness/session_start.py (the Claude Code SessionStart hook) — recent-activity co-citation, branch-name overlap as the cold-start cover, absent/empty .ledger, malformed stdin, a non-git cwd, budget truncation with an honest dropped-count, structural-value assertions against the Surface dataclass, and a mutation-can-fail demonstration — never a non-zero exit",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
       gate        = "ledger/gate/test_conditioning_sweep.sh",
       scope       = 'orchestration,
       fires_when  = "CI conditioning-sweep step; asserts every conditioning/*.ncl behaves per its declared polarity, machine-guarding the HasCore injection-rule proof",
