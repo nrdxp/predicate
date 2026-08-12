@@ -103,11 +103,13 @@ expect "red: unknown grade names the offending marker" 3 "K1" \
 expect "red: well-formed sibling still extracted alongside the report" 3 "red-unknown-grade:K2" \
   -- python3 "$extractor" "$fix/red-unknown-grade.md"
 
-# The grade word above is spelled in plain letters, and that is the ONLY
-# invented grade the marker pattern matches: `grade::([a-z]+)`. A grade word
-# carrying a hyphen, a digit, or a capital does not match the pattern at all,
-# so the paragraph stops being a node before the vocabulary is ever consulted
-# and the report above cannot fire. The case below covers that half.
+# The grade word above is spelled in plain letters; the one below carries a
+# hyphen. The marker's grade capture is `grade::([^\s`]*)` — any non-space run
+# — so both are read as nodes and both are reported through the same
+# vocabulary check. What the case below adds is the WIDTH of that capture: its
+# grade is the only one in this suite outside `[a-z]+`, and under a narrower
+# capture its paragraph would stop being a node before the vocabulary was ever
+# consulted and be dropped with nothing said.
 
 expect "red: an invented grade word outside [a-z]+ is reported" 3 "" \
   -- python3 "$extractor" "$fix/red-invented-grade.md" -o "$tmp/invented.json"
@@ -118,12 +120,13 @@ expect "red: the invented grade is reported ON THE GRADE, not by accident" \
 import json, sys
 export = json.load(open(sys.argv[1]))
 findings = export["findings"]
-# The accident this refuses: when a marker line fails to parse, its paragraph
-# is no longer a node, so any companion span inside it is reported as orphaned
+# The accident this refuses: a paragraph whose marker line does not parse is
+# no longer a node, and a companion span inside it is then reported as orphaned
 # — an exit 3 that names a stray token and says nothing about the grade, on a
-# node the reader is never told was dropped. The fixture carries no token span
-# in the offending paragraph so that path cannot fire, and the assertion
-# refuses it outright rather than trusting the fixture to stay that way.
+# node the reader is never told was dropped. The widened capture keeps this
+# fixture off that path, and the offending paragraph carries no token span
+# either; the assertion refuses the substitution outright rather than trusting
+# both of those to hold.
 assert all(f["kind"] != "orphaned-companion" for f in findings), findings
 named = [f for f in findings if f["marker"] == "G1"]
 assert named, findings
