@@ -297,6 +297,13 @@ let GateEntry = {
     } | GateEntry,
 
     {
+      gate        = "ledger/gate/test_harness_install.sh",
+      scope       = 'orchestration,
+      fires_when  = "CI gate-test step; exercises harness/install-hooks.sh and harness/settings_merge.py — the direct (non-plugin-marketplace) SessionStart installer: idempotent install, non-destructive to pre-existing settings.json content, uninstall removes only its own entry, a malformed settings.json is refused loudly rather than silently overwritten, and a mutation-can-fail demonstration on the idempotency match",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
       gate        = "ledger/gate/test_conditioning_sweep.sh",
       scope       = 'orchestration,
       fires_when  = "CI conditioning-sweep step; asserts every conditioning/*.ncl behaves per its declared polarity, machine-guarding the HasCore injection-rule proof",
