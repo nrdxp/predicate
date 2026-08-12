@@ -383,15 +383,17 @@
   #
   # The converse half — every claim carries axes — was removed when the
   # predicate went live on the corpus path, as a DISCREPANCY RESOLUTION
-  # between two ratified artifacts rather than a weakening. Nothing reads the
-  # property it asserted: the prose dialect carries no axis token, so
-  # extracted claims arrive unassessed, and entries_query.ncl's `unpaid_cures`
-  # view is BUILT to read that absence and report those claims as
-  # `unassessed` rather than presenting an empty cure report as a clean bill.
-  # A gate refusing axis-less claims would not obtain the coordinates; it
-  # would condition every future walk to fabricate them to pass — the law
-  # manufacturing the exact defect this contract exists to refuse. So
-  # `unassessed` follows `unclosed`: absence is made VISIBLE, never forbidden.
+  # between two ratified artifacts rather than a weakening. Expressibility is
+  # not the reason: the dialect has an `axes::` companion the extractor
+  # parses, so a claim CAN arrive assessed. Whether one MUST is the separate
+  # question, and the answer is no. A gate refusing axis-less claims would
+  # not obtain the coordinates; it would condition every future walk to
+  # fabricate them to pass — the law manufacturing the exact defect this
+  # contract exists to refuse. So absence is REPORTED instead:
+  # entries_query.ncl's `unpaid_cures` view is BUILT to read it and list
+  # those claims as `unassessed` rather than presenting an empty cure report
+  # as a clean bill. `unassessed` follows `unclosed`: absence is made
+  # VISIBLE, never forbidden.
   #
   # The half that died was an AUTHORING OBLIGATION, not a universal shape
   # law, and it survives where the author carries that obligation — an IBC
