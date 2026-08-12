@@ -1,0 +1,11 @@
+{
+  "directives": [
+    { "id": "policy:D1", "statement": "A directive that lives outside the directions register." }
+  ],
+  "entries": [
+    { "id": "reg:D1-T1", "assertion": "question" }
+  ],
+  "grades": {
+    "reg:D1-T1": "dispatchable"
+  }
+}

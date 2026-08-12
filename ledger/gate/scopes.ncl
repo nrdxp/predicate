@@ -457,6 +457,13 @@ let GateEntry = {
       applies_to  = "agent only",
     } | GateEntry,
 
+    {
+      gate        = "ledger/gate/test_convergence.sh",
+      scope       = 'orchestration,
+      fires_when  = "CI convergence step; fixture corpora over ledger/derive/convergence.py pinning the UNDEFINED-vs-zero rate split (a direction with no terminal questions), partial and full discharge counts, closure by supersedes as well as discharges, corpus-wide counts independent of any direction, a hyphen-vs-underscore malformed terminal-question marker reported rather than silently dropped from its denominator, an empty direction register reported rather than a silent empty pass, and the no-args/unreadable-corpus CLI convention",
+      applies_to  = "agent only",
+    } | GateEntry,
+
     # ── TEMPLATES/PROJECT-GATES (tracked source; installed to .ledger/gates/ by init) ──
 
     {
