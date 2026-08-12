@@ -1,0 +1,26 @@
+{
+  "directives": [
+    { "id": "directions:D1", "statement": "First direction: keep the register accurate." },
+    { "id": "directions:D2", "statement": "Second direction: converge terminal questions." },
+    { "id": "directions:D3", "statement": "Third direction: no terminal questions drafted yet." }
+  ],
+  "entries": [
+    { "id": "reg:D1-T1", "assertion": "question" },
+    { "id": "reg:D1-T2", "assertion": "question" },
+    { "id": "reg:closer1", "assertion": "claim", "discharges": ["reg:D1-T2"] },
+
+    { "id": "reg:D2-T1", "assertion": "question" },
+    { "id": "reg:D2-T2", "assertion": "question" },
+    { "id": "reg:closer2", "assertion": "claim", "discharges": ["reg:D2-T1"] },
+    { "id": "reg:closer3", "assertion": "claim", "supersedes": ["reg:D2-T2"] },
+
+    { "id": "reg:Q1", "assertion": "question" }
+  ],
+  "grades": {
+    "reg:D1-T1": "dispatchable",
+    "reg:D1-T2": "dispatchable",
+    "reg:D2-T1": "routed",
+    "reg:D2-T2": "routed",
+    "reg:Q1": "frontier"
+  }
+}

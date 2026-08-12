@@ -1,0 +1,13 @@
+{
+  "directives": [
+    { "id": "directions:D1", "statement": "The direction the malformed marker belongs to." }
+  ],
+  "entries": [
+    { "id": "reg:D1-T1", "assertion": "question" },
+    { "id": "reg:D1_T5", "assertion": "question" }
+  ],
+  "grades": {
+    "reg:D1-T1": "dispatchable",
+    "reg:D1_T5": "dispatchable"
+  }
+}

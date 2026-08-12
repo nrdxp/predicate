@@ -359,6 +359,111 @@ let GateEntry = {
       applies_to  = "agent only",
     } | GateEntry,
 
+    {
+      gate        = "ledger/gate/council_consent.sh",
+      scope       = 'orchestration,
+      fires_when  = "orchestrator before any git merge (MERGE state); asserts every 'merge decision in the decision-ledger YAML carries the lead maintainer's recorded assent, by exporting the ledger through council_apply.ncl's merge-consent guard; also exercised by test_council_smoke.sh",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
+      gate        = "ledger/gate/test_context_map.sh",
+      scope       = 'orchestration,
+      fires_when  = "nickel fixture suite for context_map.ncl (the live requirement/invariant/unknown tracker) via context_map_apply.ncl, including a tracker_fresh.sh pass over the hydrated fixture; run manually by a dev/agent — not currently wired into ci.yml",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
+      gate        = "ledger/gate/test_council.sh",
+      scope       = 'orchestration,
+      fires_when  = "nickel fixture suite for council.ncl (the constitution and decision-ledger law) via council_apply.ncl; run manually by a dev/agent — not currently wired into ci.yml",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
+      gate        = "ledger/gate/test_council_smoke.sh",
+      scope       = 'orchestration,
+      fires_when  = "end-to-end composition smoke test proving council.ncl, council_consent.sh, and the ledger/fixtures/council/*.yaml decision-ledger instances agree over the SAME instances; run manually by a dev/agent — not currently wired into ci.yml",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
+      gate        = "ledger/gate/test_deposit.sh",
+      scope       = 'orchestration,
+      fires_when  = "nickel fixture suite for deposit.ncl (the P-GROUND deposit substrate) via deposit_apply.ncl; run manually by a dev/agent — not currently wired into ci.yml",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
+      gate        = "ledger/gate/test_anchored_surface.sh",
+      scope       = 'orchestration,
+      fires_when  = "suite for the anchored-reachability open-surface primitive (ledger/derive/anchored_surface.sh): binds two-hop traversal across backed transit nodes, rendered ordering for a known anchor, the ranker selector, budget truncation and path-invariance of the rendered floor; run manually by a dev/agent - not currently wired into ci.yml",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
+      gate        = "ledger/gate/test_entries_extract.sh",
+      scope       = 'orchestration,
+      fires_when  = "golden-vector suite for the typed-claim extractor (ledger/derive/extract_entries.py) and entries_query.ncl: proves --census reproduces each fixture's self-published token count and that extraction output passes entry_apply.ncl; run manually by a dev/agent — not currently wired into ci.yml",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
+      gate        = "ledger/gate/test_entry.sh",
+      scope       = 'orchestration,
+      fires_when  = "nickel fixture suite for entry.ncl (the ledger typed-claim entry shape) via entry_apply.ncl; run manually by a dev/agent — not currently wired into ci.yml",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
+      gate        = "ledger/gate/test_findings.sh",
+      scope       = 'orchestration,
+      fires_when  = "nickel fixture suite for findings.ncl (the findings ledger) via findings_apply.ncl; run manually by a dev/agent — not currently wired into ci.yml",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
+      gate        = "ledger/gate/test_process_feedback.sh",
+      scope       = 'orchestration,
+      fires_when  = "nickel fixture suite for skills/record/process_feedback.ncl via its apply shim (the same path the PROCESS gate uses at commit time); run manually by a dev/agent — not currently wired into ci.yml",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
+      gate        = "ledger/gate/test_reconcile_log.sh",
+      scope       = 'orchestration,
+      fires_when  = "nickel fixture suite for reconcile_log.ncl via reconcile_apply.ncl — distinct from test_reconcile.sh, which exercises premise_fresh.sh/coherence_impact.sh rather than this contract; run manually by a dev/agent — not currently wired into ci.yml",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
+      gate        = "ledger/gate/test_refine_output.sh",
+      scope       = 'orchestration,
+      fires_when  = "nickel fixture suite for skills/refine/refine_output.ncl (RefineReport + RefineOutput: maintainer/auditor vouches, fixed-point-hash monotonicity, the unanimity gate) via refine_output_apply.ncl; run manually by a dev/agent — not currently wired into ci.yml",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
+      gate        = "ledger/gate/test_tech_debt.sh",
+      scope       = 'orchestration,
+      fires_when  = "nickel fixture suite for skills/record/tech_debt.ncl via its apply shim (the same path the PROCESS gate uses at commit time); run manually by a dev/agent — not currently wired into ci.yml",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
+      gate        = "ledger/gate/test_worker_ibc.sh",
+      scope       = 'orchestration,
+      fires_when  = "nickel fixture suite for worker_ibc.ncl (the boundary contract: closed premises, routable unknowns, provenance-carrying Directives) via worker_ibc_apply.ncl; run manually by a dev/agent — not currently wired into ci.yml",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
+      gate        = "ledger/gate/test_convergence.sh",
+      scope       = 'orchestration,
+      fires_when  = "CI convergence step; fixture corpora over ledger/derive/convergence.py pinning the UNDEFINED-vs-zero rate split (a direction with no terminal questions), partial and full discharge counts, closure by supersedes as well as discharges, corpus-wide counts independent of any direction, a hyphen-vs-underscore malformed terminal-question marker reported rather than silently dropped from its denominator, an empty direction register reported rather than a silent empty pass, and the no-args/unreadable-corpus CLI convention",
+      applies_to  = "agent only",
+    } | GateEntry,
+
     # ── TEMPLATES/PROJECT-GATES (tracked source; installed to .ledger/gates/ by init) ──
 
     {
@@ -382,6 +487,20 @@ let GateEntry = {
       scope       = 'universal,
       fires_when  = "commit-time via hook/commit-msg:selfcontained; rejects messages with internal node-ID or layer-tag references",
       applies_to  = "human + agent",
+    } | GateEntry,
+
+    {
+      gate        = "gates/check_forge_prose.sh",
+      scope       = 'orchestration,
+      fires_when  = "composer runs manually over every drafted PR/issue/comment body before posting (forge §2: drafting exists to enable this check); also exercised via ledger/gate/test_gates.sh (a CI gate-test step)",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
+      gate        = "gates/check_internal_ids.sh",
+      scope       = 'orchestration,
+      fires_when  = "orchestrator at campaign CLOSE (whole-campaign ID-leak sweep over every line the campaign added) and manually in a node worker's worktree; also exercised via ledger/gate/test_gates.sh (a CI gate-test step)",
+      applies_to  = "agent only",
     } | GateEntry,
 
     # ── SKILL SCRIPTS (invoked from hooks or CI) ─────────────────────────────
