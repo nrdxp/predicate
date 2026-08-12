@@ -143,11 +143,10 @@ drift, the mandatory-halt kind.
 At the start of any non-trivial walk — whether or not a skill or workflow is active
 — run the DISCOVERY sweep before committing to a direction. Five steps:
 **establish-universe** (enumerate the actual scope — `git ls-files` for
-structure, semantic search for intent — here at the outset and again before any
-claim of exhaustive coverage, citing what you enumerated rather than the
-directories already in working memory; the set you remember is a sample, not the
-population), **map-intent** (orient from the nearest `AGENTS.md` — the project
-boundary, see below — then locate the loci the goal actually touches),
+structure, semantic search for intent — citing what you enumerated rather than
+the directories already in working memory; the set you remember is a sample, not
+the population), **map-intent** (orient from the nearest `AGENTS.md` — the
+project boundary, see below — then locate the loci the goal actually touches),
 **blast-radius** (what the change can disturb downstream), **outward-world**
 (prior-art, web, literature — what is already a known-known in the wild), and
 **outward-environment** (the harness's installed skills, tools, and MCP servers —
@@ -304,7 +303,11 @@ bounded and convergent: *outward → world* (prior-art, web, literature) maps th
 **domain**; *outward → environment* (the harness's installed skills, tools, MCP
 servers) maps the **arsenal** — reaching for the habitual tool without surveying
 what is available is hole-digging in capability space. Survey for an
-approach-changing capability, never enumerate the whole arsenal.
+approach-changing capability, never enumerate the whole arsenal. And
+**establish the universe before claiming coverage**: any claim of exhaustive
+scope — a sweep, an audit, an "all of X" — triggers the establish-universe
+enumeration on its own, independently of the Discovery sweep, so a walk small
+enough to be exempt from that sweep is bound the moment it makes such a claim.
 
 ## Focus before ceremony
 

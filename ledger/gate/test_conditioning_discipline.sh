@@ -422,7 +422,17 @@ expect_count guard core min 1 \
 
 # 3f. TIGHTEN — enumerate-the-universe. Two statements, two genuine triggers
 # (walk start, and any coverage claim); neither is deletable. Only the shared
-# mechanism repeats, so the two merge into one statement carrying both triggers.
+# MECHANISM repeats, so the mechanism is stated once — inside establish-universe
+# — and each trigger stays where it actually binds.
+#
+# Merging the two statements outright is what this pass got wrong on its first
+# attempt, and the counts below could not see it. A count is identical whether a
+# dedupe preserved a rule's binding scope or narrowed it: the coverage-claim
+# trigger landed inside a step of a sweep whose own section exempts trivial,
+# reversible leaf edits, so a walk that never enters Discovery stopped being
+# bound by it while every count still read as satisfied. The trigger's SCOPE is
+# therefore asserted directly rather than inferred from where the text happens
+# to sit.
 #
 # The coverage-claim trigger is guarded by an ALTERNATION for the reason 2a
 # gives: the clause has more than one natural wording, and pinning a single
@@ -449,6 +459,11 @@ expect_count guard core min 1 \
   --needle 'establish-universe'
 expect_count guard core min 1 \
   "universe: the coverage-claim trigger survives" \
+  --regex '(?i)claim\w*[^.]{0,30}(exhaustive|coverage)|(exhaustive|coverage)[^.]{0,30}claim\w*'
+# Red, not guard: at the pre-edit tree the trigger was stated inside Discovery,
+# so this is a condition the pass has to establish rather than protect.
+expect_section red 'Discovery' contains eq 0 \
+  "universe: the coverage-claim trigger binds outside the exempt sweep" \
   --regex '(?i)claim\w*[^.]{0,30}(exhaustive|coverage)|(exhaustive|coverage)[^.]{0,30}claim\w*'
 
 # 3g. TIGHTEN — terminal cross-references. Each of these closes a section by
