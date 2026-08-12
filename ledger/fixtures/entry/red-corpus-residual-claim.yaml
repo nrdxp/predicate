@@ -1,0 +1,32 @@
+# Corpus red: ResidualIsQuestion on the live path. `residual` means open by
+# theorem, and the cell table is exhaustive over claims — every inhabited cell
+# names a cure — so no claim is ever open by theorem and `residual` is
+# question-shaped by consequence. A residual CLAIM asserts a truth-value it
+# also declares unreachable. The violation sits SECOND by design.
+entries:
+  - id: e-clean
+    statement: "A well-formed proved claim standing beside the violation."
+    assertion: claim
+    backing: corroborated
+    signer:
+      kind: agent
+      name: architect-seat
+    check:
+      command: "bash ledger/gate/test_entry.sh"
+      ran: true
+      at: "deadbeef01"
+    axes:
+      determined: true
+      certifiable: true
+      monotone: true
+  - id: e-residual-claim
+    statement: "A claim asserting itself open by theorem."
+    assertion: claim
+    backing: residual
+    signer:
+      kind: agent
+      name: architect-seat
+    axes:
+      determined: true
+      certifiable: false
+      monotone: true

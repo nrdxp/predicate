@@ -1,0 +1,37 @@
+# Corpus red: UnattributedUnclosed on the live path. A vouch is testimony, and
+# an unattributed party cannot be the one testifying — so unattributed evidence
+# is inadmissible and `unclosed` is the only honest backing for the mode.
+#
+# String-form YAML throughout (`unattributed` and `vouched` arrive as parsed
+# scalars, never nickel tags), so this is the corpus-path arm of the
+# dual-comparison tripwire: a bare `==` against a string is unconditionally
+# false and short-circuits the predicate to a silent pass. The violation sits
+# SECOND by design.
+entries:
+  - id: e-clean
+    statement: "A well-formed proved claim standing beside the violation."
+    assertion: claim
+    backing: corroborated
+    signer:
+      kind: agent
+      name: architect-seat
+    check:
+      command: "bash ledger/gate/test_entry.sh"
+      ran: true
+      at: "deadbeef01"
+    axes:
+      determined: true
+      certifiable: true
+      monotone: true
+  - id: e-unattributed-vouched
+    statement: "An unattributed signer with a vouched backing — no party exists to be the witness."
+    assertion: claim
+    backing: vouched
+    signer:
+      kind: unattributed
+    witness:
+      name: the-head
+      at: "deadbeef0c"
+    axes:
+      determined: false
+      monotone: true

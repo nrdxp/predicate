@@ -1,0 +1,39 @@
+# Corpus red: CorroborationBacked on the live path. A corroborated claim naming
+# a check that was never run — the exists/ran cut the whole evidence reform
+# rests on. The violation sits SECOND, behind a clean entry, so a fold that
+# inspects only the head of the corpus cannot pass this.
+#
+# String-backed (YAML carries `corroborated` and `false` as parsed scalars),
+# so this is also the corpus-path arm of the dual-comparison tripwire the
+# single-entry CANARY guards.
+entries:
+  - id: e-clean
+    statement: "A well-formed proved claim standing beside the violation."
+    assertion: claim
+    backing: corroborated
+    signer:
+      kind: agent
+      name: architect-seat
+    check:
+      command: "bash ledger/gate/test_entry.sh"
+      ran: true
+      at: "deadbeef01"
+    axes:
+      determined: true
+      certifiable: true
+      monotone: true
+  - id: e-corr-unrun
+    statement: "A named-but-unrun check is not backing, inside a corpus."
+    assertion: claim
+    backing: corroborated
+    signer:
+      kind: agent
+      name: architect-seat
+    check:
+      command: "nickel typecheck ledger/contracts/entry.ncl"
+      ran: false
+      at: "deadbeef04"
+    axes:
+      determined: true
+      certifiable: true
+      monotone: true

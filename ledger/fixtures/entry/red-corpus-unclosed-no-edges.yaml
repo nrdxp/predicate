@@ -1,0 +1,32 @@
+# Corpus red: ProvenanceGate on the live path — the structural definition of a
+# hallucination. An unbacked claim with no inbound edge declines to state where
+# it came from, and a corpus is precisely where that omission matters: the
+# `unbacked` query view reports such a claim, but only if the contract admitted
+# the corpus in the first place. The violation sits SECOND by design.
+entries:
+  - id: e-clean
+    statement: "A well-formed proved claim standing beside the violation."
+    assertion: claim
+    backing: corroborated
+    signer:
+      kind: agent
+      name: architect-seat
+    check:
+      command: "bash ledger/gate/test_entry.sh"
+      ran: true
+      at: "deadbeef01"
+    axes:
+      determined: true
+      certifiable: true
+      monotone: true
+  - id: e-unclosed-noedge
+    statement: "An unbacked claim that declines to state where it came from."
+    assertion: claim
+    backing: unclosed
+    signer:
+      kind: agent
+      name: architect-seat
+    axes:
+      determined: true
+      certifiable: false
+      monotone: true

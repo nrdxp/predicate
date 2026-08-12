@@ -1,0 +1,36 @@
+# Corpus red: CertifiabilityFibered on the live path. Certifiability is fibered
+# on determination — required where determination holds, undefined where it
+# fails — and this determined claim omits the coordinate. Row 7 of the cell
+# table is exactly this error, and the fibering is what makes it
+# unrepresentable rather than merely unpopulated. The violation sits SECOND by
+# design.
+entries:
+  - id: e-clean
+    statement: "A well-formed proved claim standing beside the violation."
+    assertion: claim
+    backing: corroborated
+    signer:
+      kind: agent
+      name: architect-seat
+    check:
+      command: "bash ledger/gate/test_entry.sh"
+      ran: true
+      at: "deadbeef01"
+    axes:
+      determined: true
+      certifiable: true
+      monotone: true
+  - id: e-det-nocert
+    statement: "A determined claim missing its certifiability coordinate."
+    assertion: claim
+    backing: corroborated
+    signer:
+      kind: agent
+      name: architect-seat
+    check:
+      command: "true"
+      ran: true
+      at: "deadbeef06"
+    axes:
+      determined: true
+      monotone: true

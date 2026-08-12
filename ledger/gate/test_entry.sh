@@ -222,6 +222,38 @@ expect "corpus with predicate-violating entry (vouched, no witness) -> VouchBack
 expect "corpus: unratified proposal discharges its own question -> DischargeBacked" 1 "DischargeBacked" \
   -- run "$fix/red-corpus-unratified-discharge.yaml"
 
+# --- live-path predicate reds: the closed set, one per predicate -------------
+#
+# The two cases above cover VouchBacked and DischargeBacked; these nine cover
+# the rest, closing the set at all eleven. The coverage is the point rather
+# than the individual cases: a per-entry red proves a predicate is WRITTEN, and
+# only a corpus red proves it RUNS on the shape a record takes. The pairing is
+# the standing acceptance rule for any boundary that adds a predicate here —
+# never single-entry reds alone.
+#
+# Every fixture in this block places its clean entry FIRST and its violation
+# SECOND, so a fold that inspects only the head of the corpus fails all nine.
+# Each is single-violation by construction: the token names the one predicate
+# the entry breaks, and no other entry in the corpus breaks any.
+expect "corpus: corroborated claim, check unrun -> CorroborationBacked" 1 "CorroborationBacked" \
+  -- run "$fix/red-corpus-corroboration-unrun.yaml"
+expect "corpus: unclosed claim, no edges -> ProvenanceGate" 1 "ProvenanceGate" \
+  -- run "$fix/red-corpus-unclosed-no-edges.yaml"
+expect "corpus: question missing closer -> QuestionRoutable" 1 "QuestionRoutable" \
+  -- run "$fix/red-corpus-question-unroutable.yaml"
+expect "corpus: residual claim -> ResidualIsQuestion" 1 "ResidualIsQuestion" \
+  -- run "$fix/red-corpus-residual-claim.yaml"
+expect "corpus: claim without axes -> ClaimHasAxes" 1 "ClaimHasAxes" \
+  -- run "$fix/red-corpus-claim-no-axes.yaml"
+expect "corpus: determined claim, no certifiable -> CertifiabilityFibered" 1 "CertifiabilityFibered" \
+  -- run "$fix/red-corpus-certifiability.yaml"
+expect "corpus: non-monotone claim, no freshness -> NonMonotoneNamesCure" 1 "NonMonotoneNamesCure" \
+  -- run "$fix/red-corpus-nonmonotone.yaml"
+expect "corpus: non-derived signer, unnamed -> SignerDesignates" 1 "SignerDesignates" \
+  -- run "$fix/red-corpus-signer-unnamed.yaml"
+expect "corpus: unattributed signer, vouched -> UnattributedUnclosed" 1 "UnattributedUnclosed" \
+  -- run "$fix/red-corpus-unattributed-vouched.yaml"
+
 # --- cure_for: pinned against the ibc-pass1.md §2b table, NOT its own branches
 # The six expected strings are HARDCODED here (sourced from the paper's cell
 # table via the boundary); deriving them from cure_for itself would be the

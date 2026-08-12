@@ -1,0 +1,30 @@
+# Corpus red: QuestionRoutable on the live path. A question carrying its
+# discharge condition but no closer — it states what would settle it and names
+# nobody who could. The corpus path is where this costs something: the
+# `awaiting_human` view routes on `closer.kind`, so an unroutable question is
+# invisible to the very lookup that exists to surface it. The violation sits
+# SECOND by design.
+entries:
+  - id: e-clean
+    statement: "A well-formed proved claim standing beside the violation."
+    assertion: claim
+    backing: corroborated
+    signer:
+      kind: agent
+      name: architect-seat
+    check:
+      command: "bash ledger/gate/test_entry.sh"
+      ran: true
+      at: "deadbeef01"
+    axes:
+      determined: true
+      certifiable: true
+      monotone: true
+  - id: q-nocloser
+    statement: "A question with a discharge condition but no closer."
+    assertion: question
+    backing: unclosed
+    signer:
+      kind: agent
+      name: architect-seat
+    discharge: "Someone would have to rule on it."

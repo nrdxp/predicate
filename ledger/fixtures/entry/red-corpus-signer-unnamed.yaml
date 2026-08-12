@@ -1,0 +1,36 @@
+# Corpus red: SignerDesignates on the live path. An `agent` signer is a
+# designation MODE that promises a recoverable party, and this entry names
+# none — neither a party nor the inbound edges that stand in for one under
+# `derived`. Designation is total in the formalism precisely so a corpus can be
+# read for who asserted what; an undesignated entry inside one is the hole that
+# makes the reading impossible. The violation sits SECOND by design.
+entries:
+  - id: e-clean
+    statement: "A well-formed proved claim standing beside the violation."
+    assertion: claim
+    backing: corroborated
+    signer:
+      kind: agent
+      name: architect-seat
+    check:
+      command: "bash ledger/gate/test_entry.sh"
+      ran: true
+      at: "deadbeef01"
+    axes:
+      determined: true
+      certifiable: true
+      monotone: true
+  - id: e-signer-unnamed
+    statement: "A non-derived signer that names no party."
+    assertion: claim
+    backing: corroborated
+    signer:
+      kind: agent
+    check:
+      command: "true"
+      ran: true
+      at: "deadbeef09"
+    axes:
+      determined: true
+      certifiable: true
+      monotone: true

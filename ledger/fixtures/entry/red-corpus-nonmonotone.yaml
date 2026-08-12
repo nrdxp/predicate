@@ -1,0 +1,37 @@
+# Corpus red: NonMonotoneNamesCure on the live path — the promotion gate's
+# content. A non-monotone claim naming no freshness mechanism is true when
+# written and becomes a documented invariant that expires silently. The
+# `unpaid_cures.violations` view reads the cure straight off the law's own
+# lookup, but only over a corpus the contract admitted. The violation sits
+# SECOND by design.
+entries:
+  - id: e-clean
+    statement: "A well-formed proved claim standing beside the violation."
+    assertion: claim
+    backing: corroborated
+    signer:
+      kind: agent
+      name: architect-seat
+    check:
+      command: "bash ledger/gate/test_entry.sh"
+      ran: true
+      at: "deadbeef01"
+    axes:
+      determined: true
+      certifiable: true
+      monotone: true
+  - id: e-nonmono-nofresh
+    statement: "A non-monotone claim naming no freshness mechanism."
+    assertion: claim
+    backing: corroborated
+    signer:
+      kind: agent
+      name: architect-seat
+    check:
+      command: "true"
+      ran: true
+      at: "deadbeef08"
+    axes:
+      determined: true
+      certifiable: true
+      monotone: false
