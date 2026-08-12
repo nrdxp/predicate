@@ -108,9 +108,11 @@ std.contract.custom (fun label value =>
       # acyclicity). N iterations reach the fixed point for any acyclic
       # chain, since no path is longer than the corpus; a cycle simply keeps
       # the empty floor set, which reads correctly as "bottoms out nowhere".
-      let has_external = fun e =>
-        std.array.any (fun x => x.entry == e.id) externals
-      in
+      # The entries naming a ref that left the corpus, as an id_set: the fixed
+      # point consults this once per entry per iteration, so scanning the refs
+      # list there would multiply the walk's cost by the corpus's ref count.
+      let external_ids = add_all {} (std.array.map (fun x => x.entry) externals) in
+      let has_external = fun e => std.record.has_field e.id external_ids in
       let is_closed_evidence = fun e =>
         is_claim e
         && (law.matches e.backing 'corroborated "corroborated"
@@ -132,9 +134,16 @@ std.contract.custom (fun label value =>
               if is_closed_evidence e || std.array.length edges == 0 then
                 leaf_floor e
               else
+                # Support BRANCHES at this entry: the edges are followed, and
+                # the entry's own external refs are a branch beside them that
+                # the walk cannot follow. Seeding the union carries that branch
+                # INTO the fixed point, so anything deriving from this entry
+                # inherits it; unioning it onto the assembled rows instead
+                # would report the branch at the entry that names the ref and
+                # lose it one hop down.
                 std.array.fold_left
                   (fun u r => add_all u (std.record.fields prev."%{r}"))
-                  {}
+                  (if has_external e then { external = true } else {})
                   edges
             in
             std.record.insert e.id floors acc)
