@@ -355,9 +355,13 @@ if [ "$s5b_rc" -eq 0 ] && [ "$s5c_rc" -eq 0 ]; then
   # A caller passing a smaller budget gets a correspondingly larger dropped
   # count than one passing the whole cap — extract the dropped figure from
   # each tail rather than compare raw lengths, since the smaller budget's OWN
-  # output is capped.
-  d300="$(printf '%s' "$s5b_out"  | grep -oE '[0-9]+' | tail -1)"
-  d100k="$(printf '%s' "$s5c_out" | grep -oE '[0-9]+' | tail -1)"
+  # output is capped. Extraction is LABELLED ("N entries dropped"), not
+  # positional ("the last number in the output") — a positional read once
+  # forced the rendered surface's line order to be reshuffled purely so the
+  # dropped count would land last, which is not a property the render owes
+  # this suite.
+  d300="$(printf '%s' "$s5b_out"  | grep -oE '[0-9]+ entries dropped' | grep -oE '^[0-9]+')"
+  d100k="$(printf '%s' "$s5c_out" | grep -oE '[0-9]+ entries dropped' | grep -oE '^[0-9]+')"
   if [ -n "$d300" ] && [ -n "$d100k" ] && [ "$d300" -gt "$d100k" ]; then
     record red pass "smaller budget (300) drops strictly more than the ample one (100000)"
   else
