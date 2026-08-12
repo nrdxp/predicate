@@ -24,9 +24,13 @@ here="$(cd "$(dirname "$(realpath "${BASH_SOURCE[0]}")")" && pwd)"
 root="$(cd "$here/../.." && pwd)"
 scopes="$here/scopes.ncl"
 
-# --- require nickel on PATH -------------------------------------------------
+# --- require nickel and git on PATH -----------------------------------------
 command -v nickel >/dev/null 2>&1 || {
   echo "check_scopes: nickel not on PATH — install it or enter the project shell (nix-shell / nix develop)" >&2
+  exit 2
+}
+command -v git >/dev/null 2>&1 || {
+  echo "check_scopes: git not on PATH — the gate surface enumerates via git ls-files" >&2
   exit 2
 }
 
@@ -61,24 +65,30 @@ for entry in data.get("gates", []):
 #   5. All *.sh and *.py files under skills/*/scripts/ (enumerated
 #      dynamically so new skill scripts are automatically surfaced by the
 #      completeness check; extension-filtered like sections 1-2 so a build
-#      artifact — e.g. a __pycache__/*.pyc left by running a skill script —
-#      is never counted as a gate)
+#      artifact is never counted as a gate)
 #
-# File-based entries use their repo-root-relative path so they match the
-# identifiers in scopes.ncl exactly.
+# Sections 1, 2, and 5 enumerate via `git ls-files`, not a filesystem walk
+# (ledger note .ledger/log/2026-08-11-deferred-queue.md [D22]): walking the
+# working tree makes the count depend on what happens to sit on disk in this
+# checkout — a git-ignored __pycache__/*.pyc left by running a Python gate
+# once raised the undeclared count by one, so CI's colour depended on whether
+# anyone had run a gate in that checkout. `git ls-files` is this project's own
+# establish-universe mechanism (the always-on law names it for exactly this
+# reason), so the gate surface tracks what the repository actually contains,
+# not what a given working tree happens to have accumulated. This also closes
+# an untracked *.sh/*.py dropped into any of the three directories — not just
+# a non-script build artifact, which an extension filter alone does not.
+#
+# File-based entries use their repo-root-relative path (git ls-files' native
+# output, run from $root) so they match the identifiers in scopes.ncl exactly.
 actual_gates() {
   {
-    # 1. ledger/gate/ scripts (exclude gate-sets/ subdirectory)
-    find "$root/ledger/gate" -maxdepth 1 \( -name '*.sh' -o -name '*.py' \) -type f \
-      | while IFS= read -r f; do
-          printf '%s\n' "$(realpath --relative-to="$root" "$f")"
-        done
+    # 1. ledger/gate/ scripts (git pathspec glob `*` does not cross `/`, so
+    #    this excludes the gate-sets/ subdirectory the same way -maxdepth 1 did)
+    git -C "$root" ls-files -- 'ledger/gate/*.sh' 'ledger/gate/*.py'
 
     # 2. gates/ scripts
-    find "$root/gates" -maxdepth 1 -name '*.sh' -type f \
-      | while IFS= read -r f; do
-          printf '%s\n' "$(realpath --relative-to="$root" "$f")"
-        done
+    git -C "$root" ls-files -- 'gates/*.sh'
 
     # 3. Hook tiers — logical identifiers declared in scopes.ncl
     printf '%s\n' \
@@ -91,11 +101,9 @@ actual_gates() {
       "hook/pre-commit:process" \
       "hook/pre-commit:project-local"
 
-    # 4. Skill scripts (*.sh and *.py files under skills/*/scripts/)
-    find "$root/skills" -path "*/scripts/*" \( -name '*.sh' -o -name '*.py' \) -type f \
-      | while IFS= read -r f; do
-          printf '%s\n' "$(realpath --relative-to="$root" "$f")"
-        done
+    # 4. Skill scripts (*.sh and *.py files under skills/*/scripts/, any depth
+    #    via glob pathspec magic — same reach as the prior `-path "*/scripts/*"`)
+    git -C "$root" ls-files -- ':(glob)skills/*/scripts/**/*.sh' ':(glob)skills/*/scripts/**/*.py'
 
   } | LC_ALL=C sort -u
 }
@@ -177,14 +185,22 @@ run_self_test() {
   local fails=0
 
   # Negative control: inject a synthetic gate into the actual surface by
-  # temporarily adding a dummy script to ledger/gate/, run the check, and
-  # assert rc 1.  The dummy is cleaned up regardless of the check outcome.
+  # temporarily staging a dummy script under ledger/gate/, run the check, and
+  # assert rc 1.  actual_gates() now enumerates via `git ls-files` (tracked
+  # file list, not a filesystem walk — see the enumerator's own comment), so
+  # the dummy must be STAGED, not merely written to disk, or the negative
+  # control would exercise a code path the gate no longer takes. Staged is
+  # sufficient — `git ls-files` reports the index, not only HEAD — so no
+  # commit is made. Both the stage and the file are cleaned up regardless of
+  # the check outcome.
   local dummy="$here/_check_scopes_selftest_synthetic_$$.sh"
   printf '#!/usr/bin/env bash\n# synthetic gate for check_scopes self-test\n' > "$dummy"
   chmod +x "$dummy"
+  git -C "$root" add -- "$dummy"
 
   echo "--- self-test: negative control (synthetic undeclared gate) ---"
   run_check >/dev/null 2>&1; local neg_rc=$?
+  git -C "$root" reset -q -- "$dummy" >/dev/null 2>&1
   rm -f "$dummy"
 
   if [[ "$neg_rc" -eq 1 ]]; then
