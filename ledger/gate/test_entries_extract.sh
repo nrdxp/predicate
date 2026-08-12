@@ -504,6 +504,42 @@ assert [e["id"] for e in export["entries"]] == ["red-preceding-assertion:U1"], \
 print("PRE-NODE-REPORTED-OK")
 EOF
 
+# --- the grading flag: set from the marker parse, not from a passing grade ---
+#
+# extract_entries.py sets `grades_its_claims = True` as soon as a marker
+# parses, BEFORE its grade word is checked against the vocabulary. So a
+# document whose only marker carries a REJECTED grade still counts as
+# grading its claims, and an unmarked assertion elsewhere in it is still
+# reported rather than falling silent alongside the failed node.
+#
+# The merge gate ruled this placement correct, on evidence: reporting
+# over-reports on a document that typed nothing — noise, visible,
+# actionable. Not reporting lets a document that ATTEMPTS the discipline and
+# fails silence the detector across all its prose, and the exit code is 3
+# either way, so no exit-code gate can see that loss. It did not block only
+# because the affected class was empty at the time (185 documents, 66
+# graded, zero with every marker invalid) — this case is the pin the gate
+# queued rather than assumed.
+
+expect "invalid-only doc: the failed marker is reported" 3 "unknown-grade" \
+  -- python3 "$extractor" "$fix/red-invalid-grade-unmarked.md" -o "$tmp/invalid-only.json"
+
+expect "invalid-only doc: the unmarked assertion below it is reported too" \
+  0 "INVALID-ONLY-GRADES-OK" \
+  -- python3 - "$tmp/invalid-only.json" <<'EOF'
+import json, sys
+export = json.load(open(sys.argv[1]))
+findings = export["findings"]
+# The pin: the document's ONLY marker failed the vocabulary check, and the
+# unmarked paragraph is reported anyway — proof the flag was set from the
+# marker parse, not from a grade that passed the vocabulary check.
+assert any(f["kind"] == "unknown-grade" for f in findings), findings
+assert any(f["kind"] == "unmarked-assertion" for f in findings), findings
+assert len(findings) == 2, findings
+assert export["entries"] == [], export["entries"]
+print("INVALID-ONLY-GRADES-OK")
+EOF
+
 echo
 if [ "$fails" -eq 0 ]; then echo "test_entries_extract: ALL PASS"; exit 0; fi
 echo "test_entries_extract: $fails FAILURE(S)"; exit 1
