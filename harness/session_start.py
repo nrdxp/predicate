@@ -129,6 +129,32 @@ def resolve_project_root(input_data: dict) -> Path:
     return path
 
 
+def resolve_ledger_root(project_root: Path) -> Path:
+    """.ledger lives beside the MAIN checkout, never necessarily beside
+    whatever `project_root` resolve_project_root() returned — a linked git
+    worktree's own toplevel (correct for `current_branch_tokens`, which
+    wants THIS walk's own branch) is a different directory than the main
+    tree the recorder sub-repository sits next to. Widens via `git rev-parse
+    --git-common-dir` (hooks/install-hooks.sh's and
+    ledger/gate/install-recorder-hook.sh's own idiom, reused rather than
+    reinvented — it names the shared .git regardless of which worktree
+    asks) only when project_root's own .ledger is missing, so a plain
+    non-worktree checkout — the common case — never pays the extra git
+    call. Never raises: any failure here just falls back to project_root's
+    own (possibly absent) .ledger, the same degrade-to-empty path every
+    other resolution failure in this hook takes."""
+    direct = project_root / ".ledger"
+    if direct.is_dir():
+        return direct
+    common_dir = _run(["git", "rev-parse", "--git-common-dir"], project_root)
+    if not common_dir:
+        return direct
+    common_path = Path(common_dir)
+    if not common_path.is_absolute():
+        common_path = project_root / common_path
+    return common_path.resolve().parent / ".ledger"
+
+
 def current_branch_tokens(project_root: Path) -> FrozenSet[str]:
     from candidate_links import tokenize  # local import: sys.path is set up by caller
 
@@ -385,7 +411,7 @@ def main() -> int:
             input_data = {}
 
         project_root = resolve_project_root(input_data)
-        ledger_root = project_root / ".ledger"
+        ledger_root = resolve_ledger_root(project_root)
 
         surface = compute_surface(ledger_root, project_root, budget=DOC_BUDGET)
         claims = compute_claim_surface(ledger_root, budget=CLAIM_BUDGET)

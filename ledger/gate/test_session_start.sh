@@ -26,12 +26,24 @@
 #   (f) cwd is not a git repository at all -> degrades gracefully, exit 0.
 #   (g) budget truncation: a tiny budget drops candidates and states the
 #       dropped count; included + dropped == total candidates.
+#   (i) second contribution (node/surface-injection): an open claim/question
+#       near a just-touched document's own declared entries surfaces via
+#       anchored_surface.sh --json's STRUCTURED value.
+#   (i2) the merged additionalContext carries both contributions' own
+#       section headers when both are non-empty.
+#   (j) a real LINKED git worktree (its own .git file, no .ledger of its
+#       own) still resolves .ledger beside the MAIN checkout it shares —
+#       resolve_ledger_root(), not resolve_project_root() alone.
+#   (j2) same, through the full script's stdin/stdout contract.
 #   (h) never a non-zero exit, across every fixture above.
 #
 #   MUTATION -- the anchor-exclusion filter is broken in a throwaway copy and
 #       case (a) is re-run against it: the excluded anchor document itself
 #       must now appear as a spurious "candidate", proving the assertion in
 #       (a) can fail.
+#   MUTATION 2 -- the entry-anchor stem match (node/surface-injection's own
+#       addition) is broken and case (i) is re-run against it: the claim
+#       surface must go empty, proving (i) can fail.
 #
 # Usage: test_session_start.sh
 # Exit:  0 = all cases matched, 1 = a case mismatched, 2 = environment error.
@@ -248,6 +260,70 @@ ok = (
 reason = f"full={surface_full}\ntiny={surface_tiny}"
 '
 rm -rf "$proj"
+
+# ─── (j) a linked worktree still finds .ledger beside the MAIN checkout ────
+# node/surface-injection: resolve_project_root() widens cwd to `git
+# rev-parse --show-toplevel`, which in a LINKED worktree returns the
+# worktree's own root — not the main checkout .ledger actually lives beside.
+# Every dispatched worker runs from its own worktree, so this is the common
+# case, not an edge case. THE FIX DOES NOT EXIST YET at the tip this case was
+# authored against — red for that reason: cwd set to a real linked worktree
+# (created with `git worktree add`, sharing the main repo's .git) must still
+# produce a non-empty surface, reading .ledger from the main tree beside it.
+main_proj="$(make_git_repo)"
+# An initial commit BEFORE .ledger is written, and .ledger is never staged:
+# the real recorder is its OWN sub-repository, untracked by the outer repo
+# (confirmed on this very checkout — no .ledger under any linked worktree,
+# only beside the main tree) — `git worktree add` only ever propagates
+# TRACKED content onto a new branch, so committing .ledger into main_proj's
+# own history here would silently check it into the linked worktree too and
+# defeat the very case this section exists to catch.
+touch "$main_proj/.keep"
+git -C "$main_proj" add -A >/dev/null 2>&1
+git -c user.name=t -c user.email=t@t -C "$main_proj" -c commit.gpgsign=false commit -q -m "seed" >/dev/null 2>&1
+mkdir -p "$main_proj/.ledger/log"
+cat > "$main_proj/.ledger/log/a.md" <<'EOF'
+# a doc about hooks
+EOF
+cat > "$main_proj/.ledger/log/b.md" <<'EOF'
+# b doc about hooks
+EOF
+cat > "$main_proj/.ledger/log/other.md" <<'EOF'
+# other cites both, an old document
+[[log/a]] and [[log/b]] are related.
+EOF
+touch -d "2018-01-01" "$main_proj/.ledger/log/other.md" "$main_proj/.ledger/log/a.md" "$main_proj/.ledger/log/b.md"
+for i in 1 2 3 4 5 6; do
+  printf '# filler doc %s\nnothing special.\n' "$i" > "$main_proj/.ledger/log/filler$i.md"
+  touch -d "2019-01-0$i" "$main_proj/.ledger/log/filler$i.md"
+done
+cat > "$main_proj/.ledger/log/recent.md" <<'EOF'
+# recent doc, cites a
+see [[log/a]] for context.
+EOF
+linked="$tmp/linked-worktree"
+if git -C "$main_proj" worktree add -q "$linked" -b wt/linked-topic >/dev/null 2>&1; then
+  assert_py "(j) resolve_ledger_root finds .ledger beside the main tree from a linked worktree" "$linked" '
+main = Path("'"$main_proj"'")
+expected_ledger = main / ".ledger"
+linked_root = proj  # the worktree itself, what resolve_project_root would return
+ledger = ss.resolve_ledger_root(linked_root)
+surface = ss.compute_surface(ledger, linked_root)
+ok = ledger == expected_ledger and surface.candidate_count >= 1 and "log/b" in surface.text
+reason = f"ledger={ledger}\nexpected={expected_ledger}\nsurface={surface}"
+'
+  printf '{"cwd": "%s"}\n' "$linked" | python3 "$hook" >"$tmp/stdout.json" 2>"$tmp/stderr.txt"
+  rc=$?
+  if [ "$rc" -eq 0 ] && grep -q "log/b" "$tmp/stdout.json"; then
+    pass "(j2) full script from a linked worktree's cwd still injects a non-empty surface"
+  else
+    fail "(j2) full script from a linked worktree's cwd still injects a non-empty surface" "rc=$rc: $(cat "$tmp/stdout.json")"
+  fi
+  git -C "$main_proj" worktree remove --force "$linked" >/dev/null 2>&1
+else
+  skip "(j)/(j2) linked-worktree resolution" "git worktree add failed in this environment"
+fi
+rm -rf "$main_proj"
 
 # ─── (i) second contribution: open claims near the work ────────────────────
 # node/surface-injection: a second hook contribution consuming the
