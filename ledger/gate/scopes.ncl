@@ -325,6 +325,13 @@ let GateEntry = {
     } | GateEntry,
 
     {
+      gate        = "ledger/gate/test_record_first.sh",
+      scope       = 'orchestration,
+      fires_when  = "CI conditioning-sweep step; materializes the install into a throwaway HOME and asserts the COMPOSER PERSONA rung — not the always-on law — carries the record-first ordering WITH its ground: conversational output bounded on the stated occasion of the head approaching conversationally, head-facing output named as drift potential, the conductor's coherence named as upstream of the walks it dispatches, all stated with the ordering rather than apart from it, and present in the composer surface while absent from core and from every dispatched-role delta",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
       gate        = "ledger/gate/test_colocation_gate.sh",
       scope       = 'orchestration,
       fires_when  = "CI gate-test step; verifies that bootstrap/install.sh init installs templates/project-gates/* into .ledger/gates/ and that the colocation gate fires when a skill-owned contract is re-centralized",
