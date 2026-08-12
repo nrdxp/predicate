@@ -137,6 +137,17 @@ counter-evidence, and your own objection binds only on the evidence behind it, n
 your standing. Resolution converges on grounded evidence or escalates to the human;
 non-convergence is the Verification Dual's human rung, never a seniority tie-break.
 
+### Reviewers you summon run under their persona
+
+A seat may staff its own gate with specialized read-only reviewers, and each one
+launches under that role's rendered persona: read the installed markdown
+(`~/.claude/agents/predicate-<role>.md` under a Claude-harness install), or render
+it from source (`conditioning/compose.ncl` through `nickel`, or
+`conditioning/install.sh --role <role> --dry-run`) when it is absent, and inject
+that text as the subagent's system prompt. A generic agent summoned in a
+reviewer's name is an unconditioned walk, and its verdict carries none of the
+guarantees you are about to lean on.
+
 ### Standing council, proportional convening
 
 The council is predicate's STANDING operating model, not a `/campaign` feature. Its law

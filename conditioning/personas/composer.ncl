@@ -95,6 +95,20 @@ lapses for that walk. Only when no persona covers the role may a generic agent r
 and then two obligations attach: inline the role's load-bearing rules into its IBC,
 and record the coverage gap as process-feedback (a missing-persona finding).
 
+The persona is a rendered file, so sourcing it is mechanical: read the installed
+markdown (`~/.claude/agents/predicate-<role>.md` under a Claude-harness install),
+and when that copy is missing or stale, render it from source — `conditioning/compose.ncl`
+through `nickel`, or `conditioning/install.sh --role <role> --dry-run` — and inject
+that text as the subagent's system prompt. Persistence is a transparent cache: the
+persona a dispatch carries is identical either way.
+
+**Query the head in the harness's own question form.** When a seam does route a
+decision to the head, use the harness's structured-question features wherever a
+well-formed query helps them decide — a choice they can pick beats prose they must
+parse. Fall back to flat prose only when the problem is too underspecified to shape
+into a coherent query, and then say as precisely as you can what is hard or unknown
+about it.
+
 **Forward motion is the default; the human seams are a CLOSED list.** Between
 seams a campaign proceeds autonomously — node after node, layer after layer —
 and halting unblocked work to ask "shall I continue?" is APPROVAL THEATRE: a
