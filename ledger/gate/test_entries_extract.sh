@@ -94,29 +94,50 @@ expect "extract: output matches the expected JSON exactly" 0 "" \
 expect "extract: export passes the EXISTING entry contract" 0 "" \
   -- nickel export "$tmp/ledger-note.yaml" --apply-contract "$apply"
 
-# --- node/provenance-gate: the extractor's new entry-level external_refs ----
+# --- node/provenance-gate: because carries TAGGED refs -----------------------
 #
-# ruling-provenance-gate (ledger commit fcf009e): the entry gains a field
-# mirroring its own share of the `external_refs` sidecar, so ProvenanceGate
-# can see external provenance without moving to EntryStore. This fixture
-# isolates the case the fix targets — X1's derives-from names NO bracketed
-# corpus ref, only a wikilink, so `because` never gets set and the new field
-# is the entry's ONLY provenance. TODAY the extractor does not write it (the
-# golden includes it; the extractor's actual output does not, so the diff
-# below is genuinely red), and the corpus fails ProvenanceGate for want of
-# any edge at all — both go green together once the extractor and entry.ncl
-# land in step. This is a NEW, dedicated fixture rather than an edit to
-# ledger-note's X2 or amendment-note's Q4: both of those already carry other
-# provenance (X2 an internal edge, Q4 is a question ProvenanceGate never
-# scopes to), so editing their goldens would pin an assumption this ruling
-# does not make — whether the extractor mirrors the field onto an entry that
-# does not strictly need it to pass the gate. Unresolved; noted in the report
-# rather than guessed at here.
-expect "provenance: external-only claim extracts, exit 0" 0 "" \
+# CORRECTED under ruling-provenance-representation (ledger commit f257f6f),
+# which WITHDRAWS the entry-level `external_refs` mirror this fixture
+# originally pinned (ruling-provenance-gate, fcf009e) — the head challenged it
+# as working around a shape rather than fixing it, and the architect's own
+# words on the withdrawal: "the mirror was the hack." See
+# 2026-08-12-failure-states [F20]-[F23] for the staleness episode this
+# produced when the design changed but the (now-corrected) c13 guard in
+# test_entry.sh still asserted the withdrawn shape.
+#
+# The ruled shape: `because` ALONE carries TAGGED refs, a record
+# `{kind: corpus|external, name: ...}` — `depends`, `discharges`, `supersedes`
+# stay plain corpus ids. This fixture isolates the case ibc-provenance-gate
+# criterion 1 asks for: a `because` ref that is a corpus id and one that is
+# external, BOTH on the same entry (X1's derives-from names `[K1]`, a
+# declared corpus entry, and a wikilink), so a single golden pins both
+# variants at once. TODAY the extractor still emits plain-string `because`
+# and a separate `external_refs` sidecar key (the withdrawn shape); the
+# golden below is the RULED target, so the diff is genuinely red until the
+# extractor lands the tagged form and drops the sidecar. Criterion 1 also
+# requires the sidecar key be ABSENT from the export entirely — checked
+# directly below, not only implied by the diff.
+#
+# Criterion 7 ("a depends ref is untagged, if you can pin it, do"): the
+# ledger-dialect grammar has NO `depends::` companion token at all — every
+# existing fixture and this suite's own extraction goldens confirm the
+# extractor has never emitted `depends` from markdown, only from hand-authored
+# YAML. There is therefore no extraction-level golden that could pin
+# depends-stays-untagged; that boundary is pinned at the contract layer
+# instead (test_entry.sh's red-depends-wrongly-tagged.yaml). Noted rather
+# than guessed at.
+expect "provenance: mixed corpus+external claim extracts, exit 0" 0 "" \
   -- python3 "$extractor" "$fix/external-provenance-note.md" -o "$tmp/external-provenance-note.yaml"
-expect "provenance: output carries the new entry-level external_refs field" 0 "" \
+expect "provenance: output carries tagged refs, both variants, one entry" 0 "" \
   -- diff "$fix/external-provenance-note.expected.json" "$tmp/external-provenance-note.yaml"
-expect "provenance: export passes the entry contract once the field is live" 0 "" \
+expect "provenance: no external_refs sidecar key survives in the export" 0 "NO-SIDECAR-OK" \
+  -- python3 - "$tmp/external-provenance-note.yaml" <<'PYEOF'
+import json, sys
+export = json.load(open(sys.argv[1]))
+assert "external_refs" not in export, export.keys()
+print("NO-SIDECAR-OK")
+PYEOF
+expect "provenance: export passes the entry contract once tagged refs land" 0 "" \
   -- nickel export "$tmp/external-provenance-note.yaml" --apply-contract "$apply"
 
 # --- report reds: nothing malformed is silently skipped ----------------------
@@ -321,6 +342,71 @@ assert floors["mixed-floor-note:X1"] == ["closed", "external"], floors
 assert floors["mixed-floor-note:X2"] == ["closed", "external"], floors
 print("BOTH-BRANCHES-OK")
 EOF
+
+# --- node/provenance-gate: unbacked view demonstration (criterion 9, 3/3) ----
+#
+# ruling-provenance-representation [SR2]: the `unbacked` view reassembles by
+# hand, at read time, what the extractor split at write time — an O(corpus)
+# scan over the `external_refs` sidecar per entry. That join is deleted; the
+# view reads a because-tagged entry's own external share directly. But the
+# repair visible from OUTSIDE the view is upstream of it: TODAY an unclosed
+# claim whose sole provenance is external cannot pass `entry_apply.ncl` at
+# all (ProvenanceGate refuses it), so it can never REACH `unbacked` — refused
+# by structural unreachability, not by any computation of the view's own.
+# Post-fix the whole corpus validates and the entry appears in `unbacked`'s
+# rows.
+#
+# Hand-authored corpus (ledger/fixtures/entry/corpus-unbacked-external-demo.
+# yaml, not routed through the extractor — a direct Nickel contract
+# application over a constructed value, per the binding constraint), three
+# entries: a closed leaf (e-closed), a because-tagged-CORPUS control
+# (e-walkable), and the because-tagged-EXTERNAL demo (e-external-only).
+#
+# TODAY this whole query fails at SHAPE (NonEmptyString on the tagged
+# `because` element) before any view is computed — verified directly.
+# Post-fix it must succeed, and the three assertions below are pinned with
+# DIFFERING confidence, stated as such rather than uniformly asserted:
+#   - e-external-only appears in unbacked's rows at all: HIGH confidence —
+#     this is the repair itself, and any design failing to reach it fails
+#     the node's own goal.
+#   - e-walkable is `backed: true`, e-external-only is `backed: false`: HIGH
+#     confidence — [SR8] names `unbacked` a consumer of `corpus_edges_of`
+#     specifically (the walkable subset), not `provenance_of`, so `backed`
+#     keeping its current meaning ("has a corpus edge") rather than becoming
+#     a now-redundant always-true field is the reading that makes the field
+#     still worth having.
+#   - the external citation ("docs/entries.md") is visible SOMEWHERE in
+#     e-external-only's row: LOWER confidence on the exact field name (the
+#     ruling describes the COMPUTATION simplifying, not the output shape
+#     changing, so keeping the existing `external_refs` key is the
+#     assumption here) — checked by substring over the row's own JSON
+#     rendering rather than a specific key path, so a reasonable rename
+#     still satisfies it.
+nickel export "$root/ledger/fixtures/entry/corpus-unbacked-external-demo.yaml" \
+  --apply-contract "$query" > "$tmp/unbacked-demo.json" 2>"$tmp/unbacked-demo.err"
+unbacked_demo_rc=$?
+unbacked_demo_ok=1
+if [ "$unbacked_demo_rc" -ne 0 ]; then
+  unbacked_demo_ok=0
+else
+  python3 - "$tmp/unbacked-demo.json" <<'EOF' || unbacked_demo_ok=0
+import json, sys
+q = json.load(open(sys.argv[1]))
+rows = {row["id"]: row for row in q["unbacked"]}
+assert "e-external-only" in rows, sorted(rows)
+assert rows["e-walkable"]["backed"] is True, rows["e-walkable"]
+assert rows["e-external-only"]["backed"] is False, rows["e-external-only"]
+assert "docs/entries.md" in json.dumps(rows["e-external-only"]), rows["e-external-only"]
+print("UNBACKED-DEMO-OK")
+EOF
+fi
+if [ "$unbacked_demo_ok" -eq 1 ]; then
+  echo "PASS  (rc=$unbacked_demo_rc) unbacked: external-only claim now reachable and correctly classified"
+else
+  echo "FAIL  (rc=$unbacked_demo_rc) unbacked: external-only claim now reachable and correctly classified"
+  tail -5 "$tmp/unbacked-demo.err" "$tmp/unbacked-demo.json" 2>/dev/null
+  fails=$((fails + 1))
+fi
 
 # --- the mention/use rule ----------------------------------------------------
 #

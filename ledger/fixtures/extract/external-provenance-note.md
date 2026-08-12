@@ -1,16 +1,20 @@
-# Synthetic external-provenance fixture — a claim's sole provenance is external
+# Synthetic tagged-provenance fixture — because refs carry a corpus/external tag
 
 `signer:: agent/composer` · `at:: abc1234`
 
-This fixture isolates the ProvenanceGate fix's target shape (ruling-provenance-
-gate, ledger commit fcf009e): a synthesis claim whose derives-from span names
-NO bracketed corpus ref at all, only a wikilink — so the extractor's because
-edge stays absent, and the new per-entry field the extractor mirrors from its
-own share of the external_refs sidecar is the ONLY thing carrying its
-provenance. This is the shape 20 of the ruling's 22 no-derivation-edge claims
-actually have.
+CORRECTED under ruling-provenance-representation (ledger commit f257f6f),
+which WITHDRAWS the entry-level `external_refs` mirror this fixture originally
+pinned — see 2026-08-12-failure-states for the staleness episode that produced.
+The ruled shape: the extractor's `because` field carries TAGGED refs, a record
+naming `corpus` or `external`, and only `because` carries them — `depends`
+stays a plain corpus id. No sidecar key survives; provenance is emitted once,
+on the entry that states it.
 
 ## Claims
 
-`[X1] grade::synthesis` The floor vocabulary generalizes to typed ledgers
-elsewhere. `derives-from:: [[prior-art/typed-ledgers]]`
+`[K1] grade::proved` The floor vocabulary is fixed by the entry contract.
+`check:: bash ledger/gate/test_entry.sh`
+
+`[X1] grade::synthesis` Support names one corpus antecedent and one that
+structurally cannot be a corpus entry, on the same node. `derives-from:: [K1],
+[[prior-art/typed-ledgers]]`
