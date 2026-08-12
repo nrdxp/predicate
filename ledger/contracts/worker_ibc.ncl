@@ -84,12 +84,24 @@ let e = import "entry.ncl" in
   PremiseClosed = fun n =>
     std.record.has_field "check" n || std.record.has_field "witness" n,
 
+  # A premise carries its axis coordinates, REQUIRED here rather than
+  # inherited. The core's ClaimHasAxes states only the question half: a claim
+  # extracted from ledger prose legitimately arrives unassessed, and the query
+  # reports it as such. An IBC premise is the opposite case — its author is
+  # OBLIGATED to assess the ground the dispatch will stand on, so an
+  # unasserted coordinate here is a silently wrong classification rather than
+  # an honest absence, and the cure a premise owes stays underivable without
+  # it. Stated on this surface so the obligation cannot lapse when the core
+  # predicate narrows.
+  PremiseHasAxes = fun n => std.record.has_field "axes" n,
+
   PremiseChecked = std.contract.all_of (
     [e.Entry]
     @ e.lifted
     @ [
       e.asContract "PremiseIsClaim" PremiseIsClaim,
       e.asContract "PremiseClosed" PremiseClosed,
+      e.asContract "PremiseHasAxes" PremiseHasAxes,
     ]
   ),
 

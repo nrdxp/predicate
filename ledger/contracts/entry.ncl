@@ -20,7 +20,14 @@
 #   - a recoverable signer on every entry, ENFORCED (ruling D-3)
 #   - the provenance gate, scoped to claims (ruling D-2)
 #   - questions carry a discharge condition AND a designated closer
+#   - questions carry NO axis coordinates — but a claim is not required to
+#     carry them: assessment is an authoring obligation borne by the
+#     surfaces whose authors hold it (worker_ibc premises), never a
+#     universal shape law, and an unassessed claim is REPORTED, not refused
 #   - edges typed by consequence, derivation and closure alike
+#
+# The predicates run at BOTH granularities — a lone entry and a corpus — so
+# the choice of granularity is a scope for the law, never a loophole in it.
 #
 # Two hard-won idioms govern every definition below; both were proved by run
 # before this file was written (the boundary's spike-first rule):
@@ -370,12 +377,33 @@
     !(matches n.backing 'residual "residual")
     || matches n.assertion 'question "question",
 
-  # A claim carries axis coordinates; a question does not (it asserts no
-  # truth-value, so there is nothing for the axes to be conditions on).
+  # A question carries NO axis coordinates: it asserts no truth-value, so
+  # there is nothing for the axes to be conditions on. That category error is
+  # the whole of this predicate.
+  #
+  # The converse half — every claim carries axes — was removed when the
+  # predicate went live on the corpus path, as a DISCREPANCY RESOLUTION
+  # between two ratified artifacts rather than a weakening. Nothing reads the
+  # property it asserted: the prose dialect carries no axis token, so
+  # extracted claims arrive unassessed, and entries_query.ncl's `unpaid_cures`
+  # view is BUILT to read that absence and report those claims as
+  # `unassessed` rather than presenting an empty cure report as a clean bill.
+  # A gate refusing axis-less claims would not obtain the coordinates; it
+  # would condition every future walk to fabricate them to pass — the law
+  # manufacturing the exact defect this contract exists to refuse. So
+  # `unassessed` follows `unclosed`: absence is made VISIBLE, never forbidden.
+  #
+  # The half that died was an AUTHORING OBLIGATION, not a universal shape
+  # law, and it survives where the author carries that obligation — an IBC
+  # premise is assessed ground by definition, so worker_ibc.ncl requires axes
+  # on its own surface rather than inheriting the requirement from here.
+  #
+  # Presence is all this leaves unstated: axes that ARE carried stay governed
+  # by CertifiabilityFibered and NonMonotoneNamesCure, so no conditional
+  # clause belongs here restating them.
   ClaimHasAxes = fun n =>
-    (!(matches n.assertion 'claim "claim") || std.record.has_field "axes" n)
-    && (!(matches n.assertion 'question "question")
-        || !(std.record.has_field "axes" n)),
+    !(matches n.assertion 'question "question")
+    || !(std.record.has_field "axes" n),
 
   # Certifiability is fibered on determination — undefined where determination
   # fails, required where it holds. This is what makes cell-table rows 7 and 8
