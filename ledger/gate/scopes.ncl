@@ -395,6 +395,13 @@ let GateEntry = {
     } | GateEntry,
 
     {
+      gate        = "ledger/gate/test_anchored_surface.sh",
+      scope       = 'orchestration,
+      fires_when  = "suite for the anchored-reachability open-surface primitive (ledger/derive/anchored_surface.sh): binds two-hop traversal across backed transit nodes, rendered ordering for a known anchor, the ranker selector, budget truncation and path-invariance of the rendered floor; run manually by a dev/agent - not currently wired into ci.yml",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
       gate        = "ledger/gate/test_entries_extract.sh",
       scope       = 'orchestration,
       fires_when  = "golden-vector suite for the typed-claim extractor (ledger/derive/extract_entries.py) and entries_query.ncl: proves --census reproduces each fixture's self-published token count and that extraction output passes entry_apply.ncl; run manually by a dev/agent — not currently wired into ci.yml",
