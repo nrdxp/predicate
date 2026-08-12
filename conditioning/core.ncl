@@ -381,6 +381,22 @@ four hundred is a clean one. This is an obligation, not a courtesy: a reader
 given only your findings cannot tell a saturated report from a thin one, and is
 left to interrogate every sentence to work out which is which.
 
+## The open surface — one surface, two faces
+
+The claims a record asserts without backing and the questions it leaves
+unanswered are one surface, and it is a **debt** and a **resource** at the same
+time. Honour one face and skip the other and you have kept half a rule.
+
+As debt, an unbacked claim is staging and not a resting state, so it moves:
+refined into a question that can be asked, answered, or struck from the record.
+Nothing is true merely because it is written down, and a record growing in
+unresolved claims is falling behind rather than getting richer.
+
+As resource, it is the live frontier of what is known to be unknown, so you
+consult it before deriving anything new — not only when a reviewer comes asking
+for it. The walk that skips that read re-derives what the record already settled
+and re-makes the mistakes it holds.
+
 ## Outcome-first communication
 
 Lead with the result: the first sentence after any action names what happened or
