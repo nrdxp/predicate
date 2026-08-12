@@ -27,11 +27,18 @@ Grammar (the docs/entries.md §grammar standard, ledger dialect):
               field, never overwrites an earlier real use, and stays in the
               statement where it was written. The rule is general over the
               mapped set — present and future — not a per-token exception.
-  refs        derives-from carries doc-local `[ID]` refs (edges), `[[wiki]]`
-              refs and free prose (external provenance — outside the corpus,
-              so never emitted as edges the contract would reject as dangling).
-              The closure edges take doc-local refs ONLY: an unresolvable
-              closure target closes nothing, so it is reported, not preserved.
+  refs        a bracketed ref names the document whose stem it carries
+              (`[stem:ID]`, QUALIFIED) or the document that wrote it (`[ID]`,
+              PLAIN) — plain never widens to the corpus, so a reference's
+              scope never depends on what else the extraction covered. Only
+              the qualified form asserts corpus membership, so only it is
+              checked against the corpus, and one naming an id no document
+              declares is reported and dropped rather than emitted.
+              `[[wiki]]` refs and free prose are external ALWAYS, including
+              when the text reads like an id: an external name colliding with
+              one is not a declaration. derives-from files them as external
+              provenance; the closure edges report them, since a closure onto
+              something outside the corpus closes nothing.
   axes        `axes:: +determined -certifiable +monotone` — polarity tokens in
               any order. `certifiable` is OMITTED where determination fails:
               the coordinate is undefined there, not false, and the grammar
@@ -77,7 +84,11 @@ MARKER_RE = re.compile(r"^\s*(?:-\s+)?`\[([A-Za-z][A-Za-z0-9-]*)\]\s+grade::([a-
 SPAN_RE = re.compile(r"`([^`]+)`")
 COMPANION_RE = re.compile(r"^([a-z][a-z-]*)::\s*(.*)$", re.DOTALL)
 WIKILINK_RE = re.compile(r"\[\[([^\]]+)\]\]")
-BRACKET_REF_RE = re.compile(r"\[([A-Za-z][A-Za-z0-9-]*)\]")
+# One pattern for both ref forms: the stem is optional, and its absence IS
+# the plain form. Stems are document stems, which lead with a date in the
+# landed record (`2026-08-11-state-typed`), so digits open them.
+BRACKET_REF_RE = re.compile(
+    r"\[(?:([A-Za-z0-9][A-Za-z0-9-]*):)?([A-Za-z][A-Za-z0-9-]*)\]")
 # a source/derives-from value continues past its span as `, [[wiki]]` segments
 CONTINUATION_RE = re.compile(r"^\s*,?\s*(?:`(\[\[[^\]]+\]\])`|(\[\[[^\]]+\]\]))")
 SIGNER_RE = re.compile(r"`signer::\s*([^`]+)`")
@@ -143,17 +154,44 @@ def paragraphs(text: str) -> list[str]:
 
 
 @dataclass(slots=True)
+class QualifiedRef:
+    """A ref that named its own document — the one form asserting corpus
+    membership, so the one form the corpus can refute. It is held against the
+    entry it was written into, because the corpus it asserts is only known
+    once every document has been read."""
+    entry: dict
+    edge: str
+    ref: str
+    doc: str
+    marker: str
+
+
+@dataclass(slots=True)
 class Extraction:
     entries: list[dict] = field(default_factory=list)
     directives: list[dict] = field(default_factory=list)
     grades: dict[str, str] = field(default_factory=dict)
     external_refs: list[dict] = field(default_factory=list)
     findings: list[dict] = field(default_factory=list)
+    qualified: list[QualifiedRef] = field(default_factory=list)
 
     def report(self, kind: str, doc: str, marker: str | None, reason: str) -> None:
         self.findings.append(
             {"kind": kind, "doc": doc, "marker": marker, "reason": reason}
         )
+
+    def attach_refs(self, entry: dict, key: str, value: str,
+                    doc: str, marker: str) -> list[str]:
+        """Namespace an edge value onto `entry[key]`, holding its qualified
+        refs for the corpus to answer; return what stayed external. Derivation
+        and closure share this whole rule and differ only in what they do with
+        that remainder, so the rule is written once."""
+        refs, qualified, external = split_refs(value, doc)
+        if refs:
+            entry[key] = refs
+        self.qualified.extend(
+            QualifiedRef(entry, key, ref, doc, marker) for ref in qualified)
+        return external
 
 
 def parse_signer(raw: str) -> dict | None:
@@ -181,15 +219,51 @@ def parse_axes(raw: str) -> tuple[dict, str]:
     return {name: found[name] for name in AXIS_ORDER if name in found}, residue
 
 
-def split_refs(value: str) -> tuple[list[str], list[str]]:
-    """Partition a derives-from value into doc-local refs and external refs."""
+def split_refs(value: str, doc: str) -> tuple[list[str], list[str], list[str]]:
+    """Partition a value into corpus refs and external refs.
+
+    Both bracketed forms leave here already namespaced — a ref names the
+    document it declares a stem for, or `doc` when it declares none — so the
+    caller holds edges and never marker fragments. The qualified subset comes
+    back beside them because a declared stem is an assertion ABOUT the corpus,
+    and the corpus is not known until every document is read."""
     external = WIKILINK_RE.findall(value)
     remainder = WIKILINK_RE.sub("", value)
-    local = BRACKET_REF_RE.findall(remainder)
+    refs: list[str] = []
+    qualified: list[str] = []
+    for stem, marker in BRACKET_REF_RE.findall(remainder):
+        ref = f"{stem or doc}:{marker}"
+        refs.append(ref)
+        if stem:
+            qualified.append(ref)
     residue = BRACKET_REF_RE.sub("", remainder).strip(" ,;")
     if residue:
         external.append(residue)
-    return local, external
+    return refs, qualified, external
+
+
+def resolve_qualified(out: Extraction) -> None:
+    """Refute the qualified refs the finished corpus does not declare.
+
+    Dropped rather than emitted: an edge onto an id nothing declares is
+    refused by the contract, and one bad ref must not cost a claim the
+    provenance beside it — so the ref goes and its neighbours stay. Reported
+    rather than filed as external provenance: a bracketed id asserts the
+    target is IN the record, and demoting it would read as a deliberate
+    pointer out of the record instead of the mistake it is."""
+    declared = set(out.grades)
+    for qual in out.qualified:
+        if qual.ref in declared:
+            continue
+        out.report("bad-edge", qual.doc, qual.marker,
+                   f"`[{qual.ref}]` is a qualified reference to an id the "
+                   "corpus does not declare; the edge is dropped")
+        remaining = [ref for ref in qual.entry.get(qual.edge, [])
+                     if ref != qual.ref]
+        if remaining:
+            qual.entry[qual.edge] = remaining
+        else:
+            qual.entry.pop(qual.edge, None)
 
 
 def parse_node(rest: str, out: Extraction, doc: str, marker: str,
@@ -340,9 +414,8 @@ def extract_doc(path: Path, out: Extraction) -> None:
             else:
                 entry["closer"] = closer
         if "derives-from" in companions:
-            local, external = split_refs(companions["derives-from"])
-            if local:
-                entry["because"] = [f"{doc}:{ref}" for ref in local]
+            external = out.attach_refs(entry, "because",
+                                       companions["derives-from"], doc, marker)
             if external:
                 out.external_refs.append({"entry": node_id, "refs": external})
         if "axes" in companions:
@@ -358,17 +431,16 @@ def extract_doc(path: Path, out: Extraction) -> None:
         for token in CLOSURE_EDGES:
             if token not in companions:
                 continue
-            local, external = split_refs(companions[token])
-            if local:
-                entry[token] = [f"{doc}:{ref}" for ref in local]
+            external = out.attach_refs(entry, token, companions[token],
+                                       doc, marker)
             if external:
                 # A closure edge onto something outside the corpus closes
                 # nothing queryable, so unlike derives-from it is NOT
                 # preserved as an external ref — that would file it where
                 # provenance lives and quietly lose the closure.
                 out.report("bad-edge", doc, marker,
-                           f"`{token}::` takes bracketed doc-local ids; "
-                           f"cannot resolve {external}")
+                           f"`{token}::` takes bracketed ids, plain or "
+                           f"qualified; cannot resolve {external}")
         out.entries.append(entry)
         out.grades[node_id] = grade
 
@@ -410,6 +482,7 @@ def main() -> int:
     out = Extraction()
     for path in files:
         extract_doc(path, out)
+    resolve_qualified(out)
 
     export = {
         "entries": out.entries,
