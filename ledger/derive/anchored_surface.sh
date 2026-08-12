@@ -31,13 +31,16 @@
 # yet, ruling-hooks-boundary.md B4) and a tail line naming the dropped count
 # and a reproduction command, present even when nothing was dropped.
 #
-# --self-evaluate stdout: two lines instead of a surface — HOLDOUT-RECALL
-# (the ranker's own score, over targets that CAN appear in the output) and
-# HOLDOUT-INELIGIBLE (a corpus property: derivation targets that are backed
-# and so structurally excluded regardless of the ranker). Neither gates the
-# other; both come from anchored_surface_core.ncl's `holdout`, which scores
-# reachability alone, never a budget or a chosen ranker's truncation
-# (ruling-open-surface-node.md [U6]).
+# --self-evaluate stdout: two lines instead of a surface — HOLDOUT-RECALL (a
+# structural property of the graph: whether each open, unclosed derivation
+# target lands inside the two-hop undirected neighbourhood of its deriving
+# entry, via `edges_of` plus the closure edges — invariant to which ranker,
+# anchor, or budget the caller passes, never the chosen ranker's own score)
+# and HOLDOUT-INELIGIBLE (a corpus property: derivation targets that are
+# backed and so structurally excluded regardless of the ranker). Neither
+# gates the other; both come from anchored_surface_core.ncl's `holdout`,
+# which scores reachability alone, never a budget or a chosen ranker's
+# truncation (ruling-open-surface-node.md [U6]).
 #
 # Exit: 0 = rendered/evaluated successfully. 1 = the corpus failed
 # extraction or entry_apply.ncl validation (this primitive never works

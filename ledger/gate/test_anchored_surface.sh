@@ -41,9 +41,11 @@
 #     surface itself — a backed target fails open-surface membership on its
 #     own, not by distance, so charging the ranker for it would score a
 #     restriction the boundary imposes rather than the ranker's behaviour:
-#       a line matching /HOLDOUT-RECALL:\s*([0-9]+)\/([0-9]+)/ — the ranker's
-#         own score, hits over targets that CAN appear in the output (open,
-#         unclosed entries);
+#       a line matching /HOLDOUT-RECALL:\s*([0-9]+)\/([0-9]+)/ — a structural
+#         property of the graph: whether each open, unclosed derivation
+#         target lands inside the two-hop undirected neighbourhood of its
+#         deriving entry, invariant to ranker/anchor/budget, never the
+#         chosen ranker's own score;
 #       a line matching /HOLDOUT-INELIGIBLE:\s*([0-9]+)\/([0-9]+)/ — a corpus
 #         property, not a ranker score: derivation edges whose target is
 #         backed and so structurally excluded regardless of ranker behaviour.
@@ -428,7 +430,9 @@ echo "════════════════════════�
 # own, not by reachability. Collapsing these into one rate would charge the
 # ranker for a restriction the boundary imposes on it, so the fixture is
 # scored as two numbers instead of one:
-#   ranker recall over eligible targets:  3/3 = 1.0  (the ranker's own score)
+#   two-hop reachability over eligible targets: 3/3 = 1.0  (a structural
+#     graph property, invariant to ranker/anchor/budget — never a score the
+#     chosen ranker earns)
 #   structural ineligibility:             1/4 = 0.25 (a corpus property)
 # Both independently re-derived over the extractor's own export before being
 # pinned here.
