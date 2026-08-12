@@ -321,26 +321,52 @@ follow to the stated standard the extractor is correct against:
   reliably either node's. `check::` carries the corroborating command (the
   grade asserts the run; the header anchor dates it). `source::` names the
   witness; `source:: same` repeats the previous node's source. `derives-from::`
-  carries provenance: doc-local `[ID]` refs become edges, while
-  `[[wikilinks]]` and free prose are **external provenance** — preserved in
-  the export but never emitted as edges, which the corpus contract would
-  rightly reject as dangling. `discharge::` and `closer::` carry a
+  carries provenance: bracketed refs become edges, while `[[wikilinks]]` and
+  free prose are **external provenance** — preserved in the export but never
+  emitted as edges, which the corpus contract would rightly reject as
+  dangling. `discharge::` and `closer::` carry a
   question's two routable halves; `closer::` takes a
   [designation](#the-closer--a-narrower-designation) (`human/nrd`,
   `agent/architect-seat`, or a bare kind), and `machine` is accepted as the
   legacy corpus's word for an unnamed agent rather than a fourth kind.
   `conversion-path::` is a recognized annotation that stays in the statement.
   Any other token-shaped span is reported, never silently discarded.
+- **References.** A bracketed ref inside `derives-from::`, `discharges::`, or
+  `supersedes::` names an entry, and it comes in two forms. **Plain** —
+  `[ID]` — resolves against the document that wrote it, and only ever against
+  that document: it does not widen to the corpus when the local lookup misses,
+  and it does not prefer a same-named entry next door. A reference whose scope
+  depended on which documents an extraction happened to cover would not be
+  worth authoring. **Qualified** — `[<file-stem>:<ID>]` — writes the target's
+  full id, and is the author's explicit declaration that the target lives
+  elsewhere in the corpus. The stem is a file stem and carries whatever the
+  file name carries, dates included: a note filed as
+  `2026-08-11-vocabulary.md` is reached as `[2026-08-11-vocabulary:R3]`, date
+  and all — the ordinary case, since dated file names are how the record is
+  kept in order. A qualified ref naming an id no document declares is
+  **reported** rather than quietly filed as external provenance: a bracketed
+  id asserts the target is *in* the record, so demoting it would read as a
+  deliberate pointer out of the record instead of the mistake it is. The
+  report drops that one ref and leaves the others in the same value standing,
+  so a mistyped stem costs a claim one edge rather than its whole provenance.
+- **Wikilinks.** `[[text]]` is external **always** — never a reference, even
+  when the text reads exactly like a corpus id. A name outside the record that
+  happens to collide with one inside it is nobody's declaration, and neither
+  author can see the collision; resolving it would close a question with no
+  one having declared the crossing, and would make what a link means depend on
+  how wide the extraction was. Loud dangling beats silent capture. An author
+  who means the corpus says so in the qualified form.
 - **Closure edges.** `discharges::` and `supersedes::` write the two
   [closure edges](#closure-edges--answered-or-retired-into-a-survivor). Unlike
-  `derives-from::` they take doc-local `[ID]` refs **only**: a closure edge
-  onto something outside the corpus closes nothing queryable, so an
-  unresolvable target is reported rather than preserved as external
-  provenance, which would file it where derivation lives and quietly lose the
-  closure. `discharge::` and `discharges::` are one letter apart, and the
-  names are the vocabulary's own — a prospective condition and the
-  retrospective edge that pays it. They are two distinct keys, so a typo
-  lands on the wrong one loudly rather than quietly.
+  `derives-from::` they take bracketed refs **only**: a closure edge onto
+  something outside the corpus closes nothing queryable, so an unresolvable
+  target — a wikilink, free prose, or a stem naming no document — is reported
+  rather than preserved as external provenance, which would file it where
+  derivation lives and quietly lose the closure. `discharge::` and
+  `discharges::` are one letter apart, and the names are the vocabulary's
+  own — a prospective condition and the retrospective edge that pays it. They
+  are two distinct keys, so a typo lands on the wrong one loudly rather than
+  quietly.
 - **Question backings.** Extracted questions carry `backing: unclosed`
   (residual excepted), the entry fixtures' practice: `corroborated` and
   `vouched` demand delivered evidence (`CorroborationBacked`,
