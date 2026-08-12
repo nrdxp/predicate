@@ -38,8 +38,15 @@ jobs:
       - name: fixture polarity sweep (all ledger/fixtures/*.ncl + *.yaml)
         run: bash ledger/gate/test_fixture_sweep.sh
 
+      # The polarity sweep checks the sources export as declared; the discipline
+      # suite checks the MATERIALIZED install — it runs conditioning/install.sh
+      # into a throwaway HOME (PREDICATE_CLAUDE_DIR/PREDICATE_GEMINI_DIR), so it
+      # is CI-safe for the same reason test_conditioning.sh below is.
       - name: conditioning sweep (compose.ncl, core.ncl, probe_no_core.ncl)
-        run: bash ledger/gate/test_conditioning_sweep.sh
+        run: |
+          set -euo pipefail
+          bash ledger/gate/test_conditioning_sweep.sh
+          bash ledger/gate/test_conditioning_discipline.sh
 
       - name: gate-scope completeness (fails on undeclared gate)
         run: bash ledger/gate/check_scopes.sh

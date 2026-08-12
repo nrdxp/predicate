@@ -290,6 +290,20 @@ let GateEntry = {
     } | GateEntry,
 
     {
+      gate        = "ledger/gate/test_conditioning_discipline.sh",
+      scope       = 'orchestration,
+      fires_when  = "CI conditioning-sweep step; materializes the install into a throwaway HOME and asserts the typed-claim grammar sits at the record-writing rungs and nowhere in the always-on core, alongside the minimality cut list's end state and the core-to-delta duplication ratchet",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
+      gate        = "ledger/gate/conditioning_probe.py",
+      scope       = 'orchestration,
+      fires_when  = "called by test_conditioning_discipline.sh; measurement engine over the materialized surfaces — proves the verbatim core region, counts a signature per scope, and shingles core-to-delta duplication",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
       gate        = "ledger/gate/test_colocation_gate.sh",
       scope       = 'orchestration,
       fires_when  = "CI gate-test step; verifies that bootstrap/install.sh init installs templates/project-gates/* into .ledger/gates/ and that the colocation gate fires when a skill-owned contract is re-centralized",
