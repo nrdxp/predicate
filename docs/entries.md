@@ -337,10 +337,13 @@ follow to the stated standard the extractor is correct against:
   that document: it does not widen to the corpus when the local lookup misses,
   and it does not prefer a same-named entry next door. A reference whose scope
   depended on which documents an extraction happened to cover would not be
-  worth authoring. **Qualified** — `[<file-stem>:<ID>]` — writes the target's
-  full id, and is the author's explicit declaration that the target lives
-  elsewhere in the corpus. The stem is a file stem and carries whatever the
-  file name carries, dates included: a note filed as
+  worth authoring. A plain ref matching nothing in its own document is
+  therefore still an edge onto its own document, and the corpus contract
+  refuses it as dangling — it is never checked against the corpus, because it
+  never claimed to be about the corpus. **Qualified** — `[<file-stem>:<ID>]` —
+  writes the target's full id, and is the author's explicit declaration that
+  the target lives elsewhere in the corpus. The stem is a file stem and
+  carries whatever the file name carries, dates included: a note filed as
   `2026-08-11-vocabulary.md` is reached as `[2026-08-11-vocabulary:R3]`, date
   and all — the ordinary case, since dated file names are how the record is
   kept in order. A qualified ref naming an id no document declares is
