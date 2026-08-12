@@ -1,0 +1,9080 @@
+# Performance regression guard for chain_floor (entries_query.ncl).
+#
+# GENERATED, not hand-authored — 45 independent derivation chains of depth
+# 20 (900 entries total), matching the LIVE corpus's own measured shape
+# (many bounded chains, not one) rather than a pathological single mega-
+# chain. This is deliberately close to the size and depth that first broke
+# the corpus in production: the pre-fix chain_floor implementation re-scanned
+# every entry on every propagation round (`step` folded over the WHOLE
+# corpus every round instead of converging), so cost grew with rounds x
+# entries; at this scale that OOM-killed the process. Reproduced here:
+# `git stash && nickel export <this file> --apply-contract entries_query.ncl`
+# at the pre-fix revision dies the same way. See ledger/gate/test_entries_extract.sh
+# for the guard that runs this under a hard memory cap and a wall-clock bound.
+#
+# Regenerate with (not run automatically — the checked-in file IS the fixture):
+#   python3 - <<'EOF'
+#   import json
+#   n_chains, depth = 45, 20
+#   entries = []
+#   for c in range(1, n_chains + 1):
+#       for i in range(1, depth + 1):
+#           eid = f"chain{c}:C{i}"
+#           if i == 1:
+#               entries.append({"id": eid, "statement": f"Chain {c} floor entry {i}, corroborated leaf.",
+#                   "assertion": "claim", "backing": "corroborated",
+#                   "signer": {"kind": "agent", "name": "worker"},
+#                   "check": {"command": "true", "ran": True, "at": "deadbeef01"}})
+#           else:
+#               entries.append({"id": eid, "statement": f"Chain {c} entry {i}, derives from C{i-1}.",
+#                   "assertion": "claim", "backing": "unclosed",
+#                   "signer": {"kind": "agent", "name": "worker"},
+#                   "because": [{"kind": "corpus", "name": f"chain{c}:C{i-1}"}]})
+#   json.dump({"entries": entries}, open("regression-chain-floor-scale.yaml", "w"), indent=2)
+#   EOF
+entries:
+- id: chain1:C1
+  statement: Chain 1 floor entry 1, corroborated leaf.
+  assertion: claim
+  backing: corroborated
+  signer:
+    kind: agent
+    name: worker
+  check:
+    command: 'true'
+    ran: true
+    at: deadbeef01
+- id: chain1:C2
+  statement: Chain 1 entry 2, derives from C1.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain1:C1
+- id: chain1:C3
+  statement: Chain 1 entry 3, derives from C2.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain1:C2
+- id: chain1:C4
+  statement: Chain 1 entry 4, derives from C3.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain1:C3
+- id: chain1:C5
+  statement: Chain 1 entry 5, derives from C4.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain1:C4
+- id: chain1:C6
+  statement: Chain 1 entry 6, derives from C5.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain1:C5
+- id: chain1:C7
+  statement: Chain 1 entry 7, derives from C6.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain1:C6
+- id: chain1:C8
+  statement: Chain 1 entry 8, derives from C7.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain1:C7
+- id: chain1:C9
+  statement: Chain 1 entry 9, derives from C8.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain1:C8
+- id: chain1:C10
+  statement: Chain 1 entry 10, derives from C9.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain1:C9
+- id: chain1:C11
+  statement: Chain 1 entry 11, derives from C10.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain1:C10
+- id: chain1:C12
+  statement: Chain 1 entry 12, derives from C11.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain1:C11
+- id: chain1:C13
+  statement: Chain 1 entry 13, derives from C12.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain1:C12
+- id: chain1:C14
+  statement: Chain 1 entry 14, derives from C13.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain1:C13
+- id: chain1:C15
+  statement: Chain 1 entry 15, derives from C14.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain1:C14
+- id: chain1:C16
+  statement: Chain 1 entry 16, derives from C15.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain1:C15
+- id: chain1:C17
+  statement: Chain 1 entry 17, derives from C16.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain1:C16
+- id: chain1:C18
+  statement: Chain 1 entry 18, derives from C17.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain1:C17
+- id: chain1:C19
+  statement: Chain 1 entry 19, derives from C18.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain1:C18
+- id: chain1:C20
+  statement: Chain 1 entry 20, derives from C19.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain1:C19
+- id: chain2:C1
+  statement: Chain 2 floor entry 1, corroborated leaf.
+  assertion: claim
+  backing: corroborated
+  signer:
+    kind: agent
+    name: worker
+  check:
+    command: 'true'
+    ran: true
+    at: deadbeef01
+- id: chain2:C2
+  statement: Chain 2 entry 2, derives from C1.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain2:C1
+- id: chain2:C3
+  statement: Chain 2 entry 3, derives from C2.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain2:C2
+- id: chain2:C4
+  statement: Chain 2 entry 4, derives from C3.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain2:C3
+- id: chain2:C5
+  statement: Chain 2 entry 5, derives from C4.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain2:C4
+- id: chain2:C6
+  statement: Chain 2 entry 6, derives from C5.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain2:C5
+- id: chain2:C7
+  statement: Chain 2 entry 7, derives from C6.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain2:C6
+- id: chain2:C8
+  statement: Chain 2 entry 8, derives from C7.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain2:C7
+- id: chain2:C9
+  statement: Chain 2 entry 9, derives from C8.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain2:C8
+- id: chain2:C10
+  statement: Chain 2 entry 10, derives from C9.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain2:C9
+- id: chain2:C11
+  statement: Chain 2 entry 11, derives from C10.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain2:C10
+- id: chain2:C12
+  statement: Chain 2 entry 12, derives from C11.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain2:C11
+- id: chain2:C13
+  statement: Chain 2 entry 13, derives from C12.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain2:C12
+- id: chain2:C14
+  statement: Chain 2 entry 14, derives from C13.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain2:C13
+- id: chain2:C15
+  statement: Chain 2 entry 15, derives from C14.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain2:C14
+- id: chain2:C16
+  statement: Chain 2 entry 16, derives from C15.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain2:C15
+- id: chain2:C17
+  statement: Chain 2 entry 17, derives from C16.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain2:C16
+- id: chain2:C18
+  statement: Chain 2 entry 18, derives from C17.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain2:C17
+- id: chain2:C19
+  statement: Chain 2 entry 19, derives from C18.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain2:C18
+- id: chain2:C20
+  statement: Chain 2 entry 20, derives from C19.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain2:C19
+- id: chain3:C1
+  statement: Chain 3 floor entry 1, corroborated leaf.
+  assertion: claim
+  backing: corroborated
+  signer:
+    kind: agent
+    name: worker
+  check:
+    command: 'true'
+    ran: true
+    at: deadbeef01
+- id: chain3:C2
+  statement: Chain 3 entry 2, derives from C1.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain3:C1
+- id: chain3:C3
+  statement: Chain 3 entry 3, derives from C2.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain3:C2
+- id: chain3:C4
+  statement: Chain 3 entry 4, derives from C3.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain3:C3
+- id: chain3:C5
+  statement: Chain 3 entry 5, derives from C4.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain3:C4
+- id: chain3:C6
+  statement: Chain 3 entry 6, derives from C5.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain3:C5
+- id: chain3:C7
+  statement: Chain 3 entry 7, derives from C6.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain3:C6
+- id: chain3:C8
+  statement: Chain 3 entry 8, derives from C7.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain3:C7
+- id: chain3:C9
+  statement: Chain 3 entry 9, derives from C8.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain3:C8
+- id: chain3:C10
+  statement: Chain 3 entry 10, derives from C9.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain3:C9
+- id: chain3:C11
+  statement: Chain 3 entry 11, derives from C10.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain3:C10
+- id: chain3:C12
+  statement: Chain 3 entry 12, derives from C11.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain3:C11
+- id: chain3:C13
+  statement: Chain 3 entry 13, derives from C12.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain3:C12
+- id: chain3:C14
+  statement: Chain 3 entry 14, derives from C13.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain3:C13
+- id: chain3:C15
+  statement: Chain 3 entry 15, derives from C14.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain3:C14
+- id: chain3:C16
+  statement: Chain 3 entry 16, derives from C15.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain3:C15
+- id: chain3:C17
+  statement: Chain 3 entry 17, derives from C16.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain3:C16
+- id: chain3:C18
+  statement: Chain 3 entry 18, derives from C17.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain3:C17
+- id: chain3:C19
+  statement: Chain 3 entry 19, derives from C18.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain3:C18
+- id: chain3:C20
+  statement: Chain 3 entry 20, derives from C19.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain3:C19
+- id: chain4:C1
+  statement: Chain 4 floor entry 1, corroborated leaf.
+  assertion: claim
+  backing: corroborated
+  signer:
+    kind: agent
+    name: worker
+  check:
+    command: 'true'
+    ran: true
+    at: deadbeef01
+- id: chain4:C2
+  statement: Chain 4 entry 2, derives from C1.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain4:C1
+- id: chain4:C3
+  statement: Chain 4 entry 3, derives from C2.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain4:C2
+- id: chain4:C4
+  statement: Chain 4 entry 4, derives from C3.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain4:C3
+- id: chain4:C5
+  statement: Chain 4 entry 5, derives from C4.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain4:C4
+- id: chain4:C6
+  statement: Chain 4 entry 6, derives from C5.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain4:C5
+- id: chain4:C7
+  statement: Chain 4 entry 7, derives from C6.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain4:C6
+- id: chain4:C8
+  statement: Chain 4 entry 8, derives from C7.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain4:C7
+- id: chain4:C9
+  statement: Chain 4 entry 9, derives from C8.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain4:C8
+- id: chain4:C10
+  statement: Chain 4 entry 10, derives from C9.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain4:C9
+- id: chain4:C11
+  statement: Chain 4 entry 11, derives from C10.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain4:C10
+- id: chain4:C12
+  statement: Chain 4 entry 12, derives from C11.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain4:C11
+- id: chain4:C13
+  statement: Chain 4 entry 13, derives from C12.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain4:C12
+- id: chain4:C14
+  statement: Chain 4 entry 14, derives from C13.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain4:C13
+- id: chain4:C15
+  statement: Chain 4 entry 15, derives from C14.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain4:C14
+- id: chain4:C16
+  statement: Chain 4 entry 16, derives from C15.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain4:C15
+- id: chain4:C17
+  statement: Chain 4 entry 17, derives from C16.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain4:C16
+- id: chain4:C18
+  statement: Chain 4 entry 18, derives from C17.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain4:C17
+- id: chain4:C19
+  statement: Chain 4 entry 19, derives from C18.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain4:C18
+- id: chain4:C20
+  statement: Chain 4 entry 20, derives from C19.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain4:C19
+- id: chain5:C1
+  statement: Chain 5 floor entry 1, corroborated leaf.
+  assertion: claim
+  backing: corroborated
+  signer:
+    kind: agent
+    name: worker
+  check:
+    command: 'true'
+    ran: true
+    at: deadbeef01
+- id: chain5:C2
+  statement: Chain 5 entry 2, derives from C1.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain5:C1
+- id: chain5:C3
+  statement: Chain 5 entry 3, derives from C2.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain5:C2
+- id: chain5:C4
+  statement: Chain 5 entry 4, derives from C3.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain5:C3
+- id: chain5:C5
+  statement: Chain 5 entry 5, derives from C4.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain5:C4
+- id: chain5:C6
+  statement: Chain 5 entry 6, derives from C5.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain5:C5
+- id: chain5:C7
+  statement: Chain 5 entry 7, derives from C6.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain5:C6
+- id: chain5:C8
+  statement: Chain 5 entry 8, derives from C7.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain5:C7
+- id: chain5:C9
+  statement: Chain 5 entry 9, derives from C8.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain5:C8
+- id: chain5:C10
+  statement: Chain 5 entry 10, derives from C9.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain5:C9
+- id: chain5:C11
+  statement: Chain 5 entry 11, derives from C10.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain5:C10
+- id: chain5:C12
+  statement: Chain 5 entry 12, derives from C11.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain5:C11
+- id: chain5:C13
+  statement: Chain 5 entry 13, derives from C12.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain5:C12
+- id: chain5:C14
+  statement: Chain 5 entry 14, derives from C13.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain5:C13
+- id: chain5:C15
+  statement: Chain 5 entry 15, derives from C14.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain5:C14
+- id: chain5:C16
+  statement: Chain 5 entry 16, derives from C15.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain5:C15
+- id: chain5:C17
+  statement: Chain 5 entry 17, derives from C16.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain5:C16
+- id: chain5:C18
+  statement: Chain 5 entry 18, derives from C17.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain5:C17
+- id: chain5:C19
+  statement: Chain 5 entry 19, derives from C18.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain5:C18
+- id: chain5:C20
+  statement: Chain 5 entry 20, derives from C19.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain5:C19
+- id: chain6:C1
+  statement: Chain 6 floor entry 1, corroborated leaf.
+  assertion: claim
+  backing: corroborated
+  signer:
+    kind: agent
+    name: worker
+  check:
+    command: 'true'
+    ran: true
+    at: deadbeef01
+- id: chain6:C2
+  statement: Chain 6 entry 2, derives from C1.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain6:C1
+- id: chain6:C3
+  statement: Chain 6 entry 3, derives from C2.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain6:C2
+- id: chain6:C4
+  statement: Chain 6 entry 4, derives from C3.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain6:C3
+- id: chain6:C5
+  statement: Chain 6 entry 5, derives from C4.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain6:C4
+- id: chain6:C6
+  statement: Chain 6 entry 6, derives from C5.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain6:C5
+- id: chain6:C7
+  statement: Chain 6 entry 7, derives from C6.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain6:C6
+- id: chain6:C8
+  statement: Chain 6 entry 8, derives from C7.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain6:C7
+- id: chain6:C9
+  statement: Chain 6 entry 9, derives from C8.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain6:C8
+- id: chain6:C10
+  statement: Chain 6 entry 10, derives from C9.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain6:C9
+- id: chain6:C11
+  statement: Chain 6 entry 11, derives from C10.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain6:C10
+- id: chain6:C12
+  statement: Chain 6 entry 12, derives from C11.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain6:C11
+- id: chain6:C13
+  statement: Chain 6 entry 13, derives from C12.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain6:C12
+- id: chain6:C14
+  statement: Chain 6 entry 14, derives from C13.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain6:C13
+- id: chain6:C15
+  statement: Chain 6 entry 15, derives from C14.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain6:C14
+- id: chain6:C16
+  statement: Chain 6 entry 16, derives from C15.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain6:C15
+- id: chain6:C17
+  statement: Chain 6 entry 17, derives from C16.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain6:C16
+- id: chain6:C18
+  statement: Chain 6 entry 18, derives from C17.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain6:C17
+- id: chain6:C19
+  statement: Chain 6 entry 19, derives from C18.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain6:C18
+- id: chain6:C20
+  statement: Chain 6 entry 20, derives from C19.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain6:C19
+- id: chain7:C1
+  statement: Chain 7 floor entry 1, corroborated leaf.
+  assertion: claim
+  backing: corroborated
+  signer:
+    kind: agent
+    name: worker
+  check:
+    command: 'true'
+    ran: true
+    at: deadbeef01
+- id: chain7:C2
+  statement: Chain 7 entry 2, derives from C1.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain7:C1
+- id: chain7:C3
+  statement: Chain 7 entry 3, derives from C2.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain7:C2
+- id: chain7:C4
+  statement: Chain 7 entry 4, derives from C3.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain7:C3
+- id: chain7:C5
+  statement: Chain 7 entry 5, derives from C4.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain7:C4
+- id: chain7:C6
+  statement: Chain 7 entry 6, derives from C5.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain7:C5
+- id: chain7:C7
+  statement: Chain 7 entry 7, derives from C6.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain7:C6
+- id: chain7:C8
+  statement: Chain 7 entry 8, derives from C7.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain7:C7
+- id: chain7:C9
+  statement: Chain 7 entry 9, derives from C8.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain7:C8
+- id: chain7:C10
+  statement: Chain 7 entry 10, derives from C9.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain7:C9
+- id: chain7:C11
+  statement: Chain 7 entry 11, derives from C10.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain7:C10
+- id: chain7:C12
+  statement: Chain 7 entry 12, derives from C11.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain7:C11
+- id: chain7:C13
+  statement: Chain 7 entry 13, derives from C12.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain7:C12
+- id: chain7:C14
+  statement: Chain 7 entry 14, derives from C13.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain7:C13
+- id: chain7:C15
+  statement: Chain 7 entry 15, derives from C14.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain7:C14
+- id: chain7:C16
+  statement: Chain 7 entry 16, derives from C15.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain7:C15
+- id: chain7:C17
+  statement: Chain 7 entry 17, derives from C16.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain7:C16
+- id: chain7:C18
+  statement: Chain 7 entry 18, derives from C17.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain7:C17
+- id: chain7:C19
+  statement: Chain 7 entry 19, derives from C18.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain7:C18
+- id: chain7:C20
+  statement: Chain 7 entry 20, derives from C19.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain7:C19
+- id: chain8:C1
+  statement: Chain 8 floor entry 1, corroborated leaf.
+  assertion: claim
+  backing: corroborated
+  signer:
+    kind: agent
+    name: worker
+  check:
+    command: 'true'
+    ran: true
+    at: deadbeef01
+- id: chain8:C2
+  statement: Chain 8 entry 2, derives from C1.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain8:C1
+- id: chain8:C3
+  statement: Chain 8 entry 3, derives from C2.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain8:C2
+- id: chain8:C4
+  statement: Chain 8 entry 4, derives from C3.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain8:C3
+- id: chain8:C5
+  statement: Chain 8 entry 5, derives from C4.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain8:C4
+- id: chain8:C6
+  statement: Chain 8 entry 6, derives from C5.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain8:C5
+- id: chain8:C7
+  statement: Chain 8 entry 7, derives from C6.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain8:C6
+- id: chain8:C8
+  statement: Chain 8 entry 8, derives from C7.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain8:C7
+- id: chain8:C9
+  statement: Chain 8 entry 9, derives from C8.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain8:C8
+- id: chain8:C10
+  statement: Chain 8 entry 10, derives from C9.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain8:C9
+- id: chain8:C11
+  statement: Chain 8 entry 11, derives from C10.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain8:C10
+- id: chain8:C12
+  statement: Chain 8 entry 12, derives from C11.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain8:C11
+- id: chain8:C13
+  statement: Chain 8 entry 13, derives from C12.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain8:C12
+- id: chain8:C14
+  statement: Chain 8 entry 14, derives from C13.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain8:C13
+- id: chain8:C15
+  statement: Chain 8 entry 15, derives from C14.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain8:C14
+- id: chain8:C16
+  statement: Chain 8 entry 16, derives from C15.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain8:C15
+- id: chain8:C17
+  statement: Chain 8 entry 17, derives from C16.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain8:C16
+- id: chain8:C18
+  statement: Chain 8 entry 18, derives from C17.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain8:C17
+- id: chain8:C19
+  statement: Chain 8 entry 19, derives from C18.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain8:C18
+- id: chain8:C20
+  statement: Chain 8 entry 20, derives from C19.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain8:C19
+- id: chain9:C1
+  statement: Chain 9 floor entry 1, corroborated leaf.
+  assertion: claim
+  backing: corroborated
+  signer:
+    kind: agent
+    name: worker
+  check:
+    command: 'true'
+    ran: true
+    at: deadbeef01
+- id: chain9:C2
+  statement: Chain 9 entry 2, derives from C1.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain9:C1
+- id: chain9:C3
+  statement: Chain 9 entry 3, derives from C2.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain9:C2
+- id: chain9:C4
+  statement: Chain 9 entry 4, derives from C3.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain9:C3
+- id: chain9:C5
+  statement: Chain 9 entry 5, derives from C4.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain9:C4
+- id: chain9:C6
+  statement: Chain 9 entry 6, derives from C5.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain9:C5
+- id: chain9:C7
+  statement: Chain 9 entry 7, derives from C6.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain9:C6
+- id: chain9:C8
+  statement: Chain 9 entry 8, derives from C7.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain9:C7
+- id: chain9:C9
+  statement: Chain 9 entry 9, derives from C8.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain9:C8
+- id: chain9:C10
+  statement: Chain 9 entry 10, derives from C9.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain9:C9
+- id: chain9:C11
+  statement: Chain 9 entry 11, derives from C10.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain9:C10
+- id: chain9:C12
+  statement: Chain 9 entry 12, derives from C11.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain9:C11
+- id: chain9:C13
+  statement: Chain 9 entry 13, derives from C12.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain9:C12
+- id: chain9:C14
+  statement: Chain 9 entry 14, derives from C13.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain9:C13
+- id: chain9:C15
+  statement: Chain 9 entry 15, derives from C14.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain9:C14
+- id: chain9:C16
+  statement: Chain 9 entry 16, derives from C15.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain9:C15
+- id: chain9:C17
+  statement: Chain 9 entry 17, derives from C16.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain9:C16
+- id: chain9:C18
+  statement: Chain 9 entry 18, derives from C17.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain9:C17
+- id: chain9:C19
+  statement: Chain 9 entry 19, derives from C18.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain9:C18
+- id: chain9:C20
+  statement: Chain 9 entry 20, derives from C19.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain9:C19
+- id: chain10:C1
+  statement: Chain 10 floor entry 1, corroborated leaf.
+  assertion: claim
+  backing: corroborated
+  signer:
+    kind: agent
+    name: worker
+  check:
+    command: 'true'
+    ran: true
+    at: deadbeef01
+- id: chain10:C2
+  statement: Chain 10 entry 2, derives from C1.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain10:C1
+- id: chain10:C3
+  statement: Chain 10 entry 3, derives from C2.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain10:C2
+- id: chain10:C4
+  statement: Chain 10 entry 4, derives from C3.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain10:C3
+- id: chain10:C5
+  statement: Chain 10 entry 5, derives from C4.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain10:C4
+- id: chain10:C6
+  statement: Chain 10 entry 6, derives from C5.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain10:C5
+- id: chain10:C7
+  statement: Chain 10 entry 7, derives from C6.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain10:C6
+- id: chain10:C8
+  statement: Chain 10 entry 8, derives from C7.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain10:C7
+- id: chain10:C9
+  statement: Chain 10 entry 9, derives from C8.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain10:C8
+- id: chain10:C10
+  statement: Chain 10 entry 10, derives from C9.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain10:C9
+- id: chain10:C11
+  statement: Chain 10 entry 11, derives from C10.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain10:C10
+- id: chain10:C12
+  statement: Chain 10 entry 12, derives from C11.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain10:C11
+- id: chain10:C13
+  statement: Chain 10 entry 13, derives from C12.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain10:C12
+- id: chain10:C14
+  statement: Chain 10 entry 14, derives from C13.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain10:C13
+- id: chain10:C15
+  statement: Chain 10 entry 15, derives from C14.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain10:C14
+- id: chain10:C16
+  statement: Chain 10 entry 16, derives from C15.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain10:C15
+- id: chain10:C17
+  statement: Chain 10 entry 17, derives from C16.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain10:C16
+- id: chain10:C18
+  statement: Chain 10 entry 18, derives from C17.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain10:C17
+- id: chain10:C19
+  statement: Chain 10 entry 19, derives from C18.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain10:C18
+- id: chain10:C20
+  statement: Chain 10 entry 20, derives from C19.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain10:C19
+- id: chain11:C1
+  statement: Chain 11 floor entry 1, corroborated leaf.
+  assertion: claim
+  backing: corroborated
+  signer:
+    kind: agent
+    name: worker
+  check:
+    command: 'true'
+    ran: true
+    at: deadbeef01
+- id: chain11:C2
+  statement: Chain 11 entry 2, derives from C1.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain11:C1
+- id: chain11:C3
+  statement: Chain 11 entry 3, derives from C2.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain11:C2
+- id: chain11:C4
+  statement: Chain 11 entry 4, derives from C3.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain11:C3
+- id: chain11:C5
+  statement: Chain 11 entry 5, derives from C4.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain11:C4
+- id: chain11:C6
+  statement: Chain 11 entry 6, derives from C5.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain11:C5
+- id: chain11:C7
+  statement: Chain 11 entry 7, derives from C6.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain11:C6
+- id: chain11:C8
+  statement: Chain 11 entry 8, derives from C7.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain11:C7
+- id: chain11:C9
+  statement: Chain 11 entry 9, derives from C8.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain11:C8
+- id: chain11:C10
+  statement: Chain 11 entry 10, derives from C9.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain11:C9
+- id: chain11:C11
+  statement: Chain 11 entry 11, derives from C10.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain11:C10
+- id: chain11:C12
+  statement: Chain 11 entry 12, derives from C11.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain11:C11
+- id: chain11:C13
+  statement: Chain 11 entry 13, derives from C12.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain11:C12
+- id: chain11:C14
+  statement: Chain 11 entry 14, derives from C13.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain11:C13
+- id: chain11:C15
+  statement: Chain 11 entry 15, derives from C14.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain11:C14
+- id: chain11:C16
+  statement: Chain 11 entry 16, derives from C15.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain11:C15
+- id: chain11:C17
+  statement: Chain 11 entry 17, derives from C16.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain11:C16
+- id: chain11:C18
+  statement: Chain 11 entry 18, derives from C17.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain11:C17
+- id: chain11:C19
+  statement: Chain 11 entry 19, derives from C18.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain11:C18
+- id: chain11:C20
+  statement: Chain 11 entry 20, derives from C19.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain11:C19
+- id: chain12:C1
+  statement: Chain 12 floor entry 1, corroborated leaf.
+  assertion: claim
+  backing: corroborated
+  signer:
+    kind: agent
+    name: worker
+  check:
+    command: 'true'
+    ran: true
+    at: deadbeef01
+- id: chain12:C2
+  statement: Chain 12 entry 2, derives from C1.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain12:C1
+- id: chain12:C3
+  statement: Chain 12 entry 3, derives from C2.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain12:C2
+- id: chain12:C4
+  statement: Chain 12 entry 4, derives from C3.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain12:C3
+- id: chain12:C5
+  statement: Chain 12 entry 5, derives from C4.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain12:C4
+- id: chain12:C6
+  statement: Chain 12 entry 6, derives from C5.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain12:C5
+- id: chain12:C7
+  statement: Chain 12 entry 7, derives from C6.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain12:C6
+- id: chain12:C8
+  statement: Chain 12 entry 8, derives from C7.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain12:C7
+- id: chain12:C9
+  statement: Chain 12 entry 9, derives from C8.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain12:C8
+- id: chain12:C10
+  statement: Chain 12 entry 10, derives from C9.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain12:C9
+- id: chain12:C11
+  statement: Chain 12 entry 11, derives from C10.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain12:C10
+- id: chain12:C12
+  statement: Chain 12 entry 12, derives from C11.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain12:C11
+- id: chain12:C13
+  statement: Chain 12 entry 13, derives from C12.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain12:C12
+- id: chain12:C14
+  statement: Chain 12 entry 14, derives from C13.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain12:C13
+- id: chain12:C15
+  statement: Chain 12 entry 15, derives from C14.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain12:C14
+- id: chain12:C16
+  statement: Chain 12 entry 16, derives from C15.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain12:C15
+- id: chain12:C17
+  statement: Chain 12 entry 17, derives from C16.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain12:C16
+- id: chain12:C18
+  statement: Chain 12 entry 18, derives from C17.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain12:C17
+- id: chain12:C19
+  statement: Chain 12 entry 19, derives from C18.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain12:C18
+- id: chain12:C20
+  statement: Chain 12 entry 20, derives from C19.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain12:C19
+- id: chain13:C1
+  statement: Chain 13 floor entry 1, corroborated leaf.
+  assertion: claim
+  backing: corroborated
+  signer:
+    kind: agent
+    name: worker
+  check:
+    command: 'true'
+    ran: true
+    at: deadbeef01
+- id: chain13:C2
+  statement: Chain 13 entry 2, derives from C1.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain13:C1
+- id: chain13:C3
+  statement: Chain 13 entry 3, derives from C2.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain13:C2
+- id: chain13:C4
+  statement: Chain 13 entry 4, derives from C3.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain13:C3
+- id: chain13:C5
+  statement: Chain 13 entry 5, derives from C4.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain13:C4
+- id: chain13:C6
+  statement: Chain 13 entry 6, derives from C5.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain13:C5
+- id: chain13:C7
+  statement: Chain 13 entry 7, derives from C6.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain13:C6
+- id: chain13:C8
+  statement: Chain 13 entry 8, derives from C7.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain13:C7
+- id: chain13:C9
+  statement: Chain 13 entry 9, derives from C8.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain13:C8
+- id: chain13:C10
+  statement: Chain 13 entry 10, derives from C9.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain13:C9
+- id: chain13:C11
+  statement: Chain 13 entry 11, derives from C10.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain13:C10
+- id: chain13:C12
+  statement: Chain 13 entry 12, derives from C11.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain13:C11
+- id: chain13:C13
+  statement: Chain 13 entry 13, derives from C12.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain13:C12
+- id: chain13:C14
+  statement: Chain 13 entry 14, derives from C13.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain13:C13
+- id: chain13:C15
+  statement: Chain 13 entry 15, derives from C14.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain13:C14
+- id: chain13:C16
+  statement: Chain 13 entry 16, derives from C15.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain13:C15
+- id: chain13:C17
+  statement: Chain 13 entry 17, derives from C16.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain13:C16
+- id: chain13:C18
+  statement: Chain 13 entry 18, derives from C17.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain13:C17
+- id: chain13:C19
+  statement: Chain 13 entry 19, derives from C18.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain13:C18
+- id: chain13:C20
+  statement: Chain 13 entry 20, derives from C19.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain13:C19
+- id: chain14:C1
+  statement: Chain 14 floor entry 1, corroborated leaf.
+  assertion: claim
+  backing: corroborated
+  signer:
+    kind: agent
+    name: worker
+  check:
+    command: 'true'
+    ran: true
+    at: deadbeef01
+- id: chain14:C2
+  statement: Chain 14 entry 2, derives from C1.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain14:C1
+- id: chain14:C3
+  statement: Chain 14 entry 3, derives from C2.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain14:C2
+- id: chain14:C4
+  statement: Chain 14 entry 4, derives from C3.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain14:C3
+- id: chain14:C5
+  statement: Chain 14 entry 5, derives from C4.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain14:C4
+- id: chain14:C6
+  statement: Chain 14 entry 6, derives from C5.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain14:C5
+- id: chain14:C7
+  statement: Chain 14 entry 7, derives from C6.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain14:C6
+- id: chain14:C8
+  statement: Chain 14 entry 8, derives from C7.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain14:C7
+- id: chain14:C9
+  statement: Chain 14 entry 9, derives from C8.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain14:C8
+- id: chain14:C10
+  statement: Chain 14 entry 10, derives from C9.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain14:C9
+- id: chain14:C11
+  statement: Chain 14 entry 11, derives from C10.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain14:C10
+- id: chain14:C12
+  statement: Chain 14 entry 12, derives from C11.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain14:C11
+- id: chain14:C13
+  statement: Chain 14 entry 13, derives from C12.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain14:C12
+- id: chain14:C14
+  statement: Chain 14 entry 14, derives from C13.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain14:C13
+- id: chain14:C15
+  statement: Chain 14 entry 15, derives from C14.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain14:C14
+- id: chain14:C16
+  statement: Chain 14 entry 16, derives from C15.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain14:C15
+- id: chain14:C17
+  statement: Chain 14 entry 17, derives from C16.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain14:C16
+- id: chain14:C18
+  statement: Chain 14 entry 18, derives from C17.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain14:C17
+- id: chain14:C19
+  statement: Chain 14 entry 19, derives from C18.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain14:C18
+- id: chain14:C20
+  statement: Chain 14 entry 20, derives from C19.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain14:C19
+- id: chain15:C1
+  statement: Chain 15 floor entry 1, corroborated leaf.
+  assertion: claim
+  backing: corroborated
+  signer:
+    kind: agent
+    name: worker
+  check:
+    command: 'true'
+    ran: true
+    at: deadbeef01
+- id: chain15:C2
+  statement: Chain 15 entry 2, derives from C1.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain15:C1
+- id: chain15:C3
+  statement: Chain 15 entry 3, derives from C2.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain15:C2
+- id: chain15:C4
+  statement: Chain 15 entry 4, derives from C3.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain15:C3
+- id: chain15:C5
+  statement: Chain 15 entry 5, derives from C4.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain15:C4
+- id: chain15:C6
+  statement: Chain 15 entry 6, derives from C5.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain15:C5
+- id: chain15:C7
+  statement: Chain 15 entry 7, derives from C6.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain15:C6
+- id: chain15:C8
+  statement: Chain 15 entry 8, derives from C7.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain15:C7
+- id: chain15:C9
+  statement: Chain 15 entry 9, derives from C8.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain15:C8
+- id: chain15:C10
+  statement: Chain 15 entry 10, derives from C9.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain15:C9
+- id: chain15:C11
+  statement: Chain 15 entry 11, derives from C10.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain15:C10
+- id: chain15:C12
+  statement: Chain 15 entry 12, derives from C11.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain15:C11
+- id: chain15:C13
+  statement: Chain 15 entry 13, derives from C12.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain15:C12
+- id: chain15:C14
+  statement: Chain 15 entry 14, derives from C13.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain15:C13
+- id: chain15:C15
+  statement: Chain 15 entry 15, derives from C14.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain15:C14
+- id: chain15:C16
+  statement: Chain 15 entry 16, derives from C15.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain15:C15
+- id: chain15:C17
+  statement: Chain 15 entry 17, derives from C16.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain15:C16
+- id: chain15:C18
+  statement: Chain 15 entry 18, derives from C17.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain15:C17
+- id: chain15:C19
+  statement: Chain 15 entry 19, derives from C18.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain15:C18
+- id: chain15:C20
+  statement: Chain 15 entry 20, derives from C19.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain15:C19
+- id: chain16:C1
+  statement: Chain 16 floor entry 1, corroborated leaf.
+  assertion: claim
+  backing: corroborated
+  signer:
+    kind: agent
+    name: worker
+  check:
+    command: 'true'
+    ran: true
+    at: deadbeef01
+- id: chain16:C2
+  statement: Chain 16 entry 2, derives from C1.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain16:C1
+- id: chain16:C3
+  statement: Chain 16 entry 3, derives from C2.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain16:C2
+- id: chain16:C4
+  statement: Chain 16 entry 4, derives from C3.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain16:C3
+- id: chain16:C5
+  statement: Chain 16 entry 5, derives from C4.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain16:C4
+- id: chain16:C6
+  statement: Chain 16 entry 6, derives from C5.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain16:C5
+- id: chain16:C7
+  statement: Chain 16 entry 7, derives from C6.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain16:C6
+- id: chain16:C8
+  statement: Chain 16 entry 8, derives from C7.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain16:C7
+- id: chain16:C9
+  statement: Chain 16 entry 9, derives from C8.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain16:C8
+- id: chain16:C10
+  statement: Chain 16 entry 10, derives from C9.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain16:C9
+- id: chain16:C11
+  statement: Chain 16 entry 11, derives from C10.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain16:C10
+- id: chain16:C12
+  statement: Chain 16 entry 12, derives from C11.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain16:C11
+- id: chain16:C13
+  statement: Chain 16 entry 13, derives from C12.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain16:C12
+- id: chain16:C14
+  statement: Chain 16 entry 14, derives from C13.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain16:C13
+- id: chain16:C15
+  statement: Chain 16 entry 15, derives from C14.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain16:C14
+- id: chain16:C16
+  statement: Chain 16 entry 16, derives from C15.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain16:C15
+- id: chain16:C17
+  statement: Chain 16 entry 17, derives from C16.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain16:C16
+- id: chain16:C18
+  statement: Chain 16 entry 18, derives from C17.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain16:C17
+- id: chain16:C19
+  statement: Chain 16 entry 19, derives from C18.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain16:C18
+- id: chain16:C20
+  statement: Chain 16 entry 20, derives from C19.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain16:C19
+- id: chain17:C1
+  statement: Chain 17 floor entry 1, corroborated leaf.
+  assertion: claim
+  backing: corroborated
+  signer:
+    kind: agent
+    name: worker
+  check:
+    command: 'true'
+    ran: true
+    at: deadbeef01
+- id: chain17:C2
+  statement: Chain 17 entry 2, derives from C1.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain17:C1
+- id: chain17:C3
+  statement: Chain 17 entry 3, derives from C2.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain17:C2
+- id: chain17:C4
+  statement: Chain 17 entry 4, derives from C3.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain17:C3
+- id: chain17:C5
+  statement: Chain 17 entry 5, derives from C4.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain17:C4
+- id: chain17:C6
+  statement: Chain 17 entry 6, derives from C5.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain17:C5
+- id: chain17:C7
+  statement: Chain 17 entry 7, derives from C6.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain17:C6
+- id: chain17:C8
+  statement: Chain 17 entry 8, derives from C7.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain17:C7
+- id: chain17:C9
+  statement: Chain 17 entry 9, derives from C8.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain17:C8
+- id: chain17:C10
+  statement: Chain 17 entry 10, derives from C9.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain17:C9
+- id: chain17:C11
+  statement: Chain 17 entry 11, derives from C10.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain17:C10
+- id: chain17:C12
+  statement: Chain 17 entry 12, derives from C11.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain17:C11
+- id: chain17:C13
+  statement: Chain 17 entry 13, derives from C12.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain17:C12
+- id: chain17:C14
+  statement: Chain 17 entry 14, derives from C13.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain17:C13
+- id: chain17:C15
+  statement: Chain 17 entry 15, derives from C14.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain17:C14
+- id: chain17:C16
+  statement: Chain 17 entry 16, derives from C15.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain17:C15
+- id: chain17:C17
+  statement: Chain 17 entry 17, derives from C16.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain17:C16
+- id: chain17:C18
+  statement: Chain 17 entry 18, derives from C17.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain17:C17
+- id: chain17:C19
+  statement: Chain 17 entry 19, derives from C18.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain17:C18
+- id: chain17:C20
+  statement: Chain 17 entry 20, derives from C19.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain17:C19
+- id: chain18:C1
+  statement: Chain 18 floor entry 1, corroborated leaf.
+  assertion: claim
+  backing: corroborated
+  signer:
+    kind: agent
+    name: worker
+  check:
+    command: 'true'
+    ran: true
+    at: deadbeef01
+- id: chain18:C2
+  statement: Chain 18 entry 2, derives from C1.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain18:C1
+- id: chain18:C3
+  statement: Chain 18 entry 3, derives from C2.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain18:C2
+- id: chain18:C4
+  statement: Chain 18 entry 4, derives from C3.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain18:C3
+- id: chain18:C5
+  statement: Chain 18 entry 5, derives from C4.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain18:C4
+- id: chain18:C6
+  statement: Chain 18 entry 6, derives from C5.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain18:C5
+- id: chain18:C7
+  statement: Chain 18 entry 7, derives from C6.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain18:C6
+- id: chain18:C8
+  statement: Chain 18 entry 8, derives from C7.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain18:C7
+- id: chain18:C9
+  statement: Chain 18 entry 9, derives from C8.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain18:C8
+- id: chain18:C10
+  statement: Chain 18 entry 10, derives from C9.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain18:C9
+- id: chain18:C11
+  statement: Chain 18 entry 11, derives from C10.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain18:C10
+- id: chain18:C12
+  statement: Chain 18 entry 12, derives from C11.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain18:C11
+- id: chain18:C13
+  statement: Chain 18 entry 13, derives from C12.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain18:C12
+- id: chain18:C14
+  statement: Chain 18 entry 14, derives from C13.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain18:C13
+- id: chain18:C15
+  statement: Chain 18 entry 15, derives from C14.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain18:C14
+- id: chain18:C16
+  statement: Chain 18 entry 16, derives from C15.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain18:C15
+- id: chain18:C17
+  statement: Chain 18 entry 17, derives from C16.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain18:C16
+- id: chain18:C18
+  statement: Chain 18 entry 18, derives from C17.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain18:C17
+- id: chain18:C19
+  statement: Chain 18 entry 19, derives from C18.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain18:C18
+- id: chain18:C20
+  statement: Chain 18 entry 20, derives from C19.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain18:C19
+- id: chain19:C1
+  statement: Chain 19 floor entry 1, corroborated leaf.
+  assertion: claim
+  backing: corroborated
+  signer:
+    kind: agent
+    name: worker
+  check:
+    command: 'true'
+    ran: true
+    at: deadbeef01
+- id: chain19:C2
+  statement: Chain 19 entry 2, derives from C1.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain19:C1
+- id: chain19:C3
+  statement: Chain 19 entry 3, derives from C2.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain19:C2
+- id: chain19:C4
+  statement: Chain 19 entry 4, derives from C3.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain19:C3
+- id: chain19:C5
+  statement: Chain 19 entry 5, derives from C4.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain19:C4
+- id: chain19:C6
+  statement: Chain 19 entry 6, derives from C5.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain19:C5
+- id: chain19:C7
+  statement: Chain 19 entry 7, derives from C6.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain19:C6
+- id: chain19:C8
+  statement: Chain 19 entry 8, derives from C7.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain19:C7
+- id: chain19:C9
+  statement: Chain 19 entry 9, derives from C8.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain19:C8
+- id: chain19:C10
+  statement: Chain 19 entry 10, derives from C9.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain19:C9
+- id: chain19:C11
+  statement: Chain 19 entry 11, derives from C10.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain19:C10
+- id: chain19:C12
+  statement: Chain 19 entry 12, derives from C11.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain19:C11
+- id: chain19:C13
+  statement: Chain 19 entry 13, derives from C12.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain19:C12
+- id: chain19:C14
+  statement: Chain 19 entry 14, derives from C13.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain19:C13
+- id: chain19:C15
+  statement: Chain 19 entry 15, derives from C14.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain19:C14
+- id: chain19:C16
+  statement: Chain 19 entry 16, derives from C15.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain19:C15
+- id: chain19:C17
+  statement: Chain 19 entry 17, derives from C16.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain19:C16
+- id: chain19:C18
+  statement: Chain 19 entry 18, derives from C17.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain19:C17
+- id: chain19:C19
+  statement: Chain 19 entry 19, derives from C18.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain19:C18
+- id: chain19:C20
+  statement: Chain 19 entry 20, derives from C19.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain19:C19
+- id: chain20:C1
+  statement: Chain 20 floor entry 1, corroborated leaf.
+  assertion: claim
+  backing: corroborated
+  signer:
+    kind: agent
+    name: worker
+  check:
+    command: 'true'
+    ran: true
+    at: deadbeef01
+- id: chain20:C2
+  statement: Chain 20 entry 2, derives from C1.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain20:C1
+- id: chain20:C3
+  statement: Chain 20 entry 3, derives from C2.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain20:C2
+- id: chain20:C4
+  statement: Chain 20 entry 4, derives from C3.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain20:C3
+- id: chain20:C5
+  statement: Chain 20 entry 5, derives from C4.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain20:C4
+- id: chain20:C6
+  statement: Chain 20 entry 6, derives from C5.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain20:C5
+- id: chain20:C7
+  statement: Chain 20 entry 7, derives from C6.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain20:C6
+- id: chain20:C8
+  statement: Chain 20 entry 8, derives from C7.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain20:C7
+- id: chain20:C9
+  statement: Chain 20 entry 9, derives from C8.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain20:C8
+- id: chain20:C10
+  statement: Chain 20 entry 10, derives from C9.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain20:C9
+- id: chain20:C11
+  statement: Chain 20 entry 11, derives from C10.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain20:C10
+- id: chain20:C12
+  statement: Chain 20 entry 12, derives from C11.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain20:C11
+- id: chain20:C13
+  statement: Chain 20 entry 13, derives from C12.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain20:C12
+- id: chain20:C14
+  statement: Chain 20 entry 14, derives from C13.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain20:C13
+- id: chain20:C15
+  statement: Chain 20 entry 15, derives from C14.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain20:C14
+- id: chain20:C16
+  statement: Chain 20 entry 16, derives from C15.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain20:C15
+- id: chain20:C17
+  statement: Chain 20 entry 17, derives from C16.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain20:C16
+- id: chain20:C18
+  statement: Chain 20 entry 18, derives from C17.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain20:C17
+- id: chain20:C19
+  statement: Chain 20 entry 19, derives from C18.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain20:C18
+- id: chain20:C20
+  statement: Chain 20 entry 20, derives from C19.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain20:C19
+- id: chain21:C1
+  statement: Chain 21 floor entry 1, corroborated leaf.
+  assertion: claim
+  backing: corroborated
+  signer:
+    kind: agent
+    name: worker
+  check:
+    command: 'true'
+    ran: true
+    at: deadbeef01
+- id: chain21:C2
+  statement: Chain 21 entry 2, derives from C1.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain21:C1
+- id: chain21:C3
+  statement: Chain 21 entry 3, derives from C2.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain21:C2
+- id: chain21:C4
+  statement: Chain 21 entry 4, derives from C3.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain21:C3
+- id: chain21:C5
+  statement: Chain 21 entry 5, derives from C4.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain21:C4
+- id: chain21:C6
+  statement: Chain 21 entry 6, derives from C5.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain21:C5
+- id: chain21:C7
+  statement: Chain 21 entry 7, derives from C6.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain21:C6
+- id: chain21:C8
+  statement: Chain 21 entry 8, derives from C7.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain21:C7
+- id: chain21:C9
+  statement: Chain 21 entry 9, derives from C8.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain21:C8
+- id: chain21:C10
+  statement: Chain 21 entry 10, derives from C9.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain21:C9
+- id: chain21:C11
+  statement: Chain 21 entry 11, derives from C10.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain21:C10
+- id: chain21:C12
+  statement: Chain 21 entry 12, derives from C11.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain21:C11
+- id: chain21:C13
+  statement: Chain 21 entry 13, derives from C12.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain21:C12
+- id: chain21:C14
+  statement: Chain 21 entry 14, derives from C13.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain21:C13
+- id: chain21:C15
+  statement: Chain 21 entry 15, derives from C14.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain21:C14
+- id: chain21:C16
+  statement: Chain 21 entry 16, derives from C15.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain21:C15
+- id: chain21:C17
+  statement: Chain 21 entry 17, derives from C16.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain21:C16
+- id: chain21:C18
+  statement: Chain 21 entry 18, derives from C17.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain21:C17
+- id: chain21:C19
+  statement: Chain 21 entry 19, derives from C18.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain21:C18
+- id: chain21:C20
+  statement: Chain 21 entry 20, derives from C19.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain21:C19
+- id: chain22:C1
+  statement: Chain 22 floor entry 1, corroborated leaf.
+  assertion: claim
+  backing: corroborated
+  signer:
+    kind: agent
+    name: worker
+  check:
+    command: 'true'
+    ran: true
+    at: deadbeef01
+- id: chain22:C2
+  statement: Chain 22 entry 2, derives from C1.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain22:C1
+- id: chain22:C3
+  statement: Chain 22 entry 3, derives from C2.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain22:C2
+- id: chain22:C4
+  statement: Chain 22 entry 4, derives from C3.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain22:C3
+- id: chain22:C5
+  statement: Chain 22 entry 5, derives from C4.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain22:C4
+- id: chain22:C6
+  statement: Chain 22 entry 6, derives from C5.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain22:C5
+- id: chain22:C7
+  statement: Chain 22 entry 7, derives from C6.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain22:C6
+- id: chain22:C8
+  statement: Chain 22 entry 8, derives from C7.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain22:C7
+- id: chain22:C9
+  statement: Chain 22 entry 9, derives from C8.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain22:C8
+- id: chain22:C10
+  statement: Chain 22 entry 10, derives from C9.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain22:C9
+- id: chain22:C11
+  statement: Chain 22 entry 11, derives from C10.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain22:C10
+- id: chain22:C12
+  statement: Chain 22 entry 12, derives from C11.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain22:C11
+- id: chain22:C13
+  statement: Chain 22 entry 13, derives from C12.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain22:C12
+- id: chain22:C14
+  statement: Chain 22 entry 14, derives from C13.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain22:C13
+- id: chain22:C15
+  statement: Chain 22 entry 15, derives from C14.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain22:C14
+- id: chain22:C16
+  statement: Chain 22 entry 16, derives from C15.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain22:C15
+- id: chain22:C17
+  statement: Chain 22 entry 17, derives from C16.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain22:C16
+- id: chain22:C18
+  statement: Chain 22 entry 18, derives from C17.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain22:C17
+- id: chain22:C19
+  statement: Chain 22 entry 19, derives from C18.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain22:C18
+- id: chain22:C20
+  statement: Chain 22 entry 20, derives from C19.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain22:C19
+- id: chain23:C1
+  statement: Chain 23 floor entry 1, corroborated leaf.
+  assertion: claim
+  backing: corroborated
+  signer:
+    kind: agent
+    name: worker
+  check:
+    command: 'true'
+    ran: true
+    at: deadbeef01
+- id: chain23:C2
+  statement: Chain 23 entry 2, derives from C1.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain23:C1
+- id: chain23:C3
+  statement: Chain 23 entry 3, derives from C2.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain23:C2
+- id: chain23:C4
+  statement: Chain 23 entry 4, derives from C3.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain23:C3
+- id: chain23:C5
+  statement: Chain 23 entry 5, derives from C4.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain23:C4
+- id: chain23:C6
+  statement: Chain 23 entry 6, derives from C5.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain23:C5
+- id: chain23:C7
+  statement: Chain 23 entry 7, derives from C6.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain23:C6
+- id: chain23:C8
+  statement: Chain 23 entry 8, derives from C7.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain23:C7
+- id: chain23:C9
+  statement: Chain 23 entry 9, derives from C8.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain23:C8
+- id: chain23:C10
+  statement: Chain 23 entry 10, derives from C9.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain23:C9
+- id: chain23:C11
+  statement: Chain 23 entry 11, derives from C10.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain23:C10
+- id: chain23:C12
+  statement: Chain 23 entry 12, derives from C11.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain23:C11
+- id: chain23:C13
+  statement: Chain 23 entry 13, derives from C12.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain23:C12
+- id: chain23:C14
+  statement: Chain 23 entry 14, derives from C13.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain23:C13
+- id: chain23:C15
+  statement: Chain 23 entry 15, derives from C14.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain23:C14
+- id: chain23:C16
+  statement: Chain 23 entry 16, derives from C15.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain23:C15
+- id: chain23:C17
+  statement: Chain 23 entry 17, derives from C16.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain23:C16
+- id: chain23:C18
+  statement: Chain 23 entry 18, derives from C17.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain23:C17
+- id: chain23:C19
+  statement: Chain 23 entry 19, derives from C18.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain23:C18
+- id: chain23:C20
+  statement: Chain 23 entry 20, derives from C19.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain23:C19
+- id: chain24:C1
+  statement: Chain 24 floor entry 1, corroborated leaf.
+  assertion: claim
+  backing: corroborated
+  signer:
+    kind: agent
+    name: worker
+  check:
+    command: 'true'
+    ran: true
+    at: deadbeef01
+- id: chain24:C2
+  statement: Chain 24 entry 2, derives from C1.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain24:C1
+- id: chain24:C3
+  statement: Chain 24 entry 3, derives from C2.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain24:C2
+- id: chain24:C4
+  statement: Chain 24 entry 4, derives from C3.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain24:C3
+- id: chain24:C5
+  statement: Chain 24 entry 5, derives from C4.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain24:C4
+- id: chain24:C6
+  statement: Chain 24 entry 6, derives from C5.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain24:C5
+- id: chain24:C7
+  statement: Chain 24 entry 7, derives from C6.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain24:C6
+- id: chain24:C8
+  statement: Chain 24 entry 8, derives from C7.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain24:C7
+- id: chain24:C9
+  statement: Chain 24 entry 9, derives from C8.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain24:C8
+- id: chain24:C10
+  statement: Chain 24 entry 10, derives from C9.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain24:C9
+- id: chain24:C11
+  statement: Chain 24 entry 11, derives from C10.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain24:C10
+- id: chain24:C12
+  statement: Chain 24 entry 12, derives from C11.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain24:C11
+- id: chain24:C13
+  statement: Chain 24 entry 13, derives from C12.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain24:C12
+- id: chain24:C14
+  statement: Chain 24 entry 14, derives from C13.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain24:C13
+- id: chain24:C15
+  statement: Chain 24 entry 15, derives from C14.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain24:C14
+- id: chain24:C16
+  statement: Chain 24 entry 16, derives from C15.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain24:C15
+- id: chain24:C17
+  statement: Chain 24 entry 17, derives from C16.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain24:C16
+- id: chain24:C18
+  statement: Chain 24 entry 18, derives from C17.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain24:C17
+- id: chain24:C19
+  statement: Chain 24 entry 19, derives from C18.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain24:C18
+- id: chain24:C20
+  statement: Chain 24 entry 20, derives from C19.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain24:C19
+- id: chain25:C1
+  statement: Chain 25 floor entry 1, corroborated leaf.
+  assertion: claim
+  backing: corroborated
+  signer:
+    kind: agent
+    name: worker
+  check:
+    command: 'true'
+    ran: true
+    at: deadbeef01
+- id: chain25:C2
+  statement: Chain 25 entry 2, derives from C1.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain25:C1
+- id: chain25:C3
+  statement: Chain 25 entry 3, derives from C2.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain25:C2
+- id: chain25:C4
+  statement: Chain 25 entry 4, derives from C3.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain25:C3
+- id: chain25:C5
+  statement: Chain 25 entry 5, derives from C4.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain25:C4
+- id: chain25:C6
+  statement: Chain 25 entry 6, derives from C5.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain25:C5
+- id: chain25:C7
+  statement: Chain 25 entry 7, derives from C6.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain25:C6
+- id: chain25:C8
+  statement: Chain 25 entry 8, derives from C7.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain25:C7
+- id: chain25:C9
+  statement: Chain 25 entry 9, derives from C8.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain25:C8
+- id: chain25:C10
+  statement: Chain 25 entry 10, derives from C9.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain25:C9
+- id: chain25:C11
+  statement: Chain 25 entry 11, derives from C10.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain25:C10
+- id: chain25:C12
+  statement: Chain 25 entry 12, derives from C11.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain25:C11
+- id: chain25:C13
+  statement: Chain 25 entry 13, derives from C12.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain25:C12
+- id: chain25:C14
+  statement: Chain 25 entry 14, derives from C13.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain25:C13
+- id: chain25:C15
+  statement: Chain 25 entry 15, derives from C14.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain25:C14
+- id: chain25:C16
+  statement: Chain 25 entry 16, derives from C15.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain25:C15
+- id: chain25:C17
+  statement: Chain 25 entry 17, derives from C16.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain25:C16
+- id: chain25:C18
+  statement: Chain 25 entry 18, derives from C17.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain25:C17
+- id: chain25:C19
+  statement: Chain 25 entry 19, derives from C18.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain25:C18
+- id: chain25:C20
+  statement: Chain 25 entry 20, derives from C19.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain25:C19
+- id: chain26:C1
+  statement: Chain 26 floor entry 1, corroborated leaf.
+  assertion: claim
+  backing: corroborated
+  signer:
+    kind: agent
+    name: worker
+  check:
+    command: 'true'
+    ran: true
+    at: deadbeef01
+- id: chain26:C2
+  statement: Chain 26 entry 2, derives from C1.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain26:C1
+- id: chain26:C3
+  statement: Chain 26 entry 3, derives from C2.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain26:C2
+- id: chain26:C4
+  statement: Chain 26 entry 4, derives from C3.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain26:C3
+- id: chain26:C5
+  statement: Chain 26 entry 5, derives from C4.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain26:C4
+- id: chain26:C6
+  statement: Chain 26 entry 6, derives from C5.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain26:C5
+- id: chain26:C7
+  statement: Chain 26 entry 7, derives from C6.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain26:C6
+- id: chain26:C8
+  statement: Chain 26 entry 8, derives from C7.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain26:C7
+- id: chain26:C9
+  statement: Chain 26 entry 9, derives from C8.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain26:C8
+- id: chain26:C10
+  statement: Chain 26 entry 10, derives from C9.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain26:C9
+- id: chain26:C11
+  statement: Chain 26 entry 11, derives from C10.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain26:C10
+- id: chain26:C12
+  statement: Chain 26 entry 12, derives from C11.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain26:C11
+- id: chain26:C13
+  statement: Chain 26 entry 13, derives from C12.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain26:C12
+- id: chain26:C14
+  statement: Chain 26 entry 14, derives from C13.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain26:C13
+- id: chain26:C15
+  statement: Chain 26 entry 15, derives from C14.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain26:C14
+- id: chain26:C16
+  statement: Chain 26 entry 16, derives from C15.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain26:C15
+- id: chain26:C17
+  statement: Chain 26 entry 17, derives from C16.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain26:C16
+- id: chain26:C18
+  statement: Chain 26 entry 18, derives from C17.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain26:C17
+- id: chain26:C19
+  statement: Chain 26 entry 19, derives from C18.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain26:C18
+- id: chain26:C20
+  statement: Chain 26 entry 20, derives from C19.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain26:C19
+- id: chain27:C1
+  statement: Chain 27 floor entry 1, corroborated leaf.
+  assertion: claim
+  backing: corroborated
+  signer:
+    kind: agent
+    name: worker
+  check:
+    command: 'true'
+    ran: true
+    at: deadbeef01
+- id: chain27:C2
+  statement: Chain 27 entry 2, derives from C1.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain27:C1
+- id: chain27:C3
+  statement: Chain 27 entry 3, derives from C2.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain27:C2
+- id: chain27:C4
+  statement: Chain 27 entry 4, derives from C3.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain27:C3
+- id: chain27:C5
+  statement: Chain 27 entry 5, derives from C4.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain27:C4
+- id: chain27:C6
+  statement: Chain 27 entry 6, derives from C5.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain27:C5
+- id: chain27:C7
+  statement: Chain 27 entry 7, derives from C6.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain27:C6
+- id: chain27:C8
+  statement: Chain 27 entry 8, derives from C7.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain27:C7
+- id: chain27:C9
+  statement: Chain 27 entry 9, derives from C8.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain27:C8
+- id: chain27:C10
+  statement: Chain 27 entry 10, derives from C9.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain27:C9
+- id: chain27:C11
+  statement: Chain 27 entry 11, derives from C10.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain27:C10
+- id: chain27:C12
+  statement: Chain 27 entry 12, derives from C11.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain27:C11
+- id: chain27:C13
+  statement: Chain 27 entry 13, derives from C12.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain27:C12
+- id: chain27:C14
+  statement: Chain 27 entry 14, derives from C13.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain27:C13
+- id: chain27:C15
+  statement: Chain 27 entry 15, derives from C14.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain27:C14
+- id: chain27:C16
+  statement: Chain 27 entry 16, derives from C15.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain27:C15
+- id: chain27:C17
+  statement: Chain 27 entry 17, derives from C16.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain27:C16
+- id: chain27:C18
+  statement: Chain 27 entry 18, derives from C17.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain27:C17
+- id: chain27:C19
+  statement: Chain 27 entry 19, derives from C18.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain27:C18
+- id: chain27:C20
+  statement: Chain 27 entry 20, derives from C19.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain27:C19
+- id: chain28:C1
+  statement: Chain 28 floor entry 1, corroborated leaf.
+  assertion: claim
+  backing: corroborated
+  signer:
+    kind: agent
+    name: worker
+  check:
+    command: 'true'
+    ran: true
+    at: deadbeef01
+- id: chain28:C2
+  statement: Chain 28 entry 2, derives from C1.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain28:C1
+- id: chain28:C3
+  statement: Chain 28 entry 3, derives from C2.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain28:C2
+- id: chain28:C4
+  statement: Chain 28 entry 4, derives from C3.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain28:C3
+- id: chain28:C5
+  statement: Chain 28 entry 5, derives from C4.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain28:C4
+- id: chain28:C6
+  statement: Chain 28 entry 6, derives from C5.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain28:C5
+- id: chain28:C7
+  statement: Chain 28 entry 7, derives from C6.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain28:C6
+- id: chain28:C8
+  statement: Chain 28 entry 8, derives from C7.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain28:C7
+- id: chain28:C9
+  statement: Chain 28 entry 9, derives from C8.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain28:C8
+- id: chain28:C10
+  statement: Chain 28 entry 10, derives from C9.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain28:C9
+- id: chain28:C11
+  statement: Chain 28 entry 11, derives from C10.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain28:C10
+- id: chain28:C12
+  statement: Chain 28 entry 12, derives from C11.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain28:C11
+- id: chain28:C13
+  statement: Chain 28 entry 13, derives from C12.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain28:C12
+- id: chain28:C14
+  statement: Chain 28 entry 14, derives from C13.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain28:C13
+- id: chain28:C15
+  statement: Chain 28 entry 15, derives from C14.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain28:C14
+- id: chain28:C16
+  statement: Chain 28 entry 16, derives from C15.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain28:C15
+- id: chain28:C17
+  statement: Chain 28 entry 17, derives from C16.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain28:C16
+- id: chain28:C18
+  statement: Chain 28 entry 18, derives from C17.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain28:C17
+- id: chain28:C19
+  statement: Chain 28 entry 19, derives from C18.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain28:C18
+- id: chain28:C20
+  statement: Chain 28 entry 20, derives from C19.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain28:C19
+- id: chain29:C1
+  statement: Chain 29 floor entry 1, corroborated leaf.
+  assertion: claim
+  backing: corroborated
+  signer:
+    kind: agent
+    name: worker
+  check:
+    command: 'true'
+    ran: true
+    at: deadbeef01
+- id: chain29:C2
+  statement: Chain 29 entry 2, derives from C1.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain29:C1
+- id: chain29:C3
+  statement: Chain 29 entry 3, derives from C2.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain29:C2
+- id: chain29:C4
+  statement: Chain 29 entry 4, derives from C3.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain29:C3
+- id: chain29:C5
+  statement: Chain 29 entry 5, derives from C4.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain29:C4
+- id: chain29:C6
+  statement: Chain 29 entry 6, derives from C5.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain29:C5
+- id: chain29:C7
+  statement: Chain 29 entry 7, derives from C6.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain29:C6
+- id: chain29:C8
+  statement: Chain 29 entry 8, derives from C7.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain29:C7
+- id: chain29:C9
+  statement: Chain 29 entry 9, derives from C8.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain29:C8
+- id: chain29:C10
+  statement: Chain 29 entry 10, derives from C9.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain29:C9
+- id: chain29:C11
+  statement: Chain 29 entry 11, derives from C10.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain29:C10
+- id: chain29:C12
+  statement: Chain 29 entry 12, derives from C11.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain29:C11
+- id: chain29:C13
+  statement: Chain 29 entry 13, derives from C12.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain29:C12
+- id: chain29:C14
+  statement: Chain 29 entry 14, derives from C13.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain29:C13
+- id: chain29:C15
+  statement: Chain 29 entry 15, derives from C14.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain29:C14
+- id: chain29:C16
+  statement: Chain 29 entry 16, derives from C15.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain29:C15
+- id: chain29:C17
+  statement: Chain 29 entry 17, derives from C16.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain29:C16
+- id: chain29:C18
+  statement: Chain 29 entry 18, derives from C17.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain29:C17
+- id: chain29:C19
+  statement: Chain 29 entry 19, derives from C18.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain29:C18
+- id: chain29:C20
+  statement: Chain 29 entry 20, derives from C19.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain29:C19
+- id: chain30:C1
+  statement: Chain 30 floor entry 1, corroborated leaf.
+  assertion: claim
+  backing: corroborated
+  signer:
+    kind: agent
+    name: worker
+  check:
+    command: 'true'
+    ran: true
+    at: deadbeef01
+- id: chain30:C2
+  statement: Chain 30 entry 2, derives from C1.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain30:C1
+- id: chain30:C3
+  statement: Chain 30 entry 3, derives from C2.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain30:C2
+- id: chain30:C4
+  statement: Chain 30 entry 4, derives from C3.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain30:C3
+- id: chain30:C5
+  statement: Chain 30 entry 5, derives from C4.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain30:C4
+- id: chain30:C6
+  statement: Chain 30 entry 6, derives from C5.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain30:C5
+- id: chain30:C7
+  statement: Chain 30 entry 7, derives from C6.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain30:C6
+- id: chain30:C8
+  statement: Chain 30 entry 8, derives from C7.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain30:C7
+- id: chain30:C9
+  statement: Chain 30 entry 9, derives from C8.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain30:C8
+- id: chain30:C10
+  statement: Chain 30 entry 10, derives from C9.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain30:C9
+- id: chain30:C11
+  statement: Chain 30 entry 11, derives from C10.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain30:C10
+- id: chain30:C12
+  statement: Chain 30 entry 12, derives from C11.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain30:C11
+- id: chain30:C13
+  statement: Chain 30 entry 13, derives from C12.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain30:C12
+- id: chain30:C14
+  statement: Chain 30 entry 14, derives from C13.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain30:C13
+- id: chain30:C15
+  statement: Chain 30 entry 15, derives from C14.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain30:C14
+- id: chain30:C16
+  statement: Chain 30 entry 16, derives from C15.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain30:C15
+- id: chain30:C17
+  statement: Chain 30 entry 17, derives from C16.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain30:C16
+- id: chain30:C18
+  statement: Chain 30 entry 18, derives from C17.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain30:C17
+- id: chain30:C19
+  statement: Chain 30 entry 19, derives from C18.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain30:C18
+- id: chain30:C20
+  statement: Chain 30 entry 20, derives from C19.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain30:C19
+- id: chain31:C1
+  statement: Chain 31 floor entry 1, corroborated leaf.
+  assertion: claim
+  backing: corroborated
+  signer:
+    kind: agent
+    name: worker
+  check:
+    command: 'true'
+    ran: true
+    at: deadbeef01
+- id: chain31:C2
+  statement: Chain 31 entry 2, derives from C1.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain31:C1
+- id: chain31:C3
+  statement: Chain 31 entry 3, derives from C2.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain31:C2
+- id: chain31:C4
+  statement: Chain 31 entry 4, derives from C3.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain31:C3
+- id: chain31:C5
+  statement: Chain 31 entry 5, derives from C4.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain31:C4
+- id: chain31:C6
+  statement: Chain 31 entry 6, derives from C5.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain31:C5
+- id: chain31:C7
+  statement: Chain 31 entry 7, derives from C6.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain31:C6
+- id: chain31:C8
+  statement: Chain 31 entry 8, derives from C7.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain31:C7
+- id: chain31:C9
+  statement: Chain 31 entry 9, derives from C8.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain31:C8
+- id: chain31:C10
+  statement: Chain 31 entry 10, derives from C9.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain31:C9
+- id: chain31:C11
+  statement: Chain 31 entry 11, derives from C10.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain31:C10
+- id: chain31:C12
+  statement: Chain 31 entry 12, derives from C11.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain31:C11
+- id: chain31:C13
+  statement: Chain 31 entry 13, derives from C12.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain31:C12
+- id: chain31:C14
+  statement: Chain 31 entry 14, derives from C13.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain31:C13
+- id: chain31:C15
+  statement: Chain 31 entry 15, derives from C14.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain31:C14
+- id: chain31:C16
+  statement: Chain 31 entry 16, derives from C15.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain31:C15
+- id: chain31:C17
+  statement: Chain 31 entry 17, derives from C16.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain31:C16
+- id: chain31:C18
+  statement: Chain 31 entry 18, derives from C17.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain31:C17
+- id: chain31:C19
+  statement: Chain 31 entry 19, derives from C18.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain31:C18
+- id: chain31:C20
+  statement: Chain 31 entry 20, derives from C19.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain31:C19
+- id: chain32:C1
+  statement: Chain 32 floor entry 1, corroborated leaf.
+  assertion: claim
+  backing: corroborated
+  signer:
+    kind: agent
+    name: worker
+  check:
+    command: 'true'
+    ran: true
+    at: deadbeef01
+- id: chain32:C2
+  statement: Chain 32 entry 2, derives from C1.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain32:C1
+- id: chain32:C3
+  statement: Chain 32 entry 3, derives from C2.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain32:C2
+- id: chain32:C4
+  statement: Chain 32 entry 4, derives from C3.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain32:C3
+- id: chain32:C5
+  statement: Chain 32 entry 5, derives from C4.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain32:C4
+- id: chain32:C6
+  statement: Chain 32 entry 6, derives from C5.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain32:C5
+- id: chain32:C7
+  statement: Chain 32 entry 7, derives from C6.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain32:C6
+- id: chain32:C8
+  statement: Chain 32 entry 8, derives from C7.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain32:C7
+- id: chain32:C9
+  statement: Chain 32 entry 9, derives from C8.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain32:C8
+- id: chain32:C10
+  statement: Chain 32 entry 10, derives from C9.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain32:C9
+- id: chain32:C11
+  statement: Chain 32 entry 11, derives from C10.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain32:C10
+- id: chain32:C12
+  statement: Chain 32 entry 12, derives from C11.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain32:C11
+- id: chain32:C13
+  statement: Chain 32 entry 13, derives from C12.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain32:C12
+- id: chain32:C14
+  statement: Chain 32 entry 14, derives from C13.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain32:C13
+- id: chain32:C15
+  statement: Chain 32 entry 15, derives from C14.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain32:C14
+- id: chain32:C16
+  statement: Chain 32 entry 16, derives from C15.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain32:C15
+- id: chain32:C17
+  statement: Chain 32 entry 17, derives from C16.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain32:C16
+- id: chain32:C18
+  statement: Chain 32 entry 18, derives from C17.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain32:C17
+- id: chain32:C19
+  statement: Chain 32 entry 19, derives from C18.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain32:C18
+- id: chain32:C20
+  statement: Chain 32 entry 20, derives from C19.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain32:C19
+- id: chain33:C1
+  statement: Chain 33 floor entry 1, corroborated leaf.
+  assertion: claim
+  backing: corroborated
+  signer:
+    kind: agent
+    name: worker
+  check:
+    command: 'true'
+    ran: true
+    at: deadbeef01
+- id: chain33:C2
+  statement: Chain 33 entry 2, derives from C1.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain33:C1
+- id: chain33:C3
+  statement: Chain 33 entry 3, derives from C2.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain33:C2
+- id: chain33:C4
+  statement: Chain 33 entry 4, derives from C3.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain33:C3
+- id: chain33:C5
+  statement: Chain 33 entry 5, derives from C4.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain33:C4
+- id: chain33:C6
+  statement: Chain 33 entry 6, derives from C5.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain33:C5
+- id: chain33:C7
+  statement: Chain 33 entry 7, derives from C6.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain33:C6
+- id: chain33:C8
+  statement: Chain 33 entry 8, derives from C7.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain33:C7
+- id: chain33:C9
+  statement: Chain 33 entry 9, derives from C8.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain33:C8
+- id: chain33:C10
+  statement: Chain 33 entry 10, derives from C9.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain33:C9
+- id: chain33:C11
+  statement: Chain 33 entry 11, derives from C10.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain33:C10
+- id: chain33:C12
+  statement: Chain 33 entry 12, derives from C11.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain33:C11
+- id: chain33:C13
+  statement: Chain 33 entry 13, derives from C12.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain33:C12
+- id: chain33:C14
+  statement: Chain 33 entry 14, derives from C13.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain33:C13
+- id: chain33:C15
+  statement: Chain 33 entry 15, derives from C14.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain33:C14
+- id: chain33:C16
+  statement: Chain 33 entry 16, derives from C15.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain33:C15
+- id: chain33:C17
+  statement: Chain 33 entry 17, derives from C16.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain33:C16
+- id: chain33:C18
+  statement: Chain 33 entry 18, derives from C17.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain33:C17
+- id: chain33:C19
+  statement: Chain 33 entry 19, derives from C18.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain33:C18
+- id: chain33:C20
+  statement: Chain 33 entry 20, derives from C19.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain33:C19
+- id: chain34:C1
+  statement: Chain 34 floor entry 1, corroborated leaf.
+  assertion: claim
+  backing: corroborated
+  signer:
+    kind: agent
+    name: worker
+  check:
+    command: 'true'
+    ran: true
+    at: deadbeef01
+- id: chain34:C2
+  statement: Chain 34 entry 2, derives from C1.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain34:C1
+- id: chain34:C3
+  statement: Chain 34 entry 3, derives from C2.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain34:C2
+- id: chain34:C4
+  statement: Chain 34 entry 4, derives from C3.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain34:C3
+- id: chain34:C5
+  statement: Chain 34 entry 5, derives from C4.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain34:C4
+- id: chain34:C6
+  statement: Chain 34 entry 6, derives from C5.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain34:C5
+- id: chain34:C7
+  statement: Chain 34 entry 7, derives from C6.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain34:C6
+- id: chain34:C8
+  statement: Chain 34 entry 8, derives from C7.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain34:C7
+- id: chain34:C9
+  statement: Chain 34 entry 9, derives from C8.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain34:C8
+- id: chain34:C10
+  statement: Chain 34 entry 10, derives from C9.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain34:C9
+- id: chain34:C11
+  statement: Chain 34 entry 11, derives from C10.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain34:C10
+- id: chain34:C12
+  statement: Chain 34 entry 12, derives from C11.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain34:C11
+- id: chain34:C13
+  statement: Chain 34 entry 13, derives from C12.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain34:C12
+- id: chain34:C14
+  statement: Chain 34 entry 14, derives from C13.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain34:C13
+- id: chain34:C15
+  statement: Chain 34 entry 15, derives from C14.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain34:C14
+- id: chain34:C16
+  statement: Chain 34 entry 16, derives from C15.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain34:C15
+- id: chain34:C17
+  statement: Chain 34 entry 17, derives from C16.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain34:C16
+- id: chain34:C18
+  statement: Chain 34 entry 18, derives from C17.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain34:C17
+- id: chain34:C19
+  statement: Chain 34 entry 19, derives from C18.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain34:C18
+- id: chain34:C20
+  statement: Chain 34 entry 20, derives from C19.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain34:C19
+- id: chain35:C1
+  statement: Chain 35 floor entry 1, corroborated leaf.
+  assertion: claim
+  backing: corroborated
+  signer:
+    kind: agent
+    name: worker
+  check:
+    command: 'true'
+    ran: true
+    at: deadbeef01
+- id: chain35:C2
+  statement: Chain 35 entry 2, derives from C1.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain35:C1
+- id: chain35:C3
+  statement: Chain 35 entry 3, derives from C2.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain35:C2
+- id: chain35:C4
+  statement: Chain 35 entry 4, derives from C3.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain35:C3
+- id: chain35:C5
+  statement: Chain 35 entry 5, derives from C4.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain35:C4
+- id: chain35:C6
+  statement: Chain 35 entry 6, derives from C5.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain35:C5
+- id: chain35:C7
+  statement: Chain 35 entry 7, derives from C6.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain35:C6
+- id: chain35:C8
+  statement: Chain 35 entry 8, derives from C7.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain35:C7
+- id: chain35:C9
+  statement: Chain 35 entry 9, derives from C8.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain35:C8
+- id: chain35:C10
+  statement: Chain 35 entry 10, derives from C9.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain35:C9
+- id: chain35:C11
+  statement: Chain 35 entry 11, derives from C10.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain35:C10
+- id: chain35:C12
+  statement: Chain 35 entry 12, derives from C11.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain35:C11
+- id: chain35:C13
+  statement: Chain 35 entry 13, derives from C12.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain35:C12
+- id: chain35:C14
+  statement: Chain 35 entry 14, derives from C13.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain35:C13
+- id: chain35:C15
+  statement: Chain 35 entry 15, derives from C14.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain35:C14
+- id: chain35:C16
+  statement: Chain 35 entry 16, derives from C15.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain35:C15
+- id: chain35:C17
+  statement: Chain 35 entry 17, derives from C16.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain35:C16
+- id: chain35:C18
+  statement: Chain 35 entry 18, derives from C17.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain35:C17
+- id: chain35:C19
+  statement: Chain 35 entry 19, derives from C18.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain35:C18
+- id: chain35:C20
+  statement: Chain 35 entry 20, derives from C19.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain35:C19
+- id: chain36:C1
+  statement: Chain 36 floor entry 1, corroborated leaf.
+  assertion: claim
+  backing: corroborated
+  signer:
+    kind: agent
+    name: worker
+  check:
+    command: 'true'
+    ran: true
+    at: deadbeef01
+- id: chain36:C2
+  statement: Chain 36 entry 2, derives from C1.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain36:C1
+- id: chain36:C3
+  statement: Chain 36 entry 3, derives from C2.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain36:C2
+- id: chain36:C4
+  statement: Chain 36 entry 4, derives from C3.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain36:C3
+- id: chain36:C5
+  statement: Chain 36 entry 5, derives from C4.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain36:C4
+- id: chain36:C6
+  statement: Chain 36 entry 6, derives from C5.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain36:C5
+- id: chain36:C7
+  statement: Chain 36 entry 7, derives from C6.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain36:C6
+- id: chain36:C8
+  statement: Chain 36 entry 8, derives from C7.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain36:C7
+- id: chain36:C9
+  statement: Chain 36 entry 9, derives from C8.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain36:C8
+- id: chain36:C10
+  statement: Chain 36 entry 10, derives from C9.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain36:C9
+- id: chain36:C11
+  statement: Chain 36 entry 11, derives from C10.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain36:C10
+- id: chain36:C12
+  statement: Chain 36 entry 12, derives from C11.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain36:C11
+- id: chain36:C13
+  statement: Chain 36 entry 13, derives from C12.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain36:C12
+- id: chain36:C14
+  statement: Chain 36 entry 14, derives from C13.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain36:C13
+- id: chain36:C15
+  statement: Chain 36 entry 15, derives from C14.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain36:C14
+- id: chain36:C16
+  statement: Chain 36 entry 16, derives from C15.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain36:C15
+- id: chain36:C17
+  statement: Chain 36 entry 17, derives from C16.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain36:C16
+- id: chain36:C18
+  statement: Chain 36 entry 18, derives from C17.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain36:C17
+- id: chain36:C19
+  statement: Chain 36 entry 19, derives from C18.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain36:C18
+- id: chain36:C20
+  statement: Chain 36 entry 20, derives from C19.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain36:C19
+- id: chain37:C1
+  statement: Chain 37 floor entry 1, corroborated leaf.
+  assertion: claim
+  backing: corroborated
+  signer:
+    kind: agent
+    name: worker
+  check:
+    command: 'true'
+    ran: true
+    at: deadbeef01
+- id: chain37:C2
+  statement: Chain 37 entry 2, derives from C1.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain37:C1
+- id: chain37:C3
+  statement: Chain 37 entry 3, derives from C2.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain37:C2
+- id: chain37:C4
+  statement: Chain 37 entry 4, derives from C3.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain37:C3
+- id: chain37:C5
+  statement: Chain 37 entry 5, derives from C4.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain37:C4
+- id: chain37:C6
+  statement: Chain 37 entry 6, derives from C5.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain37:C5
+- id: chain37:C7
+  statement: Chain 37 entry 7, derives from C6.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain37:C6
+- id: chain37:C8
+  statement: Chain 37 entry 8, derives from C7.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain37:C7
+- id: chain37:C9
+  statement: Chain 37 entry 9, derives from C8.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain37:C8
+- id: chain37:C10
+  statement: Chain 37 entry 10, derives from C9.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain37:C9
+- id: chain37:C11
+  statement: Chain 37 entry 11, derives from C10.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain37:C10
+- id: chain37:C12
+  statement: Chain 37 entry 12, derives from C11.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain37:C11
+- id: chain37:C13
+  statement: Chain 37 entry 13, derives from C12.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain37:C12
+- id: chain37:C14
+  statement: Chain 37 entry 14, derives from C13.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain37:C13
+- id: chain37:C15
+  statement: Chain 37 entry 15, derives from C14.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain37:C14
+- id: chain37:C16
+  statement: Chain 37 entry 16, derives from C15.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain37:C15
+- id: chain37:C17
+  statement: Chain 37 entry 17, derives from C16.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain37:C16
+- id: chain37:C18
+  statement: Chain 37 entry 18, derives from C17.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain37:C17
+- id: chain37:C19
+  statement: Chain 37 entry 19, derives from C18.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain37:C18
+- id: chain37:C20
+  statement: Chain 37 entry 20, derives from C19.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain37:C19
+- id: chain38:C1
+  statement: Chain 38 floor entry 1, corroborated leaf.
+  assertion: claim
+  backing: corroborated
+  signer:
+    kind: agent
+    name: worker
+  check:
+    command: 'true'
+    ran: true
+    at: deadbeef01
+- id: chain38:C2
+  statement: Chain 38 entry 2, derives from C1.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain38:C1
+- id: chain38:C3
+  statement: Chain 38 entry 3, derives from C2.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain38:C2
+- id: chain38:C4
+  statement: Chain 38 entry 4, derives from C3.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain38:C3
+- id: chain38:C5
+  statement: Chain 38 entry 5, derives from C4.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain38:C4
+- id: chain38:C6
+  statement: Chain 38 entry 6, derives from C5.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain38:C5
+- id: chain38:C7
+  statement: Chain 38 entry 7, derives from C6.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain38:C6
+- id: chain38:C8
+  statement: Chain 38 entry 8, derives from C7.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain38:C7
+- id: chain38:C9
+  statement: Chain 38 entry 9, derives from C8.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain38:C8
+- id: chain38:C10
+  statement: Chain 38 entry 10, derives from C9.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain38:C9
+- id: chain38:C11
+  statement: Chain 38 entry 11, derives from C10.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain38:C10
+- id: chain38:C12
+  statement: Chain 38 entry 12, derives from C11.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain38:C11
+- id: chain38:C13
+  statement: Chain 38 entry 13, derives from C12.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain38:C12
+- id: chain38:C14
+  statement: Chain 38 entry 14, derives from C13.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain38:C13
+- id: chain38:C15
+  statement: Chain 38 entry 15, derives from C14.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain38:C14
+- id: chain38:C16
+  statement: Chain 38 entry 16, derives from C15.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain38:C15
+- id: chain38:C17
+  statement: Chain 38 entry 17, derives from C16.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain38:C16
+- id: chain38:C18
+  statement: Chain 38 entry 18, derives from C17.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain38:C17
+- id: chain38:C19
+  statement: Chain 38 entry 19, derives from C18.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain38:C18
+- id: chain38:C20
+  statement: Chain 38 entry 20, derives from C19.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain38:C19
+- id: chain39:C1
+  statement: Chain 39 floor entry 1, corroborated leaf.
+  assertion: claim
+  backing: corroborated
+  signer:
+    kind: agent
+    name: worker
+  check:
+    command: 'true'
+    ran: true
+    at: deadbeef01
+- id: chain39:C2
+  statement: Chain 39 entry 2, derives from C1.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain39:C1
+- id: chain39:C3
+  statement: Chain 39 entry 3, derives from C2.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain39:C2
+- id: chain39:C4
+  statement: Chain 39 entry 4, derives from C3.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain39:C3
+- id: chain39:C5
+  statement: Chain 39 entry 5, derives from C4.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain39:C4
+- id: chain39:C6
+  statement: Chain 39 entry 6, derives from C5.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain39:C5
+- id: chain39:C7
+  statement: Chain 39 entry 7, derives from C6.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain39:C6
+- id: chain39:C8
+  statement: Chain 39 entry 8, derives from C7.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain39:C7
+- id: chain39:C9
+  statement: Chain 39 entry 9, derives from C8.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain39:C8
+- id: chain39:C10
+  statement: Chain 39 entry 10, derives from C9.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain39:C9
+- id: chain39:C11
+  statement: Chain 39 entry 11, derives from C10.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain39:C10
+- id: chain39:C12
+  statement: Chain 39 entry 12, derives from C11.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain39:C11
+- id: chain39:C13
+  statement: Chain 39 entry 13, derives from C12.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain39:C12
+- id: chain39:C14
+  statement: Chain 39 entry 14, derives from C13.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain39:C13
+- id: chain39:C15
+  statement: Chain 39 entry 15, derives from C14.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain39:C14
+- id: chain39:C16
+  statement: Chain 39 entry 16, derives from C15.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain39:C15
+- id: chain39:C17
+  statement: Chain 39 entry 17, derives from C16.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain39:C16
+- id: chain39:C18
+  statement: Chain 39 entry 18, derives from C17.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain39:C17
+- id: chain39:C19
+  statement: Chain 39 entry 19, derives from C18.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain39:C18
+- id: chain39:C20
+  statement: Chain 39 entry 20, derives from C19.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain39:C19
+- id: chain40:C1
+  statement: Chain 40 floor entry 1, corroborated leaf.
+  assertion: claim
+  backing: corroborated
+  signer:
+    kind: agent
+    name: worker
+  check:
+    command: 'true'
+    ran: true
+    at: deadbeef01
+- id: chain40:C2
+  statement: Chain 40 entry 2, derives from C1.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain40:C1
+- id: chain40:C3
+  statement: Chain 40 entry 3, derives from C2.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain40:C2
+- id: chain40:C4
+  statement: Chain 40 entry 4, derives from C3.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain40:C3
+- id: chain40:C5
+  statement: Chain 40 entry 5, derives from C4.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain40:C4
+- id: chain40:C6
+  statement: Chain 40 entry 6, derives from C5.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain40:C5
+- id: chain40:C7
+  statement: Chain 40 entry 7, derives from C6.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain40:C6
+- id: chain40:C8
+  statement: Chain 40 entry 8, derives from C7.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain40:C7
+- id: chain40:C9
+  statement: Chain 40 entry 9, derives from C8.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain40:C8
+- id: chain40:C10
+  statement: Chain 40 entry 10, derives from C9.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain40:C9
+- id: chain40:C11
+  statement: Chain 40 entry 11, derives from C10.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain40:C10
+- id: chain40:C12
+  statement: Chain 40 entry 12, derives from C11.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain40:C11
+- id: chain40:C13
+  statement: Chain 40 entry 13, derives from C12.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain40:C12
+- id: chain40:C14
+  statement: Chain 40 entry 14, derives from C13.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain40:C13
+- id: chain40:C15
+  statement: Chain 40 entry 15, derives from C14.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain40:C14
+- id: chain40:C16
+  statement: Chain 40 entry 16, derives from C15.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain40:C15
+- id: chain40:C17
+  statement: Chain 40 entry 17, derives from C16.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain40:C16
+- id: chain40:C18
+  statement: Chain 40 entry 18, derives from C17.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain40:C17
+- id: chain40:C19
+  statement: Chain 40 entry 19, derives from C18.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain40:C18
+- id: chain40:C20
+  statement: Chain 40 entry 20, derives from C19.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain40:C19
+- id: chain41:C1
+  statement: Chain 41 floor entry 1, corroborated leaf.
+  assertion: claim
+  backing: corroborated
+  signer:
+    kind: agent
+    name: worker
+  check:
+    command: 'true'
+    ran: true
+    at: deadbeef01
+- id: chain41:C2
+  statement: Chain 41 entry 2, derives from C1.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain41:C1
+- id: chain41:C3
+  statement: Chain 41 entry 3, derives from C2.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain41:C2
+- id: chain41:C4
+  statement: Chain 41 entry 4, derives from C3.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain41:C3
+- id: chain41:C5
+  statement: Chain 41 entry 5, derives from C4.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain41:C4
+- id: chain41:C6
+  statement: Chain 41 entry 6, derives from C5.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain41:C5
+- id: chain41:C7
+  statement: Chain 41 entry 7, derives from C6.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain41:C6
+- id: chain41:C8
+  statement: Chain 41 entry 8, derives from C7.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain41:C7
+- id: chain41:C9
+  statement: Chain 41 entry 9, derives from C8.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain41:C8
+- id: chain41:C10
+  statement: Chain 41 entry 10, derives from C9.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain41:C9
+- id: chain41:C11
+  statement: Chain 41 entry 11, derives from C10.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain41:C10
+- id: chain41:C12
+  statement: Chain 41 entry 12, derives from C11.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain41:C11
+- id: chain41:C13
+  statement: Chain 41 entry 13, derives from C12.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain41:C12
+- id: chain41:C14
+  statement: Chain 41 entry 14, derives from C13.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain41:C13
+- id: chain41:C15
+  statement: Chain 41 entry 15, derives from C14.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain41:C14
+- id: chain41:C16
+  statement: Chain 41 entry 16, derives from C15.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain41:C15
+- id: chain41:C17
+  statement: Chain 41 entry 17, derives from C16.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain41:C16
+- id: chain41:C18
+  statement: Chain 41 entry 18, derives from C17.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain41:C17
+- id: chain41:C19
+  statement: Chain 41 entry 19, derives from C18.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain41:C18
+- id: chain41:C20
+  statement: Chain 41 entry 20, derives from C19.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain41:C19
+- id: chain42:C1
+  statement: Chain 42 floor entry 1, corroborated leaf.
+  assertion: claim
+  backing: corroborated
+  signer:
+    kind: agent
+    name: worker
+  check:
+    command: 'true'
+    ran: true
+    at: deadbeef01
+- id: chain42:C2
+  statement: Chain 42 entry 2, derives from C1.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain42:C1
+- id: chain42:C3
+  statement: Chain 42 entry 3, derives from C2.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain42:C2
+- id: chain42:C4
+  statement: Chain 42 entry 4, derives from C3.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain42:C3
+- id: chain42:C5
+  statement: Chain 42 entry 5, derives from C4.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain42:C4
+- id: chain42:C6
+  statement: Chain 42 entry 6, derives from C5.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain42:C5
+- id: chain42:C7
+  statement: Chain 42 entry 7, derives from C6.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain42:C6
+- id: chain42:C8
+  statement: Chain 42 entry 8, derives from C7.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain42:C7
+- id: chain42:C9
+  statement: Chain 42 entry 9, derives from C8.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain42:C8
+- id: chain42:C10
+  statement: Chain 42 entry 10, derives from C9.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain42:C9
+- id: chain42:C11
+  statement: Chain 42 entry 11, derives from C10.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain42:C10
+- id: chain42:C12
+  statement: Chain 42 entry 12, derives from C11.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain42:C11
+- id: chain42:C13
+  statement: Chain 42 entry 13, derives from C12.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain42:C12
+- id: chain42:C14
+  statement: Chain 42 entry 14, derives from C13.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain42:C13
+- id: chain42:C15
+  statement: Chain 42 entry 15, derives from C14.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain42:C14
+- id: chain42:C16
+  statement: Chain 42 entry 16, derives from C15.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain42:C15
+- id: chain42:C17
+  statement: Chain 42 entry 17, derives from C16.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain42:C16
+- id: chain42:C18
+  statement: Chain 42 entry 18, derives from C17.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain42:C17
+- id: chain42:C19
+  statement: Chain 42 entry 19, derives from C18.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain42:C18
+- id: chain42:C20
+  statement: Chain 42 entry 20, derives from C19.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain42:C19
+- id: chain43:C1
+  statement: Chain 43 floor entry 1, corroborated leaf.
+  assertion: claim
+  backing: corroborated
+  signer:
+    kind: agent
+    name: worker
+  check:
+    command: 'true'
+    ran: true
+    at: deadbeef01
+- id: chain43:C2
+  statement: Chain 43 entry 2, derives from C1.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain43:C1
+- id: chain43:C3
+  statement: Chain 43 entry 3, derives from C2.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain43:C2
+- id: chain43:C4
+  statement: Chain 43 entry 4, derives from C3.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain43:C3
+- id: chain43:C5
+  statement: Chain 43 entry 5, derives from C4.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain43:C4
+- id: chain43:C6
+  statement: Chain 43 entry 6, derives from C5.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain43:C5
+- id: chain43:C7
+  statement: Chain 43 entry 7, derives from C6.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain43:C6
+- id: chain43:C8
+  statement: Chain 43 entry 8, derives from C7.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain43:C7
+- id: chain43:C9
+  statement: Chain 43 entry 9, derives from C8.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain43:C8
+- id: chain43:C10
+  statement: Chain 43 entry 10, derives from C9.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain43:C9
+- id: chain43:C11
+  statement: Chain 43 entry 11, derives from C10.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain43:C10
+- id: chain43:C12
+  statement: Chain 43 entry 12, derives from C11.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain43:C11
+- id: chain43:C13
+  statement: Chain 43 entry 13, derives from C12.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain43:C12
+- id: chain43:C14
+  statement: Chain 43 entry 14, derives from C13.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain43:C13
+- id: chain43:C15
+  statement: Chain 43 entry 15, derives from C14.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain43:C14
+- id: chain43:C16
+  statement: Chain 43 entry 16, derives from C15.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain43:C15
+- id: chain43:C17
+  statement: Chain 43 entry 17, derives from C16.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain43:C16
+- id: chain43:C18
+  statement: Chain 43 entry 18, derives from C17.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain43:C17
+- id: chain43:C19
+  statement: Chain 43 entry 19, derives from C18.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain43:C18
+- id: chain43:C20
+  statement: Chain 43 entry 20, derives from C19.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain43:C19
+- id: chain44:C1
+  statement: Chain 44 floor entry 1, corroborated leaf.
+  assertion: claim
+  backing: corroborated
+  signer:
+    kind: agent
+    name: worker
+  check:
+    command: 'true'
+    ran: true
+    at: deadbeef01
+- id: chain44:C2
+  statement: Chain 44 entry 2, derives from C1.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain44:C1
+- id: chain44:C3
+  statement: Chain 44 entry 3, derives from C2.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain44:C2
+- id: chain44:C4
+  statement: Chain 44 entry 4, derives from C3.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain44:C3
+- id: chain44:C5
+  statement: Chain 44 entry 5, derives from C4.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain44:C4
+- id: chain44:C6
+  statement: Chain 44 entry 6, derives from C5.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain44:C5
+- id: chain44:C7
+  statement: Chain 44 entry 7, derives from C6.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain44:C6
+- id: chain44:C8
+  statement: Chain 44 entry 8, derives from C7.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain44:C7
+- id: chain44:C9
+  statement: Chain 44 entry 9, derives from C8.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain44:C8
+- id: chain44:C10
+  statement: Chain 44 entry 10, derives from C9.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain44:C9
+- id: chain44:C11
+  statement: Chain 44 entry 11, derives from C10.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain44:C10
+- id: chain44:C12
+  statement: Chain 44 entry 12, derives from C11.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain44:C11
+- id: chain44:C13
+  statement: Chain 44 entry 13, derives from C12.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain44:C12
+- id: chain44:C14
+  statement: Chain 44 entry 14, derives from C13.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain44:C13
+- id: chain44:C15
+  statement: Chain 44 entry 15, derives from C14.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain44:C14
+- id: chain44:C16
+  statement: Chain 44 entry 16, derives from C15.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain44:C15
+- id: chain44:C17
+  statement: Chain 44 entry 17, derives from C16.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain44:C16
+- id: chain44:C18
+  statement: Chain 44 entry 18, derives from C17.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain44:C17
+- id: chain44:C19
+  statement: Chain 44 entry 19, derives from C18.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain44:C18
+- id: chain44:C20
+  statement: Chain 44 entry 20, derives from C19.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain44:C19
+- id: chain45:C1
+  statement: Chain 45 floor entry 1, corroborated leaf.
+  assertion: claim
+  backing: corroborated
+  signer:
+    kind: agent
+    name: worker
+  check:
+    command: 'true'
+    ran: true
+    at: deadbeef01
+- id: chain45:C2
+  statement: Chain 45 entry 2, derives from C1.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain45:C1
+- id: chain45:C3
+  statement: Chain 45 entry 3, derives from C2.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain45:C2
+- id: chain45:C4
+  statement: Chain 45 entry 4, derives from C3.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain45:C3
+- id: chain45:C5
+  statement: Chain 45 entry 5, derives from C4.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain45:C4
+- id: chain45:C6
+  statement: Chain 45 entry 6, derives from C5.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain45:C5
+- id: chain45:C7
+  statement: Chain 45 entry 7, derives from C6.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain45:C6
+- id: chain45:C8
+  statement: Chain 45 entry 8, derives from C7.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain45:C7
+- id: chain45:C9
+  statement: Chain 45 entry 9, derives from C8.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain45:C8
+- id: chain45:C10
+  statement: Chain 45 entry 10, derives from C9.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain45:C9
+- id: chain45:C11
+  statement: Chain 45 entry 11, derives from C10.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain45:C10
+- id: chain45:C12
+  statement: Chain 45 entry 12, derives from C11.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain45:C11
+- id: chain45:C13
+  statement: Chain 45 entry 13, derives from C12.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain45:C12
+- id: chain45:C14
+  statement: Chain 45 entry 14, derives from C13.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain45:C13
+- id: chain45:C15
+  statement: Chain 45 entry 15, derives from C14.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain45:C14
+- id: chain45:C16
+  statement: Chain 45 entry 16, derives from C15.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain45:C15
+- id: chain45:C17
+  statement: Chain 45 entry 17, derives from C16.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain45:C16
+- id: chain45:C18
+  statement: Chain 45 entry 18, derives from C17.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain45:C17
+- id: chain45:C19
+  statement: Chain 45 entry 19, derives from C18.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain45:C18
+- id: chain45:C20
+  statement: Chain 45 entry 20, derives from C19.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: chain45:C19
