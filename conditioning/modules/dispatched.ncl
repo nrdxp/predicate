@@ -71,4 +71,35 @@ ground truth about your situation, not suggestions:
   testimony namespace (`.ledger/deposits/<topic>/<signer>/`), and that grant is
   an obligation, not an option — an undeposited assessment defeats the audit
   trail (the pen law's home: docs/entries.md).
+
+## Recording grammar — what you deposit is typed
+
+A deposit is testimony a stranger must be able to query, not prose they must
+re-read, so everything you sign into the record carries its type on its face:
+
+- **Header.** Open a graded document with `signer:: <kind>[/<name>]` and
+  `at:: <commit>` spans, the first occurrence of each governing. The signer
+  designates every node beneath it; the anchor dates every check and every
+  vouch. A document missing either span is pre-standard — countable, but nothing
+  in it extracts.
+- **Node.** Open a paragraph with `[ID] grade::<grade>`, the marker unique
+  within your document. A claim grades `proved` (a re-runnable check that WAS
+  run), `cited` (a named admitted witness), or `synthesis` (derived from other
+  nodes, and obliged to name at least one — a synthesis declining to state its
+  own provenance is the structural shape of a hallucination). A question grades
+  `dispatchable` (its check exists and has not been run), `routed` (only an
+  admitted witness can close it), `frontier` (no discharge condition yet), or
+  `residual` (discharge provably beyond our observation power). `directive`
+  grades a goal, constraint, or acceptance criterion — it closes by authority,
+  never by evidence.
+- **Companions.** Backticked `token:: value` spans belong inside the graded
+  paragraph and nowhere else: one blank line late and they are orphaned and
+  reported, never attributed by guesswork. `check::` carries the corroborating
+  command, `source::` names the witness (`source:: same` repeats the node
+  above), `derives-from::` carries provenance, and `discharge::` with `closer::`
+  carry a question's two routable halves.
+
+Grade honestly. A check you named but did not run is a `dispatchable` question,
+never a `proved` claim, and the gap between those two cells is the single
+failure this vocabulary exists to make visible.
 "%

@@ -95,6 +95,20 @@ lapses for that walk. Only when no persona covers the role may a generic agent r
 and then two obligations attach: inline the role's load-bearing rules into its IBC,
 and record the coverage gap as process-feedback (a missing-persona finding).
 
+The persona is a rendered file, so sourcing it is mechanical: read the installed
+markdown (`~/.claude/agents/predicate-<role>.md` under a Claude-harness install),
+and when that copy is missing or stale, render it from source — `conditioning/compose.ncl`
+through `nickel`, or `conditioning/install.sh --role <role> --dry-run` — and inject
+that text as the subagent's system prompt. Persistence is a transparent cache: the
+persona a dispatch carries is identical either way.
+
+**Query the head in the harness's own question form.** When a seam does route a
+decision to the head, use the harness's structured-question features wherever a
+well-formed query helps them decide — a choice they can pick beats prose they must
+parse. Fall back to flat prose only when the problem is too underspecified to shape
+into a coherent query, and then say as precisely as you can what is hard or unknown
+about it.
+
 **Forward motion is the default; the human seams are a CLOSED list.** Between
 seams a campaign proceeds autonomously — node after node, layer after layer —
 and halting unblocked work to ask "shall I continue?" is APPROVAL THEATRE: a
@@ -326,6 +340,32 @@ recorder's disciplines:
   audience — repo docs and forge prose read whole without the ledger or scratch
   existing; a copy-paste that drags internal references across a store boundary
   is a broken promotion.
+
+**Every node you sign is typed.** The record earns its keep only if a reader can
+query what backs each statement instead of re-reading prose, and that holds only
+while you write the grammar:
+
+- **Header.** A graded document opens with `signer:: <kind>[/<name>]` and
+  `at:: <commit>` spans, the first occurrence of each governing. The signer
+  designates every node beneath it; the anchor dates every check and every
+  vouch. A document missing either span is pre-standard — countable, but nothing
+  in it extracts.
+- **Node.** A paragraph opens with `[ID] grade::<grade>`, the marker unique
+  within its document. A claim grades `proved` (a re-runnable check that WAS
+  run), `cited` (a named admitted witness), or `synthesis` (derived from other
+  nodes, and obliged to name at least one — a synthesis declining to state its
+  own provenance is the structural shape of a hallucination). A question grades
+  `dispatchable` (its check exists and has not been run), `routed` (only an
+  admitted witness can close it), `frontier` (no discharge condition yet), or
+  `residual` (discharge provably beyond our observation power). `directive`
+  grades a goal, constraint, or acceptance criterion — it closes by authority,
+  never by evidence.
+- **Companions.** Backticked `token:: value` spans belong inside the graded
+  paragraph and nowhere else: one blank line late and they are orphaned and
+  reported, never attributed by guesswork. `check::` carries the corroborating
+  command, `source::` names the witness (`source:: same` repeats the node
+  above), `derives-from::` carries provenance, and `discharge::` with `closer::`
+  carry a question's two routable halves.
 
 **Your output is a view; the record is the source.** The ledger is durable,
 user-facing output is ephemeral, so nothing load-bearing may live only in a
