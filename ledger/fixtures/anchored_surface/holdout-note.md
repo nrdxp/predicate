@@ -23,9 +23,16 @@ order (deriving entry -> what it derives from):
    be able to name rather than paper over.
 4. `SEED1 -> Q1` — HIT. `Q1` is an open, unclosed question: a member.
 
-Golden rate: 3 hits / 4 total = 0.75. Independently re-derived by a throwaway
-reference script over the extractor's own export before this number was
-pinned into the suite — see the node's report for that verification.
+A single combined rate would charge the ranker for pair 3's exclusion, which
+is a property of the corpus (D2 is backed) rather than of the ranker's
+behaviour, so the golden is two numbers, not one:
+
+- Ranker recall over eligible targets (pairs 1, 2, 4 — all HIT): 3/3 = 1.0.
+- Structural ineligibility (pair 3, out of all 4 pairs): 1/4 = 0.25.
+
+Both independently re-derived by a throwaway reference script over the
+extractor's own export before being pinned into the suite — see the node's
+report for that verification.
 
 ## Claims
 

@@ -37,7 +37,16 @@
 #     /^---.*[0-9]+.*dropped.*---$/ naming the dropped count and a
 #     reproduction command (C5, C10).
 #
-#   --self-evaluate stdout: a line matching /HOLDOUT:\s*([0-9]+)\/([0-9]+)/.
+#   --self-evaluate stdout: two lines, both reported and neither gating the
+#     surface itself — a backed target fails open-surface membership on its
+#     own, not by distance, so charging the ranker for it would score a
+#     restriction the boundary imposes rather than the ranker's behaviour:
+#       a line matching /HOLDOUT-RECALL:\s*([0-9]+)\/([0-9]+)/ — the ranker's
+#         own score, hits over targets that CAN appear in the output (open,
+#         unclosed entries);
+#       a line matching /HOLDOUT-INELIGIBLE:\s*([0-9]+)\/([0-9]+)/ — a corpus
+#         property, not a ranker score: derivation edges whose target is
+#         backed and so structurally excluded regardless of ranker behaviour.
 #
 # ── WHY GOLDEN FIXTURES, NOT THE LIVE CORPUS, CARRY THE PASS/FAIL GATE ───────
 # ledger/fixtures/anchored_surface/reach-note.md, holdout-note.md, and the
@@ -412,26 +421,41 @@ echo "════════════════════════�
 # holdout-note.md pins the answer in its own header, and scans EVERY entry
 # carrying a derivation edge (not a hand-picked subset — the provenance gate
 # forces every unclosed claim to have one, so the fixture's "scaffolding"
-# entries score too): 3 HITs (D1->SEED1, E1->D1, SEED1->Q1) and 1 MISS
-# (E2->D2, D2 corroborated/backed — excluded from the open surface by
-# definition, independent of distance). Golden rate: 3/4, independently
-# re-derived over the extractor's own export before being pinned here.
+# entries score too): 4 pairs total. 3 target an eligible (unclosed) entry —
+# D1->SEED1, E1->D1, SEED1->Q1 — and all 3 are HITs. 1 targets an ineligible
+# (backed) entry — E2->D2, D2 corroborated/proved — and can never be a HIT at
+# any distance, because a backed entry fails open-surface membership on its
+# own, not by reachability. Collapsing these into one rate would charge the
+# ranker for a restriction the boundary imposes on it, so the fixture is
+# scored as two numbers instead of one:
+#   ranker recall over eligible targets:  3/3 = 1.0  (the ranker's own score)
+#   structural ineligibility:             1/4 = 0.25 (a corpus property)
+# Both independently re-derived over the extractor's own export before being
+# pinned here.
 run_cmd s8a -- --self-evaluate --corpus "$fix/holdout-note.md" --budget 100000
 if [ "$s8a_rc" -eq 0 ]; then
-  line="$(printf '%s' "$s8a_out" | grep -oE 'HOLDOUT:[[:space:]]*[0-9]+/[0-9]+' | head -1)"
-  if [ -n "$line" ]; then
-    hits="$(printf '%s' "$line" | grep -oE '[0-9]+' | sed -n '1p')"
-    total="$(printf '%s' "$line" | grep -oE '[0-9]+' | sed -n '2p')"
-    if [ "$hits" = "3" ] && [ "$total" = "4" ]; then
-      record red pass "holdout on the hand-scored fixture reports exactly 3/4 (the one MISS is a real structural exclusion, not a bug)"
+  recall_line="$(printf '%s' "$s8a_out" | grep -oE 'HOLDOUT-RECALL:[[:space:]]*[0-9]+/[0-9]+' | head -1)"
+  ineligible_line="$(printf '%s' "$s8a_out" | grep -oE 'HOLDOUT-INELIGIBLE:[[:space:]]*[0-9]+/[0-9]+' | head -1)"
+  if [ -n "$recall_line" ] && [ -n "$ineligible_line" ]; then
+    r_hits="$(printf '%s' "$recall_line" | grep -oE '[0-9]+' | sed -n '1p')"
+    r_total="$(printf '%s' "$recall_line" | grep -oE '[0-9]+' | sed -n '2p')"
+    i_hits="$(printf '%s' "$ineligible_line" | grep -oE '[0-9]+' | sed -n '1p')"
+    i_total="$(printf '%s' "$ineligible_line" | grep -oE '[0-9]+' | sed -n '2p')"
+    if [ "$r_hits" = "3" ] && [ "$r_total" = "3" ]; then
+      record red pass "ranker recall over eligible targets on the hand-scored fixture reports exactly 3/3"
     else
-      record red fail "holdout on the hand-scored fixture reports exactly 3/4" "got $hits/$total"
+      record red fail "ranker recall over eligible targets on the hand-scored fixture reports exactly 3/3" "got $r_hits/$r_total"
+    fi
+    if [ "$i_hits" = "1" ] && [ "$i_total" = "4" ]; then
+      record red pass "structural ineligibility on the hand-scored fixture reports exactly 1/4 (a corpus property, not a ranker miss)"
+    else
+      record red fail "structural ineligibility on the hand-scored fixture reports exactly 1/4" "got $i_hits/$i_total"
     fi
   else
-    record red fail "holdout output carries a HOLDOUT: hits/total line" "$s8a_out"
+    record red fail "holdout output carries distinct HOLDOUT-RECALL: and HOLDOUT-INELIGIBLE: lines" "$s8a_out"
   fi
 else
-  record red fail "holdout on the hand-scored fixture reports exactly 3/4" "rc=$s8a_rc: $s8a_out"
+  record red fail "holdout on the hand-scored fixture reports its two-number split" "rc=$s8a_rc: $s8a_out"
 fi
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -517,22 +541,25 @@ echo "════════════════════════�
 echo "SECTION 10 — C8: the real corpus's holdout rate (informational, not gating)"
 echo "════════════════════════════════════════════════════════════════════════"
 # Same frozen snapshot as Section 9, same corpus-validity caveat. When the
-# corpus is usable, this reports the ranker's real-world holdout rate exactly
-# as C8 asks — WITHOUT failing the suite on the number itself, because the
-# boundary is explicit that a bad rate here is a finding about the ranker's
-# DEFAULT to report to the composer, not a defect in this test suite or the
-# command to route around.
+# corpus is usable, this reports the ranker's real-world recall AND the
+# corpus's real-world structural-ineligibility fraction — the same split
+# Section 8 gates on the synthetic fixture — WITHOUT failing the suite on
+# either number, because the boundary is explicit that a bad rate here is a
+# finding about the ranker's DEFAULT to report to the composer, not a defect
+# in this test suite or the command to route around.
 if [ -n "${frozen:-}" ] && [ -f "${extract_json:-/nonexistent}" ] && [ "${apply_rc:-1}" -eq 0 ]; then
   if [ -x "$CMD" ] || [ -f "$CMD" ]; then
     out="$("$CMD" --self-evaluate --corpus "$frozen" --budget 10000 2>&1)"; rc=$?
     if [ "$rc" -eq 0 ]; then
-      line="$(printf '%s' "$out" | grep -oE 'HOLDOUT:[[:space:]]*[0-9]+/[0-9]+' | head -1)"
-      if [ -n "$line" ]; then
-        echo "  real-corpus holdout (151a79b, budget 10000): $line"
-        echo "  (reported, not gated — see this section's header comment)"
+      recall_line="$(printf '%s' "$out" | grep -oE 'HOLDOUT-RECALL:[[:space:]]*[0-9]+/[0-9]+' | head -1)"
+      ineligible_line="$(printf '%s' "$out" | grep -oE 'HOLDOUT-INELIGIBLE:[[:space:]]*[0-9]+/[0-9]+' | head -1)"
+      if [ -n "$recall_line" ] && [ -n "$ineligible_line" ]; then
+        echo "  real-corpus ranker recall (151a79b, budget 10000): $recall_line"
+        echo "  real-corpus structural ineligibility (151a79b, budget 10000): $ineligible_line"
+        echo "  (both reported, not gated — see this section's header comment)"
         record guard pass "the holdout evaluator runs to completion over the real corpus"
       else
-        record guard fail "the holdout evaluator runs to completion over the real corpus" "no HOLDOUT: line in output: $out"
+        record guard fail "the holdout evaluator runs to completion over the real corpus" "no HOLDOUT-RECALL:/HOLDOUT-INELIGIBLE: lines in output: $out"
       fi
     else
       record guard fail "the holdout evaluator runs to completion over the real corpus" "rc=$rc: $out"
