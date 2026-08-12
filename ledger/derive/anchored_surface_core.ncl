@@ -20,7 +20,7 @@
 # `entries` is the validated export's own field — untouched, not re-shaped.
 #
 # Reuse, not redefinition (ruling-hooks-boundary.md's no-second-definition
-# rule; ruling-open-surface-node.md U4/U6). `law.edges_of` and
+# rule; ruling-open-surface-node.md U4/U6). `law.corpus_edges_of` and
 # `law.refs_of` are entry.ncl's own EXPORTED primitives and are used exactly
 # as entries_query.ncl uses them. entries_query.ncl's own `is_open` is NOT
 # itself an importable binding: that file's only exported value is the bare
@@ -72,9 +72,11 @@ fun input =>
   # --- the graph the walk traverses: UNDIRECTED, whole-corpus, both edge
   # species at once ([U4] — "the walk traverses the whole graph; the
   # open-surface restriction applies to the output and never to the
-  # traversal"). A provenance edge (because/depends, via law.edges_of) and a
-  # closure edge (discharges/supersedes) are both authored as directed refs
-  # on the entry that names them, but the reach-note fixture's own golden
+  # traversal"). A provenance edge (because/depends, via law.corpus_edges_of
+  # — the walkable subset; an external `because` ref has no corpus node to
+  # walk to) and a closure edge (discharges/supersedes) are both authored
+  # as directed refs on the entry that names them, but the reach-note
+  # fixture's own golden
   # (A1 -[discharges]-> Q1 -[because]-> H1, walked start to finish to place
   # H1 two hops from A1) requires walking either direction of either kind —
   # so both are folded into one undirected adjacency, never filtered by
@@ -91,7 +93,7 @@ fun input =>
   let directed_pairs =
     std.array.fold_left
       (fun acc e =>
-        let outs = (law.edges_of e) @ (law.refs_of "discharges" e) @ (law.refs_of "supersedes" e) in
+        let outs = (law.corpus_edges_of e) @ (law.refs_of "discharges" e) @ (law.refs_of "supersedes" e) in
         acc @ (std.array.map (fun r => { from = e.id, to = r }) outs))
       []
       entries
@@ -190,8 +192,9 @@ fun input =>
 
   # --- the backed-exclusion count -------------------------------------------
   #
-  # Every derivation edge (law.edges_of: because + depends) in the corpus is
-  # one pair, deriving entry -> its named target — the provenance gate
+  # Every WALKABLE derivation edge (law.corpus_edges_of: depends + because's
+  # corpus-tagged refs) in the corpus is one pair, deriving entry -> its
+  # named target — the provenance gate
   # already forces every unclosed claim to carry at least one, so this scans
   # the whole corpus rather than a hand-picked subset. A pair's target is
   # excluded when it fails open-surface membership by being backed
@@ -201,7 +204,7 @@ fun input =>
   # reached.
   let derivation_pairs =
     std.array.fold_left
-      (fun acc e => acc @ (std.array.map (fun r => { from = e.id, to = r }) (law.edges_of e)))
+      (fun acc e => acc @ (std.array.map (fun r => { from = e.id, to = r }) (law.corpus_edges_of e)))
       []
       entries
   in
