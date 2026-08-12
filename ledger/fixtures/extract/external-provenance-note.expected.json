@@ -1,0 +1,30 @@
+{
+  "entries": [
+    {
+      "id": "external-provenance-note:X1",
+      "statement": "The floor vocabulary generalizes to typed ledgers elsewhere.",
+      "assertion": "claim",
+      "backing": "unclosed",
+      "signer": {
+        "kind": "agent",
+        "name": "composer"
+      },
+      "external_refs": [
+        "prior-art/typed-ledgers"
+      ]
+    }
+  ],
+  "directives": [],
+  "grades": {
+    "external-provenance-note:X1": "synthesis"
+  },
+  "external_refs": [
+    {
+      "entry": "external-provenance-note:X1",
+      "refs": [
+        "prior-art/typed-ledgers"
+      ]
+    }
+  ],
+  "findings": []
+}

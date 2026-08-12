@@ -94,6 +94,31 @@ expect "extract: output matches the expected JSON exactly" 0 "" \
 expect "extract: export passes the EXISTING entry contract" 0 "" \
   -- nickel export "$tmp/ledger-note.yaml" --apply-contract "$apply"
 
+# --- node/provenance-gate: the extractor's new entry-level external_refs ----
+#
+# ruling-provenance-gate (ledger commit fcf009e): the entry gains a field
+# mirroring its own share of the `external_refs` sidecar, so ProvenanceGate
+# can see external provenance without moving to EntryStore. This fixture
+# isolates the case the fix targets — X1's derives-from names NO bracketed
+# corpus ref, only a wikilink, so `because` never gets set and the new field
+# is the entry's ONLY provenance. TODAY the extractor does not write it (the
+# golden includes it; the extractor's actual output does not, so the diff
+# below is genuinely red), and the corpus fails ProvenanceGate for want of
+# any edge at all — both go green together once the extractor and entry.ncl
+# land in step. This is a NEW, dedicated fixture rather than an edit to
+# ledger-note's X2 or amendment-note's Q4: both of those already carry other
+# provenance (X2 an internal edge, Q4 is a question ProvenanceGate never
+# scopes to), so editing their goldens would pin an assumption this ruling
+# does not make — whether the extractor mirrors the field onto an entry that
+# does not strictly need it to pass the gate. Unresolved; noted in the report
+# rather than guessed at here.
+expect "provenance: external-only claim extracts, exit 0" 0 "" \
+  -- python3 "$extractor" "$fix/external-provenance-note.md" -o "$tmp/external-provenance-note.yaml"
+expect "provenance: output carries the new entry-level external_refs field" 0 "" \
+  -- diff "$fix/external-provenance-note.expected.json" "$tmp/external-provenance-note.yaml"
+expect "provenance: export passes the entry contract once the field is live" 0 "" \
+  -- nickel export "$tmp/external-provenance-note.yaml" --apply-contract "$apply"
+
 # --- report reds: nothing malformed is silently skipped ----------------------
 
 expect "red: unknown grade value is reported, exit 3" 3 "\"kind\": \"unknown-grade\"" \
