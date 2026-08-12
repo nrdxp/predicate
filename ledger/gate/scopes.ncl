@@ -285,7 +285,14 @@ let GateEntry = {
     {
       gate        = "ledger/gate/test_candidate_links.sh",
       scope       = 'orchestration,
-      fires_when  = "CI gate-test step; exercises ledger/derive/candidate_links.py (co-citation and stem/title-overlap candidate surfacing over the corpus, structural-values assertions against its JSON export, a mutation-can-fail demonstration) and its wiring into recorder-pre-commit.sh's staged-*.md tier — advisory only, never gates, never a non-zero exit",
+      fires_when  = "CI gate-test step; exercises ledger/derive/candidate_links.py as a standalone computation (co-citation and stem/title-overlap candidate surfacing over the corpus, structural-value assertions against its JSON export, a mutation-can-fail demonstration) — never a non-zero exit; consumed by the harness SessionStart hook, not by any git hook",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
+      gate        = "ledger/gate/test_session_start.sh",
+      scope       = 'orchestration,
+      fires_when  = "CI gate-test step; exercises harness/session_start.py (the Claude Code SessionStart hook) — recent-activity co-citation, branch-name overlap as the cold-start cover, absent/empty .ledger, malformed stdin, a non-git cwd, budget truncation with an honest dropped-count, structural-value assertions against the Surface dataclass, and a mutation-can-fail demonstration — never a non-zero exit",
       applies_to  = "agent only",
     } | GateEntry,
 
