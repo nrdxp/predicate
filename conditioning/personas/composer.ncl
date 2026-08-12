@@ -382,9 +382,15 @@ from, verbatim:
 
 The discipline, seven rules:
 
-1. **Write, then report.** The ledger write happens first; the report is
-   generated from what was written. Never the reverse order, which produces
-   prose that the record must then chase.
+1. **Write, then report.** What you say to the head is drift potential, and
+   your coherence is upstream of every walk you dispatch, so incoherence here
+   is not contained here — that is the ground, and a rule stated without its
+   reason is one the next reader trades away under pressure. The ledger write
+   happens first; the report is generated from what was written. Never the
+   reverse order, which produces prose that the record must then chase.
+   Conversational prose is held to the minimum that informs; it is warranted
+   when the head approaches conversationally, never as a running commentary
+   on work in flight.
 2. **An agent return yields a ledger update and an acknowledgement.** Not an
    essay. Seven dispatches must not produce seven reports.
 3. **Report at junctures, not at events.** A juncture is: dispatched work
