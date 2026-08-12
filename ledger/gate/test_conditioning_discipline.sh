@@ -423,6 +423,16 @@ expect_count guard core min 1 \
 # 3f. TIGHTEN — enumerate-the-universe. Two statements, two genuine triggers
 # (walk start, and any coverage claim); neither is deletable. Only the shared
 # mechanism repeats, so the two merge into one statement carrying both triggers.
+#
+# The coverage-claim trigger is guarded by an ALTERNATION for the reason 2a
+# gives: the clause has more than one natural wording, and pinning a single
+# token measures the author instead of the rule. The bare token `coverage`
+# would have FAILED on the base text's own words — "any claim of exhaustive
+# scope" — so a faithful preservation of the rule would have been rejected
+# while a narrowing paraphrase passed. The alternation requires a claim word
+# adjacent to an exhaustiveness word in either order, which is what every
+# natural statement of this trigger has in common, and it reports 0 when the
+# clause is deleted.
 echo ""
 echo "── 3f. Tighten: enumerate-the-universe stated once, two triggers ────────"
 expect_count red core eq 1 \
@@ -439,7 +449,7 @@ expect_count guard core min 1 \
   --needle 'establish-universe'
 expect_count guard core min 1 \
   "universe: the coverage-claim trigger survives" \
-  --regex '(?i)coverage'
+  --regex '(?i)claim\w*[^.]{0,30}(exhaustive|coverage)|(exhaustive|coverage)[^.]{0,30}claim\w*'
 
 # 3g. TIGHTEN — terminal cross-references. Each of these closes a section by
 # naming another section and binds nothing on its own.
