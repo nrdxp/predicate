@@ -62,7 +62,6 @@ std.contract.custom (fun label value =>
     'Ok validated =>
       let entries = validated.entries in
       let grades = get_or "grades" {} validated in
-      let externals = get_or "external_refs" [] validated in
       let is_question = fun e => law.matches e.assertion 'question "question" in
       let is_claim = fun e => law.matches e.assertion 'claim "claim" in
       let grade_of = fun e =>
@@ -108,11 +107,15 @@ std.contract.custom (fun label value =>
       # acyclicity). N iterations reach the fixed point for any acyclic
       # chain, since no path is longer than the corpus; a cycle simply keeps
       # the empty floor set, which reads correctly as "bottoms out nowhere".
-      # The entries naming a ref that left the corpus, as an id_set: the fixed
-      # point consults this once per entry per iteration, so scanning the refs
-      # list there would multiply the walk's cost by the corpus's ref count.
-      let external_ids = add_all {} (std.array.map (fun x => x.entry) externals) in
-      let has_external = fun e => std.record.has_field e.id external_ids in
+      # Whether an entry names an external antecedent is now read straight off
+      # its own `because` array (ruling-provenance-representation [SR2]): the
+      # sidecar join this used to reassemble by hand, at read time, is gone —
+      # the tag travels with the ref itself.
+      let has_external = fun e =>
+        std.array.any
+          (fun r => law.matches r.kind 'external "external")
+          (law.refs_of "because" e)
+      in
       let is_closed_evidence = fun e =>
         is_claim e
         && (law.matches e.backing 'corroborated "corroborated"
@@ -129,7 +132,7 @@ std.contract.custom (fun label value =>
       let step = fun prev =>
         std.array.fold_left
           (fun acc e =>
-            let edges = law.edges_of e in
+            let edges = law.corpus_edges_of e in
             let floors =
               if is_closed_evidence e || std.array.length edges == 0 then
                 leaf_floor e
@@ -191,12 +194,11 @@ std.contract.custom (fun label value =>
           |> std.array.filter (fun e =>
             is_claim e && law.matches e.backing 'unclosed "unclosed")
           |> std.array.map (fun e =>
-            let inbound = law.edges_of e in
+            let inbound = law.corpus_edges_of e in
             let ext =
-              externals
-              |> std.array.filter (fun x => x.entry == e.id)
-              |> std.array.map (fun x => x.refs)
-              |> std.array.flatten
+              law.refs_of "because" e
+              |> std.array.filter (fun r => law.matches r.kind 'external "external")
+              |> std.array.map (fun r => r.name)
             in
             {
               id = e.id,

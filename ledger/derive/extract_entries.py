@@ -4,7 +4,7 @@
 The prose record is the SOURCE; this export is DERIVED and regenerated, never
 maintained. The output is JSON (a YAML subset nickel imports either way):
 
-    {entries, directives, grades, external_refs, findings}
+    {entries, directives, grades, findings}
 
 `entries` is validated by the EXISTING ledger/contracts/entry_apply.ncl —
 this script is a grammar, not a validator: everything it cannot place is
@@ -36,9 +36,12 @@ Grammar (the docs/entries.md §grammar standard, ledger dialect):
               declares is reported and dropped rather than emitted.
               `[[wiki]]` refs and free prose are external ALWAYS, including
               when the text reads like an id: an external name colliding with
-              one is not a declaration. derives-from files them as external
-              provenance; the closure edges report them, since a closure onto
-              something outside the corpus closes nothing.
+              one is not a declaration. derives-from tags them `external` and
+              a corpus ref `corpus`, both landing in `because` as one list of
+              `{kind, name}` records (ruling-provenance-representation) —
+              because is the ONLY tagged field; the closure edges stay plain
+              corpus ids and report an external name instead, since a closure
+              onto something outside the corpus closes nothing.
   axes        `axes:: +determined -certifiable +monotone` — polarity tokens in
               any order. `certifiable` is OMITTED where determination fails:
               the coordinate is undefined there, not false, and the grammar
@@ -182,7 +185,6 @@ class Extraction:
     entries: list[dict] = field(default_factory=list)
     directives: list[dict] = field(default_factory=list)
     grades: dict[str, str] = field(default_factory=dict)
-    external_refs: list[dict] = field(default_factory=list)
     findings: list[dict] = field(default_factory=list)
     qualified: list[QualifiedRef] = field(default_factory=list)
 
@@ -191,15 +193,20 @@ class Extraction:
             {"kind": kind, "doc": doc, "marker": marker, "reason": reason}
         )
 
-    def attach_refs(self, entry: dict, key: str, value: str,
-                    doc: str, marker: str) -> list[str]:
+    def attach_refs(self, entry: dict, key: str, value: str, doc: str,
+                    marker: str, *, tagged: bool = False) -> list[str]:
         """Namespace an edge value onto `entry[key]`, holding its qualified
         refs for the corpus to answer; return what stayed external. Derivation
         and closure share this whole rule and differ only in what they do with
-        that remainder, so the rule is written once."""
+        that remainder, so the rule is written once. `tagged` is `because`
+        alone (ruling-provenance-representation): its corpus refs land as
+        `{kind: corpus, name: ...}` records rather than bare strings, so the
+        field can carry an external counterpart beside them; every other edge
+        kind stays the plain corpus-id list it always was."""
         refs, qualified, external = split_refs(value, doc)
-        if refs:
-            entry[key] = refs
+        entry_refs = [{"kind": "corpus", "name": r} for r in refs] if tagged else refs
+        if entry_refs:
+            entry[key] = entry_refs
         self.qualified.extend(
             QualifiedRef(entry, key, ref, doc, marker) for ref in qualified)
         return external
@@ -269,8 +276,15 @@ def resolve_qualified(out: Extraction) -> None:
         out.report("bad-edge", qual.doc, qual.marker,
                    f"`[{qual.ref}]` is a qualified reference to an id the "
                    "corpus does not declare; the edge is dropped")
-        remaining = [ref for ref in qual.entry.get(qual.edge, [])
-                     if ref != qual.ref]
+        current = qual.entry.get(qual.edge, [])
+        # `because` alone carries tagged {kind, name} records; every other
+        # edge this walk holds is still the plain corpus-id string it always
+        # was, so the comparison is keyed off the edge name rather than
+        # introspecting the element's shape.
+        if qual.edge == "because":
+            remaining = [r for r in current if r["name"] != qual.ref]
+        else:
+            remaining = [r for r in current if r != qual.ref]
         if remaining:
             qual.entry[qual.edge] = remaining
         else:
@@ -459,9 +473,11 @@ def extract_doc(path: Path, out: Extraction) -> None:
                 entry["closer"] = closer
         if "derives-from" in companions:
             external = out.attach_refs(entry, "because",
-                                       companions["derives-from"], doc, marker)
+                                       companions["derives-from"], doc, marker,
+                                       tagged=True)
             if external:
-                out.external_refs.append({"entry": node_id, "refs": external})
+                entry.setdefault("because", []).extend(
+                    {"kind": "external", "name": x} for x in external)
         if "axes" in companions:
             axes, residue = parse_axes(companions["axes"])
             if residue or not axes:
@@ -534,7 +550,6 @@ def main() -> int:
         "entries": out.entries,
         "directives": out.directives,
         "grades": out.grades,
-        "external_refs": out.external_refs,
         "findings": out.findings,
     }
     rendered = json.dumps(export, indent=2, ensure_ascii=False) + "\n"

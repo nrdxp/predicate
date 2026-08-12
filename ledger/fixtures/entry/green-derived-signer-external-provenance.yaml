@@ -1,0 +1,27 @@
+# Criterion 9 (ibc-provenance-gate), repair 1 of 3: SignerDesignates' derived
+# branch currently asks the same wrong question ProvenanceGate did (ruling-
+# provenance-representation [SR1]) — "does this entry have a WALKABLE corpus
+# edge" instead of "does this entry state where it came from" — so a
+# legitimately derived claim whose sole antecedent is external cannot
+# currently declare `signer: {kind: derived}` at all. This is the case
+# demonstrating the repair: no name (derived requires none), no depends, and
+# a because-tagged EXTERNAL ref as the ONLY provenance. TODAY this fails at
+# SHAPE ("NonEmptyString" — `because` is still `Array Ref`); post-fix it must
+# export clean, with SignerDesignates reading `provenance_of` rather than the
+# removed `edges_of`. Corpus-granularity coverage is inherited from
+# EntryStore's uniform per-entry fold (SignerDesignates is one of the eleven
+# lifted predicates already proved live there); a dedicated corpus copy of
+# this case would be redundant with that existing coverage.
+id: e-derived-external
+statement: "A derived claim whose sole antecedent structurally cannot be a corpus entry."
+assertion: claim
+backing: unclosed
+signer:
+  kind: derived
+because:
+  - kind: external
+    name: docs/entries.md
+axes:
+  determined: true
+  certifiable: false
+  monotone: true

@@ -108,6 +108,19 @@ cmd_structure() {
         # imports (../../ledger/contracts/…) so no -I is needed.
         "${NICKEL[@]}" typecheck "$artifact" >/dev/null
         ;;
+      */ledger/derive/*_core.ncl)
+        # A derive/ "core" file (anchored_surface_core.ncl and the
+        # convention it names) is a pure value-transformation function over
+        # caller-supplied input, not a self-contained instance — the same
+        # shape as a contracts/ definition, just living beside the CLI
+        # wrapper that applies it rather than under contracts/. Bare export
+        # fails every such file with "non serializable term" regardless of
+        # its correctness (it exports `fun input => ...`), so it gets the
+        # same typecheck-only treatment. layers.ncl, the derive/ sibling
+        # that binds its own input via `import`, has no `_core` suffix and
+        # keeps the export check below.
+        "${NICKEL[@]}" typecheck -I "$(dirname "$abs_artifact")" "$artifact" >/dev/null
+        ;;
       *.yaml)
         # YAML instances (campaign DAGs) carry pure data — validate by applying
         # the Dag ∘ DagNoConflict contract externally via --apply-contract.

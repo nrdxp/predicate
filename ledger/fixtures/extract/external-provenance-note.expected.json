@@ -1,0 +1,45 @@
+{
+  "entries": [
+    {
+      "id": "external-provenance-note:K1",
+      "statement": "The floor vocabulary is fixed by the entry contract.",
+      "assertion": "claim",
+      "backing": "corroborated",
+      "signer": {
+        "kind": "agent",
+        "name": "composer"
+      },
+      "check": {
+        "command": "bash ledger/gate/test_entry.sh",
+        "ran": true,
+        "at": "abc1234"
+      }
+    },
+    {
+      "id": "external-provenance-note:X1",
+      "statement": "Support names one corpus antecedent and one that structurally cannot be a corpus entry, on the same node.",
+      "assertion": "claim",
+      "backing": "unclosed",
+      "signer": {
+        "kind": "agent",
+        "name": "composer"
+      },
+      "because": [
+        {
+          "kind": "corpus",
+          "name": "external-provenance-note:K1"
+        },
+        {
+          "kind": "external",
+          "name": "prior-art/typed-ledgers"
+        }
+      ]
+    }
+  ],
+  "directives": [],
+  "grades": {
+    "external-provenance-note:K1": "proved",
+    "external-provenance-note:X1": "synthesis"
+  },
+  "findings": []
+}

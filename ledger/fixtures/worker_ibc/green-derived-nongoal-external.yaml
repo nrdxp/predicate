@@ -1,0 +1,39 @@
+# Criterion 9 (ibc-provenance-gate), repair 2 of 3: DirectiveDesignates
+# (worker_ibc.ncl:53) is one of the three consumers the ruling-provenance-
+# representation audit found asking the same wrong question ProvenanceGate
+# did — "does this directive have a WALKABLE corpus edge" instead of "does
+# it state where it came from" (`[SR1]`). Companion to
+# green-derived-nongoal.yaml (which pins the derived arm via a plain
+# `depends` edge onto the goal): this pins the SAME arm reached instead
+# through a because-tagged EXTERNAL ref, the case DirectiveDesignates
+# currently refuses. TODAY this fails at SHAPE — Directive's `because` field
+# is still `Array e.Ref` (bare strings), so a tagged record element breaks
+# `NonEmptyString` before DirectiveDesignates ever runs; post-fix it must
+# export clean, with DirectiveDesignates reading `e.provenance_of` rather
+# than the removed `e.edges_of`.
+id: wx-derived-nongoal-external
+tier: "worker (fable)"
+discipline: core
+goal:
+  id: g0
+  statement: "Root the walk."
+  provenance: { kind: human, name: nrd }
+non_goals:
+  - id: ng1
+    statement: "Anything a repository doctrine already forbids, cited by name rather than by corpus id."
+    provenance: { kind: derived }
+    because:
+      - kind: external
+        name: docs/entries.md
+premises: []
+delegated: []
+reserved: []
+constraints: []
+context_map: []
+acceptance:
+  - id: b1
+    statement: "Done when done."
+    eval: "true"
+    provenance: { kind: human, name: nrd }
+load_bearing: []
+plastic: []

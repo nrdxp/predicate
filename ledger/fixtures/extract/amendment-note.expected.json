@@ -56,7 +56,10 @@
         "name": "composer"
       },
       "because": [
-        "amendment-note:K1"
+        {
+          "kind": "corpus",
+          "name": "amendment-note:K1"
+        }
       ],
       "axes": {
         "determined": false,
@@ -73,8 +76,14 @@
         "name": "composer"
       },
       "because": [
-        "amendment-note:X1",
-        "amendment-note:X4"
+        {
+          "kind": "corpus",
+          "name": "amendment-note:X1"
+        },
+        {
+          "kind": "corpus",
+          "name": "amendment-note:X4"
+        }
       ]
     },
     {
@@ -87,7 +96,10 @@
         "name": "composer"
       },
       "because": [
-        "amendment-note:Q4"
+        {
+          "kind": "corpus",
+          "name": "amendment-note:Q4"
+        }
       ]
     },
     {
@@ -100,7 +112,10 @@
         "name": "composer"
       },
       "because": [
-        "amendment-note:Q5"
+        {
+          "kind": "corpus",
+          "name": "amendment-note:Q5"
+        }
       ]
     },
     {
@@ -191,7 +206,13 @@
       "discharge": "read the cited work and rule",
       "closer": {
         "kind": "agent"
-      }
+      },
+      "because": [
+        {
+          "kind": "external",
+          "name": "prior-art/typed-ledgers"
+        }
+      ]
     },
     {
       "id": "amendment-note:Q5",
@@ -224,13 +245,5 @@
     "amendment-note:Q4": "frontier",
     "amendment-note:Q5": "frontier"
   },
-  "external_refs": [
-    {
-      "entry": "amendment-note:Q4",
-      "refs": [
-        "prior-art/typed-ledgers"
-      ]
-    }
-  ],
   "findings": []
 }

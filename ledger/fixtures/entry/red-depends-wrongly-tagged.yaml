@@ -1,0 +1,23 @@
+# Criterion 7 (ibc-provenance-gate): tagged refs live on `because` ALONE.
+# `depends`, `discharges` and `supersedes` stay plain corpus ids — the
+# record's own deletion semantics: `depends` means THIS ENTRY BREAKS if the
+# target is deleted, and an antecedent outside the corpus has no deletion
+# event to break on, so only `because` (via `derives-from::`) can ever name
+# one. A tagged `depends` element is a shape violation, TODAY and
+# permanently — `depends` stays `Array Ref` (bare NonEmptyString) through
+# the fix, unlike `because`. Single-violation by construction; this is the
+# boundary a later author will drift on if nothing pins it.
+id: r-depends-tagged
+statement: "A depends edge wrongly given the tagged-ref shape because carries."
+assertion: claim
+backing: unclosed
+signer:
+  kind: agent
+  name: architect-seat
+depends:
+  - kind: corpus
+    name: e-proved
+axes:
+  determined: true
+  certifiable: false
+  monotone: true

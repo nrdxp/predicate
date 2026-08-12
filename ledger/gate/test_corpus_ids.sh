@@ -140,13 +140,16 @@ entries = {e["id"]: e for e in export["entries"]}
 # Order within the value is the author's and not pinned here; membership is.
 # The local ref namespaces to THIS document and the qualified one does not,
 # from one comma-separated value — so a resolver handling only one form, or
-# applying one rule to both, cannot satisfy this.
-assert set(entries["xdoc-closer:X1"].get("because", [])) == {
-    "xdoc-closer:K2", "xdoc-open:K1"}, entries["xdoc-closer:X1"]
-# A resolved reference is an EDGE and nothing else. Filing it as provenance
-# as well would double-count support the chain-floor walk already follows.
-assert [x for x in export["external_refs"]
-        if x["entry"] == "xdoc-closer:X1"] == [], export["external_refs"]
+# applying one rule to both, cannot satisfy this. `because` is the tagged
+# ref shape (ruling-provenance-representation): a corpus-resolved ref is a
+# `{kind: corpus, name: ...}` record, not a bare string.
+because = entries["xdoc-closer:X1"].get("because", [])
+assert {r["name"] for r in because} == {
+    "xdoc-closer:K2", "xdoc-open:K1"}, because
+# A resolved reference is an EDGE and nothing else: every ref here is
+# `corpus`-tagged, none `external` — there is no second sidecar left to
+# double-file it into.
+assert all(r["kind"] == "corpus" for r in because), because
 print("XDOC-DERIVE-OK")
 EOF
 
@@ -194,9 +197,12 @@ assert "wikicap-open:R1" in reasons.get("K1", ""), export["findings"]
 # was never in doubt.
 assert "discharges" not in entries["wikicap-closer:K2"], entries["wikicap-closer:K2"]
 assert "nowhere-note" in reasons.get("K2", ""), export["findings"]
-# Neither is filed as provenance. A closure edge demoted to an external ref
-# lands where derivation is recorded and the closure is silently lost.
-assert export["external_refs"] == [], export["external_refs"]
+# Neither is filed as provenance. A closure edge's external remainder is
+# only ever reported (bad-edge, above) and never attached to any field —
+# `because` tagging (ruling-provenance-representation) applies to
+# `derives-from::` alone, and neither K1 nor K2 declares one.
+assert "because" not in entries["wikicap-closer:K1"], entries["wikicap-closer:K1"]
+assert "because" not in entries["wikicap-closer:K2"], entries["wikicap-closer:K2"]
 # And the target is still open, which is the whole of what silent capture
 # would have cost: a question reported answered that nobody answered.
 assert "wikicap-open:R1" in [row["id"] for row in q["awaiting_human"]], q["awaiting_human"]
@@ -226,10 +232,12 @@ export = json.load(open(sys.argv[1]))
 entries = {e["id"]: e for e in export["entries"]}
 # Not provenance. Free prose and wikilinks are external because their author
 # wrote them that way; a bracketed id asserts the opposite, and collapsing the
-# two turns a typo into a pointer nobody will question.
-assert all("nowhere-doc" not in ref
-           for x in export["external_refs"] for ref in x["refs"]), \
-    export["external_refs"]
+# two turns a typo into a pointer nobody will question. `resolve_qualified`
+# drops an unresolved qualified ref outright (never files it anywhere), so
+# the check is against `because` itself, the tagged ref shape's only home
+# (ruling-provenance-representation).
+because = entries["ghost-ref:X1"].get("because", [])
+assert all("nowhere-doc" not in r["name"] for r in because), because
 # Reported, and reported against the node that wrote it — a finding naming no
 # marker is a defect the reader cannot locate.
 assert any(f["marker"] == "X1" and "nowhere-doc:K9" in f["reason"]
@@ -237,7 +245,7 @@ assert any(f["marker"] == "X1" and "nowhere-doc:K9" in f["reason"]
 # The resolvable half of the same value survives: reporting one reference is
 # not a reason to drop the edges beside it, and dropping them would take a
 # claim's whole provenance with the typo.
-assert entries["ghost-ref:X1"].get("because") == ["ghost-ref:K1"], \
+assert because == [{"kind": "corpus", "name": "ghost-ref:K1"}], \
     entries["ghost-ref:X1"]
 print("GHOST-REPORTED-OK")
 EOF
@@ -274,10 +282,13 @@ assert entries[f"{closer}:K1"].get("discharges") == [f"{open_doc}:R1"], \
     entries[f"{closer}:K1"]
 # The quiet half, and the reason both are asserted: a derivation ref the
 # bracket pattern does not match is filed as external provenance and the run
-# still exits clean, so nothing but this assertion would notice.
-assert set(entries[f"{closer}:X1"].get("because", [])) == {
-    f"{closer}:K1", f"{open_doc}:K1"}, entries[f"{closer}:X1"]
-assert export["external_refs"] == [], export["external_refs"]
+# still exits clean, so nothing but this assertion would notice. `because`
+# is the tagged ref shape (ruling-provenance-representation): both crossings
+# resolve to `corpus`-tagged records, none `external`.
+because = entries[f"{closer}:X1"].get("because", [])
+assert {r["name"] for r in because} == {
+    f"{closer}:K1", f"{open_doc}:K1"}, because
+assert all(r["kind"] == "corpus" for r in because), because
 # And the crossing is real rather than merely recorded: R1's closer is human,
 # so it sits in awaiting_human until something discharges it.
 assert f"{open_doc}:R1" not in [row["id"] for row in q["awaiting_human"]], \

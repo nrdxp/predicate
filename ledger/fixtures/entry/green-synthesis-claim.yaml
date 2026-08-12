@@ -6,7 +6,8 @@ signer:
   kind: agent
   name: architect-seat
 because:
-  - e-proved
+  - kind: corpus
+    name: e-proved
 axes:
   determined: false
   monotone: true

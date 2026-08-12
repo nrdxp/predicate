@@ -5,7 +5,8 @@ backing: unclosed
 signer:
   kind: unattributed
 because:
-  - e-migration-sweep
+  - kind: corpus
+    name: e-migration-sweep
 axes:
   determined: false
   monotone: true
