@@ -32,7 +32,16 @@
 #   Substring:      std.string.contains needle haystack  (needle first, haystack second)
 #   Hyphenated key: "core-worker" = ...
 
-let core_text : String = import "core.ncl" in
+# core.ncl now COMPOSES its render from conditioning/core_clauses.ncl (clause
+# identity — each rule is an addressable record) rather than being one bare
+# string literal. Nickel's static typechecker treats any imported file whose
+# top-level term is not a literal as `Dyn` from the IMPORTER's side, no matter
+# how the imported file types itself internally — a static `: String`
+# ascription on the import site fails even though the value IS a string at
+# runtime. `| String` is a runtime contract, not a static check, so it still
+# proves (and enforces) that core_text is a String; behaviorally identical to
+# the prior static ascription for every downstream use.
+let core_text = (import "core.ncl") | String in
 
 let personas : { _ : String } = {
   composer         = import "personas/composer.ncl",
