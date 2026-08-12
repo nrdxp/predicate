@@ -140,6 +140,38 @@ PYEOF
 expect "provenance: export passes the entry contract once tagged refs land" 0 "" \
   -- nickel export "$tmp/external-provenance-note.yaml" --apply-contract "$apply"
 
+# --- resolve_qualified: the tagged branch, bound --------------------------
+#
+# `resolve_qualified` drops an unresolved QUALIFIED ref from `because` by
+# comparing each tagged `{kind, name}` element's `name` — not the element
+# itself — against the dangling ref, because `because` alone carries the
+# tagged shape (every other edge stays a plain corpus-id list, ruling-
+# provenance-representation). Reverting that branch to raw equality
+# (`r != qual.ref` over the whole list) restores the exact silent failure a
+# prior pass found and left unbound: a dict is never `==` a string, so the
+# comparison always keeps every element, the dangling ref is reported but
+# never actually removed, and `test_entries_extract.sh` stayed all-green
+# across the revert with nothing here to notice. This fixture binds it: one
+# qualified ref resolves, one does not, both inside the SAME `because`
+# value, so only a correct per-name filter yields the one-element result
+# below.
+expect "provenance: dangling qualified because ref is reported, exit 3" 3 "nowhere-stem:K9" \
+  -- python3 "$extractor" "$fix/dangling-because-note.md" -o "$tmp/dangling-because-note.yaml"
+expect "provenance: resolve_qualified drops it from because, tagged branch bound" 0 "DANGLING-BECAUSE-OK" \
+  -- python3 - "$tmp/dangling-because-note.yaml" <<'EOF'
+import json, sys
+export = json.load(open(sys.argv[1]))
+entries = {e["id"]: e for e in export["entries"]}
+because = entries["dangling-because-note:X1"].get("because", [])
+# The resolvable ref survives, tagged; the dangling one is GONE, not merely
+# unreported -- a raw-equality filter would leave both (see header above).
+assert because == [
+    {"kind": "corpus", "name": "dangling-because-note:K1"}], because
+print("DANGLING-BECAUSE-OK")
+EOF
+expect "provenance: export passes the entry contract with the dangling ref dropped" 0 "" \
+  -- nickel export "$tmp/dangling-because-note.yaml" --apply-contract "$apply"
+
 # --- report reds: nothing malformed is silently skipped ----------------------
 
 expect "red: unknown grade value is reported, exit 3" 3 "\"kind\": \"unknown-grade\"" \
