@@ -1,0 +1,37 @@
+# Corpus red: ClaimHasAxes on the live path. The predicate states the QUESTION
+# half only — a question asserts no truth-value, so axis coordinates on one are
+# a category error, not a missing field. The claim half was removed: a claim
+# legitimately arrives unassessed and `unpaid_cures.unassessed` is built to
+# report that absence, so a gate demanding coordinates would only teach a walk
+# to fabricate them. The violation sits SECOND by design.
+entries:
+  - id: e-clean
+    statement: "A well-formed proved claim standing beside the violation."
+    assertion: claim
+    backing: corroborated
+    signer:
+      kind: agent
+      name: architect-seat
+    check:
+      command: "bash ledger/gate/test_entry.sh"
+      ran: true
+      at: "deadbeef01"
+    axes:
+      determined: true
+      certifiable: true
+      monotone: true
+  - id: e-question-axes
+    statement: "A question carrying axis coordinates it cannot have."
+    assertion: question
+    backing: unclosed
+    signer:
+      kind: agent
+      name: architect-seat
+    discharge: "Ruled either way."
+    closer:
+      kind: human
+      name: nrd
+    axes:
+      determined: true
+      certifiable: true
+      monotone: true

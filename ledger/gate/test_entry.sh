@@ -114,8 +114,6 @@ expect "question missing closer -> QuestionRoutable" 1 "QuestionRoutable" \
   -- run "$fix/red-question-no-closer.yaml"
 expect "residual claim -> ResidualIsQuestion" 1 "ResidualIsQuestion" \
   -- run "$fix/red-residual-claim.yaml"
-expect "claim without axes -> ClaimHasAxes" 1 "ClaimHasAxes" \
-  -- run "$fix/red-claim-no-axes.yaml"
 expect "question with axes -> ClaimHasAxes" 1 "ClaimHasAxes" \
   -- run "$fix/red-question-with-axes.yaml"
 expect "determined claim missing certifiable -> CertifiabilityFibered" 1 "CertifiabilityFibered" \
@@ -243,8 +241,8 @@ expect "corpus: question missing closer -> QuestionRoutable" 1 "QuestionRoutable
   -- run "$fix/red-corpus-question-unroutable.yaml"
 expect "corpus: residual claim -> ResidualIsQuestion" 1 "ResidualIsQuestion" \
   -- run "$fix/red-corpus-residual-claim.yaml"
-expect "corpus: claim without axes -> ClaimHasAxes" 1 "ClaimHasAxes" \
-  -- run "$fix/red-corpus-claim-no-axes.yaml"
+expect "corpus: question with axes -> ClaimHasAxes" 1 "ClaimHasAxes" \
+  -- run "$fix/red-corpus-question-with-axes.yaml"
 expect "corpus: determined claim, no certifiable -> CertifiabilityFibered" 1 "CertifiabilityFibered" \
   -- run "$fix/red-corpus-certifiability.yaml"
 expect "corpus: non-monotone claim, no freshness -> NonMonotoneNamesCure" 1 "NonMonotoneNamesCure" \
