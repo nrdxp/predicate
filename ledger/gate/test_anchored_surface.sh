@@ -726,6 +726,158 @@ fi
 # ════════════════════════════════════════════════════════════════════════════
 echo ""
 echo "════════════════════════════════════════════════════════════════════════"
+echo "SECTION 12 — node/surface-injection: --json exposes the core structured"
+echo "value, never the render"
+echo "════════════════════════════════════════════════════════════════════════"
+# THE --json FLAG DOES NOT EXIST YET at the tip this section was authored
+# against — red for that reason, same convention as Section 0's note.
+run_cmd s12a -- --corpus "$fix/reach-note.md" --budget 100000 --anchor reach-note:A1 --json
+if [ "$s12a_rc" -eq 0 ]; then
+  printf '%s' "$s12a_out" > "$TMP/s12a.json"
+  py_ok="$(python3 - "$TMP/s12a.json" <<'PY'
+import json, sys
+d = json.load(open(sys.argv[1]))
+ids = sorted(c["id"] for c in d["candidates"])
+want = sorted(["reach-note:B1", "reach-note:C1", "reach-note:H1"])
+has_fields = all({"id", "statement", "distance"} <= set(c.keys()) for c in d["candidates"])
+has_excluded = set(d.get("excluded_backed", {}).keys()) >= {"count", "total"}
+print("OK" if (ids == want and has_fields and has_excluded) else f"FAIL ids={ids} fields_ok={has_fields} excluded_ok={has_excluded}")
+PY
+)"
+  if [ "$py_ok" = "OK" ]; then
+    record red pass "--json emits the core value: candidates{id,statement,distance} + excluded_backed{count,total}"
+  else
+    record red fail "--json emits the core value: candidates{id,statement,distance} + excluded_backed{count,total}" "$py_ok"
+  fi
+else
+  record red fail "--json emits the core value: candidates{id,statement,distance} + excluded_backed{count,total}" "rc=$s12a_rc: $s12a_out"
+fi
+
+# The rendered lines (documentation contribution, "--- ... dropped ---" tail)
+# must be ABSENT from --json output — this is exposure of the structured
+# value, not a JSON wrapper around the same render.
+if [ "$s12a_rc" -eq 0 ]; then
+  if printf '%s' "$s12a_out" | grep -qiE 'documentation: declared|--- reproduce'; then
+    record red fail "--json output carries none of the rendered prose lines" "$s12a_out"
+  else
+    record red pass "--json output carries none of the rendered prose lines"
+  fi
+else
+  record red fail "--json output carries none of the rendered prose lines" "rc=$s12a_rc"
+fi
+
+# --json is not budget-bounded (the core itself isn't; truncation is the
+# renderer's job) — a tiny --budget still returns the full candidate set.
+run_cmd s12b -- --corpus "$fix/reach-note.md" --budget 1 --anchor reach-note:A1 --json
+if [ "$s12b_rc" -eq 0 ]; then
+  printf '%s' "$s12b_out" > "$TMP/s12b.json"
+  ok="$(python3 - "$TMP/s12b.json" <<'PY'
+import json, sys
+d = json.load(open(sys.argv[1]))
+print("OK" if len(d["candidates"]) == 3 else f"FAIL n={len(d['candidates'])}")
+PY
+)"
+  if [ "$ok" = "OK" ]; then
+    record red pass "--json ignores --budget's rendering-only truncation (still required by usage, but not applied here)"
+  else
+    record red fail "--json ignores --budget's rendering-only truncation" "$ok"
+  fi
+else
+  record red fail "--json ignores --budget's rendering-only truncation" "rc=$s12b_rc: $s12b_out"
+fi
+
+# --json carries excluded_backed unconditionally, without needing
+# --self-evaluate — reusing Section 8's own hand-scored golden (1/4).
+run_cmd s12c -- --corpus "$fix/holdout-note.md" --budget 100000 --json
+if [ "$s12c_rc" -eq 0 ]; then
+  printf '%s' "$s12c_out" > "$TMP/s12c.json"
+  ok="$(python3 - "$TMP/s12c.json" <<'PY'
+import json, sys
+d = json.load(open(sys.argv[1]))
+eb = d["excluded_backed"]
+print("OK" if (eb["count"] == 1 and eb["total"] == 4) else f"FAIL eb={eb}")
+PY
+)"
+  if [ "$ok" = "OK" ]; then
+    record red pass "--json's excluded_backed matches the hand-scored golden (1/4) without --self-evaluate"
+  else
+    record red fail "--json's excluded_backed matches the hand-scored golden (1/4)" "$ok"
+  fi
+else
+  record red fail "--json's excluded_backed matches the hand-scored golden (1/4)" "rc=$s12c_rc: $s12c_out"
+fi
+
+# ════════════════════════════════════════════════════════════════════════════
+echo ""
+echo "════════════════════════════════════════════════════════════════════════"
+echo "SECTION 13 — node/surface-injection: a findings-only extraction (exit 3)"
+echo "is success-with-findings, never hard failure"
+echo "════════════════════════════════════════════════════════════════════════"
+# extract_entries.py's own convention: 0 = clean, 2 = usage/environment error
+# (no export written), 3 = findings present but the export IS still written,
+# incomplete only where the findings themselves point. anchored_surface.sh
+# previously collapsed ALL non-zero exits into hard failure, so a corpus
+# with even one incomplete document (a headerless note, extremely common —
+# see the real .ledger's own 24 findings) made the WHOLE corpus unusable,
+# including every document that parsed cleanly. THE FIX DOES NOT EXIST YET
+# at the tip this section was authored against — red for that reason.
+#
+# fixtures/anchored_surface/findings-tolerant/: good.md (headered, one open
+# entry G1) + bad.md (no header at all, triggers pre-standard-doc — the
+# whole extraction run exits 3). good.md's own entry must still surface.
+ft="$fix/findings-tolerant"
+[ -d "$ft" ] || { echo "FAIL (env): missing $ft" >&2; exit 2; }
+
+run_cmd s13a -- --corpus "$ft" --budget 100000
+if [ "$s13a_rc" -eq 0 ]; then
+  if printf '%s' "$s13a_out" | grep -q 'good:G1'; then
+    record red pass "a corpus with one incomplete (headerless) document still surfaces the other's entry"
+  else
+    record red fail "a corpus with one incomplete (headerless) document still surfaces the other's entry" "$s13a_out"
+  fi
+else
+  record red fail "a corpus with one incomplete (headerless) document still surfaces the other's entry" "rc=$s13a_rc: $s13a_out"
+fi
+
+# --json must ALSO tolerate exit 3, through the same code path.
+# stdout-only capture (not run_cmd's shared 2>&1 merge): the findings
+# warning this section exists to tolerate goes to stderr precisely so stdout
+# stays pure JSON — merging it in here would make THIS check fail on the
+# warning it is meant to prove survives, not on the command under test.
+s13b_out="$("$CMD" --corpus "$ft" --budget 100000 --json 2>"$TMP/s13b.err")"
+s13b_rc=$?
+if [ "$s13b_rc" -eq 0 ]; then
+  printf '%s' "$s13b_out" > "$TMP/s13b.json"
+  ok="$(python3 - "$TMP/s13b.json" <<'PY'
+import json, sys
+d = json.load(open(sys.argv[1]))
+ids = [c["id"] for c in d["candidates"]]
+print("OK" if "good:G1" in ids else f"FAIL ids={ids}")
+PY
+)"
+  if [ "$ok" = "OK" ]; then
+    record red pass "--json also tolerates a findings-only (exit 3) extraction"
+  else
+    record red fail "--json also tolerates a findings-only (exit 3) extraction" "$ok"
+  fi
+else
+  record red fail "--json also tolerates a findings-only (exit 3) extraction" "rc=$s13b_rc: $s13b_out"
+fi
+
+# Guard: a GENUINE extraction failure (corpus path does not exist at all —
+# extract_entries.py's own exit 2, no export ever written) must still be a
+# hard failure. The fix narrows what's tolerated to exit 3 specifically; it
+# must not swallow every non-zero exit into success.
+run_cmd s13c -- --corpus "$fix/does-not-exist.md" --budget 100000
+if [ "$s13c_rc" -ne 0 ]; then
+  record guard pass "a corpus path that doesn't exist is still a hard failure, not silently tolerated"
+else
+  record guard fail "a corpus path that doesn't exist is still a hard failure" "rc=$s13c_rc: $s13c_out"
+fi
+
+# ════════════════════════════════════════════════════════════════════════════
+echo ""
+echo "════════════════════════════════════════════════════════════════════════"
 echo "SUMMARY"
 echo "════════════════════════════════════════════════════════════════════════"
 echo "  PASS: $PASS_COUNT"

@@ -2,14 +2,33 @@
 """session_start.py — Claude Code SessionStart hook: injects a structural
 open-surface signal from the record into a fresh agent's context.
 
-The problem this closes (.ledger/log/2026-08-12-search-before-write.md,
-[S1]): "a promotion begins with a search for correlated records" is recorded
-and was not operative. ledger/derive/candidate_links.py made that search
-runnable against a staged document; this hook makes it fire automatically at
-the one moment a walk has no staged document yet to search FROM — session
-start — by using what actually is available then: the record's own recent
-activity (which documents were just touched) and the branch name (which
-often names the topic).
+Two contributions, independently computed and independently degradable:
+
+  1. RELATED DOCUMENTS (compute_surface) — the problem this closes
+     (.ledger/log/2026-08-12-search-before-write.md, [S1]): "a promotion
+     begins with a search for correlated records" is recorded and was not
+     operative. ledger/derive/candidate_links.py made that search runnable
+     against a staged document; this makes it fire automatically at the one
+     moment a walk has no staged document yet to search FROM — session
+     start — by using what actually is available then: the record's own
+     recent activity (which documents were just touched) and the branch
+     name (which often names the topic).
+  2. OPEN CLAIMS NEAR THE WORK (compute_claim_surface, node/surface-
+     injection) — the same "what was just touched" anchor, but walked
+     through the typed-claim graph instead of the document-citation graph:
+     the entry ids declared inside recently-touched documents seed
+     ledger/derive/anchored_surface.sh's anchored-reachability open surface,
+     consumed via its --json structured export (candidates/excluded_backed
+     fields), never its rendered prose.
+
+BUDGET_CHARS splits evenly between the two (DOC_BUDGET/CLAIM_BUDGET): no
+corpus property makes one contribution a priori more valuable than the
+other, and giving each its own fixed half means either can report an honest
+dropped-count against ITS OWN budget rather than a moving target set by how
+much the other one used. A contribution that finds nothing (no anchors, an
+uninjectable corpus, or the primitive itself failing — see its own
+docstring) degrades to an empty string and simply drops out of the merged
+additionalContext, never to a placeholder or an error.
 
 Contract (Claude Code SessionStart hooks), verified against two shipped
 official plugins on this machine (explanatory-output-style, security-
@@ -49,6 +68,7 @@ import json
 import os
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 from typing import Dict, FrozenSet, List, Optional, Tuple
 
@@ -59,8 +79,11 @@ sys.path.insert(0, str(PLUGIN_ROOT / "ledger" / "derive"))
 # Budget deliberately far under the 50,000-character harness ceiling (see
 # module docstring) — the point is that the content is READ, and content
 # near the ceiling risks the harness's own disk-spill behavior on a future
-# growth of this hook's output.
+# growth of this hook's output. Split evenly across the two contributions —
+# see the module docstring for why an even split rather than a weighted one.
 BUDGET_CHARS = 4000
+DOC_BUDGET = BUDGET_CHARS // 2
+CLAIM_BUDGET = BUDGET_CHARS - DOC_BUDGET
 
 # How many of the most-recently-modified corpus documents anchor the
 # co-citation query. Small on purpose: this is "what was just touched", not
@@ -69,14 +92,19 @@ BUDGET_CHARS = 4000
 RECENT_ANCHOR_COUNT = 5
 
 
-def _run(cmd: List[str], cwd: Path) -> Optional[str]:
+def _run(cmd: List[str], cwd: Path, timeout: int = 5) -> Optional[str]:
     """Best-effort subprocess capture. Returns stripped stdout on success,
-    None on any failure (missing binary, non-git dir, timeout) — never
-    raises. This hook has no gate to fail; every git call here is an
-    optional signal, not a requirement."""
+    None on any failure (missing binary, non-git dir, non-zero exit,
+    timeout) — never raises. This hook has no gate to fail; every subprocess
+    call here is an optional signal, not a requirement. A non-zero exit
+    collapses to None on purpose: anchored_surface.sh's own exit 1 (corpus
+    extraction/validation failure — a pre-existing, out-of-scope corpus
+    defect, see that script's header) is exactly the "primitive returns
+    nothing" case this hook's contributions must degrade through, not
+    surface as an error."""
     try:
         r = subprocess.run(
-            cmd, cwd=str(cwd), capture_output=True, text=True, timeout=5,
+            cmd, cwd=str(cwd), capture_output=True, text=True, timeout=timeout,
         )
     except (OSError, subprocess.TimeoutExpired):
         return None
@@ -99,6 +127,32 @@ def resolve_project_root(input_data: dict) -> Path:
     if toplevel:
         return Path(toplevel)
     return path
+
+
+def resolve_ledger_root(project_root: Path) -> Path:
+    """.ledger lives beside the MAIN checkout, never necessarily beside
+    whatever `project_root` resolve_project_root() returned — a linked git
+    worktree's own toplevel (correct for `current_branch_tokens`, which
+    wants THIS walk's own branch) is a different directory than the main
+    tree the recorder sub-repository sits next to. Widens via `git rev-parse
+    --git-common-dir` (hooks/install-hooks.sh's and
+    ledger/gate/install-recorder-hook.sh's own idiom, reused rather than
+    reinvented — it names the shared .git regardless of which worktree
+    asks) only when project_root's own .ledger is missing, so a plain
+    non-worktree checkout — the common case — never pays the extra git
+    call. Never raises: any failure here just falls back to project_root's
+    own (possibly absent) .ledger, the same degrade-to-empty path every
+    other resolution failure in this hook takes."""
+    direct = project_root / ".ledger"
+    if direct.is_dir():
+        return direct
+    common_dir = _run(["git", "rev-parse", "--git-common-dir"], project_root)
+    if not common_dir:
+        return direct
+    common_path = Path(common_dir)
+    if not common_path.is_absolute():
+        common_path = project_root / common_path
+    return common_path.resolve().parent / ".ledger"
 
 
 def current_branch_tokens(project_root: Path) -> FrozenSet[str]:
@@ -218,6 +272,134 @@ def compute_surface(ledger_root: Path, project_root: Path, budget: int = BUDGET_
     return Surface(len(recent_ids), len(candidates), included, dropped, text)
 
 
+@dataclasses.dataclass
+class ClaimSurface:
+    """The structured result of the second contribution — same shape as
+    Surface, asserted on directly by tests, never scraped back out of
+    rendered text."""
+    anchor_count: int
+    candidate_count: int
+    included_count: int
+    dropped_count: int
+    text: str  # "" means nothing to inject
+
+
+def _entry_anchors_near_recent(ledger_root: Path, recent_ids: FrozenSet[str]) -> List[str]:
+    """Entry ids declared INSIDE the recently-touched documents themselves —
+    the anchor set for 'open claims near the work'. A different id space
+    than `recent_ids` (candidate_links' document ids, e.g. `log/foo`):
+    extract_entries.py qualifies an entry id with its document's own
+    filename STEM only, never a directory prefix (its own `[stem:ID]`
+    convention), so `recent_ids` is narrowed to bare stems before matching.
+
+    Runs extract_entries.py over the WHOLE corpus once, independently of
+    whatever anchored_surface.sh does with its own --corpus internally —
+    the two extractions serve different purposes (anchor DISCOVERY here,
+    reachability computation there) and this one tolerates partial corpus
+    findings that would make the other exit non-zero (the export is written
+    even when extract_entries.py itself exits 3 for findings elsewhere in
+    the corpus; only the finding's own doc is missing entries, not every
+    doc). Never raises: any failure (missing script, bad exit with no
+    export, malformed JSON, timeout) degrades to no anchors found."""
+    if not recent_ids:
+        return []
+    extractor = PLUGIN_ROOT / "ledger" / "derive" / "extract_entries.py"
+    try:
+        with tempfile.TemporaryDirectory() as td:
+            out_path = Path(td) / "extract.json"
+            subprocess.run(
+                [sys.executable, str(extractor), str(ledger_root), "-o", str(out_path)],
+                capture_output=True, text=True, timeout=15,
+            )
+            if not out_path.exists():
+                return []
+            export = json.loads(out_path.read_text(encoding="utf-8"))
+    except (OSError, subprocess.TimeoutExpired, json.JSONDecodeError):
+        return []
+
+    recent_stems = {doc_id.rsplit("/", 1)[-1] for doc_id in recent_ids}
+    anchors = []
+    for entry in export.get("entries", []):
+        entry_id = entry.get("id", "")
+        stem = entry_id.split(":", 1)[0] if ":" in entry_id else ""
+        if stem in recent_stems:
+            anchors.append(entry_id)
+    return anchors
+
+
+def compute_claim_surface(ledger_root: Path, budget: int = CLAIM_BUDGET) -> ClaimSurface:
+    """Second hook contribution: open claims/questions structurally near the
+    just-touched work, via the anchored-reachability open-surface primitive
+    (ledger/derive/anchored_surface.sh --json). Consumes the primitive's
+    STRUCTURED value only (candidates/excluded_backed fields) — its own
+    rendered prose is never parsed here, the same discipline `compute_surface`
+    and the candidate-links suite already hold to. Degrades to an empty
+    contribution whenever anchors can't be determined or the primitive
+    itself returns nothing (a pre-existing corpus defect, an unusable/absent
+    corpus, or a genuinely empty open surface) — never an error, matching
+    this hook's own never-block contract (module docstring)."""
+    from candidate_links import build_corpus
+
+    corpus, _warnings = build_corpus(ledger_root)
+    if not corpus:
+        return ClaimSurface(0, 0, 0, 0, "")
+
+    recent_ids = recent_anchor_ids(corpus, ledger_root, RECENT_ANCHOR_COUNT)
+    anchors = sorted(set(_entry_anchors_near_recent(ledger_root, recent_ids)))
+    if not anchors:
+        return ClaimSurface(0, 0, 0, 0, "")
+
+    cmd = [
+        str(PLUGIN_ROOT / "ledger" / "derive" / "anchored_surface.sh"),
+        "--corpus", str(ledger_root), "--budget", "100000", "--json",
+    ]
+    for a in anchors:
+        cmd += ["--anchor", a]
+    out = _run(cmd, ledger_root, timeout=15)
+    if out is None:
+        return ClaimSurface(len(anchors), 0, 0, 0, "")
+
+    try:
+        result = json.loads(out)
+        candidates = result["candidates"]
+    except (json.JSONDecodeError, KeyError, TypeError):
+        return ClaimSurface(len(anchors), 0, 0, 0, "")
+
+    if not candidates:
+        return ClaimSurface(len(anchors), 0, 0, 0, "")
+
+    lines = [
+        "## Open claims near the work (structural, session-start)",
+        "Claims and questions reachable within two hops of entries declared "
+        "in recently-touched documents, via the anchored-reachability open-"
+        "surface primitive (ledger/derive/anchored_surface.sh).",
+        "",
+    ]
+    budget_for_lines = budget - sum(len(line) + 1 for line in lines) - 200  # headroom for the trailer
+    included = 0
+    body_lines: List[str] = []
+    for c in candidates:
+        row = f"- [{c['id']}] {c['statement']}  (distance={c['distance']})"
+        if sum(len(r) + 1 for r in body_lines) + len(row) + 1 > budget_for_lines:
+            break
+        body_lines.append(row)
+        included += 1
+
+    dropped = len(candidates) - included
+    lines.extend(body_lines)
+    lines.append("")
+    # Points to the RENDERED form (no --json) — a stranger reproducing this
+    # without the hook reads prose, the same convention compute_surface's own
+    # trailer follows for its reproduction command.
+    lines.append(
+        f"{included} shown, {dropped} dropped for budget. Full surface: "
+        f"ledger/derive/anchored_surface.sh --corpus .ledger --budget 100000 "
+        + " ".join(f"--anchor {a}" for a in anchors)
+    )
+    text = "\n".join(lines)
+    return ClaimSurface(len(anchors), len(candidates), included, dropped, text)
+
+
 def main() -> int:
     # This hook must NEVER exit non-zero and must NEVER raise past this
     # point — see the module docstring's exit-code contract.
@@ -229,17 +411,19 @@ def main() -> int:
             input_data = {}
 
         project_root = resolve_project_root(input_data)
-        ledger_root = project_root / ".ledger"
+        ledger_root = resolve_ledger_root(project_root)
 
-        surface = compute_surface(ledger_root, project_root)
-        if not surface.text:
+        surface = compute_surface(ledger_root, project_root, budget=DOC_BUDGET)
+        claims = compute_claim_surface(ledger_root, budget=CLAIM_BUDGET)
+        parts = [s.text for s in (surface, claims) if s.text]
+        if not parts:
             print(json.dumps({}))
             return 0
 
         print(json.dumps({
             "hookSpecificOutput": {
                 "hookEventName": "SessionStart",
-                "additionalContext": surface.text,
+                "additionalContext": "\n\n".join(parts),
             }
         }))
         return 0

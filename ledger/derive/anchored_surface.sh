@@ -16,7 +16,7 @@
 # Usage:
 #   anchored_surface.sh --corpus <dir-or-file> --budget <N>
 #                        [--anchor <id>]... [--ranker anchored|recency]
-#                        [--self-evaluate]
+#                        [--self-evaluate] [--json]
 #
 # --budget has NO baked-in default: omitting it is a usage error, never a
 # silent fallback (ruling-open-surface-node.md [U8] names this as one of the
@@ -44,10 +44,25 @@
 # `excluded_backed`, decidable from the corpus alone, with no graph walk
 # required.
 #
-# Exit: 0 = rendered/evaluated successfully. 1 = the corpus failed
-# extraction or entry_apply.ncl validation (this primitive never works
-# around that — see the node's own report on the pre-existing corpus
-# defect). 2 = usage error (missing/invalid flag).
+# --json stdout: the core's structured value verbatim — {candidates:
+# [{id, statement, distance}, ...], excluded_backed: {count, total}} — for a
+# caller that consumes fields rather than prose (node/surface-injection: the
+# SessionStart hook parses this rather than the rendered lines above). This
+# is exposure only: --budget is still required (unchanged validation) but
+# does not bound this mode's output, exactly as the core itself is not
+# budget-bounded — truncation is the renderer's job, not the core's, and a
+# structured caller does its own bounding over the parsed value. --json
+# takes precedence over --self-evaluate when both are given, since the
+# structured value already carries everything --self-evaluate's one line
+# reports (and more).
+#
+# Exit: 0 = rendered/evaluated successfully — including a corpus that
+# extracted with findings (extract_entries.py's own exit 3: incomplete only
+# where the findings point, never a reason to discard what DID extract
+# cleanly, node/surface-injection). 1 = extraction failed outright (no
+# export at all) or the corpus failed entry_apply.ncl validation (this
+# primitive never works around that — see the node's own report on the
+# pre-existing corpus defect). 2 = usage error (missing/invalid flag).
 set -u
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -57,7 +72,7 @@ CORE="$here/anchored_surface_core.ncl"
 APPLY="$root/ledger/contracts/entry_apply.ncl"
 
 usage() {
-  echo "usage: anchored_surface.sh --corpus <dir-or-file> --budget <N> [--anchor <id>]... [--ranker anchored|recency] [--self-evaluate]" >&2
+  echo "usage: anchored_surface.sh --corpus <dir-or-file> --budget <N> [--anchor <id>]... [--ranker anchored|recency] [--self-evaluate] [--json]" >&2
 }
 
 command -v nickel  >/dev/null 2>&1 || { echo "anchored_surface: nickel not on PATH" >&2; exit 2; }
@@ -70,6 +85,7 @@ corpus=""
 budget=""
 ranker="anchored"
 self_evaluate=0
+json_mode=0
 anchors=()
 
 while [ $# -gt 0 ]; do
@@ -88,6 +104,8 @@ while [ $# -gt 0 ]; do
       ranker="$2"; shift 2 ;;
     --self-evaluate)
       self_evaluate=1; shift ;;
+    --json)
+      json_mode=1; shift ;;
     -h|--help)
       usage; exit 0 ;;
     *)
@@ -126,11 +144,27 @@ trap 'rm -rf "$TMP"' EXIT
 
 extract_json="$TMP/extract.json"
 extract_err="$TMP/extract.err"
-if ! python3 "$EXTRACTOR" "$corpus" -o "$extract_json" >/dev/null 2>"$extract_err"; then
-  echo "anchored_surface: extraction failed for corpus '$corpus':" >&2
-  cat "$extract_err" >&2
-  exit 1
-fi
+python3 "$EXTRACTOR" "$corpus" -o "$extract_json" >/dev/null 2>"$extract_err"
+extract_rc=$?
+# extract_entries.py's own exit convention (its own --help/docstring): 0 =
+# clean, 2 = usage/environment error (no export ever written), 3 = findings
+# present but the export IS still written, incomplete only where the
+# findings themselves point (node/surface-injection). Collapsing exit 3 into
+# hard failure made one incomplete document (a missing header, common on the
+# real record) void an entire corpus, including every document that parsed
+# cleanly — so only 3 is tolerated here; anything else (2, a crash, no
+# export) stays a hard failure.
+case "$extract_rc" in
+  0) ;;
+  3)
+    echo "anchored_surface: corpus '$corpus' extracted with findings (proceeding on the partial export):" >&2
+    cat "$extract_err" >&2
+    ;;
+  *)
+    echo "anchored_surface: extraction failed for corpus '$corpus':" >&2
+    cat "$extract_err" >&2
+    exit 1 ;;
+esac
 
 # Validation is not re-implemented (entries_query.ncl's own header rule,
 # reused here): an invalid corpus never reaches the graph walk. This is
@@ -174,6 +208,14 @@ if [ "$core_rc" -ne 0 ]; then
   exit 1
 fi
 printf '%s' "$core_out" > "$core_json"
+
+# --json: the core's structured value, unmodified, in place of any render
+# (see the header comment). Checked before --self-evaluate's own render
+# path, per the precedence documented there.
+if [ "$json_mode" -eq 1 ]; then
+  cat "$core_json"
+  exit 0
+fi
 
 # Rendering (line assembly, budget-fit truncation, the two evaluator lines)
 # is ordinary string/arithmetic work over an already-computed value, not
