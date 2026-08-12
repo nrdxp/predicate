@@ -310,6 +310,16 @@ follow to the stated standard the extractor is correct against:
   (`proved`, `cited`, `synthesis`, `dispatchable`, `routed`, `frontier`,
   `residual`) or `directive`, which is out-of-vocabulary for entries and
   extracts to a separate list with its `provenance::`.
+- **Unmarked assertions.** In a document carrying at least one node, a
+  paragraph that asserts without opening a marker is reported as an
+  `unmarked-assertion`. Every other report here fires on a claim that was
+  marked and then malformed, so simply declining to mark one would evade the
+  grammar at no cost; the handle on that evasion is the record's assertive
+  form — a paragraph opening in bold — which inside such a document reads
+  as a claim whether or not it was meant as one. The scope is the document's
+  own grading, never its header: a document that grades nothing is left
+  alone, which keeps the report off the untyped prose most of a long-lived
+  record is still written in.
 - **Companions.** Backticked `token:: value` spans inside the node's
   paragraph — the blank-line-delimited block opened by the node's own
   `` `[ID] grade::` `` marker, and nothing past its closing blank line. A
