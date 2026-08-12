@@ -85,17 +85,23 @@
       "signer": {
         "kind": "agent",
         "name": "composer"
-      }
+      },
+      "because": [
+        "amendment-note:Q4"
+      ]
     },
     {
       "id": "amendment-note:X4",
-      "statement": "A proposal with no stated support is the floor itself.",
+      "statement": "A proposal resting on an open question bottoms out unbacked.",
       "assertion": "claim",
       "backing": "unclosed",
       "signer": {
         "kind": "agent",
         "name": "composer"
-      }
+      },
+      "because": [
+        "amendment-note:Q5"
+      ]
     },
     {
       "id": "amendment-note:R1",
@@ -172,6 +178,34 @@
         "kind": "human",
         "name": "nrd"
       }
+    },
+    {
+      "id": "amendment-note:Q4",
+      "statement": "Which typed-ledger prior art fixes the edge vocabulary?",
+      "assertion": "question",
+      "backing": "unclosed",
+      "signer": {
+        "kind": "agent",
+        "name": "composer"
+      },
+      "discharge": "read the cited work and rule",
+      "closer": {
+        "kind": "agent"
+      }
+    },
+    {
+      "id": "amendment-note:Q5",
+      "statement": "What governs a claim whose support is still a question?",
+      "assertion": "question",
+      "backing": "unclosed",
+      "signer": {
+        "kind": "agent",
+        "name": "composer"
+      },
+      "discharge": "rule it at the next reconcile",
+      "closer": {
+        "kind": "agent"
+      }
     }
   ],
   "directives": [],
@@ -186,11 +220,13 @@
     "amendment-note:R2": "routed",
     "amendment-note:Q1": "dispatchable",
     "amendment-note:Q2": "dispatchable",
-    "amendment-note:Q3": "routed"
+    "amendment-note:Q3": "routed",
+    "amendment-note:Q4": "frontier",
+    "amendment-note:Q5": "frontier"
   },
   "external_refs": [
     {
-      "entry": "amendment-note:X3",
+      "entry": "amendment-note:Q4",
       "refs": [
         "prior-art/typed-ledgers"
       ]

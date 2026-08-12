@@ -9,6 +9,14 @@ extraction is exact by construction. R1 and Q2 are discharged, Q3 is
 superseded, R2 and Q1 stay open: the query views over this corpus prove the
 openness filter and the chain-floor report.
 
+The two non-`closed` floors bottom out through QUESTIONS (Q4, Q5), which is
+the only shape left that can reach them: ProvenanceGate requires every
+unclosed CLAIM to carry a resolvable derivation edge, so a claim can no
+longer be an edge-free leaf, and `edges_of` is derivation-only — an external
+ref satisfies nothing. A question asserts no truth-value, so it is
+legitimately edge-free, and support that bottoms out in one is exactly what
+`unbacked` reports.
+
 ## Claims
 
 `[K1] grade::proved` The ratification landed and the entry gate is green.
@@ -26,9 +34,10 @@ openness filter and the chain-floor report.
 `derives-from:: [X1], [X4]`
 
 `[X3] grade::synthesis` External support bottoms out outside the corpus.
-`derives-from::` [[prior-art/typed-ledgers]]
+`derives-from:: [Q4]`
 
-`[X4] grade::synthesis` A proposal with no stated support is the floor itself.
+`[X4] grade::synthesis` A proposal resting on an open question bottoms out
+unbacked. `derives-from:: [Q5]`
 
 ## Questions
 
@@ -46,3 +55,10 @@ openness filter and the chain-floor report.
 
 `[Q3] grade::routed` Ratify the designation shape, asked a second time.
 `discharge:: the head rules once` `closer:: human/nrd`
+
+`[Q4] grade::frontier` Which typed-ledger prior art fixes the edge vocabulary?
+`discharge:: read the cited work and rule` `closer:: machine`
+`derives-from::` [[prior-art/typed-ledgers]]
+
+`[Q5] grade::frontier` What governs a claim whose support is still a question?
+`discharge:: rule it at the next reconcile` `closer:: machine`
