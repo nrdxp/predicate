@@ -454,6 +454,53 @@ assert [e["id"] for e in export["entries"]] == ["red-unclosed-lead:U1"], \
 print("UNCLOSED-LEAD-OK")
 EOF
 
+# The scoping rule is decided over the WHOLE document, and the report is held
+# back until the document has been read for exactly that reason: whether an
+# untyped claim is a defect depends on whether the file grades anything, which
+# is unknown at the paragraph where the claim is written. Every fixture above
+# places its untyped claim AFTER the graded node, where a detector deciding
+# scope at the paragraph agrees with one deciding it at the end — so none of
+# them can tell the two readings apart, and the deferral rides on all of them
+# unpinned.
+#
+# The fixture below inverts the order. It is red against the inline-decision
+# form (reporting each lead as it is read, under the flag's value at that
+# point) and green against the committed deferral. Verified in both directions
+# in a scratch copy rather than assumed, on the standard this node adopted when
+# the suite ran green over an exact reversal of the fix above.
+
+expect "preceding assertion: an untyped claim above the first node is reported" \
+  3 "" \
+  -- python3 "$extractor" "$fix/red-preceding-assertion.md" -o "$tmp/preceding.json"
+
+expect "preceding assertion: scope is decided over the whole document" \
+  0 "PRE-NODE-REPORTED-OK" \
+  -- python3 - "$tmp/preceding.json" <<'EOF'
+import json, sys
+export = json.load(open(sys.argv[1]))
+findings = export["findings"]
+unmarked = [f for f in findings if f["kind"] == "unmarked-assertion"]
+assert [f["doc"] for f in unmarked] == ["red-preceding-assertion"], findings
+# The excerpt names the claim standing ABOVE the node, so the report is about
+# that paragraph and not about some later one the fixture also carries.
+[reason] = [f["reason"] for f in unmarked]
+assert reason.startswith("`Scope is a property of the document, not of the "
+                         "reader.`"), reason
+# Nothing else fired, so the exit 3 above is THIS finding and not an unplaced
+# token or an orphaned companion arriving by accident.
+assert len(findings) == 1, findings
+# What the deferral costs, stated rather than left implicit: by the time the
+# report is raised the paragraph's position is gone, so the finding can name no
+# marker — unlike orphaned-companion, which attributes to the nearest preceding
+# one. Green at this tip; it is the clause that speaks up if attribution is
+# ever added without moving the decision back to the paragraph.
+assert [f["marker"] for f in unmarked] == [None], unmarked
+# Preservation, stated as such: the document's one graded node still extracts.
+assert [e["id"] for e in export["entries"]] == ["red-preceding-assertion:U1"], \
+    export["entries"]
+print("PRE-NODE-REPORTED-OK")
+EOF
+
 echo
 if [ "$fails" -eq 0 ]; then echo "test_entries_extract: ALL PASS"; exit 0; fi
 echo "test_entries_extract: $fails FAILURE(S)"; exit 1
