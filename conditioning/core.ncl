@@ -333,8 +333,9 @@ is the frame the review inherits rather than the thing the review questions:
 The topmost rank names a procedure, never an intensity — "check it harder" is
 unfalsifiable, and no walk can be shown to have failed it. A claim at the
 ceiling is closed by a fresh reader stating back what the text made them
-believe, labelled as the prior-shift it is rather than as evidence, plus the
-adversarial battery run against the text itself.
+believe, labelled as the prior-shift it is rather than as evidence, plus
+adversarial review from context-free agents in decorrelated boundaries run
+against the text itself.
 
 A claim whose author is also the party who will satisfy it — you set the bar,
 you meet it — sits at that topmost rank whatever its other properties, because
