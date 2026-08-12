@@ -113,6 +113,7 @@ class DocReport:
     actionable_count: int
     already_linked_count: int
     note: str = ""
+    ambiguous: List[str] = dataclasses.field(default_factory=list)
 
 
 def strip_ext(relpath: str) -> str:
@@ -177,30 +178,49 @@ def build_corpus(ledger_root: Path) -> Tuple[Dict[str, DocInfo], List[str]]:
     return corpus, warnings
 
 
-def resolve_target(target: str, corpus: Dict[str, DocInfo]) -> Optional[str]:
+def resolve_target(target: str, corpus: Dict[str, DocInfo]) -> Tuple[Optional[str], bool]:
     """Best-effort resolution of a citation target to a real corpus document.
     Exact path match first; a bare (no '/') target falls back to a unique
     basename match, since wikilinks are sometimes authored without their
-    directory prefix. An unresolvable target (dangling, or ambiguous
-    basename) is simply not a candidate source — link-health repair is a
-    separate, already-running audit (out of scope here)."""
+    directory prefix.
+
+    Returns (resolved_doc_id_or_None, is_ambiguous). A dangling reference
+    (zero matches) and an AMBIGUOUS one (multiple basename matches) are
+    different failures: the first means the record doesn't have the
+    information; the second means it does and can't tell which one is
+    meant. Collapsing both into a bare None (the previous shape) reported
+    an ambiguity exactly like a dangling link — a silent wrong answer on an
+    advisory surface, the same failure direction this project keeps
+    catching elsewhere. Link-health REPAIR is still a separate,
+    already-running audit (out of scope here); this only makes the
+    ambiguous case visible rather than resolving it."""
     if target in corpus:
-        return target
+        return target, False
     if "/" not in target:
         matches = [d for d in corpus if d.rsplit("/", 1)[-1] == target]
         if len(matches) == 1:
-            return matches[0]
-    return None
+            return matches[0], False
+        if len(matches) > 1:
+            return None, True
+    return None, False
 
 
 def resolved_targets(info: DocInfo, corpus: Dict[str, DocInfo]) -> FrozenSet[str]:
     """A document's own citations, resolved to real corpus doc ids (dangling
-    or ambiguous targets drop silently — see resolve_target). Public: a
-    caller building its own anchor set from a document's citations (e.g. a
-    SessionStart hook seeding from several recently-touched documents at
-    once) needs this directly, not just the staged-single-document wrappers
-    below."""
-    return frozenset(r for r in (resolve_target(t, corpus) for t in info.targets) if r is not None)
+    or ambiguous targets drop silently from this set — see
+    ambiguous_targets to recover which ones were ambiguous rather than
+    merely absent). Public: a caller building its own anchor set from a
+    document's citations (e.g. a SessionStart hook seeding from several
+    recently-touched documents at once) needs this directly, not just the
+    staged-single-document wrappers below."""
+    return frozenset(r for t in info.targets for r, _ in [resolve_target(t, corpus)] if r is not None)
+
+
+def ambiguous_targets(info: DocInfo, corpus: Dict[str, DocInfo]) -> FrozenSet[str]:
+    """The raw (unresolved) citation strings from `info` that matched more
+    than one corpus document by basename — reported rather than silently
+    treated as dangling, so a report_for caller can surface them."""
+    return frozenset(t for t in info.targets if resolve_target(t, corpus)[1])
 
 
 def co_citation_candidates_for_anchors(
@@ -326,9 +346,11 @@ def report_for(staged_path: str, ledger_root: Path, corpus: Dict[str, DocInfo]) 
     candidates = sorted(merged.values(), key=lambda c: (-c.strength, c.kind, c.target))
     actionable = sum(1 for c in candidates if not c.already_linked)
     linked = len(candidates) - actionable
+    ambiguous = sorted(ambiguous_targets(corpus[doc_id], corpus))
     return DocReport(
         doc=staged_path, status="ok", candidates=candidates,
         actionable_count=actionable, already_linked_count=linked,
+        ambiguous=ambiguous,
     )
 
 
@@ -337,6 +359,12 @@ def render(report: DocReport) -> str:
     if report.status != "ok":
         lines.append(f"  ({report.note})")
         return "\n".join(lines)
+    if report.ambiguous:
+        targets = ", ".join(report.ambiguous)
+        lines.append(
+            f"  {len(report.ambiguous)} ambiguous citation(s) — matched more than one document "
+            f"by basename, not resolved: {targets}"
+        )
     if not report.candidates:
         lines.append("  no candidates found (co-citation or stem/title overlap)")
         return "\n".join(lines)

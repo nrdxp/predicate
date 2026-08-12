@@ -24,6 +24,12 @@
 #       wikilinks at all in either document).
 #   (g) never a non-zero exit, across every fixture above plus a bare
 #       usage-error invocation.
+#   (k) an ambiguous bare-basename citation (two documents share a
+#       filename in different directories) is REPORTED as ambiguous, not
+#       silently treated as dangling and dropped — a resolve_target result
+#       is a different failure from a genuinely absent target, and
+#       collapsing them was a silent-wrong-answer gap on this advisory
+#       surface.
 #
 #   MUTATION -- the co-citation detector is broken in a throwaway copy and
 #       case (a) is re-run against it: the candidate must NOT appear,
@@ -161,6 +167,25 @@ ok = len(hit) == 1 and hit[0]["strength"] >= 2 and unrelated == []
 reason = "candidates=" + repr(cands)
 '
 
+# ─── (k) an ambiguous bare-basename citation is reported, not dropped ───────
+mkdir -p "$tmp/ambig/log" "$tmp/ambig/deposits"
+cat > "$tmp/ambig/log/dup.md" <<'EOF'
+# dup in log
+EOF
+cat > "$tmp/ambig/deposits/dup.md" <<'EOF'
+# dup in deposits
+EOF
+cat > "$tmp/ambig/log/x.md" <<'EOF'
+# x cites a bare, ambiguous basename
+see [[dup]] for context.
+EOF
+run_cli "$tmp/ambig" "$tmp/out.json" log/x.md
+assert_json "(k) an ambiguous bare-basename citation is reported, not silently dropped" '
+r = data[0]
+ok = r["status"] == "ok" and r["ambiguous"] == ["dup"] and r["candidates"] == []
+reason = f"report={r}"
+'
+
 # ─── (g) never a non-zero exit, across every case above + a bare usage error ─
 python3 "$cli" >/dev/null 2>&1
 usage_rc=$?
@@ -191,6 +216,26 @@ if [ "$mutant_rc" -eq 0 ] && [ "$mutant_killed" -eq 0 ]; then
   pass "(mutation) breaking co-citation makes case (a)'s assertion fail on the mutant"
 else
   fail "(mutation) mutant still finds log/b (mutant_rc=$mutant_rc, still-detects=$([ $mutant_killed -eq 0 ] && echo no || echo yes)) — assertion (a) cannot discriminate this defect"
+fi
+
+# ─── MUTATION: prove case (k) can fail ──────────────────────────────────────
+# Silently resolves an ambiguous basename to its first match instead of
+# reporting it — the mutant must report ZERO ambiguous targets where the
+# real detector reports "dup".
+mutant2="$tmp/mutant2_candidate_links.py"
+sed 's/return None, True/return matches[0], False/' "$cli" > "$mutant2"
+python3 "$mutant2" "$tmp/ambig" log/x.md -o "$tmp/mutant2_out.json" >/dev/null 2>&1
+mutant2_rc=$?
+python3 - "$tmp/mutant2_out.json" <<'PY'
+import json, sys
+data = json.load(open(sys.argv[1]))
+sys.exit(0 if data[0]["ambiguous"] == [] else 1)
+PY
+mutant2_silenced=$?
+if [ "$mutant2_rc" -eq 0 ] && [ "$mutant2_silenced" -eq 0 ]; then
+  pass "(mutation) silently resolving ambiguity makes case (k)'s assertion fail on the mutant"
+else
+  fail "(mutation) mutant still reports the ambiguity — assertion (k) cannot discriminate this defect"
 fi
 
 # ─── Results ─────────────────────────────────────────────────────────────────
