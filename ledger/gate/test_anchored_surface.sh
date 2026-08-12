@@ -248,6 +248,52 @@ fi
 # ════════════════════════════════════════════════════════════════════════════
 echo ""
 echo "════════════════════════════════════════════════════════════════════════"
+echo "SECTION 1c — C7: the ranker NAME actually selects a different ORDER"
+echo "════════════════════════════════════════════════════════════════════════"
+# Section 6 proves --ranker's name is validated (an unknown name is
+# rejected). It does not prove the named ranker is CONSULTED to produce the
+# order — a selector that validates the flag and then always runs one fixed
+# comparator would pass Section 6 and every set-equality case above
+# unchanged, since none of them inspect order across two different --ranker
+# values.
+#
+# Anchored at C1, reach-note.md's own hand-scored distances (Section 1's own
+# header above) put C1 itself at distance 0 and both B1 and D1 at distance
+# 1, so an anchored ranker must place C1 first. All three entries share the
+# fixture's single `at:: 0000000` timestamp, so a recency ranker has nothing
+# to break the tie with but plain id order, placing B1 first. The two
+# rankers therefore diverge on their very first rendered element — the one
+# fact this fixture makes derivable without inventing a tiebreak. As in
+# Section 1b, only the first element is asserted: the ids are read from the
+# UNSORTED capture (ids_in_output, no `sort -u`), and nothing past the first
+# position is pinned.
+run_cmd s1d -- --corpus "$fix/reach-note.md" --budget 100000 --anchor reach-note:C1 --ranker anchored
+if [ "$s1d_rc" -eq 0 ]; then
+  first="$(ids_in_output "$s1d_out" | head -1)"
+  if [ "$first" = "reach-note:C1" ]; then
+    record red pass "anchor=C1 --ranker anchored renders C1 (distance 0) first"
+  else
+    record red fail "anchor=C1 --ranker anchored renders C1 (distance 0) first" "got first: $first"
+  fi
+else
+  record red fail "anchor=C1 --ranker anchored renders C1 (distance 0) first" "rc=$s1d_rc: $s1d_out"
+fi
+
+run_cmd s1e -- --corpus "$fix/reach-note.md" --budget 100000 --anchor reach-note:C1 --ranker recency
+if [ "$s1e_rc" -eq 0 ]; then
+  first="$(ids_in_output "$s1e_out" | head -1)"
+  if [ "$first" = "reach-note:B1" ]; then
+    record red pass "anchor=C1 --ranker recency renders B1 (plain id order) first, diverging from --ranker anchored"
+  else
+    record red fail "anchor=C1 --ranker recency renders B1 (plain id order) first, diverging from --ranker anchored" "got first: $first"
+  fi
+else
+  record red fail "anchor=C1 --ranker recency renders B1 (plain id order) first, diverging from --ranker anchored" "rc=$s1e_rc: $s1e_out"
+fi
+
+# ════════════════════════════════════════════════════════════════════════════
+echo ""
+echo "════════════════════════════════════════════════════════════════════════"
 echo "SECTION 2 — C2/C9 restricted to the open surface: closed nodes never"
 echo "appear, but still bridge; the documentation contribution is present"
 echo "════════════════════════════════════════════════════════════════════════"
