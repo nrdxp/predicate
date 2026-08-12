@@ -310,6 +310,20 @@ let GateEntry = {
       applies_to  = "agent only",
     } | GateEntry,
 
+    {
+      gate        = "ledger/gate/check_grammar_home.py",
+      scope       = 'orchestration,
+      fires_when  = "CI grammar-home step; binds docs/entries.md (the vocabulary home) to extract_entries.py's MAPPED/RECOGNIZED sets — fails on a mapped token the home never names, and on a documented token the extractor rejects",
+      applies_to  = "human + agent",
+    } | GateEntry,
+
+    {
+      gate        = "ledger/gate/test_grammar_home.sh",
+      scope       = 'orchestration,
+      fires_when  = "CI grammar-home step; mutation suite proving check_grammar_home.py fails in BOTH directions — a home stripped of a mapped token, an extractor grown a token, and a home naming a token nothing implements",
+      applies_to  = "agent only",
+    } | GateEntry,
+
     # ── TEMPLATES/PROJECT-GATES (tracked source; installed to .ledger/gates/ by init) ──
 
     {
