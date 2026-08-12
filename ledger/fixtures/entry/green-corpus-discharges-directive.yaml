@@ -1,0 +1,28 @@
+# Corpus green: a corroborated claim's `discharges` edge resolves to a
+# DIRECTIVE. ruling-terminal-composition [TC1]/[TC6]: a directive states what
+# should be and is open until met — a claim discharging one is the same
+# relation `discharges` already means for a question, not a second one. Only
+# the target-typing widens; DischargeBacked (the discharger's own backing) is
+# untouched.
+directives:
+  - id: drafting-d3:D3D9
+    statement: "The three D3 terminal claims must convert to directive nodes."
+    provenance: "architect ruling on the terminal composition"
+entries:
+  - id: e-meets-directive
+    statement: "D3's three terminal claims have converted; this closes the directive."
+    assertion: claim
+    backing: corroborated
+    signer:
+      kind: agent
+      name: architect-seat
+    check:
+      command: "bash ledger/gate/test_entry.sh"
+      ran: true
+      at: "deadbeef01"
+    axes:
+      determined: true
+      certifiable: true
+      monotone: true
+    discharges:
+      - drafting-d3:D3D9

@@ -578,14 +578,27 @@
   # difference is what DELETION of the target means for the record's
   # evolution, not a license to author a reference that never resolved at all.
   #
+  # DIRECTIVES ENTER THE RESOLVABLE ID SPACE (ruling-terminal-composition
+  # [TC5]). A `directive` closes by authority, not evidence, so the extractor
+  # routes it to its own top-level `directives` list, out of `entries`
+  # entirely — and a correct `depends`/`because`/`discharges` ref naming one
+  # was failing resolution before target-typing was ever consulted, because
+  # `id_set` only ever counted `entries`. `resolvable_id_set` widens the space
+  # every edge resolves against to entries-or-directives; `id_set` itself
+  # stays entries-only, because id-UNIQUENESS is a property of what this
+  # aggregate declares, not of what it may cite.
+  #
   # The closure edges add the conditions no per-entry contract can decide:
-  # `discharges` is claim -> QUESTION by type, and the target's assertion is
-  # only readable once the corpus is in hand. Target-typing therefore lands
-  # here, beside resolution, rather than growing the per-entry closed set —
-  # DischargeBacked already carries the half that IS per-entry (the
-  # discharger's own backing). `supersedes` types nothing — any entry may be
-  # retired unanswered by a survivor — but it must TERMINATE, which is a
-  # property of the relation rather than of any entry in it.
+  # `discharges` is claim -> QUESTION-OR-DIRECTIVE by type ([TC5]/[TC6] — a
+  # directive states what should be and is open until met, the same relation
+  # `discharges` already names for a question, not a second one), and the
+  # target's assertion is only readable once the corpus is in hand.
+  # Target-typing therefore lands here, beside resolution, rather than growing
+  # the per-entry closed set — DischargeBacked already carries the half that
+  # IS per-entry (the discharger's own backing, untouched by this widening).
+  # `supersedes` types nothing — any entry may be retired unanswered by a
+  # survivor — but it must TERMINATE, which is a property of the relation
+  # rather than of any entry in it.
   EntryStore = std.contract.custom (fun _label value =>
     let entries = value.entries in
     # Per-element conformance, EAGER: `std.contract.apply` alone stays lazy
@@ -603,6 +616,7 @@
     in
     let ids = std.array.map (fun en => en.id) entries in
     # id set (record) — O(1) membership; cardinality decides id-uniqueness.
+    # ENTRIES ONLY: uniqueness is a property of what this aggregate declares.
     let id_set =
       std.array.fold_left
         (fun acc id =>
@@ -614,14 +628,31 @@
     let unique_ids =
       std.array.length ids == std.array.length (std.record.fields id_set)
     in
+    # `directives` is optional (the same refs_of-guarded idiom used
+    # throughout): a lone-entry corpus fixture predating this widening, or one
+    # that simply cites none, carries no such field.
+    let directives =
+      if std.record.has_field "directives" value then value.directives else []
+    in
+    let directive_ids = std.array.map (fun d => d.id) directives in
+    # The resolvable space: entries' own ids plus every directive id, folded
+    # onto a COPY of id_set so uniqueness (above) never sees the union.
+    let resolvable_id_set =
+      std.array.fold_left
+        (fun acc id =>
+          if std.record.has_field id acc then acc
+          else std.record.insert id true acc)
+        id_set
+        directive_ids
+    in
     # resolves NAME: every entry's refs under that optional array field land
-    # on a declared id. One helper for all three kinds — the kinds differ in
-    # what they MEAN, never in whether they must resolve.
+    # on a declared id — entry or directive. One helper for all three kinds —
+    # the kinds differ in what they MEAN, never in whether they must resolve.
     let resolves = fun name =>
       std.array.all
         (fun en =>
           std.array.all
-            (fun r => std.record.has_field r id_set)
+            (fun r => std.record.has_field r resolvable_id_set)
             (refs_of name en))
         entries
     in
@@ -629,12 +660,15 @@
       std.array.all
         (fun en =>
           std.array.all
-            (fun r => std.record.has_field r id_set)
+            (fun r => std.record.has_field r resolvable_id_set)
             (corpus_edges_of en))
         entries
     in
-    # question set (record) — the same O(1) idiom as id_set, so discharges
-    # target-typing is a membership test rather than a scan per edge.
+    # question-or-directive set (record) — the same O(1) idiom as id_set, so
+    # discharges target-typing is a membership test rather than a scan per
+    # edge. Built from `entries`' questions UNION `directives`' ids: a target
+    # naming nothing at all — neither a declared question nor a declared
+    # directive — still fails membership here exactly as it always did.
     let question_set =
       std.array.fold_left
         (fun acc en =>
@@ -645,11 +679,19 @@
         {}
         entries
     in
+    let question_or_directive_set =
+      std.array.fold_left
+        (fun acc id =>
+          if std.record.has_field id acc then acc
+          else std.record.insert id true acc)
+        question_set
+        directive_ids
+    in
     let discharges_target_questions =
       std.array.all
         (fun en =>
           std.array.all
-            (fun r => std.record.has_field r question_set)
+            (fun r => std.record.has_field r question_or_directive_set)
             (refs_of "discharges" en))
         entries
     in
@@ -712,13 +754,13 @@
     std.seq _entry_conformance (
       if !unique_ids then 'Error { message = "EntryStore: duplicate entry id" }
       else if !all_edges_resolve then
-        'Error { message = "EntryStore: dangling edge — a depends/because ref does not resolve to a declared entry id" }
+        'Error { message = "EntryStore: dangling edge — a depends/because ref does not resolve to a declared entry or directive id" }
       else if !(resolves "discharges") then
-        'Error { message = "EntryStore: dangling discharges — a closure edge does not resolve to a declared entry id" }
+        'Error { message = "EntryStore: dangling discharges — a closure edge does not resolve to a declared entry or directive id" }
       else if !(resolves "supersedes") then
-        'Error { message = "EntryStore: dangling supersedes — a supersession edge does not resolve to a declared entry id" }
+        'Error { message = "EntryStore: dangling supersedes — a supersession edge does not resolve to a declared entry or directive id" }
       else if !discharges_target_questions then
-        'Error { message = "EntryStore: discharges target is not a question — a claim answers questions, nothing else" }
+        'Error { message = "EntryStore: discharges target is not a question or directive — a claim answers questions or directives, nothing else" }
       else if !supersession_terminates then
         'Error { message = "EntryStore: SupersessionTerminates — the supersedes relation cycles, so the entries it retires name no surviving entry to carry them" }
       else 'Ok value

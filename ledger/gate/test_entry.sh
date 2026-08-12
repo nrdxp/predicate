@@ -99,6 +99,28 @@ expect "corpus: surviving question supersedes its duplicate -> export clean" 0 "
 expect "corpus: two-hop supersession chain bottoms out -> export clean" 0 "" \
   -- run "$fix/green-corpus-supersedes-chain.yaml"
 
+# --- node/directives-resolvable: directives enter the resolvable id space --
+#
+# ruling-terminal-composition [TC5]/[TC6]: a `directive` closes by authority
+# and the extractor routes it to the top-level `directives` list, out of
+# `entries` entirely — so a correct `because`/`discharges` ref naming one was
+# failing resolution before target-typing was ever consulted, because
+# `id_set` only ever counted `entries`. The fix widens the space every edge
+# resolves against to entries-or-directives, and widens `discharges`'
+# target-typing from question-only to question-or-directive — the same
+# relation, not a new one (`discharges` still means "this entry answers that
+# open item", and a directive is open until met). DischargeBacked (the
+# discharger's own backing) is untouched by either change.
+expect "corpus: because names a directive -> export clean" 0 "" \
+  -- run "$fix/green-corpus-because-directive.yaml"
+expect "corpus: discharges resolves to a declared directive -> export clean" 0 "" \
+  -- run "$fix/green-corpus-discharges-directive.yaml"
+# The third case, proving the widening is not a blanket weakening: a
+# `directives` list is present and non-empty, but the ref names an id that is
+# neither a declared entry nor a declared directive. It must still dangle.
+expect "corpus: ref naming nothing at all still dangles, directives present" 1 "dangling edge" \
+  -- run "$fix/red-corpus-dangling-with-directives.yaml"
+
 # --- node/provenance-gate: TDD reds for the ProvenanceGate relaxation -------
 #
 # ruling-provenance-gate (ledger commit fcf009e): the 22 no-derivation-edge
