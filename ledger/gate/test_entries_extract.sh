@@ -215,6 +215,52 @@ assert floors["amendment-note:X4"] == ["unbacked"], floors
 print("AMEND-VIEWS-OK")
 EOF
 
+# --- the mixed floor: an external branch BESIDE an internal one --------------
+#
+# The amendment golden above reaches `external` only from an EDGE-FREE leaf,
+# so the branching case stays unpinned: an entry carrying a resolvable
+# derivation edge AND an external ref at once. `chain_floor` walks the edges
+# through its fixed point and consults the entry's own external refs nowhere
+# along that path, so the out-of-corpus branch is dropped and a claim whose
+# support genuinely leaves the record reports a clean floor set — the
+# overconfident reading this view exists to refuse.
+#
+# X1 is the direct case: one edge onto a corroborated claim, one wikilink the
+# corpus cannot follow. X2 rests on X1 alone, so it pins the union
+# PROPAGATING — a repair applied where the rows are assembled, rather than
+# inside the fixed point they are read from, would satisfy X1 and lose X2. K1
+# is the control: the internal branch really does bottom out `closed`, so a
+# failure here is the missing external branch and nothing else.
+
+expect "mixed floor: clean fixture extracts, exit 0" 0 "" \
+  -- python3 "$extractor" "$fix/mixed-floor-note.md" -o "$tmp/mixed-floor.yaml"
+expect "mixed floor: export passes the entry contract" 0 "" \
+  -- nickel export "$tmp/mixed-floor.yaml" --apply-contract "$apply"
+
+nickel export "$tmp/mixed-floor.yaml" --apply-contract "$query" \
+  > "$tmp/mixed-floor-query.json" 2>/dev/null
+expect "mixed floor: external branch reported beside the internal one" \
+  0 "BOTH-BRANCHES-OK" \
+  -- python3 - "$tmp/mixed-floor.yaml" "$tmp/mixed-floor-query.json" <<'EOF'
+import json, sys
+export = json.load(open(sys.argv[1]))
+q = json.load(open(sys.argv[2]))
+entries = {e["id"]: e for e in export["entries"]}
+# The INPUT first: the corpus carries both branches and the query is handed
+# both, so a floor assertion below can only be about how they were read —
+# never a lost fixture, a dropped edge, or a changed extractor.
+assert entries["mixed-floor-note:X1"]["because"] == ["mixed-floor-note:K1"]
+assert entries["mixed-floor-note:X2"]["because"] == ["mixed-floor-note:X1"]
+assert export["external_refs"] == [
+    {"entry": "mixed-floor-note:X1", "refs": ["prior-art/floor-vocabulary"]}
+], export["external_refs"]
+floors = {row["id"]: sorted(row["floors"]) for row in q["chain_floor"]}
+assert floors["mixed-floor-note:K1"] == ["closed"], floors
+assert floors["mixed-floor-note:X1"] == ["closed", "external"], floors
+assert floors["mixed-floor-note:X2"] == ["closed", "external"], floors
+print("BOTH-BRANCHES-OK")
+EOF
+
 # --- the mention/use rule ----------------------------------------------------
 #
 # An empty-valued span of ANY MAPPED token is a MENTION in prose, not a use:
