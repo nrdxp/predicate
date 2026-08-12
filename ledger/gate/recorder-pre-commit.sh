@@ -100,6 +100,40 @@ for f in "${staged[@]}"; do
   esac
 done
 
+# --- CANDIDATE-LINK SURFACING (staged *.md documents) ----------------------
+# Advisory-only, structural co-citation + stem/title-overlap surfacing over
+# the corpus (ledger/derive/candidate_links.py). This makes the record's own
+# rule operative rather than merely recorded: "a promotion begins with a
+# search for correlated records"
+# (.ledger/log/2026-08-12-search-before-write.md, [S1]) was written down and
+# nothing ran it.
+#
+# Deliberately does NOT participate in $rc, and runs BEFORE the "nothing to
+# validate" early exit below (a commit touching only *.md documents, never a
+# tech-debt/process-feedback *.yaml, is exactly the common case this tier
+# exists for — the yaml-record early exit must not skip it). Whether a
+# surfaced candidate is the RIGHT link is not machine-decidable — a hook that
+# blocked on "has >= 1 link" would be satisfiable by linking anything, the
+# exact check-the-box defect this project has ruled against. So this tier
+# prints candidates (and which the staged document already links) and never
+# gates. It degrades to a diagnostic rather than a failure if python3 is
+# absent; candidate_links.py carries the same guarantee internally (never a
+# non-zero exit, never an uncaught exception) so this call site cannot turn
+# an advisory signal into a blocked commit even if python3 itself misbehaves.
+staged_md=()
+for f in "${staged[@]}"; do
+  case "$f" in
+    *.md) staged_md+=("$f") ;;
+  esac
+done
+if [ "${#staged_md[@]}" -gt 0 ]; then
+  if command -v python3 >/dev/null 2>&1; then
+    python3 "$plugin/ledger/derive/candidate_links.py" "$root" "${staged_md[@]}"
+  else
+    echo "recorder-pre-commit: python3 not on PATH — skipping candidate-link surfacing (advisory only, not blocking)" >&2
+  fi
+fi
+
 # Nothing to validate — true no-op, nickel never invoked.
 [ "${#records[@]}" -eq 0 ] && exit 0
 
