@@ -79,7 +79,10 @@
       "signer": {
         "kind": "agent",
         "name": "composer"
-      }
+      },
+      "because": [
+        "ledger-note:K2"
+      ]
     },
     {
       "id": "ledger-note:X3",
@@ -125,12 +128,16 @@
     },
     {
       "id": "ledger-note:Q2",
-      "statement": "What level of scrutiny does each claim type garner? No discharge condition stated yet.",
+      "statement": "What level of scrutiny does each claim type garner?",
       "assertion": "question",
       "backing": "unclosed",
       "signer": {
         "kind": "agent",
         "name": "composer"
+      },
+      "discharge": "classify the landed corpus and count",
+      "closer": {
+        "kind": "agent"
       }
     },
     {
@@ -145,6 +152,10 @@
       "witness": {
         "name": "[[log/2026-08-11-escalation]]",
         "at": "abc1234"
+      },
+      "discharge": "nothing in the record can settle it",
+      "closer": {
+        "kind": "agent"
       }
     }
   ],

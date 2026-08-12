@@ -6,6 +6,13 @@ This fixture is SYNTHETIC: it exercises the extractor's grammar, feature by
 feature, so its expected extraction is exact by construction. The bare
 `grade::` convention mentioned here is a census-only occurrence, not a token.
 
+Every question carries both routing halves, the frontier and residual ones
+included: QuestionRoutable admits no exception, so the grade records how a
+question was reached, never whether it states a discharge condition. Every
+unclosed claim likewise names at least one doc-local ref, because an external
+ref is filed beside the derivation edges and satisfies the provenance gate on
+its own account — never in place of one.
+
 ## Claims
 
 `[K1] grade::proved` The battery passes.
@@ -23,7 +30,7 @@ feature, so its expected extraction is exact by construction. The bare
 `derives-from:: [K1], [K2]`
 
 `[X2] grade::synthesis` The fix is isolation, not vigilance.
-`derives-from::` [[process-feedback/tc-concurrent-writer]]
+`derives-from:: [K2]` [[process-feedback/tc-concurrent-writer]]
 
 `[X3] grade::synthesis` A multiline companion span survives line joining.
 `derives-from:: [X1]` `conversion-path:: candidate for the boundary discipline
@@ -37,11 +44,12 @@ alongside the vacuity rule`
 `[R1] grade::routed` Ratify the bundle. `discharge:: the head's ruling`
 `closer:: human/nrd`
 
-`[Q2] grade::frontier` What level of scrutiny does each claim type garner? No
-discharge condition stated yet.
+`[Q2] grade::frontier` What level of scrutiny does each claim type garner?
+`discharge:: classify the landed corpus and count` `closer:: machine`
 
 `[Z1] grade::residual` Whether an agent upholds the rules is conduct outside
-the record. `source:: [[log/2026-08-11-escalation]]`
+the record. `discharge:: nothing in the record can settle it`
+`closer:: machine` `source:: [[log/2026-08-11-escalation]]`
 
 ## Directive
 

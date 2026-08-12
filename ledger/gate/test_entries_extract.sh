@@ -155,8 +155,17 @@ assert q["unpaid_cures"]["unassessed"] == [
 ], q["unpaid_cures"]
 unbacked = {row["id"]: row for row in q["unbacked"]}
 assert sorted(unbacked) == [f"ledger-note:{m}" for m in ["X1", "X2", "X3"]]
-assert unbacked["ledger-note:X1"]["backed"] is True
-assert unbacked["ledger-note:X2"]["backed"] is False
+# `backed` is TRUE for every row, and cannot be otherwise in a corpus the
+# contract admits: the view selects unclosed claims, and ProvenanceGate
+# refuses exactly those with no derivation edge. The field therefore reports
+# a property the law already enforces. Asserted over the whole view rather
+# than one row so the redundancy is pinned as such — the day ProvenanceGate
+# narrows, this is the assertion that fails and says why.
+assert all(row["backed"] for row in q["unbacked"]), q["unbacked"]
+# X2's external ref sits BESIDE its derivation edge, never in place of one:
+# `edges_of` is derivation-only, so a `derives-from::` naming something
+# outside the corpus is preserved here and satisfies the gate not at all.
+assert unbacked["ledger-note:X2"]["edges"] == ["ledger-note:K2"], unbacked
 assert unbacked["ledger-note:X2"]["external_refs"] == [
     "process-feedback/tc-concurrent-writer"
 ]
