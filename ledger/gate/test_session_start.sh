@@ -249,6 +249,122 @@ reason = f"full={surface_full}\ntiny={surface_tiny}"
 '
 rm -rf "$proj"
 
+# ─── (i) second contribution: open claims near the work ────────────────────
+# node/surface-injection: a second hook contribution consuming the
+# anchored-reachability open-surface primitive's STRUCTURED output
+# (ledger/derive/anchored_surface.sh --json) — never its rendered prose.
+# THE FUNCTION DOES NOT EXIST YET at the tip this case was authored against
+# — red for that reason.
+#
+# Every corpus document needs a `signer::`/`at::` header here (unlike the
+# co-citation-only fixtures above): extract_entries.py reports ANY headerless
+# .md file as a pre-standard-doc finding, and anchored_surface.sh treats any
+# finding as extraction failure for the WHOLE corpus — a stricter bar than
+# candidate_links.py's, which never reads headers at all.
+proj="$(make_git_repo)"
+mkdir -p "$proj/.ledger/log"
+cat > "$proj/.ledger/log/near-claim.md" <<'EOF'
+# an older doc holding an open question near the work
+
+`signer:: agent/test` · `at:: 0000000`
+
+`[NEAR1] grade::frontier` An open question sitting near where the work is
+about to happen.
+`discharge:: whatever eventually answers this` `closer:: agent/test`
+EOF
+touch -d "2018-01-01" "$proj/.ledger/log/near-claim.md"
+for i in 1 2 3 4 5 6; do
+  cat > "$proj/.ledger/log/filler$i.md" <<EOF
+# filler doc $i
+
+\`signer:: agent/test\` · \`at:: 0000000\`
+
+nothing special.
+EOF
+  touch -d "2019-01-0$i" "$proj/.ledger/log/filler$i.md"
+done
+cat > "$proj/.ledger/log/recent.md" <<'EOF'
+# recent doc, derives from a nearby open question
+
+`signer:: agent/test` · `at:: 0000000`
+
+`[WORK1] grade::synthesis` A claim just written, derived from the open
+question sitting nearby.
+`derives-from:: [near-claim:NEAR1]`
+EOF
+assert_py "(i) an entry near a just-touched document's own claim surfaces" "$proj" '
+claims = ss.compute_claim_surface(ledger_root)
+ok = claims.candidate_count >= 1 and "near-claim:NEAR1" in claims.text
+reason = f"claims={claims}"
+'
+rm -rf "$proj"
+
+# ─── (i2) full envelope: both contributions land in one additionalContext ──
+# Reuses (i)'s fixture, adding co-citation content so BOTH contributions are
+# non-empty at once — pinning the two-contribution shape structurally (each
+# section is checked for its own header presence in the merged text, never
+# by re-deriving a count from parsed prose).
+proj="$(make_git_repo)"
+mkdir -p "$proj/.ledger/log"
+cat > "$proj/.ledger/log/near-claim.md" <<'EOF'
+# an older doc holding an open question near the work
+
+`signer:: agent/test` · `at:: 0000000`
+
+`[NEAR1] grade::frontier` An open question sitting near where the work is
+about to happen.
+`discharge:: whatever eventually answers this` `closer:: agent/test`
+EOF
+touch -d "2018-01-01" "$proj/.ledger/log/near-claim.md"
+cat > "$proj/.ledger/log/a.md" <<'EOF'
+# a doc about hooks
+
+`signer:: agent/test` · `at:: 0000000`
+EOF
+cat > "$proj/.ledger/log/b.md" <<'EOF'
+# b doc about hooks
+
+`signer:: agent/test` · `at:: 0000000`
+EOF
+cat > "$proj/.ledger/log/other.md" <<'EOF'
+# other cites both, an old document
+
+`signer:: agent/test` · `at:: 0000000`
+
+[[log/a]] and [[log/b]] are related.
+EOF
+touch -d "2018-01-01" "$proj/.ledger/log/other.md" "$proj/.ledger/log/a.md" "$proj/.ledger/log/b.md"
+for i in 1 2 3 4 5 6; do
+  cat > "$proj/.ledger/log/filler$i.md" <<EOF
+# filler doc $i
+
+\`signer:: agent/test\` · \`at:: 0000000\`
+
+nothing special.
+EOF
+  touch -d "2019-01-0$i" "$proj/.ledger/log/filler$i.md"
+done
+cat > "$proj/.ledger/log/recent.md" <<'EOF'
+# recent doc, cites a and derives from a nearby open question
+
+`signer:: agent/test` · `at:: 0000000`
+
+see [[log/a]] for context.
+
+`[WORK1] grade::synthesis` A claim just written, derived from the open
+question sitting nearby.
+`derives-from:: [near-claim:NEAR1]`
+EOF
+run_hook "$proj"
+assert_py "(i2) the merged additionalContext carries both contributions' own headers" "$proj" '
+import json
+data = json.load(open("'"$tmp"'/stdout.json"))
+ctx = data.get("hookSpecificOutput", {}).get("additionalContext", "")
+ok = "## Record open surface" in ctx and "## Open claims near the work" in ctx and "near-claim:NEAR1" in ctx and "log/b" in ctx
+reason = f"ctx={ctx}"
+'
+rm -rf "$proj"
+
 # ─── (h) never a non-zero exit, across every fixture above ──────────────────
 if [ "$nonzero_exits" -eq 0 ]; then
   pass "(h) every full-script invocation across the fixture set exits 0"
@@ -301,6 +417,66 @@ if [ "$mutant_shows_excluded_anchor" -eq 0 ]; then
   pass "(mutation) breaking the anchor-exclusion filter leaks an excluded anchor into output"
 else
   fail "(mutation) mutant still excludes log/a — assertion (a) cannot discriminate this defect"
+fi
+rm -rf "$proj"
+
+# ─── MUTATION 2: prove case (i) can fail ────────────────────────────────────
+# Breaks the entry-anchor stem match in _entry_anchors_near_recent (node/
+# surface-injection's own addition) so a recently-touched document's own
+# declared entries are never recognized as anchors — the mutant must find
+# ZERO candidates where the real hook finds NEAR1, proving (i) can
+# discriminate this defect rather than passing by construction.
+mutant2="$tmp/mutant2_session_start.py"
+sed 's/if stem in recent_stems:/if False:/' "$hook" > "$mutant2"
+proj="$(make_git_repo)"
+mkdir -p "$proj/.ledger/log"
+cat > "$proj/.ledger/log/near-claim.md" <<'EOF'
+# an older doc holding an open question near the work
+
+`signer:: agent/test` · `at:: 0000000`
+
+`[NEAR1] grade::frontier` An open question sitting near where the work is
+about to happen.
+`discharge:: whatever eventually answers this` `closer:: agent/test`
+EOF
+touch -d "2018-01-01" "$proj/.ledger/log/near-claim.md"
+for i in 1 2 3 4 5 6; do
+  cat > "$proj/.ledger/log/filler$i.md" <<EOF
+# filler doc $i
+
+\`signer:: agent/test\` · \`at:: 0000000\`
+
+nothing special.
+EOF
+  touch -d "2019-01-0$i" "$proj/.ledger/log/filler$i.md"
+done
+cat > "$proj/.ledger/log/recent.md" <<'EOF'
+# recent doc, derives from a nearby open question
+
+`signer:: agent/test` · `at:: 0000000`
+
+`[WORK1] grade::synthesis` A claim just written, derived from the open
+question sitting nearby.
+`derives-from:: [near-claim:NEAR1]`
+EOF
+python3 - "$proj" "$mutant2" <<PY
+import sys, importlib.util
+sys.path.insert(0, "$root/ledger/derive")
+proj_path, mutant_path = sys.argv[1], sys.argv[2]
+spec = importlib.util.spec_from_file_location("mutant2_ss", mutant_path)
+mutant_ss = importlib.util.module_from_spec(spec)
+sys.modules["mutant2_ss"] = mutant_ss
+spec.loader.exec_module(mutant_ss)
+from pathlib import Path
+proj = Path(proj_path)
+claims = mutant_ss.compute_claim_surface(proj / ".ledger")
+sys.exit(0 if claims.candidate_count == 0 else 1)
+PY
+mutant_finds_nothing=$?
+if [ "$mutant_finds_nothing" -eq 0 ]; then
+  pass "(mutation 2) breaking the entry-anchor stem match empties out the claim surface"
+else
+  fail "(mutation 2) mutant still finds a candidate — assertion (i) cannot discriminate this defect"
 fi
 rm -rf "$proj"
 
