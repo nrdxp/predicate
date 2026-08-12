@@ -309,7 +309,11 @@ follow to the stated standard the extractor is correct against:
   `<file-stem>:<ID>`. `<grade>` is a cell display name from the table above
   (`proved`, `cited`, `synthesis`, `dispatchable`, `routed`, `frontier`,
   `residual`) or `directive`, which is out-of-vocabulary for entries and
-  extracts to a separate list with its `provenance::`.
+  extracts to a separate list with its `provenance::`. A `<grade>` outside
+  that set does not fall out of nodehood: the paragraph is still read as a
+  node, reported as `unknown-grade` rather than dropped in silence, with the
+  node itself left out of the extract; a well-formed sibling in the same
+  document still extracts.
 - **Unmarked assertions.** In a document carrying at least one node, a
   paragraph that asserts without opening a marker is reported as an
   `unmarked-assertion`. Every other report here fires on a claim that was
