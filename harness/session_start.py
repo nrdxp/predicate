@@ -378,19 +378,31 @@ def _entry_anchors_near_recent(entries: List[dict], recent_ids: FrozenSet[str]) 
 
 def _last_dispatch_message_text(transcript_path: Optional[str]) -> Optional[str]:
     """The text of the most recent user-authored, non-meta message in the
-    walk's OWN transcript (the `transcript_path` SessionStart's stdin JSON
-    documents on every event) — the closest thing to 'the walk's dispatch'
-    reachable at this event (node/dispatch-anchoring, ruling-hooks-
-    boundary.md [A6]). For a freshly-dispatched subagent this is its one
-    and only user-role entry, written before the walk's first turn; for a
-    resumed or forked top-level session it is the most recent thing the
-    walk was asked to continue, which is what 'about to be re-derived' means
-    for that class of session. `isMeta` entries (harness-injected
-    system-reminders, not the walk's own words) are skipped. Never raises:
-    a missing path, an unreadable/malformed file, or a transcript with no
-    qualifying message all degrade to None — the same non-fatal path every
-    other resolution in this hook takes, and the caller's own fallback to
-    recency is exactly the degrade this produces."""
+    TOP-LEVEL transcript `transcript_path` names — the closest thing to
+    'the walk's dispatch' for a resumed or forked top-level session, where
+    it is the most recent thing the walk was asked to continue (what 'about
+    to be re-derived' means for that class of session). `isMeta` entries
+    (harness-injected system-reminders, not the walk's own words) are
+    skipped.
+
+    NOT the right source for a Task-dispatched SUBAGENT (see
+    `_subagent_dispatch_text`, tried first when `agent_id` is present):
+    empirically, across two isolated `claude -p` probe runs (node/dispatch-
+    anchoring), a subagent's OWN `transcript_path` is the PARENT session's
+    shared transcript — its dispatch prompt lives inside an ASSISTANT
+    tool_use block (`name` "Agent"/"Task"), never as a `type: "user"`
+    message this function reads — so called alone here it would find the
+    top-level human's own prompt, misattributing the subagent's context to
+    whatever last started the whole session. Kept as the fallback for that
+    case (the top-level prompt is still more relevant than pure recency)
+    and as the primary path for an actual top-level resume/fork, where no
+    such misattribution risk exists.
+
+    Never raises: a missing path, an unreadable/malformed file, or a
+    transcript with no qualifying message all degrade to None — the same
+    non-fatal path every other resolution in this hook takes, and the
+    caller's own fallback to recency is exactly the degrade this
+    produces."""
     if not transcript_path:
         return None
     path = Path(transcript_path)
@@ -413,19 +425,87 @@ def _last_dispatch_message_text(transcript_path: Optional[str]) -> Optional[str]
         message = obj.get("message")
         if not isinstance(message, dict) or message.get("role") != "user":
             continue
-        content = message.get("content")
-        if isinstance(content, str):
-            text = content
-        elif isinstance(content, list):
-            text = "\n".join(
-                block.get("text", "") for block in content
-                if isinstance(block, dict) and block.get("type") == "text"
-            )
-        else:
-            continue
-        if text.strip():
+        text = _message_content_text(message.get("content"))
+        if text:
             last_text = text
     return last_text
+
+
+def _message_content_text(content) -> Optional[str]:
+    """A transcript entry's `message.content` in either shape the format
+    uses — a plain string, or a list of content blocks — collapsed to its
+    text, or None if it carries no non-blank text block. Shared by both
+    dispatch-text readers below so the two content shapes are parsed
+    identically rather than twice."""
+    if isinstance(content, str):
+        return content if content.strip() else None
+    if isinstance(content, list):
+        text = "\n".join(
+            block.get("text", "") for block in content
+            if isinstance(block, dict) and block.get("type") == "text"
+        )
+        return text if text.strip() else None
+    return None
+
+
+def _subagent_dispatch_text(
+    transcript_path: Optional[str], session_id: Optional[str], agent_id: Optional[str],
+) -> Optional[str]:
+    """The walk's OWN dispatch text when this hook fires for a Task-
+    dispatched subagent (SubagentStart) — the PRIMARY source when
+    `agent_id` is present, ahead of `_last_dispatch_message_text`.
+
+    SubagentStart's own `transcript_path` points at the PARENT session's
+    shared transcript, not the subagent's own (see
+    `_last_dispatch_message_text`'s docstring for how that was confirmed).
+    Both probe runs that established this ALSO show a PER-SUBAGENT
+    transcript file at a sibling path (`<transcript_path's parent>/
+    <session_id>/subagents/*.jsonl`) whose own first entry is a genuine
+    `type: "user"` message carrying the real dispatch text — found by
+    CONTENT, not filename: every file in that directory is opened and its
+    first line's own `agentId` field is compared against the `agent_id`
+    this event's stdin already provides, never by guessing the filename's
+    naming transform (a real subagent's filename embeds its declared NAME
+    when given one, `agent-a<name>-<short-id>.jsonl`, and a bare
+    `agent-<agent_id>.jsonl` otherwise — two different shapes this hook has
+    no documented way to predict, so it does not try).
+
+    This directory layout is NOT part of the documented hook contract
+    (unlike transcript_path/session_id/agent_id themselves, which ARE) —
+    it is empirically observed on this harness build, not guaranteed
+    stable across versions. Degrades to None on any mismatch: a missing
+    session_id/agent_id, an absent or unreadable subagents directory, or
+    no file whose first entry's agentId matches — routing straight to
+    `_last_dispatch_message_text`'s own fallback, the same non-fatal path
+    every other resolution in this hook takes."""
+    if not transcript_path or not session_id or not agent_id:
+        return None
+    subagents_dir = Path(transcript_path).parent / session_id / "subagents"
+    try:
+        candidates = sorted(subagents_dir.glob("*.jsonl"))
+    except OSError:
+        return None
+    for candidate in candidates:
+        try:
+            with candidate.open("r", encoding="utf-8") as f:
+                first_line = f.readline()
+        except OSError:
+            continue
+        if not first_line.strip():
+            continue
+        try:
+            obj = json.loads(first_line)
+        except json.JSONDecodeError:
+            continue
+        if obj.get("agentId") != agent_id or obj.get("type") != "user":
+            continue
+        message = obj.get("message")
+        if not isinstance(message, dict) or message.get("role") != "user":
+            continue
+        text = _message_content_text(message.get("content"))
+        if text:
+            return text
+    return None
 
 
 def _dispatch_anchor_ids(text: str, entries: List[dict]) -> List[str]:
@@ -479,14 +559,24 @@ def compute_claim_surface(
     and the candidate-links suite already hold to.
 
     Anchor priority (node/dispatch-anchoring, ruling-hooks-boundary.md [A6]):
-    the entries the WALK'S OWN DISPATCH names, read from its transcript via
-    `_last_dispatch_message_text`, come first; recency (entries declared in
-    recently-touched documents) is the FALLBACK for a walk whose dispatch
-    names nothing the corpus recognises — including every walk this is
-    called for with `input_data` omitted, which keeps this contribution
-    testable without a transcript fixture. Recency-as-primary was this
-    contribution's own shipped defect and is not restored here even as a
-    tiebreak: a dispatch anchor, once found, is used exclusively.
+    the entries the WALK'S OWN DISPATCH names come first; recency (entries
+    declared in recently-touched documents) is the FALLBACK for a walk
+    whose dispatch names nothing the corpus recognises — including every
+    walk this is called for with `input_data` omitted, which keeps this
+    contribution testable without a transcript fixture. Recency-as-primary
+    was this contribution's own shipped defect and is not restored here
+    even as a tiebreak: a dispatch anchor, once found, is used exclusively.
+
+    Reading the dispatch itself is TWO readers tried in order, because
+    SubagentStart and a top-level SessionStart resume/fork carry it
+    differently (empirically confirmed, node/dispatch-anchoring): when
+    `agent_id` is present (this walk IS a Task-dispatched subagent),
+    `_subagent_dispatch_text` is tried first — its own transcript_path
+    points at the PARENT's shared transcript, not this walk's own, so it
+    is skipped otherwise. `_last_dispatch_message_text` (the top-level
+    transcript's own last user message) is always the fallback reader,
+    covering both an actual top-level resume/fork AND a subagent whose
+    per-subagent transcript could not be found.
 
     Degrades to an empty contribution whenever no anchor is found by either
     path or the primitive itself returns nothing (a pre-existing corpus
@@ -501,7 +591,14 @@ def compute_claim_surface(
 
     entries = _export_entries(ledger_root)
 
-    dispatch_text = _last_dispatch_message_text((input_data or {}).get("transcript_path"))
+    data = input_data or {}
+    dispatch_text = None
+    if data.get("agent_id"):
+        dispatch_text = _subagent_dispatch_text(
+            data.get("transcript_path"), data.get("session_id"), data.get("agent_id"))
+    if not dispatch_text:
+        dispatch_text = _last_dispatch_message_text(data.get("transcript_path"))
+
     anchor_source = ""
     anchors: List[str] = []
     if dispatch_text:
@@ -592,9 +689,14 @@ def main() -> int:
             print(json.dumps({}))
             return 0
 
+        # node/dispatch-anchoring: this script is now wired to BOTH
+        # SessionStart and SubagentStart (harness/hooks.json) — the output
+        # contract requires hookEventName to echo whichever one fired
+        # (code.claude.com/docs/en/hooks), never a constant, or a
+        # SubagentStart invocation reports itself as the wrong event.
         print(json.dumps({
             "hookSpecificOutput": {
-                "hookEventName": "SessionStart",
+                "hookEventName": input_data.get("hook_event_name", "SessionStart"),
                 "additionalContext": "\n\n".join(parts),
             }
         }))

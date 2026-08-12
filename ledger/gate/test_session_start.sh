@@ -580,6 +580,166 @@ else
 fi
 rm -rf "$proj"
 
+# ─── (o)/(p)/(o2): SubagentStart's dispatch reader (node/dispatch-
+# anchoring, empirically justified) — a Task-dispatched subagent's OWN
+# `transcript_path` is the PARENT session's shared transcript, so
+# `_subagent_dispatch_text` (agent_id-correlated, read from a sibling
+# `<session_id>/subagents/*.jsonl` file) must be tried FIRST and win over
+# `_last_dispatch_message_text`, which would otherwise misattribute the
+# subagent's context to whatever the top-level session was last asked. ────
+proj="$(make_git_repo)"
+mkdir -p "$proj/.ledger/log"
+cat > "$proj/.ledger/log/parent-topic.md" <<'EOF'
+# what the top-level session was last asked about
+
+`signer:: agent/test` · `at:: 0000000`
+
+`[PARENT1] grade::frontier` The wrong entry for a subagent to anchor on —
+what a naive transcript scan finds if it reads the shared parent
+transcript's own top-level message instead of the subagent's own dispatch.
+`discharge:: whatever eventually answers this` `closer:: agent/test`
+EOF
+touch -d "2018-01-01" "$proj/.ledger/log/parent-topic.md"
+cat > "$proj/.ledger/log/subagent-topic.md" <<'EOF'
+# what the subagent was actually dispatched to do
+
+`signer:: agent/test` · `at:: 0000000`
+
+`[SUB1] grade::frontier` The right entry — what the subagent's OWN dispatch
+names.
+`discharge:: whatever eventually answers this` `closer:: agent/test`
+EOF
+touch -d "2018-01-02" "$proj/.ledger/log/subagent-topic.md"
+for i in 1 2 3 4 5; do
+  cat > "$proj/.ledger/log/decoy$i.md" <<EOF
+# decoy document $i, touched most recently of all
+
+\`signer:: agent/test\` · \`at:: 0000000\`
+
+\`[DECOY$i] grade::frontier\` An open question recency would have anchored on.
+\`discharge:: whatever eventually answers this\` \`closer:: agent/test\`
+EOF
+  touch -d "2019-06-0$i" "$proj/.ledger/log/decoy$i.md"
+done
+
+# The PARENT transcript (session id "parentsess"): a top-level user message
+# naming the WRONG entry — exactly what a subagent dispatch's own tool_use
+# leaves behind in the shared transcript this hook does NOT parse for it.
+session_dir="$tmp/subagent-fixture"
+mkdir -p "$session_dir"
+parent_transcript="$session_dir/parentsess.jsonl"
+printf '%s\n' '{"type": "user", "message": {"role": "user", "content": "top-level topic: parent-topic:PARENT1"}}' > "$parent_transcript"
+
+# The SUBAGENT's own transcript, at the empirically-observed sibling path
+# (<transcript_path's dir>/<session_id>/subagents/*.jsonl), correlated by
+# its first entry's own agentId field against the stdin's agent_id.
+subagents_dir="$session_dir/parentsess/subagents"
+mkdir -p "$subagents_dir"
+printf '%s\n' '{"type": "user", "agentId": "agent-xyz", "message": {"role": "user", "content": "subagent dispatch: subagent-topic:SUB1"}}' > "$subagents_dir/agent-worker-xyz.jsonl"
+
+input_json_o=$(printf '{"transcript_path": "%s", "session_id": "parentsess", "agent_id": "agent-xyz"}' "$parent_transcript")
+python3 - "$proj" "$input_json_o" <<PY
+import sys, json
+sys.path.insert(0, "$root/harness")
+sys.path.insert(0, "$root/ledger/derive")
+import session_start as ss
+from pathlib import Path
+proj = Path(sys.argv[1])
+input_data = json.loads(sys.argv[2])
+claims = ss.compute_claim_surface(proj / ".ledger", input_data)
+ok = (
+    claims.anchor_source == "dispatch"
+    and "subagent-topic:SUB1" in claims.text
+    and "parent-topic:PARENT1" not in claims.text
+    and not any(f"decoy{i}:DECOY{i}" in claims.text for i in range(1, 6))
+)
+if not ok:
+    print(f"claims={claims}", file=sys.stderr)
+sys.exit(0 if ok else 1)
+PY
+if [ $? -eq 0 ]; then
+  pass "(o) a subagent's own dispatch (its sibling transcript file) wins over the shared parent transcript"
+else
+  fail "(o) a subagent's own dispatch (its sibling transcript file) wins over the shared parent transcript"
+fi
+
+# ─── (p) a subagent whose own transcript file cannot be found (a
+# DIFFERENT session_id, so no matching subagents/ dir exists) falls back
+# to the parent transcript's own last message rather than going straight
+# to recency ─────────────────────────────────────────────────────────────
+input_json_p=$(printf '{"transcript_path": "%s", "session_id": "missingsess", "agent_id": "agent-xyz"}' "$parent_transcript")
+python3 - "$proj" "$input_json_p" <<PY
+import sys, json
+sys.path.insert(0, "$root/harness")
+sys.path.insert(0, "$root/ledger/derive")
+import session_start as ss
+from pathlib import Path
+proj = Path(sys.argv[1])
+input_data = json.loads(sys.argv[2])
+claims = ss.compute_claim_surface(proj / ".ledger", input_data)
+ok = claims.anchor_source == "dispatch" and "parent-topic:PARENT1" in claims.text
+if not ok:
+    print(f"claims={claims}", file=sys.stderr)
+sys.exit(0 if ok else 1)
+PY
+if [ $? -eq 0 ]; then
+  pass "(p) a subagent with no locatable sibling transcript falls back to the parent transcript's last message"
+else
+  fail "(p) a subagent with no locatable sibling transcript falls back to the parent transcript's last message"
+fi
+
+# ─── (o2) full script: a SubagentStart-shaped stdin payload echoes
+# "SubagentStart" as hookEventName (never the hardcoded "SessionStart")
+# and surfaces the subagent's own dispatch end to end ──────────────────
+full_input=$(printf '{"cwd": "%s", "transcript_path": "%s", "session_id": "parentsess", "agent_id": "agent-xyz", "agent_type": "general-purpose", "hook_event_name": "SubagentStart"}' "$proj" "$parent_transcript")
+printf '%s' "$full_input" | python3 "$hook" >"$tmp/stdout.json" 2>"$tmp/stderr.txt"
+rc=$?
+[ "$rc" -ne 0 ] && nonzero_exits=$((nonzero_exits + 1))
+python3 - <<PY
+import json, sys
+data = json.load(open("$tmp/stdout.json"))
+hso = data.get("hookSpecificOutput", {})
+ok = hso.get("hookEventName") == "SubagentStart" and "subagent-topic:SUB1" in hso.get("additionalContext", "")
+sys.exit(0 if ok else 1)
+PY
+if [ $? -eq 0 ] && [ "$rc" -eq 0 ]; then
+  pass "(o2) full script echoes SubagentStart as hookEventName and surfaces the subagent's own dispatch"
+else
+  fail "(o2) full script echoes SubagentStart as hookEventName and surfaces the subagent's own dispatch"
+fi
+
+# ─── MUTATION 4: prove case (o) can fail ────────────────────────────────
+# Breaks _subagent_dispatch_text so it always returns None regardless of
+# whether a matching sibling transcript exists — the mutant must fall back
+# to _last_dispatch_message_text and pick up the PARENT's own message
+# (PARENT1) instead of the subagent's real dispatch (SUB1), proving (o)
+# can discriminate this defect rather than passing by construction.
+mutant4="$tmp/mutant4_session_start.py"
+sed 's/^    subagents_dir = Path(transcript_path)\.parent \/ session_id \/ "subagents"$/    return None  # mutated/' "$hook" > "$mutant4"
+python3 - "$proj" "$mutant4" "$input_json_o" <<PY
+import sys, importlib.util, json
+sys.path.insert(0, "$root/ledger/derive")
+proj_path, mutant_path, input_json = sys.argv[1], sys.argv[2], sys.argv[3]
+spec = importlib.util.spec_from_file_location("mutant4_ss", mutant_path)
+mutant_ss = importlib.util.module_from_spec(spec)
+sys.modules["mutant4_ss"] = mutant_ss
+spec.loader.exec_module(mutant_ss)
+from pathlib import Path
+# See mutation 3's own comment: patched back for the same reason.
+mutant_ss.PLUGIN_ROOT = Path("$root")
+proj = Path(proj_path)
+input_data = json.loads(input_json)
+claims = mutant_ss.compute_claim_surface(proj / ".ledger", input_data)
+ok = "subagent-topic:SUB1" not in claims.text and "parent-topic:PARENT1" in claims.text
+sys.exit(0 if ok else 1)
+PY
+if [ $? -eq 0 ]; then
+  pass "(mutation 4) breaking the subagent-transcript reader falls back and loses the subagent's own dispatch"
+else
+  fail "(mutation 4) breaking the subagent-transcript reader falls back and loses the subagent's own dispatch"
+fi
+rm -rf "$proj" "$session_dir"
+
 # ─── (h) never a non-zero exit, across every fixture above ──────────────────
 if [ "$nonzero_exits" -eq 0 ]; then
   pass "(h) every full-script invocation across the fixture set exits 0"
