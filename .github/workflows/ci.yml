@@ -39,15 +39,17 @@ jobs:
         run: bash ledger/gate/test_fixture_sweep.sh
 
       # The polarity sweep checks the sources export as declared; the other
-      # three suites check the MATERIALIZED install — each runs
+      # four suites check the MATERIALIZED install — each runs
       # conditioning/install.sh into a throwaway HOME (PREDICATE_CLAUDE_DIR/
       # PREDICATE_GEMINI_DIR), so they are CI-safe for the same reason
       # test_conditioning.sh below is. The materialized suites stay separate
       # because they answer separate questions: the discipline suite holds the
       # typed-claim grammar at its ruled rung, the report-fraction suite holds
-      # the always-on law to the third reporting obligation, and the
+      # the always-on law to the third reporting obligation, the
       # scrutiny-allocation suite holds it to allocating attention by stakes
-      # and uncloseability rather than spreading it flat.
+      # and uncloseability rather than spreading it flat, and the open-surface
+      # suite holds it to working the record's unbacked claims and unanswered
+      # questions as debt and as resource at once.
       - name: conditioning sweep (compose.ncl, core.ncl, probe_no_core.ncl)
         run: |
           set -euo pipefail
@@ -55,6 +57,7 @@ jobs:
           bash ledger/gate/test_conditioning_discipline.sh
           bash ledger/gate/test_report_fraction.sh
           bash ledger/gate/test_scrutiny_allocation.sh
+          bash ledger/gate/test_open_surface.sh
 
       # The prose grammar's vocabulary lives in docs/entries.md and is READ by
       # ledger/derive/extract_entries.py. Nothing but this step holds the two

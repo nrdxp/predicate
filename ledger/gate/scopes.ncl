@@ -318,6 +318,13 @@ let GateEntry = {
     } | GateEntry,
 
     {
+      gate        = "ledger/gate/test_open_surface.sh",
+      scope       = 'orchestration,
+      fires_when  = "CI conditioning-sweep step; materializes the install into a throwaway HOME and asserts the always-on law governs the record's OPEN SURFACE on both faces at once — an unbacked claim is debt that moves toward an answerable question, an answer or removal and is never true merely because it is written down, and that same surface is a resource consulted BEFORE new derivation rather than only at review — with the two faces stated together as one rule",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
       gate        = "ledger/gate/test_colocation_gate.sh",
       scope       = 'orchestration,
       fires_when  = "CI gate-test step; verifies that bootstrap/install.sh init installs templates/project-gates/* into .ledger/gates/ and that the colocation gate fires when a skill-owned contract is re-centralized",
