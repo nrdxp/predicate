@@ -85,6 +85,38 @@ no *claim* is ever open by theorem, and `residual` is question-shaped by
 consequence ([`entry.ncl`](../ledger/contracts/entry.ncl)
 `ResidualIsQuestion`).
 
+## Closure edges — answered, or retired into a survivor
+
+A question leaves the open state along one of exactly two edges, and which one
+it took stays in the record:
+
+- **`discharges`** names the questions an entry **answers**. Only an entry that
+  itself carries closed evidence may bear one. A `synthesis` claim is a
+  proposal until something closes it, so letting it discharge would let an
+  unratified answer retire the question that asked for ratification; and a
+  question closing a question is a chain of things none of which is known
+  ([`entry.ncl`](../ledger/contracts/entry.ncl) `DischargeBacked`). Whether the
+  target really is a question is a corpus property, decided where reference
+  resolution already lives.
+- **`supersedes`** names entries an entry **retires unanswered** — a duplicate
+  merged into the entry that will carry it. It asserts nothing about what it
+  retires, which is exactly why it is a second edge rather than a second
+  meaning for the first, and why it carries no backing condition at all.
+
+Collapsing the two would lose which exit was taken: a discharged question was
+answered, a superseded one never was.
+
+Supersession's one condition is relational, and it is **termination**. Retiring
+an entry means something only if the chain of retirements reaches an entry that
+nothing supersedes — the survivor that carries the retired ones. A cycle names
+no survivor, so every entry in it is retired into nothing, and the corpus check
+refuses it ([`entry.ncl`](../ledger/contracts/entry.ncl)
+`SupersessionTerminates`).
+
+Neither closure edge is a derivation edge. `depends` and `because` say where an
+entry came from; these say what it retires. So neither designates a `derived`
+signer, and neither satisfies the provenance gate.
+
 ## Directives — closure by authority
 
 A directive — a goal, non-goal, constraint, or acceptance criterion — carries
@@ -130,6 +162,63 @@ stay `unclosed`, permanently and **visibly**, the same way a `synthesis`
 claim does. This is the
 [self-vouch policy](#the-self-vouch-policy)'s logic at its limit: the record
 shows what it cannot close rather than fabricating a witness to close it.
+
+## The closer — a narrower designation
+
+A question names the party who **can** close it. That closer is a
+**designation record** — a `kind`, and an optional `name` — the same shape as
+the signer over a deliberately different set of kinds:
+
+|        | admitted kinds                                        | `name`                                          |
+| :----- | :---------------------------------------------------- | :---------------------------------------------- |
+| signer | `human`, `agent`, `source`, `derived`, `unattributed` | required except on `derived` and `unattributed` |
+| closer | `human`, `agent`, `source`                             | always optional                                 |
+
+The two modes the closer drops are the two that assert **no reachable party**.
+`derived` designates by inbound edges, and an answer that does not exist yet
+has none. `unattributed` asserts nothing is recoverable, which routes to
+nobody. Reusing the signer's set would make an unroutable question
+representable, so the closer's set is closed at three
+([`entry.ncl`](../ledger/contracts/entry.ncl) `CloserKind`).
+
+`name` is optional here in a way the signer's is not, because a closer is
+**prospective routing, never accountability**: the party class is often known
+where the individual is not. Accountability for a close rests on the claim that
+closes it, and that claim's own signer is name-enforced — so a kind-only closer
+costs the record nothing. The designation is machine-readable so that
+escalation is a lookup rather than a string match: escalate exactly when the
+closer's kind is `human`.
+
+## Axes — an authoring obligation, not a shape law
+
+A claim's three coordinates — `determined`, `certifiable`, `monotone` — make
+its cure **derivable rather than authored**. Each inhabited cell of the axis
+table names its own trust anchor and minimal cure, so recording the coordinates
+is what turns "what would close this" from a judgement into a lookup.
+Certifiability is **fibered on determination**: where determination fails there
+is no record-only predicate for the coordinate to range over, so it is
+**undefined, not false**, and it is omitted rather than guessed
+([`entry.ncl`](../ledger/contracts/entry.ncl) `CertifiabilityFibered`). A
+question carries no coordinates at all — it asserts no truth-value, so there is
+nothing for the axes to be conditions on.
+
+**Carrying them is an obligation of the authoring surface, never a universal
+shape law.** A claim is not required to have axes, and a claim that lacks them
+is reported as *unassessed* rather than rejected. The distinction follows the
+[self-vouch policy](#the-self-vouch-policy)'s logic: a rule refusing axis-less
+claims would not obtain the coordinates, it would condition every author to
+fabricate them to pass — the rule manufacturing the exact defect it exists to
+refuse. **Absence stays visible; it is never fabricated.** The obligation
+survives wherever an author genuinely holds it: an IBC premise is assessed
+ground by definition, so
+[`worker_ibc.ncl`](../ledger/contracts/worker_ibc.ncl) requires axes on its own
+surface rather than inheriting the requirement from here.
+
+A **non-monotone** claim owes the cure for that failure — a freshness
+mechanism or an accepted expiry — and the shape enforces the pairing
+([`entry.ncl`](../ledger/contracts/entry.ncl) `NonMonotoneNamesCure`). Without
+it, a claim true when written becomes a documented invariant that quietly
+expires.
 
 ## Two cuts, never conflated
 
@@ -236,19 +325,40 @@ follow to the stated standard the extractor is correct against:
   `[[wikilinks]]` and free prose are **external provenance** — preserved in
   the export but never emitted as edges, which the corpus contract would
   rightly reject as dangling. `discharge::` and `closer::` carry a
-  question's two routable halves; `closer::` takes a designation
-  (`human/nrd`, `machine`, `agent/architect-seat`). `conversion-path::` is a
-  recognized annotation that stays in the statement. Any other token-shaped
-  span is reported, never silently discarded.
+  question's two routable halves; `closer::` takes a
+  [designation](#the-closer--a-narrower-designation) (`human/nrd`,
+  `agent/architect-seat`, or a bare kind), and `machine` is accepted as the
+  legacy corpus's word for an unnamed agent rather than a fourth kind.
+  `conversion-path::` is a recognized annotation that stays in the statement.
+  Any other token-shaped span is reported, never silently discarded.
+- **Closure edges.** `discharges::` and `supersedes::` write the two
+  [closure edges](#closure-edges--answered-or-retired-into-a-survivor). Unlike
+  `derives-from::` they take doc-local `[ID]` refs **only**: a closure edge
+  onto something outside the corpus closes nothing queryable, so an
+  unresolvable target is reported rather than preserved as external
+  provenance, which would file it where derivation lives and quietly lose the
+  closure. `discharge::` and `discharges::` are one letter apart, and the
+  names are the vocabulary's own — a prospective condition and the
+  retrospective edge that pays it. They are two distinct keys, so a typo
+  lands on the wrong one loudly rather than quietly.
 - **Question backings.** Extracted questions carry `backing: unclosed`
   (residual excepted), the entry fixtures' practice: `corroborated` and
   `vouched` demand delivered evidence (`CorroborationBacked`,
   `VouchBacked`), which a question by definition lacks. The prospective
   cell reading — what *would* close it — survives as the prose grade in the
   export's sidecar, which the queries consume.
-- **Axes.** No prose token carries axis coordinates or `freshness` yet.
-  Claims extract without `axes`, and the query lists them as *unassessed*
-  rather than presenting an empty cure report as a clean bill.
+- **Axes.** `axes::` takes one polarity token per coordinate, in any order —
+  `` `axes:: +determined -certifiable +monotone` ``. The `certifiable`
+  coordinate is **omitted** where determination fails, because it is undefined
+  there rather than false and the grammar has to be able to say so. A value the
+  polarity tokens cannot place is reported rather than half-recorded: a partial
+  coordinate set reads as a deliberate omission and would be believed as one.
+  A claim carrying no `axes::` at all extracts without them, and the query
+  lists it as *unassessed* rather than presenting an empty cure report as a
+  clean bill.
+- **Freshness.** `freshness::` names, in prose, the mechanism that keeps a
+  non-monotone claim true — the cure such a claim
+  [owes](#axes--an-authoring-obligation-not-a-shape-law).
 - **Counts.** A count stored in prose is a second record that goes stale.
   Ledger notes store **no** counts — the surface is computed from the
   claims. A boundary document that must publish its own census does so in
