@@ -562,6 +562,12 @@ mutant_ss = importlib.util.module_from_spec(spec)
 sys.modules["mutant3_ss"] = mutant_ss
 spec.loader.exec_module(mutant_ss)
 from pathlib import Path
+# A mutant copy lives under $tmp, so PLUGIN_ROOT (computed from the
+# mutant's OWN __file__) resolves outside the repo — patched back to the
+# real root so extract_entries.py/anchored_surface.sh still resolve;
+# without this the mutant's entries list silently empties regardless of
+# the mutation, and the assertion below would pass for the wrong reason.
+mutant_ss.PLUGIN_ROOT = Path("$root")
 proj = Path(proj_path)
 claims = mutant_ss.compute_claim_surface(proj / ".ledger", {"transcript_path": transcript})
 ok = claims.anchor_source != "dispatch" and "old-target:TARGET1" not in claims.text
@@ -608,9 +614,9 @@ cat > "$proj/.ledger/log/recent.md" <<'EOF'
 # recent doc, cites a
 see [[log/a]] for context.
 EOF
-python3 - "$proj" "$mutant" <<'PY'
+python3 - "$proj" "$mutant" <<PY
 import sys, importlib.util
-sys.path.insert(0, "/var/home/nrd/git/wt/write-hook/ledger/derive")
+sys.path.insert(0, "$root/ledger/derive")
 proj_path, mutant_path = sys.argv[1], sys.argv[2]
 spec = importlib.util.spec_from_file_location("mutant_ss", mutant_path)
 mutant_ss = importlib.util.module_from_spec(spec)
@@ -677,6 +683,14 @@ mutant_ss = importlib.util.module_from_spec(spec)
 sys.modules["mutant2_ss"] = mutant_ss
 spec.loader.exec_module(mutant_ss)
 from pathlib import Path
+# node/dispatch-anchoring: without this, PLUGIN_ROOT (computed from the
+# mutant's own module path under the suite's tmp dir) resolves outside the
+# repo, extract_entries.py silently fails to run, entries comes back empty
+# regardless of the mutation below, and candidate_count==0 passes for the
+# WRONG reason — confirmed directly: the UNMUTATED hook, loaded the same
+# way, already returns candidate_count==0 without this line. This
+# mutation was vacuous before this fix.
+mutant_ss.PLUGIN_ROOT = Path("$root")
 proj = Path(proj_path)
 claims = mutant_ss.compute_claim_surface(proj / ".ledger")
 sys.exit(0 if claims.candidate_count == 0 else 1)
