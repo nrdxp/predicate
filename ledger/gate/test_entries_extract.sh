@@ -289,6 +289,68 @@ EOF
 expect "query: an invalid corpus never yields a result" 1 "duplicate entry id" \
   -- nickel export "$tmp/dup.yaml" --apply-contract "$query"
 
+# --- node/tags: the tags:: companion, and the four tag views -----------------
+#
+# tagged-note.md is the tags companion's extraction golden: four claims, one
+# tagging a single direction, one tagging two (the co-occurrence case), one
+# tagging the other direction alone, and one carrying no tags:: at all (the
+# absence control). ledger/log/2026-08-12-tagging-hypothesis.md [G4]: ten of
+# eleven wanted queries are tag SET OPERATIONS — by_tag, by_direction,
+# co_occurrence and untagged answer them without ever traversing an edge.
+
+expect "tags: clean tags-dialect doc exits 0" 0 "" \
+  -- python3 "$extractor" "$fix/tagged-note.md" -o "$tmp/tagged-note.yaml"
+expect "tags: output matches the expected JSON exactly" 0 "" \
+  -- diff "$fix/tagged-note.expected.json" "$tmp/tagged-note.yaml"
+expect "tags: export passes the entry contract" 0 "" \
+  -- nickel export "$tmp/tagged-note.yaml" --apply-contract "$apply"
+
+nickel export "$tmp/tagged-note.yaml" --apply-contract "$query" \
+  > "$tmp/tagged-note-query.json" 2>/dev/null
+expect "tags: the four views carry the fixture's known answers" 0 "TAG-VIEWS-OK" \
+  -- python3 - "$tmp/tagged-note-query.json" <<'EOF'
+import json, sys
+q = json.load(open(sys.argv[1]))
+# by_tag: keyed over the WHOLE registry (D1, D2, D3), not just what the
+# corpus uses — D3 answers [] rather than being absent as a key.
+assert q["by_tag"] == {
+    "D1": ["tagged-note:K1", "tagged-note:K2"],
+    "D2": ["tagged-note:K2", "tagged-note:K3"],
+    "D3": [],
+}, q["by_tag"]
+# by_direction: today every registered tag IS a direction, so this coincides
+# with by_tag exactly — the honest state of a registry with no non-direction
+# tag yet (tag_registry.ncl's own header states this is expected, not a bug).
+assert q["by_direction"] == q["by_tag"], (q["by_direction"], q["by_tag"])
+# co_occurrence: only K2 carries both D1 and D2; no entry carries D3 at all.
+assert q["co_occurrence"] == {
+    "D1+D2": ["tagged-note:K2"],
+    "D1+D3": [],
+    "D2+D3": [],
+}, q["co_occurrence"]
+# untagged: the absence query. K4 alone carries no tags field.
+assert q["untagged"] == ["tagged-note:K4"], q["untagged"]
+print("TAG-VIEWS-OK")
+EOF
+
+# The live, still-untagged corpus's own honest starting state: ledger-note.md
+# (this suite's pre-existing extraction golden) carries no tags:: anywhere, so
+# `untagged` must return every one of its entries and both tag indices must be
+# all-empty — never a silently dropped view over a corpus with nothing tagged.
+nickel export "$tmp/ledger-note.yaml" --apply-contract "$query" \
+  > "$tmp/ledger-note-tags-query.json" 2>/dev/null
+expect "tags: an untagged corpus reports every entry as untagged" 0 "UNTAGGED-CORPUS-OK" \
+  -- python3 - "$tmp/ledger-note.yaml" "$tmp/ledger-note-tags-query.json" <<'EOF'
+import json, sys
+export = json.load(open(sys.argv[1]))
+q = json.load(open(sys.argv[2]))
+all_ids = sorted(e["id"] for e in export["entries"])
+assert sorted(q["untagged"]) == all_ids, (sorted(q["untagged"]), all_ids)
+assert q["by_tag"] == {"D1": [], "D2": [], "D3": []}, q["by_tag"]
+assert q["co_occurrence"] == {"D1+D2": [], "D1+D3": [], "D2+D3": []}, q["co_occurrence"]
+print("UNTAGGED-CORPUS-OK")
+EOF
+
 # --- the amendment: recovered edges, designations, axes ----------------------
 #
 # amendment-note.md is the amendment's extraction golden: discharges:: and

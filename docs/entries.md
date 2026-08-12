@@ -220,6 +220,49 @@ mechanism or an accepted expiry — and the shape enforces the pairing
 it, a claim true when written becomes a documented invariant that quietly
 expires.
 
+## Tags — self-classification, and the coining bar
+
+An entry may carry `tags` — a list naming zero or more members of the
+**admissible tag registry**
+([`tag_registry.ncl`](../ledger/contracts/tag_registry.ncl)). Tags are
+**orthogonal to the backing × assertion product**: a third reading of neither
+axis, never a substitute for either. `` `tags:: D1, D2` `` is the companion
+span; `` `tags::` `` alone is a mention, per the [mention/use
+rule](#the-prose-grammar) that governs every mapped token.
+
+**The coining bar is the whole point.** A tag is never authored free-form on
+an entry: it names a member of the registry, and an entry naming a tag the
+registry does not declare is **refused by the contract**
+([`entry.ncl`](../ledger/contracts/entry.ncl) `TagName`) — not merely
+reported, the way an unassessed axis or an unmarked assertion is. An open tag
+vocabulary becomes a second unmaintained namespace, the failure already on
+record for directions; the registry is what makes adding a tag a **deliberate
+act** — an edit to one file — rather than a side effect of writing an entry.
+Enforced at the shape tier, beside `SignerKind` and `Backing`: admission reads
+no other entry, so it carries none of the corpus-relative content that earns
+a predicate a seat among the eleven [lifted
+predicates](../ledger/contracts/entry.ncl).
+
+**Direction membership is not a second mechanism.** A direction's tag *is*
+its own marker in `.ledger/directions.md` — `D1`, `D2`, `D3` — so "this entry
+serves D1" is written `` `tags:: D1` `` like any other tag, and "everything
+constituting a direction" becomes a set operation over the registry rather
+than an unknowable. The registry's `category` field (`"direction"` for
+D1/D2/D3, open to other values as the vocabulary grows) is what lets a query
+select the direction subset without pattern-matching the tag string.
+
+**Four views answer the queries the corpus actually wants**
+([`entries_query.ncl`](../ledger/contracts/entries_query.ncl)), because a
+hypothesis on record enumerates ten of eleven wanted queries as tag *set
+operations*, never traversal: `by_tag` (membership, every registered tag to
+the entries carrying it), `by_direction` (the `category = "direction"`
+projection of `by_tag`), `co_occurrence` (every unordered pair of registered
+tags to the entries carrying both), and `untagged` — the **absence** query,
+and the one that matters most: entries carrying no tag at all. Every view is
+keyed off the registry, never off what the corpus happens to use, so a
+registered-but-unused tag still answers with an honestly empty `[]` rather
+than a missing key.
+
 ## Two cuts, never conflated
 
 The discourse taxonomy above (backing × assertion) and the verification

@@ -1,0 +1,17 @@
+id: e-tagged
+statement: "This claim declares it serves direction D1."
+assertion: claim
+backing: corroborated
+signer:
+  kind: agent
+  name: architect-seat
+check:
+  command: "true"
+  ran: true
+  at: "deadbeef0c"
+axes:
+  determined: true
+  certifiable: true
+  monotone: true
+tags:
+  - D1

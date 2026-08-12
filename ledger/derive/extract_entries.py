@@ -19,9 +19,9 @@ Grammar (the docs/entries.md §grammar standard, ledger dialect):
   node        a paragraph opening with `[ID] grade::<grade>`.
   companions  backticked `token:: value` spans inside the node's paragraph:
               check / source / derives-from / discharge / closer / provenance
-              / axes / freshness / discharges / supersedes map to fields;
-              conversion-path is recognized prose and stays in the statement;
-              anything else token-shaped is reported.
+              / axes / freshness / discharges / supersedes / tags map to
+              fields; conversion-path is recognized prose and stays in the
+              statement; anything else token-shaped is reported.
   mentions    a span of ANY mapped token with an EMPTY value is a MENTION of
               the token, not a use of it: prose ABOUT the grammar. It fills no
               field, never overwrites an earlier real use, and stays in the
@@ -47,6 +47,11 @@ Grammar (the docs/entries.md §grammar standard, ledger dialect):
               the coordinate is undefined there, not false, and the grammar
               must be able to say so (CertifiabilityFibered enforces it).
               `freshness:: <prose>` names the T3 cure a non-monotone claim owes.
+  tags        `tags:: D1, D2` — comma/space-separated tag tokens, order
+              preserved. The extractor is a GRAMMAR, not a validator: it
+              collects whatever tokens are written and leaves admission
+              against the registry (ledger/contracts/tag_registry.ncl) to the
+              contract, exactly as every other companion here does.
   census      --census reproduces the two commands graded documents publish:
               per-grade counts (sort -rn semantics) then `---` then the bare
               `grade::` occurrence count, scoped to before any `## 7` heading.
@@ -114,7 +119,7 @@ AT_RE = re.compile(r"`at::\s*([0-9a-f]{7,40})`")
 # distinct keys, and a typo lands on the wrong one loudly rather than quietly.
 CLOSURE_EDGES = ("discharges", "supersedes")
 MAPPED = {"check", "source", "derives-from", "discharge", "closer",
-          "provenance", "axes", "freshness"} | set(CLOSURE_EDGES)
+          "provenance", "axes", "freshness", "tags"} | set(CLOSURE_EDGES)
 RECOGNIZED = MAPPED | {"conversion-path", "signer", "at", "grade"}
 SIGNER_KINDS = {"human", "agent", "source", "derived", "unattributed"}
 # A closer designates a party who COULD close; the signer modes that assert no
@@ -235,6 +240,13 @@ def parse_axes(raw: str) -> tuple[dict, str]:
     found = {m.group(2): m.group(1) == "+" for m in AXIS_TOKEN_RE.finditer(raw)}
     residue = AXIS_TOKEN_RE.sub("", raw).strip(" ,;")
     return {name: found[name] for name in AXIS_ORDER if name in found}, residue
+
+
+def parse_tags(raw: str) -> list[str]:
+    """Comma/space-separated tag tokens, order preserved, empties dropped.
+    Admission against the registry is the CONTRACT's job (module docstring);
+    this only tokenizes."""
+    return [t for t in re.split(r"[,\s]+", raw.strip()) if t]
 
 
 def split_refs(value: str, doc: str) -> tuple[list[str], list[str], list[str]]:
@@ -501,6 +513,13 @@ def extract_doc(path: Path, out: Extraction) -> None:
                 out.report("bad-edge", doc, marker,
                            f"`{token}::` takes bracketed ids, plain or "
                            f"qualified; cannot resolve {external}")
+        if "tags" in companions:
+            tags = parse_tags(companions["tags"])
+            if tags:
+                entry["tags"] = tags
+            else:
+                out.report("bad-tags", doc, marker,
+                           f"tags:: expects one or more tokens: `{companions['tags']}`")
         out.entries.append(entry)
         out.grades[node_id] = grade
 

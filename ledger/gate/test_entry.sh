@@ -191,6 +191,43 @@ expect "because entry with out-of-set kind -> RefKind enum" 1 "RefKind" \
 expect "tagged depends element is refused -> NonEmptyString" 1 "NonEmptyString" \
   -- run "$fix/red-depends-wrongly-tagged.yaml"
 
+# --- node/tags: the coining bar -----------------------------------------
+#
+# ledger/log/2026-08-12-tagging-hypothesis.md [G8]: "the risk is not in the
+# hypothesis but in shipping tags without their registry." A tag is admitted
+# by closed-set membership against tag_registry.ncl, enforced at the SHAPE
+# tier (TagName, beside SignerKind/Backing) — a registered tag exports clean,
+# an unregistered one is REFUSED, never merely reported.
+expect "claim tagged with a registered direction tag -> export clean" 0 "" \
+  -- run "$fix/green-tagged-claim.yaml"
+expect "claim tagged with an unregistered tag -> TagName" 1 "TagName" \
+  -- run "$fix/red-unregistered-tag.yaml"
+
+# (mutation) prove the registry check is load-bearing: a mutant that widens
+# TagName to accept any string must make the unregistered-tag fixture go
+# GREEN when it must not — the failure mode the coining bar exists to refuse.
+# The mutant lives in its own tmp dir (law + registry + apply-file copied
+# together, so the relative imports between them still resolve) rather than
+# patching the tracked file in place.
+tags_mut="$(mktemp -d)"
+cp "$law" "$tags_mut/entry.ncl"
+cp "$root/ledger/contracts/tag_registry.ncl" "$tags_mut/tag_registry.ncl"
+cp "$apply" "$tags_mut/entry_apply.ncl"
+sed -i 's/std.record.has_field v tag_registry/true/' "$tags_mut/entry.ncl"
+grep -q 'if std.is_string v && true' "$tags_mut/entry.ncl" \
+  || { echo "ENV: TagName mutation did not apply — the literal moved"; exit 2; }
+mutant_out="$(cd "$root" && nickel export "$fix/red-unregistered-tag.yaml" \
+  --apply-contract "$tags_mut/entry_apply.ncl" 2>&1)"
+mutant_rc=$?
+if [ "$mutant_rc" -eq 0 ]; then
+  echo "PASS  (mutation) widened TagName lets the unregistered-tag fixture through — the pinned red is load-bearing"
+else
+  echo "FAIL  (mutation) unregistered-tag fixture still fails under a widened TagName (rc=$mutant_rc) — the pin proves nothing"
+  printf '%s\n' "$mutant_out" | tail -3
+  fails=$((fails + 1))
+fi
+rm -rf "$tags_mut"
+
 # --- predicate reds: one per predicate, both directions where bidirectional --
 expect "CANARY: string-backed corroborated claim, check unrun -> CorroborationBacked" 1 "CorroborationBacked" \
   -- run "$fix/red-corroboration-unrun.yaml"

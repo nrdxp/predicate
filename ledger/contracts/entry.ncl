@@ -133,6 +133,36 @@
     else 'Error { message = "Assertion: expected claim|question (tag or string)" }
   ),
 
+  # --- Tags -------------------------------------------------------------------
+  #
+  # The admissible tag vocabulary lives in its OWN file, never inline here:
+  # `entry.ncl` is the law, `tag_registry.ncl` is the data the law consults —
+  # the same split the corpus/law pair already keeps everywhere else in this
+  # file. Exposed as a field (the `matches`/`cure_for` idiom) so a consumer
+  # that already imports `entry.ncl` — `entries_query.ncl` among them — reads
+  # the registry off `law.tag_registry` rather than importing it a second way.
+  tag_registry | doc "the admissible tag vocabulary (ledger/contracts/tag_registry.ncl); the coining bar's data half"
+    = import "tag_registry.ncl",
+
+  # A tag NAMES a member of the registry above — closed-set membership, not an
+  # open string. This is the coining bar's enforcement half
+  # (ledger/log/2026-08-12-tagging-hypothesis.md [G8]): an entry naming a tag
+  # the registry does not declare is REFUSED, never merely reported, because
+  # the whole point of a registry is that admission is a deliberate edit to
+  # it — never a side effect of writing an entry.
+  #
+  # Enforced at the SHAPE tier — beside `SignerKind` and `Backing`, which are
+  # also closed-set membership over a fixed record field — rather than as a
+  # twelfth lifted predicate: admission reads no OTHER entry, so it carries
+  # none of the corpus-relative content that earns a predicate a seat in
+  # `lifted` (`DischargeBacked`, `ProvenanceGate`, ... all consult the corpus
+  # around the entry; this does not).
+  TagName = std.contract.custom (fun _label v =>
+    if std.is_string v && std.record.has_field v tag_registry
+    then 'Ok v
+    else 'Error { message = "TagName: `%{v}` is not in the admissible tag registry (ledger/contracts/tag_registry.ncl)" }
+  ),
+
   # --- Signer ---------------------------------------------------------------
   #
   # Who asserted this. NOT an identity system and not forgery-resistant: "who
@@ -368,6 +398,15 @@
     # EntryStore — the retirement chain must reach a survivor.
     discharges | Array Ref | optional,
     supersedes | Array Ref | optional,
+
+    # Self-classification, orthogonal to backing/assertion (never a third
+    # reading of either axis): a member of the registry above, per entry, any
+    # number of times. Direction membership is not a separate field — a
+    # direction's tag IS its marker in .ledger/directions.md (D1, D2, D3), so
+    # "this entry serves D1" is `tags: [D1]` like any other tag, and
+    # entries_query.ncl's `by_direction` view is the general `by_tag` index
+    # read through the registry's `category` field, not a second mechanism.
+    tags | Array TagName | optional,
   },
 
   # --- The constraints that make it worth having ----------------------------
