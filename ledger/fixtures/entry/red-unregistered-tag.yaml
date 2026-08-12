@@ -1,0 +1,17 @@
+id: e-bogus-tag
+statement: "This claim names a tag the registry has never admitted."
+assertion: claim
+backing: corroborated
+signer:
+  kind: agent
+  name: architect-seat
+check:
+  command: "true"
+  ran: true
+  at: "deadbeef0d"
+axes:
+  determined: true
+  certifiable: true
+  monotone: true
+tags:
+  - bogus-tag

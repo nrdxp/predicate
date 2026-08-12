@@ -1,0 +1,82 @@
+{
+  "entries": [
+    {
+      "id": "tagged-note:K1",
+      "statement": "First entry, serving D1 alone.",
+      "assertion": "claim",
+      "backing": "corroborated",
+      "signer": {
+        "kind": "agent",
+        "name": "composer"
+      },
+      "check": {
+        "command": "true",
+        "ran": true,
+        "at": "abc1234"
+      },
+      "tags": [
+        "D1"
+      ]
+    },
+    {
+      "id": "tagged-note:K2",
+      "statement": "Second entry, serving both D1 and D2 — the co-occurrence case.",
+      "assertion": "claim",
+      "backing": "corroborated",
+      "signer": {
+        "kind": "agent",
+        "name": "composer"
+      },
+      "check": {
+        "command": "true",
+        "ran": true,
+        "at": "abc1234"
+      },
+      "tags": [
+        "D1",
+        "D2"
+      ]
+    },
+    {
+      "id": "tagged-note:K3",
+      "statement": "Third entry, serving D2 alone.",
+      "assertion": "claim",
+      "backing": "corroborated",
+      "signer": {
+        "kind": "agent",
+        "name": "composer"
+      },
+      "check": {
+        "command": "true",
+        "ran": true,
+        "at": "abc1234"
+      },
+      "tags": [
+        "D2"
+      ]
+    },
+    {
+      "id": "tagged-note:K4",
+      "statement": "Fourth entry, untagged — the absence-query control.",
+      "assertion": "claim",
+      "backing": "corroborated",
+      "signer": {
+        "kind": "agent",
+        "name": "composer"
+      },
+      "check": {
+        "command": "true",
+        "ran": true,
+        "at": "abc1234"
+      }
+    }
+  ],
+  "directives": [],
+  "grades": {
+    "tagged-note:K1": "proved",
+    "tagged-note:K2": "proved",
+    "tagged-note:K3": "proved",
+    "tagged-note:K4": "proved"
+  },
+  "findings": []
+}

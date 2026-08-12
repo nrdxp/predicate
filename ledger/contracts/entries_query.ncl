@@ -48,6 +48,35 @@
 #                    corroborated or vouched leaf), `unbacked` (an unclosed
 #                    leaf with no support at all), `external` (support that
 #                    left the corpus, so the record cannot follow it).
+#
+# The four TAG views (ledger/log/2026-08-12-tagging-hypothesis.md [G4]: ten of
+# eleven wanted queries are tag SET OPERATIONS, not traversal — these are
+# them). Every one is a lookup over `law.tag_registry`
+# (ledger/contracts/tag_registry.ncl), the coining bar's data half, so a view
+# never invents a key the registry does not declare and an untagged corpus
+# answers with real, honestly-empty results rather than an absent field.
+#
+#   by_tag         — membership: every registered tag mapped to the ids of
+#                    entries carrying it, `[]` for a tag nothing carries yet.
+#   by_direction   — the same index, restricted to the registry's
+#                    `category = "direction"` subset: "everything constituting
+#                    a direction" (D1, D2, D3) as a set operation rather than
+#                    an unknowable, per the composer's dispatch. A strict
+#                    projection of `by_tag`, not a second mechanism — TODAY
+#                    every registered tag is a direction, so the two coincide
+#                    extensionally until a non-direction tag is registered
+#                    (tag_registry.ncl's own header states this is expected).
+#   co_occurrence  — every unordered pair of registered tags, keyed
+#                    `"<a>+<b>"` (`a < b`, so a pair has exactly one key), to
+#                    the ids of entries carrying BOTH. Bounded by the
+#                    registry's own size, not the corpus's — the coining bar
+#                    keeps the vocabulary small by design, so the pairing is
+#                    cheap precisely because admission was deliberate.
+#   untagged       — the absence query, and the one that matters most: entries
+#                    carrying no `tags` field at all, or an empty one. Against
+#                    the live, still-untagged corpus this returns EVERY entry
+#                    — the honest starting state, not a bug the view should
+#                    hide.
 let apply = import "entry_apply.ncl" in
 let law = import "entry.ncl" in
 
@@ -159,6 +188,29 @@ std.contract.custom (fun label value =>
           (std.array.fold_left (fun acc e => std.record.insert e.id {} acc) {} entries)
           entries
       in
+
+      # --- tags -------------------------------------------------------------
+      #
+      # The registry (`law.tag_registry`) is the key SET for by_tag/by_direction
+      # and the pair universe for co_occurrence — never the corpus's own tags,
+      # which would silently drop a registered-but-unused tag from the index
+      # (exactly the "confidently incomplete" failure the extractor's own
+      # findings mechanism exists to avoid, here applied to a query view).
+      let tag_registry = law.tag_registry in
+      let tag_names = std.record.fields tag_registry in
+      let tags_of = fun e => get_or "tags" [] e in
+      let has_tag = fun t e => std.array.any (fun x => x == t) (tags_of e) in
+      let entries_with_tag = fun t =>
+        entries |> std.array.filter (has_tag t) |> std.array.map (fun e => e.id)
+      in
+      let is_direction_tag = fun t => tag_registry."%{t}".category == "direction" in
+      let direction_tags = tag_names |> std.array.filter is_direction_tag in
+      let tag_index = fun names =>
+        std.array.fold_left
+          (fun acc t => std.record.insert t (entries_with_tag t) acc)
+          {}
+          names
+      in
       'Ok {
         awaiting_human =
           entries
@@ -212,6 +264,28 @@ std.contract.custom (fun label value =>
           |> std.array.filter is_claim
           |> std.array.map (fun e =>
             { id = e.id, floors = std.record.fields floors_of."%{e.id}" }),
+        by_tag = tag_index tag_names,
+        by_direction = tag_index direction_tags,
+        co_occurrence =
+          std.array.fold_left
+            (fun acc a =>
+              std.array.fold_left
+                (fun acc2 b =>
+                  if std.string.compare a b == 'Lesser then
+                    std.record.insert "%{a}+%{b}"
+                      (entries
+                       |> std.array.filter (fun e => has_tag a e && has_tag b e)
+                       |> std.array.map (fun e => e.id))
+                      acc2
+                  else acc2)
+                acc
+                tag_names)
+            {}
+            tag_names,
+        untagged =
+          entries
+          |> std.array.filter (fun e => std.array.length (tags_of e) == 0)
+          |> std.array.map (fun e => e.id),
       },
   }
 )
