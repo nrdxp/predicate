@@ -215,6 +215,39 @@ fi
 # ════════════════════════════════════════════════════════════════════════════
 echo ""
 echo "════════════════════════════════════════════════════════════════════════"
+echo "SECTION 1b — C2: the anchored ranker's ORDER, not merely its membership"
+echo "════════════════════════════════════════════════════════════════════════"
+# Every exact-set assertion above pipes ids_in_output through `sort -u`
+# before comparing, which discards emission order by construction —
+# inverting cmp_anchored's comparison (farthest-first instead of
+# nearest-first, the entire meaning of "anchored") leaves every case above
+# unchanged (gate-open-surface.md [O1]/[O3]). This reuses s1a's own output,
+# UNSORTED, and binds the one ordering fact reach-note.md's hand-scored
+# distances make derivable without inventing a tiebreak: B1 sits at
+# distance 1 from A1, C1 and H1 both sit at distance 2 (this section's own
+# header above), so an anchored ranker must place B1 strictly before both.
+# C1's and H1's order relative to EACH OTHER is a recency tiebreak
+# (cmp_anchored's own fallback for equal distance), not something this
+# fixture pins, so it is deliberately left unasserted.
+if [ "$s1a_rc" -eq 0 ]; then
+  ids_unsorted="$(ids_in_output "$s1a_out")"
+  b1_pos="$(printf '%s\n' "$ids_unsorted" | grep -n '^reach-note:B1$' | head -1 | cut -d: -f1)"
+  c1_pos="$(printf '%s\n' "$ids_unsorted" | grep -n '^reach-note:C1$' | head -1 | cut -d: -f1)"
+  h1_pos="$(printf '%s\n' "$ids_unsorted" | grep -n '^reach-note:H1$' | head -1 | cut -d: -f1)"
+  if [ -n "$b1_pos" ] && [ -n "$c1_pos" ] && [ -n "$h1_pos" ] \
+     && [ "$b1_pos" -lt "$c1_pos" ] && [ "$b1_pos" -lt "$h1_pos" ]; then
+    record red pass "anchor=A1 renders B1 (distance 1) before both C1 and H1 (distance 2)"
+  else
+    record red fail "anchor=A1 renders B1 (distance 1) before both C1 and H1 (distance 2)" \
+      "order: $(printf '%s' "$ids_unsorted" | tr '\n' ' ')"
+  fi
+else
+  record red fail "anchor=A1 renders B1 (distance 1) before both C1 and H1 (distance 2)" "rc=$s1a_rc"
+fi
+
+# ════════════════════════════════════════════════════════════════════════════
+echo ""
+echo "════════════════════════════════════════════════════════════════════════"
 echo "SECTION 2 — C2/C9 restricted to the open surface: closed nodes never"
 echo "appear, but still bridge; the documentation contribution is present"
 echo "════════════════════════════════════════════════════════════════════════"
