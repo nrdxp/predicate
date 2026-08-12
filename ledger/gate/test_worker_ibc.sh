@@ -50,6 +50,12 @@ expect "premise with neither check nor witness -> PremiseClosed" 1 "PremiseClose
   -- run "$fix/red-premise-unclosed.yaml"
 expect "question filed as premise -> PremiseIsClaim" 1 "PremiseIsClaim" \
   -- run "$fix/red-premise-question.yaml"
+# The core's ClaimHasAxes was narrowed to its question half, and worker_ibc
+# premises were the sole inheritor of the removed claim-side obligation. This
+# is the red that keeps the obligation from lapsing on THIS surface: deleting
+# PremiseHasAxes from the law turns this case, and only this case, green.
+expect "premise carrying no axes -> PremiseHasAxes" 1 "PremiseHasAxes" \
+  -- run "$fix/red-premise-no-axes.yaml"
 expect "claim filed as unknown -> UnknownIsQuestion" 1 "UnknownIsQuestion" \
   -- run "$fix/red-unknown-claim.yaml"
 expect "unknown without closer -> QuestionRoutable (core, inherited)" 1 "QuestionRoutable" \

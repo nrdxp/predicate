@@ -1,0 +1,35 @@
+# A premise that is a flawless core ENTRY — a claim, corroborated by a check
+# that ran — but states no axis coordinates: it never says whether the ground
+# it puts the walk on is determined, certifiable, or monotone. The core's
+# ClaimHasAxes deliberately does NOT refuse this (an extracted claim may
+# arrive unassessed and the query reports it); the obligation is the IBC
+# author's alone, so it lives here -> PremiseHasAxes. Single-violation by
+# construction: the coordinate-conditioned predicates (CertifiabilityFibered,
+# NonMonotoneNamesCure) are vacuous where axes are absent, so nothing earlier
+# in the fold can claim this failure.
+id: wx-unassessed
+tier: "worker (fable)"
+discipline: core
+goal:
+  id: g0
+  statement: "Build on ground nobody classified."
+  provenance: { kind: human, name: nrd }
+non_goals: []
+premises:
+  - id: p1
+    statement: "The entry core is landed and green at 6afbc9d."
+    assertion: claim
+    backing: corroborated
+    signer: { kind: agent, name: architect-seat }
+    check: { command: "bash ledger/gate/test_entry.sh", ran: true, at: "6afbc9d" }
+delegated: []
+reserved: []
+constraints: []
+context_map: []
+acceptance:
+  - id: b1
+    statement: "Done when done."
+    eval: "true"
+    provenance: { kind: human, name: nrd }
+load_bearing: []
+plastic: []
