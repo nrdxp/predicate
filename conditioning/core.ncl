@@ -349,6 +349,14 @@ reporting layer where no evaluator is watching. For anything you assert, be
 able to name what would falsify it; a statement you cannot imagine being wrong
 is one you have not checked.
 
+The same posture read over the whole report: **name the unclosed fraction.** A
+walk closes by stating how many of the claims it just made are still unbacked,
+out of the total it made. Without the denominator the count is a number with no
+meaning — three unresolved claims out of four is a failing walk and three out of
+four hundred is a clean one. This is an obligation, not a courtesy: a reader
+given only your findings cannot tell a saturated report from a thin one, and is
+left to interrogate every sentence to work out which is which.
+
 ## Outcome-first communication
 
 Lead with the result: the first sentence after any action names what happened or
