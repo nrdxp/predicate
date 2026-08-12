@@ -296,7 +296,8 @@
     # `supersedes` names entries this one retires unanswered, and carries no
     # backing condition: merging a duplicate question asserts nothing about
     # the question, which is exactly why it is a second edge and not a second
-    # meaning for the first.
+    # meaning for the first. Its one condition is relational and lands in
+    # EntryStore — the retirement chain must reach a survivor.
     discharges | Array Ref | optional,
     supersedes | Array Ref | optional,
   },
@@ -471,13 +472,14 @@
   # means for the record's evolution, not a license to author a reference
   # that never resolved at all.
   #
-  # The closure edges add the one condition no per-entry contract can decide:
+  # The closure edges add the conditions no per-entry contract can decide:
   # `discharges` is claim -> QUESTION by type, and the target's assertion is
   # only readable once the corpus is in hand. Target-typing therefore lands
   # here, beside resolution, rather than growing the per-entry closed set —
   # DischargeBacked already carries the half that IS per-entry (the
-  # discharger's own backing). `supersedes` types nothing beyond resolution:
-  # any entry may be retired unanswered by a survivor.
+  # discharger's own backing). `supersedes` types nothing — any entry may be
+  # retired unanswered by a survivor — but it must TERMINATE, which is a
+  # property of the relation rather than of any entry in it.
   EntryStore = std.contract.custom (fun _label value =>
     let entries = value.entries in
     # Per-element Entry conformance, EAGER: `std.contract.apply` alone stays
@@ -541,6 +543,60 @@
             (refs_of "discharges" en))
         entries
     in
+    # SupersessionTerminates. Resolution was the only condition the corpus
+    # placed on a supersession edge, and resolution does not bound the walk: a
+    # resolved cycle retires every entry it touches and delivers no survivor.
+    # Openness is DERIVED from the closure edges, so each entry in the cycle
+    # counts as closed and silently leaves the work lists while remaining, by
+    # the record's own account, unanswered. The property is that the relation
+    # BOTTOMS OUT — never that it is short; a chain of any depth is well
+    # formed exactly when its walk ends in an entry nothing supersedes.
+    #
+    # Kahn reduction over a record-set of settled ids (the dag.ncl idiom):
+    # each round settles every entry whose supersedes targets are all settled;
+    # an acyclic relation settles everything within as many rounds as there
+    # are entries carrying an edge, and a cycle leaves its members forever
+    # unsettled. Entries with no supersedes edge ARE the relation's floors, so
+    # they are pre-settled and the reduction pays only for the minority that
+    # supersede something. Acyclicity and bottoming-out are one condition over
+    # a finite corpus, so this is one check rather than two.
+    let bottoms =
+      std.array.fold_left
+        (fun acc en =>
+          if std.array.length (refs_of "supersedes" en) == 0
+             && !(std.record.has_field en.id acc)
+          then std.record.insert en.id true acc
+          else acc)
+        {}
+        entries
+    in
+    let risers =
+      std.array.filter
+        (fun en => std.array.length (refs_of "supersedes" en) > 0)
+        entries
+    in
+    let settle_round = fun settled =>
+      std.array.fold_left
+        (fun acc en =>
+          if std.record.has_field en.id acc then acc
+          else if std.array.all
+                    (fun r => std.record.has_field r acc)
+                    (refs_of "supersedes" en)
+          then std.record.insert en.id true acc
+          else acc)
+        settled
+        risers
+    in
+    let final_settled =
+      std.array.fold_left
+        (fun acc _i => settle_round acc)
+        bottoms
+        (std.array.generate (fun i => i) (std.array.length risers))
+    in
+    let supersession_terminates =
+      std.array.length (std.record.fields final_settled)
+        == std.array.length (std.record.fields id_set)
+    in
     # Force the per-element applications before the structural verdict so a
     # malformed entry fails the contract rather than being skipped lazily.
     std.seq _entry_conformance (
@@ -553,6 +609,8 @@
         'Error { message = "EntryStore: dangling supersedes — a supersession edge does not resolve to a declared entry id" }
       else if !discharges_target_questions then
         'Error { message = "EntryStore: discharges target is not a question — a claim answers questions, nothing else" }
+      else if !supersession_terminates then
+        'Error { message = "EntryStore: SupersessionTerminates — the supersedes relation cycles, so the entries it retires name no surviving entry to carry them" }
       else 'Ok value
     )
   ),
