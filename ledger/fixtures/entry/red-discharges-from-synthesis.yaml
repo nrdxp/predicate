@@ -10,7 +10,8 @@ signer:
   kind: agent
   name: composer
 because:
-  - e-support
+  - kind: corpus
+    name: e-support
 axes:
   determined: false
   monotone: true

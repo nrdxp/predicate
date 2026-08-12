@@ -10,4 +10,5 @@ closer:
   kind: agent
   name: architect-seat
 because:
-  - e-proved
+  - kind: corpus
+    name: e-proved

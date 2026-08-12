@@ -85,6 +85,15 @@ expect "derived non-goal, no name, inbound edge -> DirectiveDesignates derived a
 expect "derived non-goal that also names a party -> DirectiveDesignates" 1 "DirectiveDesignates" \
   -- run "$fix/red-derived-nongoal-named.yaml"
 
+# Criterion 9, repair 2/3 (ibc-provenance-gate, ruling-provenance-
+# representation [SR1]/[SR8]): DirectiveDesignates' derived arm must accept
+# a legitimate external-derived designation it refuses today. Green-to-be:
+# export clean, rc=0. Fails SHAPE today ("NonEmptyString" on Directive's
+# `because` field, still `Array e.Ref`) for the same structural reason as
+# entry.ncl's because-tagged cases (test_entry.sh).
+expect "derived non-goal, external-only provenance -> export clean" 0 "" \
+  -- run "$fix/green-derived-nongoal-external.yaml"
+
 if [ "$fails" -ne 0 ]; then
   echo "FAIL: $fails worker-IBC case(s) mismatched"; exit 1
 fi

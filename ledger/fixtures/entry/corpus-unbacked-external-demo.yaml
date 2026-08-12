@@ -1,0 +1,62 @@
+# Criterion 9 (ibc-provenance-gate), repair 3 of 3: the `unbacked` view
+# (entries_query.ncl) currently reassembles by hand, at read time, what the
+# extractor split at write time — an O(corpus) scan per entry over the
+# `external_refs` sidecar (ruling-provenance-representation [SR2]). That join
+# is deleted, and the view reads a because-tagged entry's own external share
+# directly. But the MORE VISIBLE repair is upstream of the view itself: TODAY
+# an unclosed claim whose sole provenance is external cannot pass
+# `entry_apply.ncl` at all (ProvenanceGate refuses it), so it can never reach
+# `unbacked` — the view "refuses" it by structural unreachability, not by any
+# choice of its own. Post-fix, this whole corpus validates and e-external-only
+# appears in `unbacked`'s rows.
+#
+# Two entries beside the demo case, for contrast: e-closed is a closed leaf,
+# and e-walkable is unclosed with a because-tagged CORPUS ref — its provenance
+# IS walkable, so it is the control proving `backed` still means "has a
+# corpus_edges_of edge" (per [SR8]: corpus_edges_of feeds chain_floor,
+# unbacked, EntryStore) rather than becoming a redundant always-true field
+# once ProvenanceGate itself is satisfied by external provenance too.
+entries:
+  - id: e-closed
+    statement: "A closed leaf, corroborated."
+    assertion: claim
+    backing: corroborated
+    signer:
+      kind: agent
+      name: architect-seat
+    check:
+      command: "true"
+      ran: true
+      at: "deadbeef01"
+    axes:
+      determined: true
+      certifiable: true
+      monotone: true
+  - id: e-walkable
+    statement: "An unclosed claim whose provenance is a walkable corpus edge."
+    assertion: claim
+    backing: unclosed
+    signer:
+      kind: agent
+      name: architect-seat
+    because:
+      - kind: corpus
+        name: e-closed
+    axes:
+      determined: true
+      certifiable: false
+      monotone: true
+  - id: e-external-only
+    statement: "An unclosed claim whose provenance is external only — the case ProvenanceGate refuses today."
+    assertion: claim
+    backing: unclosed
+    signer:
+      kind: agent
+      name: architect-seat
+    because:
+      - kind: external
+        name: docs/entries.md
+    axes:
+      determined: true
+      certifiable: false
+      monotone: true

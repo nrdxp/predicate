@@ -1,0 +1,22 @@
+# Lone-entry green: an unclosed CLAIM whose sole provenance is a
+# because-tagged CORPUS ref — no depends, no supersedes. The symmetric case
+# to green-external-provenance-claim.yaml, proving the `'corpus` variant
+# tethers the record the same way the old bare-string `because` did.
+# Existing corpus-tagged coverage (green-synthesis-claim.yaml and its
+# migrated siblings) exercises this only incidentally, testing a different
+# predicate; this is the dedicated, minimal pin. TODAY this fails SHAPE
+# ("NonEmptyString" — `because` is still `Array Ref`, bare strings).
+id: c-because-corpus-ref
+statement: "A synthesis whose derivation is a because-tagged corpus ref, nothing else."
+assertion: claim
+backing: unclosed
+signer:
+  kind: agent
+  name: architect-seat
+because:
+  - kind: corpus
+    name: e-some-antecedent
+axes:
+  determined: true
+  certifiable: false
+  monotone: true

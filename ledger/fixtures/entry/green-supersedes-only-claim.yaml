@@ -1,0 +1,19 @@
+# Lone-entry green: an unclosed CLAIM tethered ONLY by a supersedes edge — no
+# depends, no because. This is the ruling-docket-closure-reaffirmed:T2/:T3
+# shape: a retraction naming the claim it retires, written as a closure edge
+# rather than a derivation one. TODAY this fails ProvenanceGate, because
+# edges_of reads depends/because only; the fix widens the predicate's own read
+# to consult supersedes beside them, without touching edges_of itself.
+id: c-retraction-tether
+statement: "A retraction, tethered to the record only by the closure edge naming what it retires."
+assertion: claim
+backing: unclosed
+signer:
+  kind: agent
+  name: architect-seat
+supersedes:
+  - c-superseded-claim
+axes:
+  determined: true
+  certifiable: false
+  monotone: true

@@ -39,18 +39,21 @@ let e = import "entry.ncl" in
     statement | e.NonEmptyString,
     provenance | e.Signer,        # the issuing authority
     depends | Array e.Ref | optional,
-    because | Array e.Ref | optional,
+    because | Array e.ProvenanceRef | optional,
   },
 
   # A directive's provenance designates its authority the way an entry's
   # signer designates its party (the core's SignerDesignates, restated over
   # `provenance` because the field names differ): non-derived names the
-  # party; derived carries no name and at least one inbound edge.
+  # party; derived carries no name and at least one stated antecedent, corpus
+  # or external (`e.provenance_of`, ruling-provenance-representation [SR1] —
+  # this was one of the three sites asking "walkable corpus edge" where the
+  # right question is "states where it came from").
   DirectiveDesignates = fun d =>
     if e.matches d.provenance.kind 'derived "derived"
     then
       !(std.record.has_field "name" d.provenance)
-      && std.array.length (e.edges_of d) > 0
+      && std.array.length (e.provenance_of d) > 0
     else std.record.has_field "name" d.provenance,
 
   DirectiveChecked = std.contract.all_of [

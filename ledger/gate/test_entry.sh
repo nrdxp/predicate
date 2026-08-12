@@ -99,6 +99,76 @@ expect "corpus: surviving question supersedes its duplicate -> export clean" 0 "
 expect "corpus: two-hop supersession chain bottoms out -> export clean" 0 "" \
   -- run "$fix/green-corpus-supersedes-chain.yaml"
 
+# --- node/provenance-gate: TDD reds for the ProvenanceGate relaxation -------
+#
+# ruling-provenance-gate (ledger commit fcf009e): the 22 no-derivation-edge
+# unclosed claims the gate refuses split 2 supersedes-tethered / 20
+# externally-cited / 0 actual hallucinations. Design SUPERSEDED once by
+# ruling-provenance-representation (ledger commit f257f6f), which WITHDRAWS
+# an entry-level `external_refs` mirror this suite originally pinned — see
+# 2026-08-12-failure-states [F20]-[F23] for the staleness episode that
+# produced. The RULED design: `because` ALONE carries TAGGED refs, a record
+# `{kind: corpus|external, name: ...}` (matching the Signer/Closer idiom,
+# never a payloaded Nickel variant — those do not serialize). `depends`,
+# `discharges`, `supersedes` stay plain corpus ids. `edges_of` is REMOVED,
+# replaced by `provenance_of` (every stated antecedent — feeds ProvenanceGate,
+# SignerDesignates' derived branch, DirectiveDesignates) and
+# `corpus_edges_of` (the walkable subset — feeds chain_floor, unbacked,
+# EntryStore).
+#
+# The cases below assert the CORRECT, POST-FIX behavior — export clean,
+# rc=0 — so they are the acceptance gate the fix must reach, not a pin of
+# today's defect. Run against the unmodified law they FAIL, each for a
+# different, verified reason: the supersedes cases fail ProvenanceGate
+# (supersedes is not in provenance_of's precursor, edges_of, yet); the
+# tagged-because cases fail SHAPE ("NonEmptyString", since `because` is
+# still `Array Ref` — bare strings — and a tagged record element breaks
+# that). Each is asserted at BOTH granularities (lone entry and corpus), per
+# this file's own pairing discipline — a predicate live on one branch and
+# dead on the other is a predicate that never fires.
+expect "supersedes-only claim tethers the record -> export clean" 0 "" \
+  -- run "$fix/green-supersedes-only-claim.yaml"
+expect "corpus: supersedes-only claim tethers the record -> export clean" 0 "" \
+  -- run "$fix/green-corpus-supersedes-claim-tether.yaml"
+expect "because-tagged EXTERNAL ref tethers the record -> export clean" 0 "" \
+  -- run "$fix/green-external-provenance-claim.yaml"
+expect "corpus: because-tagged EXTERNAL ref tethers the record -> export clean" 0 "" \
+  -- run "$fix/green-corpus-external-provenance-claim.yaml"
+# Symmetric case: a because-tagged CORPUS ref, with no depends and no
+# supersedes. Existing corpus-tagged coverage (green-synthesis-claim.yaml and
+# siblings, migrated below) tests this only incidentally, on the way to
+# testing something else; this is the dedicated, minimal pin.
+expect "because-tagged CORPUS ref tethers the record -> export clean" 0 "" \
+  -- run "$fix/green-because-corpus-ref-claim.yaml"
+expect "corpus: because-tagged CORPUS ref tethers the record -> export clean" 0 "" \
+  -- run "$fix/green-corpus-because-corpus-ref-claim.yaml"
+
+# Boundary guards, all PERMANENT — before and after the fix. Single-violation
+# by construction.
+#
+# A present-but-EMPTY `because` array names no tether. Guards array LENGTH
+# over field PRESENCE (`std.record.has_field` would let an empty array
+# through). Its reason (ProvenanceGate) is stable across the fix — an empty
+# array is shape-valid under BOTH the old and new `because` type.
+expect "empty because array is not a tether -> ProvenanceGate" 1 "ProvenanceGate" \
+  -- run "$fix/red-because-empty-not-tether.yaml"
+expect "empty supersedes array is not a tether -> ProvenanceGate" 1 "ProvenanceGate" \
+  -- run "$fix/red-supersedes-empty-not-tether.yaml"
+# A `because` entry's `kind` is a CLOSED two-variant enum — `corpus` or
+# `external`, nothing else. Refusing the six antecedent kinds the earlier
+# discriminator enumerated is load-bearing (ruling-provenance-representation
+# [SR5]): an open variant set is worse than the sidecar it replaces.
+expect "because entry with out-of-set kind -> RefKind enum" 1 "RefKind" \
+  -- run "$fix/red-because-invalid-kind.yaml"
+# Criterion 7: tagged refs live on `because` ALONE. `depends` stays plain
+# corpus ids — the record's own deletion semantics (depends means THIS ENTRY
+# BREAKS if the target is deleted, and an antecedent outside the corpus has
+# no deletion event to break on), so a tagged `depends` element is a shape
+# violation, permanently. This is the boundary a later author will drift on
+# if nothing pins it.
+expect "tagged depends element is refused -> NonEmptyString" 1 "NonEmptyString" \
+  -- run "$fix/red-depends-wrongly-tagged.yaml"
+
 # --- predicate reds: one per predicate, both directions where bidirectional --
 expect "CANARY: string-backed corroborated claim, check unrun -> CorroborationBacked" 1 "CorroborationBacked" \
   -- run "$fix/red-corroboration-unrun.yaml"
@@ -106,6 +176,14 @@ expect "corroborated claim, no check at all -> CorroborationBacked" 1 "Corrobora
   -- run "$fix/red-corroboration-no-check.yaml"
 expect "vouched claim, no witness -> VouchBacked" 1 "VouchBacked" \
   -- run "$fix/red-vouch-no-witness.yaml"
+# SURVIVING-MODE PIN (ruling-provenance-gate [P9]): this is the actual
+# hallucination the gate exists to catch — a synthesis with no `because`, no
+# `depends`, and no `supersedes` — and the relaxation above must not touch
+# it. It fails ProvenanceGate today and must go on failing it once
+# `provenance_of` is checking supersedes and tagged because-refs too; nothing
+# about this fixture changes when the fix lands, and this holds under BOTH
+# the withdrawn mirror design and the ruled tagged-ref one — an empty
+# `because` array is empty either way.
 expect "unclosed claim, no edges -> ProvenanceGate" 1 "ProvenanceGate" \
   -- run "$fix/red-unclosed-claim-no-edges.yaml"
 expect "question missing discharge -> QuestionRoutable" 1 "QuestionRoutable" \
@@ -126,6 +204,12 @@ expect "non-derived signer, unnamed -> SignerDesignates" 1 "SignerDesignates" \
   -- run "$fix/red-underived-unnamed.yaml"
 expect "derived signer, no edges -> SignerDesignates" 1 "SignerDesignates" \
   -- run "$fix/red-derived-no-edges.yaml"
+# Criterion 9, repair 1/3 (ibc-provenance-gate): SignerDesignates' derived
+# branch must accept a legitimate external-derived designation it refuses
+# today. Green-to-be: export clean, rc=0. Fails SHAPE today ("NonEmptyString")
+# for the same reason the because-tagged cases above do.
+expect "derived signer, external-only provenance -> export clean" 0 "" \
+  -- run "$fix/green-derived-signer-external-provenance.yaml"
 expect "unattributed signer, named -> SignerDesignates" 1 "SignerDesignates" \
   -- run "$fix/red-unattributed-named.yaml"
 # Both fixtures below are string-form YAML (backing and signer.kind carry
@@ -235,6 +319,8 @@ expect "corpus: unratified proposal discharges its own question -> DischargeBack
 # the entry breaks, and no other entry in the corpus breaks any.
 expect "corpus: corroborated claim, check unrun -> CorroborationBacked" 1 "CorroborationBacked" \
   -- run "$fix/red-corpus-corroboration-unrun.yaml"
+# SURVIVING-MODE PIN, corpus granularity (see the lone-entry pin above):
+# unaffected by the relaxation, and must stay this way.
 expect "corpus: unclosed claim, no edges -> ProvenanceGate" 1 "ProvenanceGate" \
   -- run "$fix/red-corpus-unclosed-no-edges.yaml"
 expect "corpus: question missing closer -> QuestionRoutable" 1 "QuestionRoutable" \
@@ -325,6 +411,49 @@ if [ "$axes_defaults" = "0" ]; then
   echo "PASS  (0) c9: Axes record carries no fallback values"
 else
   echo "FAIL  c9: found $axes_defaults 'default' occurrence(s) in the Axes record"
+  fails=$((fails + 1))
+fi
+
+# c13 (ibc-provenance-gate acceptance #5, AS CORRECTED): `edges_of` no
+# longer exists, and `provenance_of` / `corpus_edges_of` each exist exactly
+# once. This criterion was PREVIOUSLY THE EXACT OPPOSITE — "edges_of is
+# declared once, body textually unchanged" — written under the withdrawn
+# mirror ruling (ruling-provenance-gate) and inverted once the
+# representation ruling (ruling-provenance-representation [SR8]) explicitly
+# REMOVED edges_of rather than aliasing it: "Keeping edges_of as an alias is
+# refused: the conflation IS the defect, and a surviving name that answers
+# both questions lets the next consumer pick the wrong one exactly as three
+# did." Landed here is the corrected, currently-RED form of this check — see
+# 2026-08-12-failure-states [F20]-[F23] for the episode where the stale form
+# would have blocked the correct fix. A structural check on the LAW's own
+# source, the same tier as c8/c9/c12/c14 — never a check on rendered tool
+# output. TODAY: edges_of exists (count=1, want 0) and neither helper does
+# (count=0 each, want 1) — genuinely red, not a stays-green regression guard
+# like c8/c9/c12/c14.
+edges_of_defs="$(grep -c '^  edges_of ' "$law")"
+provenance_of_defs="$(grep -c '^  provenance_of ' "$law")"
+corpus_edges_of_defs="$(grep -c '^  corpus_edges_of ' "$law")"
+if [ "$edges_of_defs" = "0" ] && [ "$provenance_of_defs" = "1" ] \
+   && [ "$corpus_edges_of_defs" = "1" ]; then
+  echo "PASS  (0) c13: edges_of removed, provenance_of/corpus_edges_of exist once each"
+else
+  echo "FAIL  c13: edges_of=$edges_of_defs (want 0), provenance_of=$provenance_of_defs (want 1), corpus_edges_of=$corpus_edges_of_defs (want 1)"
+  fails=$((fails + 1))
+fi
+
+# c14 (ibc-provenance-gate acceptance #6): `discharges` appears in NO clause
+# of ProvenanceGate's own body — DischargeBacked already forbids an unclosed
+# claim from carrying a discharges edge, so a ProvenanceGate clause consulting
+# it could never fire (ruling-provenance-gate [P8]: "a clause that cannot
+# fail is the class this seat ruled against"). Scoped to ProvenanceGate's own
+# definition, not the whole file — DischargeBacked legitimately names
+# `discharges` elsewhere, and a file-wide grep would misfire on it.
+provenance_gate_body="$(sed -n '/^  ProvenanceGate = fun n =>/,/^  QuestionRoutable/p' "$law" | sed '$d')"
+provenance_gate_discharges="$(printf '%s\n' "$provenance_gate_body" | grep -c 'discharges')"
+if [ "$provenance_gate_discharges" = "0" ]; then
+  echo "PASS  (0) c14: discharges appears in no ProvenanceGate clause"
+else
+  echo "FAIL  c14: found $provenance_gate_discharges 'discharges' occurrence(s) in ProvenanceGate"
   fails=$((fails + 1))
 fi
 

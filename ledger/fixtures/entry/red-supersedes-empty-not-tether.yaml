@@ -1,0 +1,18 @@
+# A `supersedes` field present but EMPTY is not a tether — the fix must check
+# array LENGTH, never field PRESENCE. An implementation reading
+# `std.record.has_field "supersedes" n` instead of
+# `std.array.length (refs_of "supersedes" n) > 0` would let this claim through
+# on a field that names nothing. Single-violation by construction: no depends,
+# no because, no external_refs, and an explicit empty supersedes array.
+id: r-supersedes-empty
+statement: "An unbacked claim carrying an empty supersedes array, which names no tether at all."
+assertion: claim
+backing: unclosed
+signer:
+  kind: agent
+  name: architect-seat
+supersedes: []
+axes:
+  determined: true
+  certifiable: false
+  monotone: true

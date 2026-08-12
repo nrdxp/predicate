@@ -1,0 +1,29 @@
+# CORRECTED under ruling-provenance-representation (ledger commit f257f6f),
+# which WITHDRAWS the entry-level `external_refs` mirror this fixture
+# originally pinned. Provenance is now one representation: `because` carries
+# TAGGED refs (`{kind: corpus|external, name: ...}`), and only `because` —
+# `depends`, `discharges`, `supersedes` stay plain corpus ids.
+#
+# Lone-entry green: an unclosed CLAIM whose sole `because` entry is tagged
+# `external` — no depends, no supersedes. This is the majority shape among
+# the 22 (20 of them): a synthesis honestly citing an antecedent that
+# structurally cannot be a corpus entry (a repository document, a doctrine, a
+# pre-standard deposit, ...). TODAY this fails at SHAPE — `because` is
+# `Array Ref` (bare NonEmptyString), so a tagged record element breaks
+# `NonEmptyString`, before ProvenanceGate ever runs. The fix retypes
+# `because` to `Array ProvenanceRef` and switches ProvenanceGate from the
+# removed `edges_of` to the new `provenance_of` (every stated antecedent).
+id: c-cited-outside-corpus
+statement: "A synthesis whose named antecedent is a repository document, not a corpus entry."
+assertion: claim
+backing: unclosed
+signer:
+  kind: agent
+  name: architect-seat
+because:
+  - kind: external
+    name: docs/entries.md
+axes:
+  determined: true
+  certifiable: false
+  monotone: true

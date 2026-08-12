@@ -67,8 +67,14 @@
         "name": "composer"
       },
       "because": [
-        "ledger-note:K1",
-        "ledger-note:K2"
+        {
+          "kind": "corpus",
+          "name": "ledger-note:K1"
+        },
+        {
+          "kind": "corpus",
+          "name": "ledger-note:K2"
+        }
       ]
     },
     {
@@ -81,7 +87,14 @@
         "name": "composer"
       },
       "because": [
-        "ledger-note:K2"
+        {
+          "kind": "corpus",
+          "name": "ledger-note:K2"
+        },
+        {
+          "kind": "external",
+          "name": "process-feedback/tc-concurrent-writer"
+        }
       ]
     },
     {
@@ -94,7 +107,10 @@
         "name": "composer"
       },
       "because": [
-        "ledger-note:X1"
+        {
+          "kind": "corpus",
+          "name": "ledger-note:X1"
+        }
       ]
     },
     {
@@ -180,13 +196,5 @@
     "ledger-note:Z1": "residual",
     "ledger-note:C1": "directive"
   },
-  "external_refs": [
-    {
-      "entry": "ledger-note:X2",
-      "refs": [
-        "process-feedback/tc-concurrent-writer"
-      ]
-    }
-  ],
   "findings": []
 }
