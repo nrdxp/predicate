@@ -413,6 +413,47 @@ assert marked(red) and not marked(green), (marked(red), marked(green))
 print("PAIR-MINIMAL-OK")
 EOF
 
+# The assertive form arrives MALFORMED as often as not, and the detector is
+# measured against "the paragraph OPENS with the marker" — never "the paragraph
+# contains a closed pair". The two readings agree on every fixture above, so
+# neither the pair nor the census goldens can tell them apart: the case below is
+# the only one in this suite that separates them. Matching on the closing pair
+# drops an unmarked claim unreported, which is precisely the evasion the report
+# exists to see, and a writer declining to type a claim is not thereby careful
+# about closing its emphasis.
+#
+# This case is red against the pair-matching form
+# (`if (lead := BOLD_LEAD_RE.match(block)) is not None`) and green against the
+# committed `block.startswith("**")`. Verified in both directions rather than
+# assumed: the suite ran green over an exact reversal of that fix, so a case
+# here that does not discriminate is worth nothing at all.
+
+expect "unclosed lead: an unclosed bold lead is still reported" 3 "" \
+  -- python3 "$extractor" "$fix/red-unclosed-lead.md" -o "$tmp/unclosed.json"
+
+expect "unclosed lead: reported from the whole-paragraph fallback" \
+  0 "UNCLOSED-LEAD-OK" \
+  -- python3 - "$tmp/unclosed.json" <<'EOF'
+import json, sys
+export = json.load(open(sys.argv[1]))
+findings = export["findings"]
+unmarked = [f for f in findings if f["kind"] == "unmarked-assertion"]
+assert [f["doc"] for f in unmarked] == ["red-unclosed-lead"], findings
+# The excerpt keeps its literal asterisks. The bold-lead branch strips them
+# through its capture group, so their presence is the proof that the report
+# came from the whole-paragraph fallback — not from a pair that closed
+# somewhere further along and made the case green for the wrong reason.
+[reason] = [f["reason"] for f in unmarked]
+assert reason.startswith("`**Unclosed emphasis is still emphasis"), reason
+# Nothing else fired, so the exit 3 above is THIS finding and not an unplaced
+# token or an orphaned companion arriving by accident.
+assert len(findings) == 1, findings
+# Preservation, stated as such: the document's one graded node still extracts.
+assert [e["id"] for e in export["entries"]] == ["red-unclosed-lead:U1"], \
+    export["entries"]
+print("UNCLOSED-LEAD-OK")
+EOF
+
 echo
 if [ "$fails" -eq 0 ]; then echo "test_entries_extract: ALL PASS"; exit 0; fi
 echo "test_entries_extract: $fails FAILURE(S)"; exit 1
