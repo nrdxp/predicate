@@ -176,10 +176,10 @@ printf '%s' "$core_out" > "$core_json"
 # is ordinary string/arithmetic work over an already-computed value, not
 # value transformation over the record's graph — Python's job under this
 # node's convention, not a second Nickel pass.
-python3 - "$core_json" "$budget" "$self_evaluate" "$corpus" <<'PYEOF'
+python3 - "$core_json" "$budget" "$self_evaluate" <<'PYEOF'
 import json, sys
 
-core_path, budget_s, self_evaluate_s, corpus = sys.argv[1:5]
+core_path, budget_s, self_evaluate_s = sys.argv[1:4]
 budget = int(budget_s)
 self_evaluate = self_evaluate_s == "1"
 
@@ -208,19 +208,24 @@ doc_line = (
     "becomes a claims-register corpus)."
 )
 
-# The tail is mandatory overhead too (C5/C10), so it also stays short, and
-# it never embeds a second, larger number after the dropped count. The
-# earlier draft appended a computed "whole-surface" budget suggestion AFTER
-# the dropped count, so a reader (or a test) taking "the last number in the
-# output" as the dropped count would pick up that suggestion instead — the
-# two numbers coincided only by the accident of both scaling with corpus
-# size. The corpus argument can itself contain digits (a dated fixture path,
-# for instance), so it is placed BEFORE the dropped count; the dropped count
-# is always the last digits this line — and thus the whole render — emits.
+# The tail is mandatory overhead too (C5/C10), so it also stays short and,
+# unlike the doc line, FIXED length: it never embeds the caller's --corpus
+# argument. That argument's length is caller-controlled and unbounded — the
+# same corpus produced a 288-char render at one checkout path and a 371-char
+# render at another checkout 83 characters longer, purely from the absolute
+# path's own length — so embedding it made the budget=300 acceptance
+# criterion (C6) pass or fail according to where the repository happened to
+# sit on disk, never the corpus content. Shortening this line's wording
+# cannot fix that: the unbounded part was the embedded argument, not the
+# words around it. A stranger reproducing the render already knows the
+# corpus path they invoked with, so the tail names the flag without
+# repeating an arbitrary-length value back at them, and the dropped count
+# stays the only number this line emits.
 def tail_line(dropped):
     return (
-        f"--- reproduce via ledger/derive/anchored_surface.sh --corpus "
-        f"{corpus} with a larger --budget; {dropped} entries dropped ---"
+        "--- reproduce via ledger/derive/anchored_surface.sh --corpus "
+        f"<the corpus you passed> with a larger --budget; {dropped} entries "
+        "dropped ---"
     )
 
 lines = []

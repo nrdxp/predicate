@@ -375,6 +375,39 @@ fi
 # ════════════════════════════════════════════════════════════════════════════
 echo ""
 echo "════════════════════════════════════════════════════════════════════════"
+echo "SECTION 5b — regression: render does not vary with the --corpus path"
+echo "════════════════════════════════════════════════════════════════════════"
+# A prior defect embedded the caller's raw --corpus argument in the
+# mandatory tail line, so the rendered surface's length scaled with the
+# length of that argument rather than with corpus content — the budget=300
+# acceptance criterion above (C6) passed or failed depending on the
+# absolute filesystem path the repository happened to sit at, not on
+# anything about the corpus. This runs IDENTICAL corpus content through a
+# short path and a much longer one and requires byte-identical stdout — a
+# check that fails against the embedding defect and so is able to fail
+# against a regression of it, not merely pass by construction.
+short_dir="$TMP/s"
+long_dir="$TMP/a-deliberately-long-directory-name-standing-in-for-a-deeply-nested-checkout-path-purely-to-inflate-argument-length"
+mkdir -p "$short_dir" "$long_dir"
+cp "$fix/reach-note.md" "$short_dir/reach-note.md"
+cp "$fix/reach-note.md" "$long_dir/reach-note.md"
+run_cmd s5d -- --corpus "$short_dir/reach-note.md" --budget 300
+run_cmd s5e -- --corpus "$long_dir/reach-note.md" --budget 300
+if [ "$s5d_rc" -eq 0 ] && [ "$s5e_rc" -eq 0 ]; then
+  if [ "$s5d_out" = "$s5e_out" ]; then
+    record red pass "rendered output is byte-identical across a short and a much longer --corpus path"
+  else
+    record red fail "rendered output is byte-identical across a short and a much longer --corpus path" \
+      "short=${#s5d_out} chars, long=${#s5e_out} chars"
+  fi
+else
+  record red fail "rendered output is byte-identical across a short and a much longer --corpus path" \
+    "rc_short=$s5d_rc rc_long=$s5e_rc"
+fi
+
+# ════════════════════════════════════════════════════════════════════════════
+echo ""
+echo "════════════════════════════════════════════════════════════════════════"
 echo "SECTION 6 — C7: the ranker is a named, replaceable, name-checked component"
 echo "════════════════════════════════════════════════════════════════════════"
 run_cmd s6a -- --corpus "$fix/reach-note.md" --budget 100000 --anchor reach-note:A1 --ranker anchored
