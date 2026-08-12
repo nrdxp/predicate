@@ -193,7 +193,13 @@ def resolve_target(target: str, corpus: Dict[str, DocInfo]) -> Optional[str]:
     return None
 
 
-def _resolved_targets(info: DocInfo, corpus: Dict[str, DocInfo]) -> FrozenSet[str]:
+def resolved_targets(info: DocInfo, corpus: Dict[str, DocInfo]) -> FrozenSet[str]:
+    """A document's own citations, resolved to real corpus doc ids (dangling
+    or ambiguous targets drop silently — see resolve_target). Public: a
+    caller building its own anchor set from a document's citations (e.g. a
+    SessionStart hook seeding from several recently-touched documents at
+    once) needs this directly, not just the staged-single-document wrappers
+    below."""
     return frozenset(r for r in (resolve_target(t, corpus) for t in info.targets) if r is not None)
 
 
@@ -219,7 +225,7 @@ def co_citation_candidates_for_anchors(
         for d_id, d_info in corpus.items():
             if d_id == exclude_id:
                 continue
-            d_targets = _resolved_targets(d_info, corpus)
+            d_targets = resolved_targets(d_info, corpus)
             if a not in d_targets:
                 continue
             for b in d_targets:
@@ -243,7 +249,7 @@ def co_citation_candidates_for_anchors(
 def co_citation_candidates(staged_id: str, corpus: Dict[str, DocInfo]) -> Dict[str, Candidate]:
     """Co-citation candidates for a staged document, from what IT cites."""
     staged = corpus[staged_id]
-    anchors = _resolved_targets(staged, corpus)
+    anchors = resolved_targets(staged, corpus)
     return co_citation_candidates_for_anchors(anchors, corpus, exclude_id=staged_id)
 
 
@@ -276,7 +282,7 @@ def stem_candidates(staged_id: str, corpus: Dict[str, DocInfo]) -> Dict[str, Can
     the staged side is stem UNION title (a document's title is often the
     more legible summary of what it is about)."""
     staged = corpus[staged_id]
-    anchors = _resolved_targets(staged, corpus)
+    anchors = resolved_targets(staged, corpus)
     staged_side = staged.stem_tokens | staged.title_tokens
     raw = token_overlap_candidates(staged_side, corpus, exclude_ids={staged_id})
     return {
