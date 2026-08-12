@@ -180,10 +180,49 @@
   # says what it retires. They stay distinct from derivation because their
   # consequences differ again — a discharged question was ANSWERED, a
   # superseded one was merged into a survivor and never answered at all, and
-  # collapsing the two exits would lose which happened. Neither is a
-  # derivation edge, so neither designates a `derived` signer and neither
-  # satisfies the provenance gate: `edges_of` stays derivation-only.
+  # collapsing the two exits would lose which happened. `discharges` never
+  # designates a `derived` signer and never satisfies the provenance gate — an
+  # answer is not where its own writer came from. `supersedes` DOES satisfy
+  # the gate (ruling-provenance-gate fix (i)): a retraction tethered to the
+  # record only by naming what it retires is not the hallucination the gate
+  # exists to catch, so `ProvenanceGate` consults it beside `provenance_of` at
+  # its own call site — the one clause that reads it, deliberately, since
+  # neither `SignerDesignates`' derived arm nor `DirectiveDesignates` has any
+  # reason to.
+  #
+  # PROVENANCE IS TAGGED ON `because` ALONE (ruling-provenance-representation
+  # [SR4]): `depends`, `discharges` and `supersedes` stay plain corpus ids —
+  # the record's own deletion semantics decide it. `depends` means THIS ENTRY
+  # BREAKS if the target is deleted, so an antecedent outside the corpus has
+  # no deletion event to break on; only `derives-from::` can name what the
+  # graph cannot contain, and only `because` carries it.
   Ref = NonEmptyString,
+
+  # The tagged ref's discriminator: a stated antecedent is either IN the
+  # corpus (walkable, subject to id resolution) or OUTSIDE it (a repository
+  # document, a doctrine, a pre-standard deposit, ...) — the two partition
+  # exhaustively and exclusively, so the type is DERIVABLE rather than
+  # enumerated. The six antecedent kinds an earlier discriminator listed were
+  # OBSERVED in one corpus, not derived, and an enum over them would be an
+  # open variant set — worse than the sidecar it replaces (ruling-provenance-
+  # representation [SR5]).
+  RefKind = std.contract.custom (fun _label v =>
+    if matches v 'corpus "corpus" || matches v 'external "external"
+    then 'Ok v
+    else 'Error { message = "RefKind: expected corpus|external (tag or string)" }
+  ),
+
+  # A RECORD, not a payloaded Nickel variant: `nickel export --format json` on
+  # a payloaded variant like `'corpus "abc"` fails at 1.14.0, and the corpus
+  # round-trips through JSON the extractor writes (ruling-provenance-
+  # representation [SR6]). `Signer` and `Closer` already answer the same
+  # shape of question — a designation mode from a closed set, plus a payload
+  # the type does not enumerate — so this matches them rather than inventing
+  # a third idiom for the same job ([SR7]).
+  ProvenanceRef = {
+    kind | RefKind,
+    name | NonEmptyString,
+  },
 
   # Every edge array is declared `optional` with NO fallback value, and every
   # consumer guards through this one helper: materializing an empty array via
@@ -192,8 +231,30 @@
   refs_of | doc "the refs under an entry's optional array field; [] when absent"
     = fun name n => if std.record.has_field name n then n."%{name}" else [],
 
-  edges_of | doc "an entry's inbound derivation edges: depends and because combined"
+  # `edges_of` is REMOVED, not aliased (ruling-provenance-representation
+  # [SR8]): it conflated two questions three consumers each asked wrongly —
+  # "does this entry state where it came from", answered with "does it have a
+  # WALKABLE corpus edge". Two helpers now, named for the two meanings.
+  #
+  # `provenance_of` — every stated antecedent, corpus or external — feeds
+  # `ProvenanceGate`, `SignerDesignates`' derived branch, and
+  # `DirectiveDesignates` (worker_ibc.ncl). Mixed-shape by construction
+  # (`depends` yields plain strings, `because` yields tagged records): every
+  # caller only ever asks its LENGTH, never its elements, so the mix costs
+  # nothing.
+  provenance_of | doc "every antecedent an entry states, corpus or external"
     = fun n => refs_of "depends" n @ refs_of "because" n,
+
+  # `corpus_edges_of` — the WALKABLE subset, plain corpus-id strings only —
+  # feeds `chain_floor`, `unbacked` and `EntryStore`'s edge resolution.
+  # `because` contributes only its `'corpus`-tagged names; an `'external` ref
+  # names nothing the corpus's id set could ever resolve.
+  corpus_edges_of | doc "an entry's WALKABLE derivation edges: depends and because's corpus-tagged refs"
+    = fun n =>
+      refs_of "depends" n
+      @ (refs_of "because" n
+         |> std.array.filter (fun r => matches r.kind 'corpus "corpus")
+         |> std.array.map (fun r => r.name)),
 
   # --- Check: a corroboration -----------------------------------------------
   #
@@ -295,7 +356,7 @@
     freshness | NonEmptyString | optional,
 
     depends | Array Ref | optional,
-    because | Array Ref | optional,
+    because | Array ProvenanceRef | optional,
 
     # The closure edges. `discharges` names questions this entry ANSWERS —
     # gated by DischargeBacked below and target-typed by EntryStore, so a
@@ -351,15 +412,21 @@
             || matches n.backing 'vouched "vouched")),
 
   # THE PROVENANCE GATE — the structural definition of a hallucination. An
-  # unbacked CLAIM with no inbound edge is not vaguely unsupported: it is a
-  # claim that declines to state where it came from, the one thing every
+  # unbacked CLAIM with no stated antecedent is not vaguely unsupported: it is
+  # a claim that declines to state where it came from, the one thing every
   # other designation supplies. Scoped to claims (ruling D-2): a question
   # asserts nothing, so a frontier question is legitimately edge-free at
-  # birth — the draft's unscoped gate made `frontier` unrecordable.
+  # birth — the draft's unscoped gate made `frontier` unrecordable. Reads
+  # `provenance_of` (corpus or external, ruling-provenance-representation) so
+  # an externally-cited synthesis tethers the record exactly as a corpus-cited
+  # one does; the `supersedes` clause beside it is fix (i)'s own widening — a
+  # retraction naming what it retires is not the hallucination this gate
+  # exists to catch, and no other predicate has a reason to read that edge.
   ProvenanceGate = fun n =>
     !(matches n.assertion 'claim "claim")
     || !(matches n.backing 'unclosed "unclosed")
-    || std.array.length (edges_of n) > 0,
+    || std.array.length (provenance_of n) > 0
+    || std.array.length (refs_of "supersedes" n) > 0,
 
   # A question carries BOTH halves or it is not routable.
   QuestionRoutable = fun n =>
@@ -440,7 +507,7 @@
     if matches n.signer.kind 'derived "derived"
     then
       !(std.record.has_field "name" n.signer)
-      && std.array.length (edges_of n) > 0
+      && std.array.length (provenance_of n) > 0
     else if matches n.signer.kind 'unattributed "unattributed"
     then !(std.record.has_field "name" n.signer)
     else std.record.has_field "name" n.signer,
@@ -563,7 +630,7 @@
         (fun en =>
           std.array.all
             (fun r => std.record.has_field r id_set)
-            (edges_of en))
+            (corpus_edges_of en))
         entries
     in
     # question set (record) — the same O(1) idiom as id_set, so discharges
