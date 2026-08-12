@@ -330,6 +330,89 @@ expect "red: unparseable closer designation is reported, exit 3" 3 "bad-closer" 
 expect "red: unparseable closer names its marker" 3 "\"marker\": \"R1\"" \
   -- python3 "$extractor" "$fix/red-closer-unparseable.md"
 
+# --- the unmarked assertion, and the prose it must not swallow ---------------
+#
+# Every report above fires on a claim that was MARKED and then malformed. The
+# claim that is never marked at all is invisible by construction, so "simply
+# do not mark it" evades the whole discipline at no cost — the one evasion the
+# grammar cannot see.
+#
+# It is detectable because the record has a shape: a claim occupies its own
+# paragraph and opens with its marker, and the unmarked claims that remain
+# open in the document's own assertive form (a bolded lead). Measured over the
+# landed record at the time of writing, that form scopes cleanly ONLY when the
+# document is known to grade its claims at all:
+#
+#   documents carrying >=1 graded node   30 docs,   29 such paragraphs
+#   documents with a header, no nodes    40 docs,  350 such paragraphs
+#   documents with no header at all       5 docs,   23 such paragraphs
+#
+# So the scoping predicate is "this document carries a graded node", NOT "the
+# extractor could read this document". The header is not the discriminator:
+# 350 of the 373 untyped paragraphs sit in documents whose header parses
+# perfectly, and a detector scoped on the header reports every one of them.
+#
+# The two fixtures below are a MINIMAL PAIR — the same assertive paragraph,
+# character for character, differing only in whether a graded node precedes
+# it. A detector that reports both, or neither, fails one of them.
+
+expect "bare assertion: an unmarked claim in a grading document is reported" 3 "" \
+  -- python3 "$extractor" "$fix/red-bare-assertion.md" -o "$tmp/bare.json"
+
+expect "bare assertion: the report is raised and the graded node survives" \
+  0 "BARE-REPORTED-OK" \
+  -- python3 - "$tmp/bare.json" <<'EOF'
+import json, sys
+export = json.load(open(sys.argv[1]))
+# The finding KIND is this suite's proposal, in the naming convention the
+# extractor already uses (unplaced-token, unknown-companion, bad-closer). If
+# the implementation lands a different name, this is the one line to change —
+# the assertion is about the report existing, not about the word.
+assert any(f["kind"] == "unmarked-assertion" for f in export["findings"]), \
+    export["findings"]
+# Preservation, stated as such and green at the pre-edit tree: the document's
+# one properly graded node still extracts. Without it a detector that reported
+# the MARKED paragraph as well would satisfy the assertion above.
+assert [e["id"] for e in export["entries"]] == ["red-bare-assertion:U1"], \
+    export["entries"]
+print("BARE-REPORTED-OK")
+EOF
+
+expect "ungraded prose: the same shape where nothing is graded is silent" 0 "" \
+  -- python3 "$extractor" "$fix/green-ungraded-prose.md" -o "$tmp/ungraded.json"
+
+expect "ungraded prose: no finding is raised against untyped legacy prose" \
+  0 "UNGRADED-SILENT-OK" \
+  -- python3 - "$tmp/ungraded.json" <<'EOF'
+import json, sys
+export = json.load(open(sys.argv[1]))
+# The false-positive guard. It is GREEN at the pre-edit tree — no detector
+# exists to misfire yet — and becomes load-bearing the moment the case above
+# is implemented. It is the 350 live paragraphs' only defence.
+assert export["findings"] == [], export["findings"]
+assert export["entries"] == [], export["entries"]
+print("UNGRADED-SILENT-OK")
+EOF
+
+# The guard only guards while the pair stays minimal: if the two fixtures drift
+# apart, a detector could pass both on a difference nobody intended to test.
+# Green at the pre-edit tree, and asserted rather than trusted.
+expect "the pair differs only by the presence of a graded node" 0 "PAIR-MINIMAL-OK" \
+  -- python3 - "$fix/red-bare-assertion.md" "$fix/green-ungraded-prose.md" <<'EOF'
+import re, sys
+def blocks(path):
+    text = open(path, encoding="utf-8").read()
+    return [" ".join(b.split()) for b in re.split(r"\n\s*\n", text) if b.strip()]
+red, green = blocks(sys.argv[1]), blocks(sys.argv[2])
+shared = [b for b in red if b.startswith("**")]
+assert len(shared) == 1, shared
+assert shared[0] in green, (shared[0], green)
+# And the difference really is the graded node: exactly one side has one.
+marked = lambda bs: [b for b in bs if re.match(r"`\[[A-Za-z][A-Za-z0-9-]*\] grade::", b)]
+assert marked(red) and not marked(green), (marked(red), marked(green))
+print("PAIR-MINIMAL-OK")
+EOF
+
 echo
 if [ "$fails" -eq 0 ]; then echo "test_entries_extract: ALL PASS"; exit 0; fi
 echo "test_entries_extract: $fails FAILURE(S)"; exit 1
