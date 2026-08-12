@@ -331,11 +331,19 @@ entries = {e["id"]: e for e in export["entries"]}
 # The INPUT first: the corpus carries both branches and the query is handed
 # both, so a floor assertion below can only be about how they were read —
 # never a lost fixture, a dropped edge, or a changed extractor.
-assert entries["mixed-floor-note:X1"]["because"] == ["mixed-floor-note:K1"]
-assert entries["mixed-floor-note:X2"]["because"] == ["mixed-floor-note:X1"]
-assert export["external_refs"] == [
-    {"entry": "mixed-floor-note:X1", "refs": ["prior-art/floor-vocabulary"]}
-], export["external_refs"]
+# RETARGETED under ruling-provenance-representation (ledger commit f257f6f):
+# because carries TAGGED refs now, and the external_refs sidecar is deleted
+# entirely — see external-provenance-note's own header for the full account.
+# Genuinely red today: the extractor still emits bare strings plus the
+# sidecar.
+assert entries["mixed-floor-note:X1"]["because"] == [
+    {"kind": "corpus", "name": "mixed-floor-note:K1"},
+    {"kind": "external", "name": "prior-art/floor-vocabulary"},
+], entries["mixed-floor-note:X1"]
+assert entries["mixed-floor-note:X2"]["because"] == [
+    {"kind": "corpus", "name": "mixed-floor-note:X1"}
+], entries["mixed-floor-note:X2"]
+assert "external_refs" not in export, export.keys()
 floors = {row["id"]: sorted(row["floors"]) for row in q["chain_floor"]}
 assert floors["mixed-floor-note:K1"] == ["closed"], floors
 assert floors["mixed-floor-note:X1"] == ["closed", "external"], floors
