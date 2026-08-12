@@ -242,6 +242,49 @@ assert entries["ghost-ref:X1"].get("because") == ["ghost-ref:K1"], \
 print("GHOST-REPORTED-OK")
 EOF
 
+# --- datestem/: the stem a real document carries ---------------------------
+#
+# Every other corpus here spells its stems in letters. No document in the
+# landed record does — a stem is a file stem and file stems lead with a date
+# (`2026-08-11-state-typed`). So a stem class narrowed back to letters would
+# strand every cross-document reference the record actually writes while every
+# alphabetic fixture above stayed green, and the two edge kinds would fail
+# differently: the closure edge reported, the derivation edge filed as
+# external provenance and passed in silence. Both cross by a dated stem here.
+
+expect "datestem: a dated-stem corpus reports nothing" 0 "" \
+  -- python3 "$extractor" "$fix/datestem" -o "$tmp/datestem.json"
+expect "datestem: the export passes the entry contract" 0 "" \
+  -- nickel export "$tmp/datestem.json" --apply-contract "$apply"
+
+nickel export "$tmp/datestem.json" --apply-contract "$query" \
+  > "$tmp/datestem-query.json" 2>/dev/null
+
+expect "datestem: a digit-leading stem resolves both edge kinds" 0 "DATESTEM-CROSSES-OK" \
+  -- python3 - "$tmp/datestem.json" "$tmp/datestem-query.json" <<'EOF'
+import json, sys
+export = json.load(open(sys.argv[1]))
+q = json.load(open(sys.argv[2]))
+entries = {e["id"]: e for e in export["entries"]}
+open_doc = "2026-08-11-datestem-open"
+closer = "2026-08-12-datestem-closer"
+# The loud half: a stem class that rejected the leading digit would leave this
+# edge unbracketed, hence unresolvable, hence reported.
+assert entries[f"{closer}:K1"].get("discharges") == [f"{open_doc}:R1"], \
+    entries[f"{closer}:K1"]
+# The quiet half, and the reason both are asserted: a derivation ref the
+# bracket pattern does not match is filed as external provenance and the run
+# still exits clean, so nothing but this assertion would notice.
+assert set(entries[f"{closer}:X1"].get("because", [])) == {
+    f"{closer}:K1", f"{open_doc}:K1"}, entries[f"{closer}:X1"]
+assert export["external_refs"] == [], export["external_refs"]
+# And the crossing is real rather than merely recorded: R1's closer is human,
+# so it sits in awaiting_human until something discharges it.
+assert f"{open_doc}:R1" not in [row["id"] for row in q["awaiting_human"]], \
+    q["awaiting_human"]
+print("DATESTEM-CROSSES-OK")
+EOF
+
 # --- plainfall/: no fallback from local to corpus --------------------------
 #
 # The resolution rule's last escape. A plain ref matching nothing locally,
