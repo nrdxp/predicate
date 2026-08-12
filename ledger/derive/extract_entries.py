@@ -407,8 +407,12 @@ def extract_doc(path: Path, out: Extraction) -> None:
         if marker_match is None:
             report_unplaced(block, out, doc)
             report_orphaned_companions(block, out, doc, last_marker)
-            if (lead := BOLD_LEAD_RE.match(block)) is not None:
-                unmarked.append(lead.group(1))
+            if block.startswith("**"):
+                # The bolded LEAD is the excerpt, not the test: an unclosed
+                # `**` is still an assertion in the record's assertive form,
+                # and matching on the closing pair would drop it unreported.
+                lead = BOLD_LEAD_RE.match(block)
+                unmarked.append(lead.group(1) if lead else block)
             continue
         marker, grade = marker_match.groups()
         last_marker = marker
