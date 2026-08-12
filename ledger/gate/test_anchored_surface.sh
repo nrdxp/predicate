@@ -303,7 +303,7 @@ if [ "$s4a_rc" -eq 0 ]; then
   printf '%s' "$s4a_out" | grep -qiE "$TAIL_RE" \
     && record red pass "tail present with ample budget (dropped count is 0, not absent)" \
     || record red fail "tail present with ample budget (dropped count is 0, not absent)" "$s4a_out"
-  printf '%s' "$s4a_out" | grep -qiE '(dropped\D{0,20}0\b|0\D{0,20}dropped)' \
+  printf '%s' "$s4a_out" | grep -qiE '(dropped[^0-9]{0,20}0\b|0[^0-9]{0,20}dropped)' \
     && record red pass "the zero-dropped case states the count explicitly, not by omission" \
     || record red fail "the zero-dropped case states the count explicitly" "$s4a_out"
 else
