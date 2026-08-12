@@ -14,6 +14,13 @@
 # std.contract.all_of over the LIFTED eleven (ruling D-9), shape first so a
 # malformed entry fails on its field contract before any predicate reads it.
 #
+# The dispatch selects the SCOPE of the law, never its strength: EntryStore
+# applies this same shape-then-predicates composition to every entry it holds
+# and adds only what a lone entry cannot show (id-uniqueness, edge resolution,
+# discharge target-typing, supersession termination). A predicate live on one
+# branch and dead on the other would make the granularity a loophole rather
+# than a scope.
+#
 # Imports resolve relative to THIS file's location: entry.ncl sits beside it.
 let e = import "entry.ncl" in
 std.contract.custom (fun label value =>

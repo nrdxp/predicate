@@ -463,14 +463,23 @@
   # (the council harness's own rule); mirrors DepositStore / dag.ncl,
   # including the record-as-set idiom for O(1) membership.
   #
-  # Deliberately MINIMAL: per-entry shape conformance plus the corpus
-  # properties. The eleven predicates are NOT applied here — a contract aborts
-  # at the first violation, and batch violation-collection over a corpus is
-  # exactly the future batch-validator's job (the design reason the
-  # predicates are bare booleans). Every edge kind must resolve within the
-  # aggregate: the depends/because difference is what DELETION of the target
-  # means for the record's evolution, not a license to author a reference
-  # that never resolved at all.
+  # Per-entry conformance here is the FULL law — shape plus the eleven lifted
+  # predicates — not shape alone. A predicate must be live on every validation
+  # path whose consumers read the property it guards, and the corpus is the
+  # only shape a real record takes: a predicate that fires only on a lone
+  # entry is a predicate that never fires. `DischargeBacked` is the case that
+  # proved it — misclosure was declared unrepresentable while the live path
+  # never evaluated it.
+  #
+  # Fail-fast is the right disposition for a GATE: it needs soundness, and
+  # aborting at the first violation is sound. Batch violation-COLLECTION
+  # remains a future reporter's job, and it stays cheap to build because the
+  # predicates are bare booleans it can fold over the same corpus — one logic
+  # definition serving refusal and reporting alike.
+  #
+  # Every edge kind must resolve within the aggregate: the depends/because
+  # difference is what DELETION of the target means for the record's
+  # evolution, not a license to author a reference that never resolved at all.
   #
   # The closure edges add the conditions no per-entry contract can decide:
   # `discharges` is claim -> QUESTION by type, and the target's assertion is
@@ -482,12 +491,16 @@
   # property of the relation rather than of any entry in it.
   EntryStore = std.contract.custom (fun _label value =>
     let entries = value.entries in
-    # Per-element Entry conformance, EAGER: `std.contract.apply` alone stays
-    # lazy and a malformed entry slips through `nickel export`; the
-    # `std.deep_seq (e | Entry)` annotation raises the violation here.
+    # Per-element conformance, EAGER: `std.contract.apply` alone stays lazy
+    # and a violating entry slips through `nickel export`; the `std.deep_seq`
+    # annotation raises it here. Shape FIRST, then the lifted predicates, so a
+    # malformed entry fails on its field contract before any predicate reads
+    # it — the same composition entry_apply.ncl gives a lone entry, because
+    # the two granularities must refuse the same defects.
     let _entry_conformance =
       std.array.fold_left
-        (fun acc en => std.deep_seq (en | Entry) acc)
+        (fun acc en =>
+          std.deep_seq (en | std.contract.all_of ([Entry] @ lifted)) acc)
         null
         entries
     in
