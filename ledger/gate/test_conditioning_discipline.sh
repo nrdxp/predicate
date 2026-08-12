@@ -513,8 +513,17 @@ echo "════════════════════════�
 # reports today MINUS the four this pass's ruled cuts remove. Those four are
 # absent from the list, which is what makes this case red now and green when
 # the cuts land. Everything remaining is a real core↔delta duplication that
-# this pass was not scoped to touch; each is a standing finding, and the check
-# is a RATCHET — any duplication the pass introduces fails it.
+# this pass was not scoped to touch, and each is a standing finding.
+#
+# The manifest is an EXACT SET, compared by equality in BOTH directions —
+# never a tolerance band. A phrase the sweep reports that the manifest does
+# not declare is a duplication that got introduced. A phrase the manifest
+# declares that the sweep no longer reports is a finding resolved without
+# anyone saying so, and that direction is the one a tolerance loses: cut a
+# rule outright — both copies — and the count merely drops, which a one-sided
+# comparison reads as an improvement rather than as the deletion it is. A
+# member therefore leaves this list only in the commit that resolves it, with
+# the cause recorded in that commit's body.
 echo ""
 cat >"$TEMP_HOME/residual.txt" <<'RESIDUAL'
 a finding is admissible only
@@ -525,7 +534,6 @@ boundary is not what but
 boundary mass scales inversely with
 confidence is not evidence and
 disciplines load they are not
-enumerate the actual universe git
 evidence and neither is its
 first question of any boundary
 internal confidence is not evidence
@@ -542,7 +550,6 @@ of any boundary is not
 question of any boundary is
 setup should have allowlisted it
 synthesis decision and narrative nodes
-the actual universe git ls-files
 the chronological process log and
 the first question of any
 what but how much ceremony
@@ -551,27 +558,42 @@ RESIDUAL
 python3 "$probe" --tree "$TEMP_HOME" --core "$CORE_RENDER" dupes --k 5 \
   >"$TEMP_HOME/dupes.raw" 2>"$TEMP_HOME/dupes.err"
 dupes_rc=$?
+sweep_desc="unbounded sweep: reported residuals equal the declared manifest"
 if [ "$dupes_rc" -ne 0 ]; then
-  record red fail "unbounded sweep: reports no unaccounted core-to-delta duplication" \
-    "probe exit $dupes_rc"
+  record red fail "$sweep_desc" "probe exit $dupes_rc"
   sed 's/^/    /' "$TEMP_HOME/dupes.err"
 else
   cut -f2 "$TEMP_HOME/dupes.raw" | LC_ALL=C sort -u >"$TEMP_HOME/dupes.txt"
   LC_ALL=C sort -u "$TEMP_HOME/residual.txt" >"$TEMP_HOME/residual.sorted"
+  # Set equality, both differences. UNDECLARED is duplication that appeared
+  # without being declared; STALE is a declared member the sweep no longer
+  # reports — a resolution nobody recorded, and the direction a one-sided
+  # comparison silently accepts.
   LC_ALL=C comm -23 "$TEMP_HOME/dupes.txt" "$TEMP_HOME/residual.sorted" \
-    >"$TEMP_HOME/dupes.unaccounted"
+    >"$TEMP_HOME/undeclared.txt"
+  LC_ALL=C comm -13 "$TEMP_HOME/dupes.txt" "$TEMP_HOME/residual.sorted" \
+    >"$TEMP_HOME/stale.txt"
   echo "  reported phrases: $(wc -l <"$TEMP_HOME/dupes.txt" | tr -d ' ')" \
        " declared residual: $(wc -l <"$TEMP_HOME/residual.sorted" | tr -d ' ')"
   echo "  full report (surface-count, phrase):"
   sed 's/^/    /' "$TEMP_HOME/dupes.raw"
-  unaccounted="$(wc -l <"$TEMP_HOME/dupes.unaccounted" | tr -d ' ')"
-  if [ "$unaccounted" -eq 0 ]; then
-    record red pass "unbounded sweep: reports no unaccounted core-to-delta duplication"
+  undeclared="$(wc -l <"$TEMP_HOME/undeclared.txt" | tr -d ' ')"
+  stale="$(wc -l <"$TEMP_HOME/stale.txt" | tr -d ' ')"
+  if [ "$undeclared" -eq 0 ] && [ "$stale" -eq 0 ]; then
+    record red pass "$sweep_desc"
   else
-    echo "  UNACCOUNTED:"
-    sed 's/^/    ! /' "$TEMP_HOME/dupes.unaccounted"
-    record red fail "unbounded sweep: reports no unaccounted core-to-delta duplication" \
-      "$unaccounted unaccounted phrase(s)"
+    detail=""
+    if [ "$undeclared" -ne 0 ]; then
+      echo "  UNDECLARED (reported, not in the manifest):"
+      sed 's/^/    + /' "$TEMP_HOME/undeclared.txt"
+      detail="$undeclared undeclared"
+    fi
+    if [ "$stale" -ne 0 ]; then
+      echo "  STALE (declared, no longer reported — resolve it in the manifest):"
+      sed 's/^/    - /' "$TEMP_HOME/stale.txt"
+      detail="${detail:+$detail, }$stale stale"
+    fi
+    record red fail "$sweep_desc" "$detail"
   fi
 fi
 
