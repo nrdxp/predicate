@@ -304,6 +304,13 @@ let GateEntry = {
     } | GateEntry,
 
     {
+      gate        = "ledger/gate/test_report_fraction.sh",
+      scope       = 'orchestration,
+      fires_when  = "CI conditioning-sweep step; materializes the install into a throwaway HOME and asserts the always-on law obliges every walk to REPORT ITS UNCLOSED FRACTION — stated rather than merely computable, naming the denominator and the body of work it ranges over, at one rung and with the query mechanism kept out of the law",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
       gate        = "ledger/gate/test_colocation_gate.sh",
       scope       = 'orchestration,
       fires_when  = "CI gate-test step; verifies that bootstrap/install.sh init installs templates/project-gates/* into .ledger/gates/ and that the colocation gate fires when a skill-owned contract is re-centralized",
