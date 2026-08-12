@@ -352,6 +352,13 @@ let GateEntry = {
       applies_to  = "agent only",
     } | GateEntry,
 
+    {
+      gate        = "ledger/gate/test_corpus_ids.sh",
+      scope       = 'orchestration,
+      fires_when  = "CI corpus-ids step; multi-document fixture corpora pinning reference resolution ACROSS documents — a qualified [stem:ID] resolves corpus-wide, a plain [ID] stays doc-local with no fallback, a wikilink stays external even where its text reads as a corpus id, and an unresolvable qualified id is reported rather than filed as external provenance",
+      applies_to  = "agent only",
+    } | GateEntry,
+
     # ── TEMPLATES/PROJECT-GATES (tracked source; installed to .ledger/gates/ by init) ──
 
     {

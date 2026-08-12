@@ -103,6 +103,42 @@ expect "red: unknown grade names the offending marker" 3 "K1" \
 expect "red: well-formed sibling still extracted alongside the report" 3 "red-unknown-grade:K2" \
   -- python3 "$extractor" "$fix/red-unknown-grade.md"
 
+# The grade word above is spelled in plain letters; the one below carries a
+# hyphen. The marker's grade capture is `grade::([^\s`]*)` — any non-space run
+# — so both are read as nodes and both are reported through the same
+# vocabulary check. What the case below adds is the WIDTH of that capture: its
+# grade is the only one in this suite outside `[a-z]+`, and under a narrower
+# capture its paragraph would stop being a node before the vocabulary was ever
+# consulted and be dropped with nothing said.
+
+expect "red: an invented grade word outside [a-z]+ is reported" 3 "" \
+  -- python3 "$extractor" "$fix/red-invented-grade.md" -o "$tmp/invented.json"
+
+expect "red: the invented grade is reported ON THE GRADE, not by accident" \
+  0 "INVENTED-REPORTED-OK" \
+  -- python3 - "$tmp/invented.json" <<'EOF'
+import json, sys
+export = json.load(open(sys.argv[1]))
+findings = export["findings"]
+# The accident this refuses: a paragraph whose marker line does not parse is
+# no longer a node, and a companion span inside it is then reported as orphaned
+# — an exit 3 that names a stray token and says nothing about the grade, on a
+# node the reader is never told was dropped. The widened capture keeps this
+# fixture off that path, and the offending paragraph carries no token span
+# either; the assertion refuses the substitution outright rather than trusting
+# both of those to hold.
+assert all(f["kind"] != "orphaned-companion" for f in findings), findings
+named = [f for f in findings if f["marker"] == "G1"]
+assert named, findings
+# A finding the reader cannot act on is not a report: it must name the word.
+assert any("self-evident" in f["reason"] for f in named), named
+# Preservation, stated as such: the well-formed sibling is untouched. This
+# clause is green at the pre-edit tree — it pins the blast radius, not the fix.
+assert [e["id"] for e in export["entries"]] == ["red-invented-grade:G2"], \
+    export["entries"]
+print("INVENTED-REPORTED-OK")
+EOF
+
 expect "red: vocabulary token outside a marker is reported" 3 "\"kind\": \"unplaced-token\"" \
   -- python3 "$extractor" "$fix/red-unplaced-token.md"
 expect "red: unknown companion token is reported" 3 "\"kind\": \"unknown-companion\"" \
@@ -296,6 +332,177 @@ expect "red: unparseable closer designation is reported, exit 3" 3 "bad-closer" 
   -- python3 "$extractor" "$fix/red-closer-unparseable.md"
 expect "red: unparseable closer names its marker" 3 "\"marker\": \"R1\"" \
   -- python3 "$extractor" "$fix/red-closer-unparseable.md"
+
+# --- the unmarked assertion, and the prose it must not swallow ---------------
+#
+# Every report above fires on a claim that was MARKED and then malformed. The
+# claim that is never marked at all is invisible by construction, so "simply
+# do not mark it" evades the whole discipline at no cost — the one evasion the
+# grammar cannot see.
+#
+# It is detectable because the record has a shape: a claim occupies its own
+# paragraph and opens with its marker, and the unmarked claims that remain
+# open in the document's own assertive form (a bolded lead). Measured over the
+# landed record at the time of writing, that form scopes cleanly ONLY when the
+# document is known to grade its claims at all:
+#
+#   documents carrying >=1 graded node   30 docs,   29 such paragraphs
+#   documents with a header, no nodes    40 docs,  350 such paragraphs
+#   documents with no header at all       5 docs,   23 such paragraphs
+#
+# So the scoping predicate is "this document carries a graded node", NOT "the
+# extractor could read this document". The header is not the discriminator:
+# 350 of the 373 untyped paragraphs sit in documents whose header parses
+# perfectly, and a detector scoped on the header reports every one of them.
+#
+# The two fixtures below are a MINIMAL PAIR — the same assertive paragraph,
+# character for character, differing only in whether a graded node precedes
+# it. A detector that reports both, or neither, fails one of them.
+
+expect "bare assertion: an unmarked claim in a grading document is reported" 3 "" \
+  -- python3 "$extractor" "$fix/red-bare-assertion.md" -o "$tmp/bare.json"
+
+expect "bare assertion: the report is raised and the graded node survives" \
+  0 "BARE-REPORTED-OK" \
+  -- python3 - "$tmp/bare.json" <<'EOF'
+import json, sys
+export = json.load(open(sys.argv[1]))
+# The finding KIND is this suite's proposal, in the naming convention the
+# extractor already uses (unplaced-token, unknown-companion, bad-closer). If
+# the implementation lands a different name, this is the one line to change —
+# the assertion is about the report existing, not about the word.
+assert any(f["kind"] == "unmarked-assertion" for f in export["findings"]), \
+    export["findings"]
+# Preservation, stated as such and green at the pre-edit tree: the document's
+# one properly graded node still extracts. Without it a detector that reported
+# the MARKED paragraph as well would satisfy the assertion above.
+assert [e["id"] for e in export["entries"]] == ["red-bare-assertion:U1"], \
+    export["entries"]
+print("BARE-REPORTED-OK")
+EOF
+
+expect "ungraded prose: the same shape where nothing is graded is silent" 0 "" \
+  -- python3 "$extractor" "$fix/green-ungraded-prose.md" -o "$tmp/ungraded.json"
+
+expect "ungraded prose: no finding is raised against untyped legacy prose" \
+  0 "UNGRADED-SILENT-OK" \
+  -- python3 - "$tmp/ungraded.json" <<'EOF'
+import json, sys
+export = json.load(open(sys.argv[1]))
+# The false-positive guard. It is GREEN at the pre-edit tree — no detector
+# exists to misfire yet — and becomes load-bearing the moment the case above
+# is implemented. It is the 350 live paragraphs' only defence.
+assert export["findings"] == [], export["findings"]
+assert export["entries"] == [], export["entries"]
+print("UNGRADED-SILENT-OK")
+EOF
+
+# The guard only guards while the pair stays minimal: if the two fixtures drift
+# apart, a detector could pass both on a difference nobody intended to test.
+# Green at the pre-edit tree, and asserted rather than trusted.
+expect "the pair differs only by the presence of a graded node" 0 "PAIR-MINIMAL-OK" \
+  -- python3 - "$fix/red-bare-assertion.md" "$fix/green-ungraded-prose.md" <<'EOF'
+import re, sys
+def blocks(path):
+    text = open(path, encoding="utf-8").read()
+    return [" ".join(b.split()) for b in re.split(r"\n\s*\n", text) if b.strip()]
+red, green = blocks(sys.argv[1]), blocks(sys.argv[2])
+shared = [b for b in red if b.startswith("**")]
+assert len(shared) == 1, shared
+assert shared[0] in green, (shared[0], green)
+# And the difference really is the graded node: exactly one side has one.
+marked = lambda bs: [b for b in bs if re.match(r"`\[[A-Za-z][A-Za-z0-9-]*\] grade::", b)]
+assert marked(red) and not marked(green), (marked(red), marked(green))
+print("PAIR-MINIMAL-OK")
+EOF
+
+# The assertive form arrives MALFORMED as often as not, and the detector is
+# measured against "the paragraph OPENS with the marker" — never "the paragraph
+# contains a closed pair". The two readings agree on every fixture above, so
+# neither the pair nor the census goldens can tell them apart: the case below is
+# the only one in this suite that separates them. Matching on the closing pair
+# drops an unmarked claim unreported, which is precisely the evasion the report
+# exists to see, and a writer declining to type a claim is not thereby careful
+# about closing its emphasis.
+#
+# This case is red against the pair-matching form
+# (`if (lead := BOLD_LEAD_RE.match(block)) is not None`) and green against the
+# committed `block.startswith("**")`. Verified in both directions rather than
+# assumed: the suite ran green over an exact reversal of that fix, so a case
+# here that does not discriminate is worth nothing at all.
+
+expect "unclosed lead: an unclosed bold lead is still reported" 3 "" \
+  -- python3 "$extractor" "$fix/red-unclosed-lead.md" -o "$tmp/unclosed.json"
+
+expect "unclosed lead: reported from the whole-paragraph fallback" \
+  0 "UNCLOSED-LEAD-OK" \
+  -- python3 - "$tmp/unclosed.json" <<'EOF'
+import json, sys
+export = json.load(open(sys.argv[1]))
+findings = export["findings"]
+unmarked = [f for f in findings if f["kind"] == "unmarked-assertion"]
+assert [f["doc"] for f in unmarked] == ["red-unclosed-lead"], findings
+# The excerpt keeps its literal asterisks. The bold-lead branch strips them
+# through its capture group, so their presence is the proof that the report
+# came from the whole-paragraph fallback — not from a pair that closed
+# somewhere further along and made the case green for the wrong reason.
+[reason] = [f["reason"] for f in unmarked]
+assert reason.startswith("`**Unclosed emphasis is still emphasis"), reason
+# Nothing else fired, so the exit 3 above is THIS finding and not an unplaced
+# token or an orphaned companion arriving by accident.
+assert len(findings) == 1, findings
+# Preservation, stated as such: the document's one graded node still extracts.
+assert [e["id"] for e in export["entries"]] == ["red-unclosed-lead:U1"], \
+    export["entries"]
+print("UNCLOSED-LEAD-OK")
+EOF
+
+# The scoping rule is decided over the WHOLE document, and the report is held
+# back until the document has been read for exactly that reason: whether an
+# untyped claim is a defect depends on whether the file grades anything, which
+# is unknown at the paragraph where the claim is written. Every fixture above
+# places its untyped claim AFTER the graded node, where a detector deciding
+# scope at the paragraph agrees with one deciding it at the end — so none of
+# them can tell the two readings apart, and the deferral rides on all of them
+# unpinned.
+#
+# The fixture below inverts the order. It is red against the inline-decision
+# form (reporting each lead as it is read, under the flag's value at that
+# point) and green against the committed deferral. Verified in both directions
+# in a scratch copy rather than assumed, on the standard this node adopted when
+# the suite ran green over an exact reversal of the fix above.
+
+expect "preceding assertion: an untyped claim above the first node is reported" \
+  3 "" \
+  -- python3 "$extractor" "$fix/red-preceding-assertion.md" -o "$tmp/preceding.json"
+
+expect "preceding assertion: scope is decided over the whole document" \
+  0 "PRE-NODE-REPORTED-OK" \
+  -- python3 - "$tmp/preceding.json" <<'EOF'
+import json, sys
+export = json.load(open(sys.argv[1]))
+findings = export["findings"]
+unmarked = [f for f in findings if f["kind"] == "unmarked-assertion"]
+assert [f["doc"] for f in unmarked] == ["red-preceding-assertion"], findings
+# The excerpt names the claim standing ABOVE the node, so the report is about
+# that paragraph and not about some later one the fixture also carries.
+[reason] = [f["reason"] for f in unmarked]
+assert reason.startswith("`Scope is a property of the document, not of the "
+                         "reader.`"), reason
+# Nothing else fired, so the exit 3 above is THIS finding and not an unplaced
+# token or an orphaned companion arriving by accident.
+assert len(findings) == 1, findings
+# What the deferral costs, stated rather than left implicit: by the time the
+# report is raised the paragraph's position is gone, so the finding can name no
+# marker — unlike orphaned-companion, which attributes to the nearest preceding
+# one. Green at this tip; it is the clause that speaks up if attribution is
+# ever added without moving the decision back to the paragraph.
+assert [f["marker"] for f in unmarked] == [None], unmarked
+# Preservation, stated as such: the document's one graded node still extracts.
+assert [e["id"] for e in export["entries"]] == ["red-preceding-assertion:U1"], \
+    export["entries"]
+print("PRE-NODE-REPORTED-OK")
+EOF
 
 echo
 if [ "$fails" -eq 0 ]; then echo "test_entries_extract: ALL PASS"; exit 0; fi
