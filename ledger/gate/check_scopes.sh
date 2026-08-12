@@ -58,8 +58,11 @@ for entry in data.get("gates", []):
 #        hook/pre-commit:ledger-structure
 #        hook/pre-commit:authority
 #        hook/pre-commit:process
-#   5. All files under skills/*/scripts/ (enumerated dynamically so new
-#      skill scripts are automatically surfaced by the completeness check)
+#   5. All *.sh and *.py files under skills/*/scripts/ (enumerated
+#      dynamically so new skill scripts are automatically surfaced by the
+#      completeness check; extension-filtered like sections 1-2 so a build
+#      artifact — e.g. a __pycache__/*.pyc left by running a skill script —
+#      is never counted as a gate)
 #
 # File-based entries use their repo-root-relative path so they match the
 # identifiers in scopes.ncl exactly.
@@ -88,8 +91,8 @@ actual_gates() {
       "hook/pre-commit:process" \
       "hook/pre-commit:project-local"
 
-    # 4. Skill scripts (all files under skills/*/scripts/)
-    find "$root/skills" -path "*/scripts/*" -type f \
+    # 4. Skill scripts (*.sh and *.py files under skills/*/scripts/)
+    find "$root/skills" -path "*/scripts/*" \( -name '*.sh' -o -name '*.py' \) -type f \
       | while IFS= read -r f; do
           printf '%s\n' "$(realpath --relative-to="$root" "$f")"
         done
