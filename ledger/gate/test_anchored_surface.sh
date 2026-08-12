@@ -810,6 +810,74 @@ fi
 # ════════════════════════════════════════════════════════════════════════════
 echo ""
 echo "════════════════════════════════════════════════════════════════════════"
+echo "SECTION 13 — node/surface-injection: a findings-only extraction (exit 3)"
+echo "is success-with-findings, never hard failure"
+echo "════════════════════════════════════════════════════════════════════════"
+# extract_entries.py's own convention: 0 = clean, 2 = usage/environment error
+# (no export written), 3 = findings present but the export IS still written,
+# incomplete only where the findings themselves point. anchored_surface.sh
+# previously collapsed ALL non-zero exits into hard failure, so a corpus
+# with even one incomplete document (a headerless note, extremely common —
+# see the real .ledger's own 24 findings) made the WHOLE corpus unusable,
+# including every document that parsed cleanly. THE FIX DOES NOT EXIST YET
+# at the tip this section was authored against — red for that reason.
+#
+# fixtures/anchored_surface/findings-tolerant/: good.md (headered, one open
+# entry G1) + bad.md (no header at all, triggers pre-standard-doc — the
+# whole extraction run exits 3). good.md's own entry must still surface.
+ft="$fix/findings-tolerant"
+[ -d "$ft" ] || { echo "FAIL (env): missing $ft" >&2; exit 2; }
+
+run_cmd s13a -- --corpus "$ft" --budget 100000
+if [ "$s13a_rc" -eq 0 ]; then
+  if printf '%s' "$s13a_out" | grep -q 'good:G1'; then
+    record red pass "a corpus with one incomplete (headerless) document still surfaces the other's entry"
+  else
+    record red fail "a corpus with one incomplete (headerless) document still surfaces the other's entry" "$s13a_out"
+  fi
+else
+  record red fail "a corpus with one incomplete (headerless) document still surfaces the other's entry" "rc=$s13a_rc: $s13a_out"
+fi
+
+# --json must ALSO tolerate exit 3, through the same code path.
+# stdout-only capture (not run_cmd's shared 2>&1 merge): the findings
+# warning this section exists to tolerate goes to stderr precisely so stdout
+# stays pure JSON — merging it in here would make THIS check fail on the
+# warning it is meant to prove survives, not on the command under test.
+s13b_out="$("$CMD" --corpus "$ft" --budget 100000 --json 2>"$TMP/s13b.err")"
+s13b_rc=$?
+if [ "$s13b_rc" -eq 0 ]; then
+  printf '%s' "$s13b_out" > "$TMP/s13b.json"
+  ok="$(python3 - "$TMP/s13b.json" <<'PY'
+import json, sys
+d = json.load(open(sys.argv[1]))
+ids = [c["id"] for c in d["candidates"]]
+print("OK" if "good:G1" in ids else f"FAIL ids={ids}")
+PY
+)"
+  if [ "$ok" = "OK" ]; then
+    record red pass "--json also tolerates a findings-only (exit 3) extraction"
+  else
+    record red fail "--json also tolerates a findings-only (exit 3) extraction" "$ok"
+  fi
+else
+  record red fail "--json also tolerates a findings-only (exit 3) extraction" "rc=$s13b_rc: $s13b_out"
+fi
+
+# Guard: a GENUINE extraction failure (corpus path does not exist at all —
+# extract_entries.py's own exit 2, no export ever written) must still be a
+# hard failure. The fix narrows what's tolerated to exit 3 specifically; it
+# must not swallow every non-zero exit into success.
+run_cmd s13c -- --corpus "$fix/does-not-exist.md" --budget 100000
+if [ "$s13c_rc" -ne 0 ]; then
+  record guard pass "a corpus path that doesn't exist is still a hard failure, not silently tolerated"
+else
+  record guard fail "a corpus path that doesn't exist is still a hard failure" "rc=$s13c_rc: $s13c_out"
+fi
+
+# ════════════════════════════════════════════════════════════════════════════
+echo ""
+echo "════════════════════════════════════════════════════════════════════════"
 echo "SUMMARY"
 echo "════════════════════════════════════════════════════════════════════════"
 echo "  PASS: $PASS_COUNT"

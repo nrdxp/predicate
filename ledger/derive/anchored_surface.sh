@@ -56,10 +56,13 @@
 # structured value already carries everything --self-evaluate's one line
 # reports (and more).
 #
-# Exit: 0 = rendered/evaluated successfully. 1 = the corpus failed
-# extraction or entry_apply.ncl validation (this primitive never works
-# around that — see the node's own report on the pre-existing corpus
-# defect). 2 = usage error (missing/invalid flag).
+# Exit: 0 = rendered/evaluated successfully — including a corpus that
+# extracted with findings (extract_entries.py's own exit 3: incomplete only
+# where the findings point, never a reason to discard what DID extract
+# cleanly, node/surface-injection). 1 = extraction failed outright (no
+# export at all) or the corpus failed entry_apply.ncl validation (this
+# primitive never works around that — see the node's own report on the
+# pre-existing corpus defect). 2 = usage error (missing/invalid flag).
 set -u
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -141,11 +144,27 @@ trap 'rm -rf "$TMP"' EXIT
 
 extract_json="$TMP/extract.json"
 extract_err="$TMP/extract.err"
-if ! python3 "$EXTRACTOR" "$corpus" -o "$extract_json" >/dev/null 2>"$extract_err"; then
-  echo "anchored_surface: extraction failed for corpus '$corpus':" >&2
-  cat "$extract_err" >&2
-  exit 1
-fi
+python3 "$EXTRACTOR" "$corpus" -o "$extract_json" >/dev/null 2>"$extract_err"
+extract_rc=$?
+# extract_entries.py's own exit convention (its own --help/docstring): 0 =
+# clean, 2 = usage/environment error (no export ever written), 3 = findings
+# present but the export IS still written, incomplete only where the
+# findings themselves point (node/surface-injection). Collapsing exit 3 into
+# hard failure made one incomplete document (a missing header, common on the
+# real record) void an entire corpus, including every document that parsed
+# cleanly — so only 3 is tolerated here; anything else (2, a crash, no
+# export) stays a hard failure.
+case "$extract_rc" in
+  0) ;;
+  3)
+    echo "anchored_surface: corpus '$corpus' extracted with findings (proceeding on the partial export):" >&2
+    cat "$extract_err" >&2
+    ;;
+  *)
+    echo "anchored_surface: extraction failed for corpus '$corpus':" >&2
+    cat "$extract_err" >&2
+    exit 1 ;;
+esac
 
 # Validation is not re-implemented (entries_query.ncl's own header rule,
 # reused here): an invalid corpus never reaches the graph walk. This is
