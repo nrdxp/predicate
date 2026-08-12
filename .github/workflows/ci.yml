@@ -58,6 +58,14 @@ jobs:
           python3 ledger/gate/check_grammar_home.py
           bash ledger/gate/test_grammar_home.sh
 
+      # Reference resolution across documents. The suite above binds the
+      # grammar's vocabulary to the extractor; this one binds the extractor's
+      # reference resolution to the corpus, which is a property no single-file
+      # fixture can state: its fixtures are multi-document corpora extracted a
+      # directory at a time.
+      - name: corpus-wide reference ids
+        run: bash ledger/gate/test_corpus_ids.sh
+
       - name: gate-scope completeness (fails on undeclared gate)
         run: bash ledger/gate/check_scopes.sh
 
