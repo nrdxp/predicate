@@ -45,12 +45,24 @@ Contract (Claude Code SessionStart hooks), verified against two shipped
 official plugins on this machine (explanatory-output-style, security-
 guidance) and plugin-dev's hook-development skill, cross-checked against
 Claude Code's own changelog where noted:
-  - Input: JSON on stdin. Documented common fields: session_id,
-    transcript_path, cwd, permission_mode, hook_event_name; SessionStart
-    additionally carries `source` ("startup"/"resume"/"fork") and
-    `agent_type` when specified (changelog-only, not independently
-    verified here since no live SessionStart harness was available to
-    trigger from within this same walk).
+  - Input: JSON on stdin. Documented common fields (code.claude.com/docs/
+    en/hooks, cross-checked over two independent fetches for this node,
+    node/dispatch-anchoring): session_id, prompt_id (a UUID, absent until
+    first user input — never text), transcript_path, cwd, permission_mode,
+    effort, hook_event_name, agent_id/agent_type (subagent or `--agent`
+    only); SessionStart additionally may carry `model`. NO field on this
+    event carries prompt or dispatch TEXT — `prompt` is UserPromptSubmit's
+    own field, a different event. The documentation states SessionStart
+    does NOT fire when a subagent is spawned via the Task tool; a distinct
+    event, SubagentStart, fires instead, and this repository's
+    harness/hooks.json wires SessionStart only. This is doc-sourced, not
+    independently confirmed by triggering a live subagent SessionStart
+    from within this same walk (the gap the original docstring here
+    already flagged) — `_last_dispatch_message_text` below reads
+    `transcript_path`, the one common field documented to carry prior
+    conversation content, as the best mechanism reachable under this
+    constraint; see node/dispatch-anchoring's own report for what this
+    means for a Task-dispatched worker's reach.
   - Output: JSON on stdout, `{"hookSpecificOutput": {"hookEventName":
     "SessionStart", "additionalContext": "<string>"}}` — this exact shape
     is the live body of the shipped explanatory-output-style plugin's
