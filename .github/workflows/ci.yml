@@ -104,6 +104,14 @@ jobs:
       - name: convergence discharge-rate instrument
         run: bash ledger/gate/test_convergence.sh
 
+      # self_vouch.py itself is NOT run here: it reads the main tree's
+      # .ledger, which is gitignored project state absent from every CI
+      # checkout (recorder_close_check.sh is excluded from CI for the same
+      # reason). This suite exercises the derivation against synthetic
+      # fixture corpora instead.
+      - name: self-vouch check (directions:D3-T8 fixtures)
+        run: bash ledger/gate/test_self_vouch.sh
+
       - name: gate-scope completeness (fails on undeclared gate)
         run: bash ledger/gate/check_scopes.sh
 
