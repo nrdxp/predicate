@@ -67,6 +67,18 @@ jobs:
           bash ledger/gate/test_open_surface.sh
           bash ledger/gate/test_record_first.sh
 
+      # Clause backing — whether each of core.ncl's 46 addressable clauses
+      # (conditioning/core_clauses.ncl) carries a check that would notice its
+      # removal is a DECLARED, DERIVED claim (ledger/gate/clause_backing.py),
+      # never a hand count. This proves every declared {gate, case} link both
+      # exists and actually binds to its clause — mutation-tested against the
+      # rendered core, reusing the sweeps above's own regex/needle signatures
+      # rather than a re-transcription of them — and pins the two fixtures a
+      # decorative link (naming a check that does not exist, or one that does
+      # not actually reference the clause) must fail.
+      - name: clause backing (core_clauses.ncl declarations, derived not authored)
+        run: bash ledger/gate/test_clause_backing.sh
+
       # The prose grammar's vocabulary lives in docs/entries.md and is READ by
       # ledger/derive/extract_entries.py. Nothing but this step holds the two
       # together, so it runs the binding check and the mutation suite that

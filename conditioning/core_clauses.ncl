@@ -479,4 +479,73 @@ corrected boundary. Read yourself in those terms and the law below is mechanical
   clause_ids = std.array.flatten (std.array.map (fun b =>
     if b.kind == "leaf" then [b.id] else std.array.map (fun c => c.id) b.clauses
   ) all_blocks),
+
+  # backing — DECLARED links from a clause to the gate case that would notice
+  # its removal. This is a claim, not a verdict: `ledger/gate/clause_backing.py`
+  # is the derivation that proves or refutes it — by finding the named `case`
+  # inside the named `gate` script, resolving its actual regex/needle (even
+  # when the script holds it in a composed shell variable), and confirming the
+  # check passes against the real rendered law and FAILS once this clause's own
+  # text is removed from it. A clause absent here is simply UNCLOSED — no
+  # backing is claimed, so none is owed. An entry present here that the
+  # derivation cannot verify is a defect in THIS declaration, not a reason to
+  # fall back to UNCLOSED silently; the derivation errors loudly instead.
+  #
+  # `case` is the exact `desc` string passed to that gate's `expect_count` /
+  # `expect_section` call — the anchor the derivation resolves against the
+  # gate's actual source, never against a copy of its pattern kept here (a
+  # copy would rot the moment the gate script changed and the link would go
+  # decorative without either side noticing).
+  #
+  # Population: the six clauses the law-grading passes on `[directions:D2-T5]`
+  # reported corroborated (`.ledger/deposits/law-grading/`), reproduced here as
+  # a checkable declaration rather than carried forward as a reading.
+  backing = {
+    "grounded-critique" = [
+      {
+        gate = "ledger/gate/test_conditioning_discipline.sh",
+        case = "survives: grounded critique (two modules cite it as core's bar)",
+      },
+    ],
+    "roles-dispatch-under-persona" = [
+      {
+        gate = "ledger/gate/test_conditioning_discipline.sh",
+        case = "persona sourcing: the harness-agnostic principle stays in core",
+      },
+      {
+        gate = "ledger/gate/test_conditioning_discipline.sh",
+        case = "persona sourcing: the principle still names the persona",
+      },
+    ],
+    # scrutiny-stakes / scrutiny-uncloseability are DELIBERATELY absent here.
+    # `test_scrutiny_allocation.sh`'s stakes/uncloseability cases (`RX_STAKES`,
+    # `RX_UNCLOSE`) were the two hand-graded passes' remaining corroborated
+    # candidates (`[correction-clause-denominator:DR2]`, inherited without
+    # re-verification by `[grading-pass-subrules:S1]`), but neither binds at
+    # CLAUSE grain: `ledger/gate/clause_backing.py`'s mutation check shows
+    # `RX_STAKES` still matches with `scrutiny-stakes`'s own text removed —
+    # satisfied by the group's shared intro ("Attention is finite... not every
+    # claim earns the same scrutiny") plus the word "stakes" surviving inside
+    # the SIBLING `scrutiny-uncloseability` bullet ("A high-stakes claim a test
+    # closes"). `RX_UNCLOSE` is symmetric: with `scrutiny-uncloseability`
+    # removed, it still matches the section HEADING itself ("## Allocate
+    # scrutiny — by stakes and by uncloseability" literally contains
+    # "uncloseability") plus the group intro. Both checks are real and
+    # currently green, but they pin the SECTION, not either bullet
+    # individually — declaring them here would be exactly the decorative link
+    # this derivation exists to refuse. Both bullets are correctly UNCLOSED
+    # until a check exists that would notice ONE bullet's absence specifically.
+    "reporting-posture" = [
+      {
+        gate = "ledger/gate/test_report_fraction.sh",
+        case = "placement: it sits with the per-statement posture it aggregates",
+      },
+    ],
+    "open-surface" = [
+      {
+        gate = "ledger/gate/test_open_surface.sh",
+        case = "one rule: the debt and resource faces are stated together",
+      },
+    ],
+  },
 }
