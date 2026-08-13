@@ -49,34 +49,55 @@
 #                    leaf with no support at all), `external` (support that
 #                    left the corpus, so the record cannot follow it).
 #
-# The four TAG views (ledger/log/2026-08-12-tagging-hypothesis.md [G4]: ten of
-# eleven wanted queries are tag SET OPERATIONS, not traversal — these are
-# them). Every one is a lookup over `law.tag_registry`
-# (ledger/contracts/tag_registry.ncl), the coining bar's data half, so a view
-# never invents a key the registry does not declare and an untagged corpus
-# answers with real, honestly-empty results rather than an absent field.
+# The parameterized TAG selector (ledger/log/2026-08-12-tagging-hypothesis.md
+# [G4]: ten of eleven wanted queries are tag SET OPERATIONS, not traversal).
+# node/tag-query's dispatch: the head's actual requirement is COMPOSITION —
+# "all records under this direction / under these directions with these
+# tags / with these tags in any direction" — and a fixed enumeration of
+# arity-1 and arity-2 cases cannot compose past two, let alone mix a
+# direction tag with a topical one. This file used to carry four such
+# enumerated views (by_tag, by_direction, co_occurrence, untagged); the first
+# three are CUT below in favor of the one selector that subsumes them all.
 #
-#   by_tag         — membership: every registered tag mapped to the ids of
-#                    entries carrying it, `[]` for a tag nothing carries yet.
-#   by_direction   — the same index, restricted to the registry's
-#                    `category = "direction"` subset: "everything constituting
-#                    a direction" (D1, D2, D3) as a set operation rather than
-#                    an unknowable, per the composer's dispatch. A strict
-#                    projection of `by_tag`, not a second mechanism — TODAY
-#                    every registered tag is a direction, so the two coincide
-#                    extensionally until a non-direction tag is registered
-#                    (tag_registry.ncl's own header states this is expected).
-#   co_occurrence  — every unordered pair of registered tags, keyed
-#                    `"<a>+<b>"` (`a < b`, so a pair has exactly one key), to
-#                    the ids of entries carrying BOTH. Bounded by the
-#                    registry's own size, not the corpus's — the coining bar
-#                    keeps the vocabulary small by design, so the pairing is
-#                    cheap precisely because admission was deliberate.
-#   untagged       — the absence query, and the one that matters most: entries
-#                    carrying no `tags` field at all, or an empty one. Against
-#                    the live, still-untagged corpus this returns EVERY entry
-#                    — the honest starting state, not a bug the view should
-#                    hide.
+#   with_tags(required) — deterministic set intersection: every entry
+#                    carrying ALL of `required`, arity-free (one tag, two, or
+#                    N), spanning direction and topical tags in the SAME
+#                    namespace, since tag_registry.ncl keeps one coining bar
+#                    rather than two. Subsumes by_tag (the one-element case),
+#                    by_direction (that filtered to the registry's
+#                    `category = "direction"` subset), and co_occurrence (the
+#                    two-element case, no longer bounded to PAIRS of
+#                    REGISTERED tags alone) — each was a fixed-arity copy of
+#                    the same intersection, and cutting them is licensed by
+#                    the project's `molten` maturity (AGENTS.md): no consumer
+#                    existed yet to preserve.
+#
+#                    A tag outside the registry is REFUSED (`Array
+#                    law.TagName` blames) — the coining bar's enforcement
+#                    half binds a query the same as it binds an entry. A
+#                    registered-but-unused tag answers `[]`, never an error —
+#                    the registry, never the corpus's own tags, is what
+#                    admits a name, so an admitted-but-idle tag is a real,
+#                    honestly-empty answer rather than an absent key. The
+#                    EMPTY required set answers with EVERY entry: an
+#                    intersection over zero constraints excludes nothing, the
+#                    vacuous-AND identity `std.array.all` already gives an
+#                    empty predicate list — the case needs no special branch,
+#                    it falls out of the general formula.
+#
+#                    Exported `| not_exported`: a function cannot serialize
+#                    to JSON, so a bare `--apply-contract` run never sees
+#                    `with_tags` in its output. It is reached by applying
+#                    this contract to a corpus INSIDE a small Nickel
+#                    expression and calling `.with_tags [...]` before THAT
+#                    result is exported — see test_entries_extract.sh's
+#                    with_tags cases for the exact invocation shape.
+#
+#   untagged       — the absence query, unchanged, and still the one that
+#                    matters most: entries carrying no `tags` field at all,
+#                    or an empty one. Against the live, still-untagged corpus
+#                    this returns EVERY entry — the honest starting state,
+#                    not a bug the view should hide.
 let apply = import "entry_apply.ncl" in
 let law = import "entry.ncl" in
 
@@ -204,26 +225,13 @@ std.contract.custom (fun label value =>
 
       # --- tags -------------------------------------------------------------
       #
-      # The registry (`law.tag_registry`) is the key SET for by_tag/by_direction
-      # and the pair universe for co_occurrence — never the corpus's own tags,
-      # which would silently drop a registered-but-unused tag from the index
-      # (exactly the "confidently incomplete" failure the extractor's own
-      # findings mechanism exists to avoid, here applied to a query view).
-      let tag_registry = law.tag_registry in
-      let tag_names = std.record.fields tag_registry in
+      # `has_tag`/`tags_of` read straight off the entry. The registry
+      # (`law.tag_registry`, via `law.TagName`) governs WHICH tags a query
+      # may name — `with_tags` below is where that gate is applied — not
+      # which ones this lookup indexes, so no registry-keyed structure is
+      # built here at all.
       let tags_of = fun e => get_or "tags" [] e in
       let has_tag = fun t e => std.array.any (fun x => x == t) (tags_of e) in
-      let entries_with_tag = fun t =>
-        entries |> std.array.filter (has_tag t) |> std.array.map (fun e => e.id)
-      in
-      let is_direction_tag = fun t => tag_registry."%{t}".category == "direction" in
-      let direction_tags = tag_names |> std.array.filter is_direction_tag in
-      let tag_index = fun names =>
-        std.array.fold_left
-          (fun acc t => std.record.insert t (entries_with_tag t) acc)
-          {}
-          names
-      in
       'Ok {
         awaiting_human =
           entries
@@ -277,24 +285,11 @@ std.contract.custom (fun label value =>
           |> std.array.filter is_claim
           |> std.array.map (fun e =>
             { id = e.id, floors = std.record.fields (walk {} e.id) }),
-        by_tag = tag_index tag_names,
-        by_direction = tag_index direction_tags,
-        co_occurrence =
-          std.array.fold_left
-            (fun acc a =>
-              std.array.fold_left
-                (fun acc2 b =>
-                  if std.string.compare a b == 'Lesser then
-                    std.record.insert "%{a}+%{b}"
-                      (entries
-                       |> std.array.filter (fun e => has_tag a e && has_tag b e)
-                       |> std.array.map (fun e => e.id))
-                      acc2
-                  else acc2)
-                acc
-                tag_names)
-            {}
-            tag_names,
+        with_tags | not_exported = fun required =>
+          let checked = required | Array law.TagName in
+          entries
+          |> std.array.filter (fun e => std.array.all (fun t => has_tag t e) checked)
+          |> std.array.map (fun e => e.id),
         untagged =
           entries
           |> std.array.filter (fun e => std.array.length (tags_of e) == 0)

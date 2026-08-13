@@ -289,14 +289,16 @@ EOF
 expect "query: an invalid corpus never yields a result" 1 "duplicate entry id" \
   -- nickel export "$tmp/dup.yaml" --apply-contract "$query"
 
-# --- node/tags: the tags:: companion, and the four tag views -----------------
+# --- node/tags: the tags:: companion, and the composable with_tags selector --
 #
-# tagged-note.md is the tags companion's extraction golden: four claims, one
-# tagging a single direction, one tagging two (the co-occurrence case), one
-# tagging the other direction alone, and one carrying no tags:: at all (the
-# absence control). ledger/log/2026-08-12-tagging-hypothesis.md [G4]: ten of
-# eleven wanted queries are tag SET OPERATIONS — by_tag, by_direction,
-# co_occurrence and untagged answer them without ever traversing an edge.
+# tagged-note.md is the tags companion's extraction golden: seven claims
+# spanning both registered categories (D1/D2 direction, perf topic) and
+# several arities. ledger/log/2026-08-12-tagging-hypothesis.md [G4]: ten of
+# eleven wanted queries are tag SET OPERATIONS — `with_tags` answers all of
+# them, arity-free, without ever traversing an edge. `by_tag`, `by_direction`
+# and `co_occurrence` are RETIRED (node/tag-query): each was a fixed-arity
+# copy of the one intersection `with_tags` now computes generally, cut under
+# this project's `molten` maturity rather than kept as dead weight beside it.
 
 expect "tags: clean tags-dialect doc exits 0" 0 "" \
   -- python3 "$extractor" "$fix/tagged-note.md" -o "$tmp/tagged-note.yaml"
@@ -307,36 +309,119 @@ expect "tags: export passes the entry contract" 0 "" \
 
 nickel export "$tmp/tagged-note.yaml" --apply-contract "$query" \
   > "$tmp/tagged-note-query.json" 2>/dev/null
-expect "tags: the four views carry the fixture's known answers" 0 "TAG-VIEWS-OK" \
+expect "tags: untagged still names exactly the absence control" 0 "UNTAGGED-OK" \
   -- python3 - "$tmp/tagged-note-query.json" <<'EOF'
 import json, sys
 q = json.load(open(sys.argv[1]))
-# by_tag: keyed over the WHOLE registry (D1, D2, D3), not just what the
-# corpus uses — D3 answers [] rather than being absent as a key.
-assert q["by_tag"] == {
-    "D1": ["tagged-note:K1", "tagged-note:K2"],
-    "D2": ["tagged-note:K2", "tagged-note:K3"],
-    "D3": [],
-}, q["by_tag"]
-# by_direction: today every registered tag IS a direction, so this coincides
-# with by_tag exactly — the honest state of a registry with no non-direction
-# tag yet (tag_registry.ncl's own header states this is expected, not a bug).
-assert q["by_direction"] == q["by_tag"], (q["by_direction"], q["by_tag"])
-# co_occurrence: only K2 carries both D1 and D2; no entry carries D3 at all.
-assert q["co_occurrence"] == {
-    "D1+D2": ["tagged-note:K2"],
-    "D1+D3": [],
-    "D2+D3": [],
-}, q["co_occurrence"]
-# untagged: the absence query. K4 alone carries no tags field.
 assert q["untagged"] == ["tagged-note:K4"], q["untagged"]
-print("TAG-VIEWS-OK")
+print("UNTAGGED-OK")
 EOF
+
+# with_tags is a FUNCTION field (`| not_exported`): a bare `--apply-contract`
+# run never puts it in JSON output (nickel cannot serialize a function), so
+# it is reached by applying the query contract to a corpus INSIDE a small
+# generated Nickel expression and calling `.with_tags [...]` there, exporting
+# only THAT call's result. This helper builds and runs exactly that
+# expression; $1 is the corpus file, the rest are the required tag strings.
+with_tags() {
+  local corpus="$1"; shift
+  local tags=""
+  for t in "$@"; do tags="$tags\"$t\", "; done
+  cat > "$tmp/with_tags_probe.ncl" <<EOF
+let corpus = import "$corpus" in
+let q = corpus | (import "$query") in
+q.with_tags [$tags]
+EOF
+  nickel export "$tmp/with_tags_probe.ncl" 2>&1
+}
+
+# 1) one-element required set == the retired by_tag answer for D1.
+out="$(with_tags "$tmp/tagged-note.yaml" D1)"; rc=$?
+if [ "$rc" -eq 0 ] && [ "$out" = '[
+  "tagged-note:K1",
+  "tagged-note:K2",
+  "tagged-note:K6"
+]' ]; then
+  echo "PASS  (0) with_tags: one-element set matches the retired by_tag answer"
+else
+  echo "FAIL  (rc=$rc) with_tags: one-element set matches the retired by_tag answer"
+  printf '%s\n' "$out" | tail -5; fails=$((fails + 1))
+fi
+
+# 2) two-element set spanning a DIRECTION and a TOPICAL tag — the query the
+# enumerated shape could never express (co_occurrence paired REGISTERED tags
+# only, and by_tag/by_direction never crossed categories at all). K5 and K6
+# are the only entries carrying both D2 and perf.
+out="$(with_tags "$tmp/tagged-note.yaml" D2 perf)"; rc=$?
+if [ "$rc" -eq 0 ] && [ "$out" = '[
+  "tagged-note:K5",
+  "tagged-note:K6"
+]' ]; then
+  echo "PASS  (0) with_tags: direction+topic composition (D2, perf)"
+else
+  echo "FAIL  (rc=$rc) with_tags: direction+topic composition (D2, perf)"
+  printf '%s\n' "$out" | tail -5; fails=$((fails + 1))
+fi
+
+# 3) three-element set — arity is not fixed. Only K6 carries all of D1, D2,
+# perf at once.
+out="$(with_tags "$tmp/tagged-note.yaml" D1 D2 perf)"; rc=$?
+if [ "$rc" -eq 0 ] && [ "$out" = '[
+  "tagged-note:K6"
+]' ]; then
+  echo "PASS  (0) with_tags: three-element set (D1, D2, perf)"
+else
+  echo "FAIL  (rc=$rc) with_tags: three-element set (D1, D2, perf)"
+  printf '%s\n' "$out" | tail -5; fails=$((fails + 1))
+fi
+
+# 4) the EMPTY required set — PINNED as "every entry": an intersection over
+# zero constraints excludes nothing (the vacuous-AND identity), so this is
+# the selector's own algebra rather than an arbitrary pick between "all" and
+# an error. All seven fixture entries answer, tagged and untagged alike.
+out="$(with_tags "$tmp/tagged-note.yaml")"; rc=$?
+if [ "$rc" -eq 0 ] && [ "$out" = '[
+  "tagged-note:K1",
+  "tagged-note:K2",
+  "tagged-note:K3",
+  "tagged-note:K4",
+  "tagged-note:K5",
+  "tagged-note:K6",
+  "tagged-note:K7"
+]' ]; then
+  echo "PASS  (0) with_tags: empty required set returns every entry"
+else
+  echo "FAIL  (rc=$rc) with_tags: empty required set returns every entry"
+  printf '%s\n' "$out" | tail -5; fails=$((fails + 1))
+fi
+
+# 5) a registered-but-UNUSED tag (D3: nothing in this fixture carries it, and
+# the whole registry admits it) answers empty rather than erroring — the
+# registry, never the corpus's own tags, is what admits a name.
+out="$(with_tags "$tmp/tagged-note.yaml" D3)"; rc=$?
+if [ "$rc" -eq 0 ] && [ "$out" = '[]' ]; then
+  echo "PASS  (0) with_tags: registered-but-unused tag answers empty"
+else
+  echo "FAIL  (rc=$rc) with_tags: registered-but-unused tag answers empty"
+  printf '%s\n' "$out" | tail -5; fails=$((fails + 1))
+fi
+
+# 6) an UNREGISTERED tag is refused — the coining bar binds a query the same
+# as it binds an entry (`Array law.TagName` blames, a contract error rather
+# than a computed answer).
+out="$(with_tags "$tmp/tagged-note.yaml" not-a-registered-tag)"; rc=$?
+if [ "$rc" -ne 0 ] && printf '%s' "$out" | grep -q "TagName"; then
+  echo "PASS  ($rc) with_tags: unregistered tag is refused"
+else
+  echo "FAIL  (rc=$rc) with_tags: unregistered tag is refused"
+  printf '%s\n' "$out" | tail -5; fails=$((fails + 1))
+fi
 
 # The live, still-untagged corpus's own honest starting state: ledger-note.md
 # (this suite's pre-existing extraction golden) carries no tags:: anywhere, so
-# `untagged` must return every one of its entries and both tag indices must be
-# all-empty — never a silently dropped view over a corpus with nothing tagged.
+# `untagged` must return every one of its entries and with_tags over any
+# registered tag must answer empty — never a silently dropped view over a
+# corpus with nothing tagged.
 nickel export "$tmp/ledger-note.yaml" --apply-contract "$query" \
   > "$tmp/ledger-note-tags-query.json" 2>/dev/null
 expect "tags: an untagged corpus reports every entry as untagged" 0 "UNTAGGED-CORPUS-OK" \
@@ -346,10 +431,15 @@ export = json.load(open(sys.argv[1]))
 q = json.load(open(sys.argv[2]))
 all_ids = sorted(e["id"] for e in export["entries"])
 assert sorted(q["untagged"]) == all_ids, (sorted(q["untagged"]), all_ids)
-assert q["by_tag"] == {"D1": [], "D2": [], "D3": []}, q["by_tag"]
-assert q["co_occurrence"] == {"D1+D2": [], "D1+D3": [], "D2+D3": []}, q["co_occurrence"]
 print("UNTAGGED-CORPUS-OK")
 EOF
+out="$(with_tags "$tmp/ledger-note.yaml" D1)"; rc=$?
+if [ "$rc" -eq 0 ] && [ "$out" = '[]' ]; then
+  echo "PASS  (0) with_tags: an untagged corpus answers empty over a registered tag"
+else
+  echo "FAIL  (rc=$rc) with_tags: an untagged corpus answers empty over a registered tag"
+  printf '%s\n' "$out" | tail -5; fails=$((fails + 1))
+fi
 
 # --- the amendment: recovered edges, designations, axes ----------------------
 #
