@@ -1,0 +1,40 @@
+# Corpus pairing for the VouchBacked converse (node/backing-converse), per
+# this file's own discipline: a predicate live on one granularity and dead on
+# the other is a predicate that never fires. The converse is added to an
+# ALREADY-LIFTED predicate (VouchBacked runs inside EntryStore's per-entry
+# fold today), so nothing structural distinguishes the two granularities
+# here — this fixture is the proof, not a hedge against a known gap. Clean
+# entry first, violation second, matching the sibling corpus reds.
+entries:
+  - id: e-clean
+    statement: "A clean corroborated claim, unrelated to the violation below."
+    assertion: claim
+    backing: corroborated
+    signer:
+      kind: agent
+      name: architect-seat
+    check:
+      command: "nickel typecheck ledger/contracts/entry.ncl"
+      ran: true
+      at: "deadbeef01"
+    axes:
+      determined: true
+      certifiable: true
+      monotone: true
+  - id: e-unclosed-witness
+    statement: "An unclosed claim naming a witness, inside a corpus."
+    assertion: claim
+    backing: unclosed
+    signer:
+      kind: agent
+      name: architect-seat
+    because:
+      - kind: corpus
+        name: e-clean
+    witness:
+      name: architect-seat
+      at: "deadbeef03"
+    axes:
+      determined: true
+      certifiable: false
+      monotone: true

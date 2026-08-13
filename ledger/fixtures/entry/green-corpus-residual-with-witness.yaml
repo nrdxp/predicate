@@ -1,0 +1,34 @@
+# Corpus pairing for the claim-scoped VouchBacked converse's exemption
+# (node/backing-converse): a residual question naming a witness stays green
+# inside an aggregate too. Clean entry first, matches the sibling corpus
+# fixtures' ordering discipline even though nothing here is a violation.
+entries:
+  - id: e-clean
+    statement: "A clean corroborated claim, unrelated to the entry below."
+    assertion: claim
+    backing: corroborated
+    signer:
+      kind: agent
+      name: architect-seat
+    check:
+      command: "nickel typecheck ledger/contracts/entry.ncl"
+      ran: true
+      at: "deadbeef01"
+    axes:
+      determined: true
+      certifiable: true
+      monotone: true
+  - id: q-residual-witness
+    statement: "Which admission policy should a consuming gate adopt?"
+    assertion: question
+    backing: residual
+    signer:
+      kind: agent
+      name: architect-seat
+    discharge: "A ruled admission policy for a consuming gate."
+    closer:
+      kind: human
+      name: nrd
+    witness:
+      name: architect-seat
+      at: "deadbeef04"

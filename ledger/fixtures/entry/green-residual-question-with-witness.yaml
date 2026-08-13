@@ -1,0 +1,28 @@
+# SCOPE PIN (node/backing-converse). A `residual` QUESTION naming a witness is
+# LEGITIMATE and must stay green — the architect ruling that supersedes this
+# node's original dispatch: ruling-backing-cure.md [CU1]/[CU2]/[CU9] (.ledger
+# commit 678dd1d, `at:: 40de5f4`). A question's evidence attaches to whether
+# the finding is REAL, not to whether it is ANSWERED — `residual` says
+# discharge is beyond our observation power, which a witness attesting the
+# finding's existence does not contradict. `2026-08-11-state-typed:Z1` is the
+# live corpus instance this fixture pins (a wikilink witness on a residual
+# question). The converse of VouchBacked must therefore be SCOPED TO CLAIMS —
+# unscoped, it would refuse this and teach authors to delete the evidence
+# that makes findings checkable ([CU2]). This fixture was originally authored
+# as a RED under the unscoped reading; this dispatch's own governing deposit
+# named that error explicitly ([CU9]) and required re-pointing before
+# implementation.
+id: q-residual-witness
+statement: "Which admission policy should a consuming gate adopt?"
+assertion: question
+backing: residual
+signer:
+  kind: agent
+  name: architect-seat
+discharge: "A ruled admission policy for a consuming gate."
+closer:
+  kind: human
+  name: nrd
+witness:
+  name: architect-seat
+  at: "deadbeef04"

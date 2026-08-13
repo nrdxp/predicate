@@ -1,0 +1,28 @@
+# THE MUST-NOT-REGRESS PIN (node/backing-converse). A corroborated claim that
+# ALSO names a witness is LEGITIMATE — fifteen live corpus entries carry both
+# a ran check and a witness ([D34]: "the fifteen corroborated claims that also
+# name a witness are legitimate and not counted") — and must stay green under
+# the converse fix. A careless converse phrased as "witness present =>
+# vouched" would refuse this case; the correct converse reads "witness
+# present => backing in {vouched, corroborated}". This fixture is the
+# acceptance gate for that distinction: it is green today (nothing forbids a
+# witness beside `corroborated`) and MUST still be green once the converse
+# clauses land — this green is as load-bearing as any red in this suite.
+id: e-corroborated-and-witnessed
+statement: "The draft contract typechecks clean, and the head reviewed it too."
+assertion: claim
+backing: corroborated
+signer:
+  kind: agent
+  name: architect-seat
+check:
+  command: "nickel typecheck ledger/contracts/entry.ncl"
+  ran: true
+  at: "deadbeef01"
+witness:
+  name: nrd
+  at: "deadbeef01"
+axes:
+  determined: true
+  certifiable: true
+  monotone: true

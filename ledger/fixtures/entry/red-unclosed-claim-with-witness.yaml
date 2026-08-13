@@ -1,0 +1,28 @@
+# Converse red (node/backing-converse). CorroborationBacked and VouchBacked
+# each state only the FORWARD implication (corroborated => ran, vouched =>
+# witness); neither states its converse, so a witness beside an unclosed
+# claim is contract-legal today — the six-instance shape the architect's
+# coherence read measured corpus-wide ([PC4]/[PC5], .ledger deposit
+# coherence-provenance-gate.md). This fixture pins the ACCEPTANCE state
+# (refused), not today's actual behavior: it exports clean (rc=0) against the
+# unmodified law, because no predicate reads a witness on an unclosed claim.
+# Provenance-gate-clean (a `because` edge) deliberately, so ProvenanceGate is
+# never what refuses it — the converse is the only clause this fixture
+# targets.
+id: r-unclosed-witness
+statement: "An unclosed claim naming a witness nobody's forward clause reads."
+assertion: claim
+backing: unclosed
+signer:
+  kind: agent
+  name: architect-seat
+because:
+  - kind: corpus
+    name: e-proved
+witness:
+  name: architect-seat
+  at: "deadbeef03"
+axes:
+  determined: true
+  certifiable: false
+  monotone: true
