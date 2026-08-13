@@ -492,6 +492,20 @@ let GateEntry = {
       applies_to  = "agent only",
     } | GateEntry,
 
+    {
+      gate        = "ledger/gate/self_vouch.py",
+      scope       = 'orchestration,
+      fires_when  = "run manually by a dev/agent against the main tree's .ledger (directions:D3-T8); not CI-wired because .ledger is gitignored project state absent from every CI checkout, so a live run there has no corpus to read — the same reason recorder_close_check.sh is not a CI step either. Derives, for every directions-stem terminal target, whether any CORROBORATED satisfaction naming it in `discharges` is witnessed by the same party as its own document's declared signer; reports self-witnessed vouched/unclosed claims for visibility without counting them, and reports an unmet target as unmet rather than a violation",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
+      gate        = "ledger/gate/test_self_vouch.sh",
+      scope       = 'orchestration,
+      fires_when  = "CI self-vouch step; synthetic fixture corpora over ledger/gate/self_vouch.py pinning a corroborated self-witnessed satisfaction as a violation (non-zero exit, named), a vouched self-witnessed claim on the same target reported but not counted, a target with no discharging claim at all reported unmet rather than a violation, an ordinary satisfaction witnessed by a different party staying clean, and the nonexistent-corpus usage/environment error",
+      applies_to  = "agent only",
+    } | GateEntry,
+
     # ── TEMPLATES/PROJECT-GATES (tracked source; installed to .ledger/gates/ by init) ──
 
     {
