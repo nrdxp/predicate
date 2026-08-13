@@ -99,6 +99,7 @@ done
 [ -f "$fix/holdout-note.md" ] || { echo "FAIL (env): missing holdout-note.md fixture" >&2; exit 2; }
 [ -f "$fix/recency/1000-01-01-old-note.md" ] || { echo "FAIL (env): missing recency-pair fixture (old)" >&2; exit 2; }
 [ -f "$fix/recency/9999-12-31-new-note.md" ] || { echo "FAIL (env): missing recency-pair fixture (new)" >&2; exit 2; }
+[ -f "$fix/directive-note.md" ] || { echo "FAIL (env): missing directive-note.md fixture" >&2; exit 2; }
 
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
@@ -873,6 +874,128 @@ if [ "$s13c_rc" -ne 0 ]; then
   record guard pass "a corpus path that doesn't exist is still a hard failure, not silently tolerated"
 else
   record guard fail "a corpus path that doesn't exist is still a hard failure" "rc=$s13c_rc: $s13c_out"
+fi
+
+# ════════════════════════════════════════════════════════════════════════════
+echo ""
+echo "════════════════════════════════════════════════════════════════════════"
+echo "SECTION 14 — node/walk-directives: directives transit the walk and can"
+echo "anchor it, but never surface as candidates"
+echo "════════════════════════════════════════════════════════════════════════"
+# directive-note.md's golden (hand-scored in the fixture's own header, and
+# independently re-derived over the command's own output before being pinned
+# here): Dv1 is a directive-graded node with no derivation edges of its own,
+# cited by M1 and M2 alone, so it is the only path between them.
+#
+# POLARITY, measured against this node's own pre-fix tip rather than
+# assumed: `add_undirected` folds BOTH directions of every entry's edge into
+# `adj` using plain id strings, so a directive already picked up inbound
+# adjacency from any entry citing it — anchoring on Dv1, and transiting it
+# from M1 to M2, both ALREADY returned the right answer pre-fix on THIS
+# fixture (verified by stashing the fix and re-running these cases before
+# writing this comment). Those two properties are therefore GUARD, not red:
+# real, but not what this node's fix changed. What genuinely was broken is
+# the backed-exclusion self-check below (s14c/s14d) — `id_map` never
+# recognized a directive id, so a `because -> directive` pair silently fell
+# through `eligible`'s guard and was counted as if its target were backed
+# (pre-fix, this fixture's own four pairs reported 3/4, not the correct
+# 1/2). This node's actual fix — feeding `directives` into the core and
+# making the graph explicit rather than incidental — also removes the
+# ACCIDENT the guard cases below were passing by: before this fix a
+# directive with its own outward edges (once extraction ever captures
+# `derives-from` on a `directive`-graded node — out of this node's scope)
+# would still have been invisible as a walk SOURCE, only ever a target.
+run_cmd s14a -- --corpus "$fix/directive-note.md" --budget 100000 --anchor directive-note:Dv1
+if [ "$s14a_rc" -eq 0 ]; then
+  ids="$(ids_in_output "$s14a_out" | sort -u)"
+  want="$(printf 'directive-note:M1\ndirective-note:M2' | sort -u)"
+  if [ "$ids" = "$want" ]; then
+    record guard pass "anchoring on a directive id (Dv1) returns exactly {M1, M2}, its own citing entries"
+  else
+    record guard fail "anchoring on a directive id returns exactly {M1, M2}" "got: $(printf '%s' "$ids" | tr '\n' ' ')"
+  fi
+else
+  record guard fail "anchoring on a directive id returns exactly {M1, M2}" "rc=$s14a_rc: $s14a_out"
+fi
+
+# Dv1 itself must never appear as a rendered candidate, anchored on itself or
+# not: a directive carries no assertion/backing axis, so it can never satisfy
+# open-surface membership — [A4] in ruling-hooks-boundary.md scopes the
+# emitted text to "questions and unclosed claims" alone.
+if [ "$s14a_rc" -eq 0 ]; then
+  printf '%s' "$s14a_out" | grep -q '\[directive-note:Dv1\]' \
+    && record guard fail "the directive itself (Dv1) never appears as a rendered candidate" "$s14a_out" \
+    || record guard pass "the directive itself (Dv1) never appears as a rendered candidate"
+else
+  record guard fail "the directive itself (Dv1) never appears as a rendered candidate" "rc=$s14a_rc"
+fi
+
+run_cmd s14b -- --corpus "$fix/directive-note.md" --budget 100000 --anchor directive-note:M1
+if [ "$s14b_rc" -eq 0 ]; then
+  ids="$(ids_in_output "$s14b_out" | sort -u)"
+  want="$(printf 'directive-note:M1\ndirective-note:M2' | sort -u)"
+  if [ "$ids" = "$want" ]; then
+    record guard pass "anchor=M1 reaches M2 two hops out, transiting Dv1 — M1 and M2 share no other edge"
+  else
+    record guard fail "anchor=M1 reaches M2 two hops out, transiting Dv1" "got: $(printf '%s' "$ids" | tr '\n' ' ')"
+  fi
+else
+  record guard fail "anchor=M1 reaches M2 two hops out, transiting Dv1" "rc=$s14b_rc: $s14b_out"
+fi
+if [ "$s14b_rc" -eq 0 ]; then
+  printf '%s' "$s14b_out" | grep -q '\[directive-note:Dv1\]' \
+    && record guard fail "Dv1 stays absent from output even as a mid-walk transit node" "$s14b_out" \
+    || record guard pass "Dv1 stays absent from output even as a mid-walk transit node"
+else
+  record guard fail "Dv1 stays absent from output even as a mid-walk transit node" "rc=$s14b_rc"
+fi
+
+# THIS IS THE RED CASE: the backed-exclusion self-check must not fold a
+# directive-targeted pair into "backed" (it is neither backed nor unbacked —
+# a directive has no such axis). Pre-fix on this fixture it reported 3/4
+# (both M1->Dv1 and M2->Dv1 miscounted as backed-excluded, alongside the one
+# genuine case N2->N1); the golden is 1/2 over the fixture's four provenance
+# pairs (M1->Dv1, M2->Dv1, N2->N1, N3->N2) — the two directive-targeted
+# pairs are excluded from both the numerator and the denominator.
+run_cmd s14c -- --self-evaluate --corpus "$fix/directive-note.md" --budget 100000
+if [ "$s14c_rc" -eq 0 ]; then
+  excluded_line="$(printf '%s' "$s14c_out" | grep -oE 'EXCLUDED-BACKED:[[:space:]]*[0-9]+/[0-9]+' | head -1)"
+  if [ -n "$excluded_line" ]; then
+    e_count="$(printf '%s' "$excluded_line" | grep -oE '[0-9]+' | sed -n '1p')"
+    e_total="$(printf '%s' "$excluded_line" | grep -oE '[0-9]+' | sed -n '2p')"
+    if [ "$e_count" = "1" ] && [ "$e_total" = "2" ]; then
+      record red pass "a directive-targeted derivation pair is excluded from the backed-exclusion metric entirely (1/2, not the pre-fix 3/4)"
+    else
+      record red fail "a directive-targeted derivation pair is excluded from the backed-exclusion metric entirely (1/2, not the pre-fix 3/4)" "got $e_count/$e_total"
+    fi
+  else
+    record red fail "self-evaluate output carries an EXCLUDED-BACKED: line" "$s14c_out"
+  fi
+else
+  record red fail "a directive-targeted derivation pair is excluded from the backed-exclusion metric entirely" "rc=$s14c_rc: $s14c_out"
+fi
+
+# --json carries the same reachability and exclusion goldens through the
+# structured value, not just the rendered text.
+run_cmd s14d -- --corpus "$fix/directive-note.md" --budget 100000 --anchor directive-note:Dv1 --json
+if [ "$s14d_rc" -eq 0 ]; then
+  printf '%s' "$s14d_out" > "$TMP/s14d.json"
+  py_ok="$(python3 - "$TMP/s14d.json" <<'PY'
+import json, sys
+d = json.load(open(sys.argv[1]))
+ids = sorted(c["id"] for c in d["candidates"])
+want = sorted(["directive-note:M1", "directive-note:M2"])
+eb = d.get("excluded_backed", {})
+print("OK" if (ids == want and eb.get("count") == 1 and eb.get("total") == 2) else f"FAIL ids={ids} eb={eb}")
+PY
+)"
+  if [ "$py_ok" = "OK" ]; then
+    record red pass "--json carries the same directive goldens: candidates={M1,M2}, excluded_backed=1/2"
+  else
+    record red fail "--json carries the same directive goldens" "$py_ok"
+  fi
+else
+  record red fail "--json carries the same directive goldens" "rc=$s14d_rc: $s14d_out"
 fi
 
 # ════════════════════════════════════════════════════════════════════════════
