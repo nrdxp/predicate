@@ -1,0 +1,12 @@
+{
+  "directives": [
+    { "id": "directions:D1", "statement": "The direction the malformed directive-target marker belongs to." },
+    { "id": "directions:D1-T1", "statement": "A well-formed directive target, unsatisfied." },
+    { "id": "directions:D1_T5", "statement": "Looks like a directive target for D1 but uses the wrong separator." }
+  ],
+  "entries": [],
+  "grades": {
+    "directions:D1-T1": "directive",
+    "directions:D1_T5": "directive"
+  }
+}

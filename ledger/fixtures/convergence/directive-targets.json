@@ -1,0 +1,25 @@
+{
+  "directives": [
+    { "id": "directions:D1", "statement": "Direction whose targets are pair-composed: corroborated, uncorroborated, bare." },
+    { "id": "directions:D1-T1", "statement": "Target met by a corroborated satisfaction-claim." },
+    { "id": "directions:D1-T2", "statement": "Target with an uncorroborated satisfaction-claim -- must not count." },
+    { "id": "directions:D1-T3", "statement": "Target with no satisfaction-claim at all." },
+
+    { "id": "directions:D2", "statement": "Direction with targets, none satisfied yet." },
+    { "id": "directions:D2-T1", "statement": "Unsatisfied target one." },
+    { "id": "directions:D2-T2", "statement": "Unsatisfied target two." },
+
+    { "id": "directions:D3", "statement": "Direction with no terminal targets drafted yet." }
+  ],
+  "entries": [
+    { "id": "reg:corrob1", "assertion": "claim", "backing": "corroborated", "discharges": ["directions:D1-T1"] },
+    { "id": "reg:vouch1", "assertion": "claim", "backing": "vouched", "discharges": ["directions:D1-T2"] }
+  ],
+  "grades": {
+    "directions:D1-T1": "directive",
+    "directions:D1-T2": "directive",
+    "directions:D1-T3": "directive",
+    "directions:D2-T1": "directive",
+    "directions:D2-T2": "directive"
+  }
+}
