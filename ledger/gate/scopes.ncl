@@ -520,6 +520,20 @@ let GateEntry = {
       applies_to  = "agent only",
     } | GateEntry,
 
+    {
+      gate        = "ledger/gate/terminal_freshness.py",
+      scope       = 'orchestration,
+      fires_when  = "run manually by a dev/agent against the main tree's .ledger (directions:D3-T10); not CI-wired because .ledger is gitignored project state absent from every CI checkout, so a live run there has no corpus to read — the same reason self_vouch.py and recorder_close_check.sh are not CI steps either. Derives, for every directions-stem terminal target's satisfying claim, whether it carries axes:: at all and, where non-monotone, a freshness:: cure; reports an unmet target as unmet rather than a violation, and states plainly that it can confirm the coordinates were DECLARED, never that they are correct or that a named freshness mechanism has ever been re-run",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
+      gate        = "ledger/gate/test_terminal_freshness.sh",
+      scope       = 'orchestration,
+      fires_when  = "CI terminal-freshness step; synthetic fixture corpora over ledger/gate/terminal_freshness.py pinning a satisfying claim with no axes:: at all as a violation (non-zero exit, named), a non-monotone satisfying claim with no freshness:: cure as a violation, a monotone satisfying claim with no freshness owing nothing (clean), a target with no discharging claim at all reported unmet rather than a violation, an ordinary non-monotone satisfaction naming its cure staying clean, and the nonexistent-corpus usage/environment error",
+      applies_to  = "agent only",
+    } | GateEntry,
+
     # ── TEMPLATES/PROJECT-GATES (tracked source; installed to .ledger/gates/ by init) ──
 
     {
