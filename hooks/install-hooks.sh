@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # install-hooks.sh — wire the tracked hooks into git, in one idempotent command.
 #
-# Installs the tracked hooks/ (commit-msg, pre-commit) into the repository's
-# git hooks directory. Safe to re-run: an already-correct hook is left as-is.
+# Installs the tracked hooks/ (commit-msg, pre-commit, pre-merge-commit) into
+# the repository's git hooks directory. Safe to re-run: an already-correct
+# hook is left as-is.
 #
 # Worktree-correct: git stores hooks in the COMMON git dir (shared by the main
 # checkout and every linked worktree), so installing once makes the hooks
@@ -14,6 +15,10 @@
 #   hooks/install-hooks.sh --uninstall  (remove only predicate's hook symlinks)
 # Exit:   0 = installed / already current / removed, non-zero = could not complete.
 set -euo pipefail
+
+# The three tracked hooks this installer manages, in one place so install and
+# uninstall (and every fixture) enumerate the identical set.
+HOOK_NAMES=(commit-msg pre-commit pre-merge-commit)
 
 # Parse args: support --uninstall mode.
 mode="install"
@@ -79,7 +84,7 @@ if [ "$mode" = "uninstall" ]; then
   # Uninstall: remove hook symlinks ONLY when they resolve to this plugin's hooks.
   # A real (user-owned) hook file or a symlink pointing elsewhere is NEVER touched.
   removed=0
-  for hook in commit-msg pre-commit; do
+  for hook in "${HOOK_NAMES[@]}"; do
     dst="$hooks_dst/$hook"
     if [ ! -e "$dst" ] && [ ! -L "$dst" ]; then
       echo "install-hooks: $hook already absent."
@@ -117,7 +122,7 @@ fi
 mkdir -p "$hooks_dst"
 
 changed=0
-for hook in commit-msg pre-commit; do
+for hook in "${HOOK_NAMES[@]}"; do
   src="$hooks_src/$hook"
   dst="$hooks_dst/$hook"
   if [ ! -f "$src" ]; then
@@ -137,7 +142,10 @@ for hook in commit-msg pre-commit; do
 done
 
 # Source hooks are tracked with the +x bit; ensure it (no-op if already set).
-chmod +x "$hooks_src/commit-msg" "$hooks_src/pre-commit" "$hooks_src/install-hooks.sh" 2>/dev/null || true
+for hook in "${HOOK_NAMES[@]}"; do
+  chmod +x "$hooks_src/$hook" 2>/dev/null || true
+done
+chmod +x "$hooks_src/install-hooks.sh" 2>/dev/null || true
 
 if [ "$changed" -eq 0 ]; then
   echo "install-hooks: hooks already current (no-op)."
