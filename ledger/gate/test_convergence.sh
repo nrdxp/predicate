@@ -43,7 +43,7 @@ trap 'rm -rf "$tmp"' EXIT
 command -v python3 >/dev/null 2>&1 || { echo "ENV: python3 not found on PATH"; exit 2; }
 [ -f "$tool" ] || { echo "ENV: convergence.py missing: $tool"; exit 2; }
 [ -d "$fix" ]  || { echo "ENV: fixtures dir missing: $fix"; exit 2; }
-for f in basic malformed-marker renamed-register; do
+for f in basic malformed-marker renamed-register directive-targets directive-malformed-marker; do
   [ -f "$fix/$f.json" ] || { echo "ENV: fixture missing: $fix/$f.json"; exit 2; }
 done
 
@@ -111,7 +111,7 @@ assert d3["open"] == [], d3
 EOF
 
 expect "case 1 UNDEFINED: the human rendering says UNDEFINED for D3" 0 \
-  "D3: UNDEFINED (no terminal questions drafted)" \
+  "D3: UNDEFINED (no terminal targets drafted)" \
   -- python3 "$tool" "$fix/basic.json"
 
 assert_py "case 2 partial: D1 is 1/2 discharged, the open question is listed with its grade" \
@@ -195,6 +195,64 @@ data = json.load(open(sys.argv[1]))
 assert data["directions"] == [], data["directions"]
 assert len(data["findings"]) == 1, data["findings"]
 assert data["findings"][0]["kind"] == "no-directions", data["findings"]
+EOF
+
+# --- directive-targets.json: the ruling's pair composition (TC1) -----------
+# A terminal target can now be a `directive` node, satisfied only by a
+# SEPARATE claim naming it in `discharges` -- and only when that claim's own
+# backing is `corroborated`. D1 pins the three-way split the ruling turns on:
+# a corroborated satisfaction-claim counts, an uncorroborated one (backing
+# `vouched`) does not, and a target with no satisfaction-claim at all does
+# not either -- all three read from the SAME closure edge kind, so the only
+# thing distinguishing them is the discharging entry's own backing.
+run_json "directive-targets: clean measurement, no findings" 0 directive-targets
+
+assert_py "directive-targets: D1 is 1/3 -- corroborated counts, vouched and bare do not" \
+  "$tmp/directive-targets.json" <<'EOF'
+import json, sys
+data = json.load(open(sys.argv[1]))
+d1 = next(r for r in data["directions"] if r["direction"] == "D1")
+assert d1["total"] == 3, d1
+assert d1["discharged"] == 1, d1          # T1 only
+assert d1["rate"] == 1 / 3, d1
+open_ids = {o["id"] for o in d1["open"]}
+assert open_ids == {"directions:D1-T2", "directions:D1-T3"}, d1   # T2 excluded despite its claim
+EOF
+
+assert_py "directive-targets: D2 is 0/2 -- targets exist, none satisfied" \
+  "$tmp/directive-targets.json" <<'EOF'
+import json, sys
+data = json.load(open(sys.argv[1]))
+d2 = next(r for r in data["directions"] if r["direction"] == "D2")
+assert d2["total"] == 2, d2
+assert d2["discharged"] == 0, d2
+assert d2["rate"] == 0.0, d2               # zero satisfied, DISTINCT from D3's undefined
+EOF
+
+assert_py "directive-targets: D3 is UNDEFINED -- no targets drafted, not zero" \
+  "$tmp/directive-targets.json" <<'EOF'
+import json, sys
+data = json.load(open(sys.argv[1]))
+d3 = next(r for r in data["directions"] if r["direction"] == "D3")
+assert d3["total"] == 0, d3
+assert d3["rate"] is None, d3
+EOF
+
+# --- directive-malformed-marker.json: the same defect (a), directive-shaped -
+# The malformed-separator finding applies identically to a directive-shaped
+# target, not only the legacy question shape.
+run_json "directive-malformed-marker: findings present -> non-zero exit" 3 directive-malformed-marker
+
+assert_py "directive-malformed-marker: one finding, D1's denominator excludes it" \
+  "$tmp/directive-malformed-marker.json" <<'EOF'
+import json, sys
+data = json.load(open(sys.argv[1]))
+assert len(data["findings"]) == 1, data["findings"]
+finding = data["findings"][0]
+assert finding["kind"] == "malformed-marker", finding
+assert finding["id"] == "directions:D1_T5", finding
+d1 = next(r for r in data["directions"] if r["direction"] == "D1")
+assert d1["total"] == 1, d1     # D1-T1 only -- the malformed marker is excluded
 EOF
 
 # --- defect (c): no-args CLI convention -------------------------------------
