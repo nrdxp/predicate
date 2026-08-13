@@ -1,0 +1,129 @@
+#!/usr/bin/env bash
+# pre-merge-commit hook — the merge-time half of the commit gate: fires
+# exactly once, right before `git merge` writes the merge commit, and can
+# still abort it (git's own contract for this hook — githooks(5); never
+# fires on a fast-forward, since no merge commit is written there).
+#
+# Wires ledger/gate/red_baseline.py — directions:D3-T9's ordering check: does
+# a `test:` commit precede the `feat:`/`fix:` commit(s) it verifies, in the
+# branch about to be merged — into every merge this hook fires for. That
+# check is cheap (git-log only, sub-second), so it runs automatically here.
+#
+# ledger/gate/trial_merge.sh (the throwaway-clone, full test_*.sh battery on
+# the MERGED result — the D79-81 cross-branch-regression gate) is NOT run
+# here: it costs ~3 minutes, and blocking every merge for three minutes is
+# worse than the defect it exists to catch. It stays a DELIBERATE,
+# composer/orchestrator-invoked step before the real `git merge` (as its own
+# header already documents), not an automatic one. What this narrowing gives
+# up: a cross-branch regression — two branches each green alone, broken only
+# once merged — is NOT caught by this hook. Run
+# `ledger/gate/trial_merge.sh <branch> --against <base>` by hand (or from the
+# orchestration driver) before landing anything non-trivial; this hook only
+# ever closes the red-baseline half.
+#
+# A merge this hook CANNOT JUDGE is never blocked by it — the same
+# philosophy pre-commit holds ("never make the hook the reason a legitimate
+# merge cannot happen") applies here as much as there.
+set -u
+
+plugin="$(cd "$(dirname "$(realpath "${BASH_SOURCE[0]}")")/.." && pwd)"
+root="$(git rev-parse --show-toplevel)"
+
+abspath() { # possibly-cwd-relative path (git --git-path output)
+  case "$1" in
+    /*) printf '%s\n' "$1" ;;
+    *)  printf '%s\n' "$root/$1" ;;
+  esac
+}
+
+# --- CANNOT-JUDGE cases: never block, always say why -------------------------
+
+# 1. A rebase replaying a merge commit (`git rebase --rebase-merges`) invokes
+#    this hook per replayed merge; HEAD is a transient rebase state, not the
+#    branch actually being landed, so judging it here would be judging the
+#    wrong thing entirely. Skip.
+rebase_merge="$(abspath "$(git rev-parse --git-path rebase-merge)")"
+rebase_apply="$(abspath "$(git rev-parse --git-path rebase-apply)")"
+if [ -d "$rebase_merge" ] || [ -d "$rebase_apply" ]; then
+  echo "pre-merge-commit: rebase in progress — skipping (cannot judge a replayed merge)" >&2
+  exit 0
+fi
+
+# 2. Find the merge tip(s) being brought in. githooks(5) says to inspect
+#    $GIT_DIR/MERGE_HEAD, but that is NOT reliably on disk yet at this exact
+#    moment (observed against git 2.51's "ort" strategy: the merge-state
+#    files are written only AFTER this hook returns, whether it passes or
+#    fails, so `git commit`/`git merge --abort` have something to act on
+#    afterward). The signal that IS present at hook time is git's own
+#    GITHEAD_<sha>=<name> environment variable, one per merge parent other
+#    than HEAD — the same mechanism git feeds to external merge tools — and
+#    it doubles as the octopus signal: an octopus merge sets one GITHEAD_ var
+#    per side branch, and git's octopus algorithm can already have
+#    fast-forwarded HEAD itself past one parent before this hook ever runs,
+#    which would make a MERGE_HEAD line count unreliable there too even if
+#    the file existed. MERGE_HEAD is still read as a defensive fallback, in
+#    case a different git version or wrapper does not set GITHEAD_.
+mapfile -t merge_tips < <(env | sed -n 's/^GITHEAD_\([0-9a-f]\{4,\}\)=.*/\1/p' | sort -u)
+
+if [ "${#merge_tips[@]}" -eq 0 ]; then
+  merge_head="$(abspath "$(git rev-parse --git-path MERGE_HEAD)")"
+  if [ -f "$merge_head" ]; then
+    mapfile -t merge_tips < <(tr -d '\r' < "$merge_head" | grep -v '^[[:space:]]*$')
+  fi
+fi
+
+if [ "${#merge_tips[@]}" -eq 0 ]; then
+  echo "pre-merge-commit: no merge-tip signal found (GITHEAD_ env / MERGE_HEAD) — skipping (nothing to judge)" >&2
+  exit 0
+fi
+if [ "${#merge_tips[@]}" -ne 1 ]; then
+  echo "pre-merge-commit: octopus merge (${#merge_tips[@]} parents) — skipping (no single node branch to judge)" >&2
+  exit 0
+fi
+
+tip_sha="${merge_tips[0]}"
+base_sha="$(git rev-parse HEAD 2>/dev/null)"
+if [ -z "$tip_sha" ] || [ -z "$base_sha" ]; then
+  echo "pre-merge-commit: could not resolve merge tip/base — skipping" >&2
+  exit 0
+fi
+
+# --- the red-baseline check itself -------------------------------------------
+out="$(python3 "$plugin/ledger/gate/red_baseline.py" "$tip_sha" --against "$base_sha" --repo "$root" 2>&1)"
+rc=$?
+
+case "$rc" in
+  0)
+    exit 0
+    ;;
+  1)
+    echo "pre-merge-commit: RED-BASELINE FAIL — an implementation commit in the" >&2
+    echo "  branch being merged has no preceding test: commit:" >&2
+    printf '%s\n' "$out" | sed 's/^/  /' >&2
+    echo "pre-merge-commit: merge blocked. Rework the branch (a fresh dispatch into" >&2
+    echo "  the same worktree) so the evaluator commit precedes the implementation" >&2
+    echo "  it satisfies, then merge again." >&2
+    echo "  (Hooks enforce the commit gate; bypassing with --no-verify defeats it.)" >&2
+    exit 1
+    ;;
+  2)
+    echo "pre-merge-commit: red_baseline.py reported an environment error — cannot" >&2
+    echo "  judge this merge, not blocking it:" >&2
+    printf '%s\n' "$out" | sed 's/^/  /' >&2
+    exit 0
+    ;;
+  3)
+    echo "pre-merge-commit: RED-BASELINE AMBIGUOUS — an unparseable commit precedes" >&2
+    echo "  an implementation commit and no test: commit already closes the" >&2
+    echo "  ordering. Reported for visibility, NOT blocking: this evaluator declines" >&2
+    echo "  to guess, and the only remedy for already-landed history would be a" >&2
+    echo "  rewrite this project forbids." >&2
+    printf '%s\n' "$out" | sed 's/^/  /' >&2
+    exit 0
+    ;;
+  *)
+    echo "pre-merge-commit: red_baseline.py exited $rc (unexpected) — not blocking:" >&2
+    printf '%s\n' "$out" | sed 's/^/  /' >&2
+    exit 0
+    ;;
+esac

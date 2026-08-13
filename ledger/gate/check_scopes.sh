@@ -2,7 +2,7 @@
 # Gate-scope completeness checker (K10: thin bash entrypoint).
 #
 # Enumerates the ACTUAL gate surface — ledger/gate/*.sh, ledger/gate/*.py,
-# gates/*.sh, the two named hooks, the eight named hook tiers, and the skill
+# gates/*.sh, the two named hooks, the nine named hook tiers, and the skill
 # scripts invoked from hooks — then verifies that every gate is declared in
 # ledger/gate/scopes.ncl.  Fails (rc 1) if any gate is absent; passes (rc 0)
 # if every gate is declared.
@@ -62,6 +62,8 @@ for entry in data.get("gates", []):
 #        hook/pre-commit:ledger-structure
 #        hook/pre-commit:authority
 #        hook/pre-commit:process
+#        hook/pre-commit:project-local
+#        hook/pre-merge-commit:red-baseline
 #   5. All *.sh and *.py files under skills/*/scripts/ (enumerated
 #      dynamically so new skill scripts are automatically surfaced by the
 #      completeness check; extension-filtered like sections 1-2 so a build
@@ -99,7 +101,8 @@ actual_gates() {
       "hook/pre-commit:ledger-structure" \
       "hook/pre-commit:authority" \
       "hook/pre-commit:process" \
-      "hook/pre-commit:project-local"
+      "hook/pre-commit:project-local" \
+      "hook/pre-merge-commit:red-baseline"
 
     # 4. Skill scripts (*.sh and *.py files under skills/*/scripts/, any depth
     #    via glob pathspec magic — same reach as the prior `-path "*/scripts/*"`)

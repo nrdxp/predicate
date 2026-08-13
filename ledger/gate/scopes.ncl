@@ -112,6 +112,13 @@ let GateEntry = {
       applies_to  = "human + agent",
     } | GateEntry,
 
+    {
+      gate        = "hook/pre-merge-commit:red-baseline",
+      scope       = 'universal,
+      fires_when  = "every non-fast-forward `git merge` that will produce a merge commit; invokes ledger/gate/red_baseline.py against the merge tip identified via git's GITHEAD_<sha> environment variable (MERGE_HEAD as a defensive fallback); permits (never blocks) an octopus merge, a rebase replaying a merge, or an environment/ambiguous verdict — only a definite ordering FAIL blocks the merge. Does NOT run trial_merge.sh's full battery (too slow to run on every merge); that stays a deliberate composer/orchestrator step",
+      applies_to  = "human + agent",
+    } | GateEntry,
+
     # ── LEDGER/GATE SCRIPTS ──────────────────────────────────────────────────
 
     {
@@ -251,6 +258,20 @@ let GateEntry = {
       gate        = "ledger/gate/test_red_baseline.sh",
       scope       = 'orchestration,
       fires_when  = "CI gate-test step; fixture suite for red_baseline.py — a test: commit preceding an implementation commit (pass), an implementation commit with no preceding test: (fail, named), an implementation commit whose only test: commit lands after it (fail, distinct wording from no-evaluator-at-all), no implementation commit at all (pass, not a violation), an unparseable commit preceding the implementation with no earlier test: (ambiguous, never silently passed), a merge commit inside the range never counting as evaluator signal, --sweep aggregation across multiple merges including an octopus merge reported skip, usage/environment errors, and a mutation demonstration that breaks the ordering comparison and shows a fail fixture read as pass",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
+      gate        = "ledger/gate/test_install_hooks.sh",
+      scope       = 'orchestration,
+      fires_when  = "CI gate-test step; fixture suite for hooks/install-hooks.sh's hooks-SOURCE resolution — a linked worktree of the self-hosted repo sources the main worktree's hooks/ rather than its own checked-out copy, the main worktree itself is unaffected, a consuming repo (installer's own repo differs from the repo being gated) is unaffected regardless of worktree topology, and --uninstall never removes a real (non-symlink) hook file for any of the three managed hook names",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
+      gate        = "ledger/gate/test_pre_merge_commit.sh",
+      scope       = 'orchestration,
+      fires_when  = "CI gate-test step; fixture suite for hooks/pre-merge-commit — a branch with a feat: commit and no preceding test: commit is refused (no merge commit created), a branch with test: correctly preceding feat: is permitted, an octopus merge is permitted (cannot judge a single tip), and a rebase replaying a merge commit is permitted (cannot judge a transitional replay)",
       applies_to  = "agent only",
     } | GateEntry,
 
