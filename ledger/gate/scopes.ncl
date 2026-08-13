@@ -241,6 +241,20 @@ let GateEntry = {
     } | GateEntry,
 
     {
+      gate        = "ledger/gate/red_baseline.py",
+      scope       = 'orchestration,
+      fires_when  = "composer or orchestrator, at a node's RECONCILE step before the real `git merge` into master (directions:D3-T9, second half) — inspects a node branch's commit order between merge-base and tip for a `test:` commit preceding the `feat:`/`fix:` commit(s) it verifies, by Conventional-Commit type prefix (order only, never diff content); also runnable manually with --sweep over a revision range for a whole-campaign measurement. Not CI-wired for the same reason trial_merge.sh is not: node branches are local and are gated by the composer before a forge ever sees them, and a CI checkout is typically shallow and post-hoc to that window",
+      applies_to  = "human + agent",
+    } | GateEntry,
+
+    {
+      gate        = "ledger/gate/test_red_baseline.sh",
+      scope       = 'orchestration,
+      fires_when  = "CI gate-test step; fixture suite for red_baseline.py — a test: commit preceding an implementation commit (pass), an implementation commit with no preceding test: (fail, named), an implementation commit whose only test: commit lands after it (fail, distinct wording from no-evaluator-at-all), no implementation commit at all (pass, not a violation), an unparseable commit preceding the implementation with no earlier test: (ambiguous, never silently passed), a merge commit inside the range never counting as evaluator signal, --sweep aggregation across multiple merges including an octopus merge reported skip, usage/environment errors, and a mutation demonstration that breaks the ordering comparison and shows a fail fixture read as pass",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
       gate        = "ledger/gate/test_gates.sh",
       scope       = 'orchestration,
       fires_when  = "CI gate-test step; exercises ledger-validate, authority overlay, doc-link, recorder, adherence, orphan, selfcontained, sync-sketch, and commit-msg gates from main tree and linked worktree",
