@@ -10,20 +10,23 @@
 # admission check) refuses anything this record does not declare.
 #
 # `category` distinguishes DIRECTION tags — whose value is a direction's own
-# marker in .ledger/directions.md (D1, D2, D3) — from every other kind a
-# future addition might register. entries_query.ncl's `by_direction` view
-# reads this field to select the direction subset out of the general tag
-# index, rather than pattern-matching the tag string: admission and
-# classification stay two readings of ONE record instead of drifting into two.
+# marker in .ledger/directions.md (D1, D2, D3) — from TOPIC tags, admission's
+# other class. entries_query.ncl's `with_tags` selector never reads this
+# field at all (it intersects on tag NAME alone, direction and topic in one
+# namespace by design); `category` stays recorded here purely as
+# classification metadata for a reader browsing the registry itself.
 #
-# TODAY every registered tag is a direction — the only tag class this pass
-# was asked to ship (composer dispatch: "do not tag any existing entry...
-# ship the mechanism and the registry"). `by_tag` and `by_direction` therefore
-# coincide extensionally until a non-direction tag is registered; that is the
-# honest state of an empty-but-typed vocabulary, not a defect of either view
-# — see the by_tag/by_direction doc comment in entries_query.ncl.
+# `perf` is the first registered topic tag (node/tag-query,
+# ledger/log/2026-08-12-tagging-hypothesis.md's own composer dispatch: "do
+# not tag any existing entry... ship the mechanism and the registry" no
+# longer bounds the registry to directions alone — a composed query spanning
+# a direction and a topic needed a real second class to prove against, not a
+# hypothetical one). Nothing in the corpus carries it yet; an admitted,
+# idle tag is the registry's honest starting state for a class, the same as
+# it was for D1–D3 before this pass.
 {
   D1 = { category = "direction" },
   D2 = { category = "direction" },
   D3 = { category = "direction" },
+  perf = { category = "topic" },
 }

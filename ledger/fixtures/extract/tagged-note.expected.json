@@ -20,7 +20,7 @@
     },
     {
       "id": "tagged-note:K2",
-      "statement": "Second entry, serving both D1 and D2 — the co-occurrence case.",
+      "statement": "Second entry, serving both D1 and D2.",
       "assertion": "claim",
       "backing": "corroborated",
       "signer": {
@@ -69,6 +69,63 @@
         "ran": true,
         "at": "abc1234"
       }
+    },
+    {
+      "id": "tagged-note:K5",
+      "statement": "Fifth entry, serving D2 alongside the topical tag perf — the direction-plus-topic composition the retired enumerated views could never answer.",
+      "assertion": "claim",
+      "backing": "corroborated",
+      "signer": {
+        "kind": "agent",
+        "name": "composer"
+      },
+      "check": {
+        "command": "true",
+        "ran": true,
+        "at": "abc1234"
+      },
+      "tags": [
+        "D2",
+        "perf"
+      ]
+    },
+    {
+      "id": "tagged-note:K6",
+      "statement": "Sixth entry, serving all three at once: D1, D2, and perf.",
+      "assertion": "claim",
+      "backing": "corroborated",
+      "signer": {
+        "kind": "agent",
+        "name": "composer"
+      },
+      "check": {
+        "command": "true",
+        "ran": true,
+        "at": "abc1234"
+      },
+      "tags": [
+        "D1",
+        "D2",
+        "perf"
+      ]
+    },
+    {
+      "id": "tagged-note:K7",
+      "statement": "Seventh entry, serving the topical tag perf alone.",
+      "assertion": "claim",
+      "backing": "corroborated",
+      "signer": {
+        "kind": "agent",
+        "name": "composer"
+      },
+      "check": {
+        "command": "true",
+        "ran": true,
+        "at": "abc1234"
+      },
+      "tags": [
+        "perf"
+      ]
     }
   ],
   "directives": [],
@@ -76,7 +133,10 @@
     "tagged-note:K1": "proved",
     "tagged-note:K2": "proved",
     "tagged-note:K3": "proved",
-    "tagged-note:K4": "proved"
+    "tagged-note:K4": "proved",
+    "tagged-note:K5": "proved",
+    "tagged-note:K6": "proved",
+    "tagged-note:K7": "proved"
   },
   "findings": []
 }
