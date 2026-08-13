@@ -28,10 +28,8 @@
   D1 = { category = "direction" },
   D2 = { category = "direction" },
   D3 = { category = "direction" },
-  awaiting-head = { category = "topic" },
   failure-class = { category = "topic" },
   gate-mechanism = { category = "topic" },
   perf = { category = "topic" },
   record-integrity = { category = "topic" },
-  unbacked = { category = "topic" },
 }
