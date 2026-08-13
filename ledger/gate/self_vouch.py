@@ -32,6 +32,11 @@ only a SATISFYING claim's self-witness is a violation:
     convergence.py already reports the unmet fraction; conflating unmet with
     improperly-met would double-count the same gap two different ways.
 
+Terminal-target selection (what is a terminal target, what satisfies one) is
+shared with `ledger/gate/terminal_freshness.py` (D3-T10) via
+`ledger/derive/terminal_satisfaction.py` rather than re-derived here -- see
+that module's docstring.
+
 WHERE THE SIGNER AND THE WITNESS COME FROM
 --------------------------------------------
 Both are read from the documents by `extract_entries.py`, never hardcoded
@@ -71,6 +76,7 @@ from types import ModuleType
 ROOT = Path(__file__).resolve().parent.parent.parent
 EXTRACT_ENTRIES = ROOT / "ledger" / "derive" / "extract_entries.py"
 CONVERGENCE = ROOT / "ledger" / "derive" / "convergence.py"
+TERMINAL_SATISFACTION = ROOT / "ledger" / "derive" / "terminal_satisfaction.py"
 
 
 class EnvError(Exception):
@@ -128,45 +134,6 @@ def extract(mod, corpus: Path) -> dict:
     }
 
 
-def terminal_targets(directives: list, convergence_mod) -> tuple[dict, list]:
-    """Directive nodes under document stem 'directions' whose marker has the
-    <DIRECTION>-<TAG> shape. Reuses convergence.py's own TERMINAL_SHAPE regex
-    (single source of truth for what "terminal" means) rather than a second
-    copy of the pattern that could silently diverge from it.
-
-    Returns (targets, malformed): `targets` maps target id -> its directive
-    node; `malformed` lists ids whose marker looks terminal but is joined
-    with the wrong separator (convergence.py's own malformed-marker case) —
-    reported for visibility, never treated as a target."""
-    targets: dict[str, dict] = {}
-    malformed: list[str] = []
-    for directive in directives:
-        doc, _, marker = directive["id"].rpartition(":")
-        if doc != "directions":
-            continue
-        shape = convergence_mod.TERMINAL_SHAPE.match(marker)
-        if not shape:
-            continue  # a direction node itself (D1/D2/D3), or an
-            # out-of-shape marker like DX4 — neither is a terminal target
-        _head, sep, _tag = shape.groups()
-        if sep == "-":
-            targets[directive["id"]] = directive
-        else:
-            malformed.append(directive["id"])
-    return targets, malformed
-
-
-def discharging_claims(entries: list, target_id: str) -> list[dict]:
-    """Every entry naming target_id in its own `discharges` edge, regardless
-    of backing — self-witness is checked on the claim, satisfaction decides
-    whether it is a violation (module docstring)."""
-    return [e for e in entries if target_id in (e.get("discharges") or [])]
-
-
-def is_satisfying(entry: dict) -> bool:
-    return entry.get("assertion") == "claim" and entry.get("backing") == "corroborated"
-
-
 def _reconstruct_signer(signer: dict) -> str:
     return signer["kind"] if "name" not in signer else f"{signer['kind']}/{signer['name']}"
 
@@ -191,16 +158,17 @@ def self_witnessed(entry: dict, extract_mod) -> bool:
     return head == _reconstruct_signer(signer)
 
 
-def evaluate(export: dict, extract_mod, convergence_mod) -> dict:
-    targets, malformed = terminal_targets(export.get("directives", []), convergence_mod)
+def evaluate(export: dict, extract_mod, convergence_mod, terminal_mod) -> dict:
+    targets, malformed = terminal_mod.terminal_targets(
+        export.get("directives", []), convergence_mod)
     entries = export.get("entries", [])
 
     rows = []
     violations = []
     non_violating = []
     for target_id in sorted(targets):
-        claims = discharging_claims(entries, target_id)
-        satisfying = [c for c in claims if is_satisfying(c)]
+        claims = terminal_mod.discharging_claims(entries, target_id)
+        satisfying = [c for c in claims if terminal_mod.is_satisfying(c)]
         for claim in claims:
             if not self_witnessed(claim, extract_mod):
                 continue
@@ -210,7 +178,7 @@ def evaluate(export: dict, extract_mod, convergence_mod) -> dict:
                 "backing": claim.get("backing"),
                 "witness": claim["witness"]["name"],
             }
-            (violations if is_satisfying(claim) else non_violating).append(record)
+            (violations if terminal_mod.is_satisfying(claim) else non_violating).append(record)
         rows.append({
             "target": target_id,
             "satisfying": [c["id"] for c in satisfying],
@@ -261,6 +229,7 @@ def main() -> int:
     try:
         extract_mod = load_module(EXTRACT_ENTRIES, "self_vouch_extract_entries")
         convergence_mod = load_module(CONVERGENCE, "self_vouch_convergence")
+        terminal_mod = load_module(TERMINAL_SATISFACTION, "self_vouch_terminal_satisfaction")
         corpus = Path(opts.corpus) if opts.corpus else resolve_default_corpus()
         if not corpus.exists():
             raise EnvError(f"corpus path does not exist: {corpus}")
@@ -269,7 +238,7 @@ def main() -> int:
         print(f"self_vouch: ENV: {err}", file=sys.stderr)
         return 2
 
-    result = evaluate(export, extract_mod, convergence_mod)
+    result = evaluate(export, extract_mod, convergence_mod, terminal_mod)
     render(result)
 
     for finding in export.get("findings", []):
