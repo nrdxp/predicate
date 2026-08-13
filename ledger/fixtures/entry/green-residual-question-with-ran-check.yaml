@@ -1,0 +1,24 @@
+# SCOPE PIN (node/backing-converse), the mirror case. A `residual` QUESTION
+# naming a check that WAS RUN is LEGITIMATE and must stay green: the six
+# `audit-typed-claims-campaign` residual questions the ruling reads directly
+# ([CU1]) each carry a ran command that established the RESIDUE's existence
+# ("git status --porcelain", "git diff hooks/commit-msg", ...), never its
+# discharge — `residual` says discharge is beyond our observation power, and
+# none of those commands contradicts that. Converse of CorroborationBacked
+# must therefore be SCOPED TO CLAIMS, same ruling as the witness case
+# (ruling-backing-cure.md [CU1]/[CU2]/[CU9], .ledger commit 678dd1d).
+id: q-residual-ran-check
+statement: "Which admission policy should a consuming gate adopt?"
+assertion: question
+backing: residual
+signer:
+  kind: agent
+  name: architect-seat
+discharge: "A ruled admission policy for a consuming gate."
+closer:
+  kind: human
+  name: nrd
+check:
+  command: "grep -rn admission_policy ledger/contracts/*.ncl"
+  ran: true
+  at: "deadbeef05"

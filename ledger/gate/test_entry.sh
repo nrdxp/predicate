@@ -397,6 +397,129 @@ expect "corpus: non-derived signer, unnamed -> SignerDesignates" 1 "SignerDesign
 expect "corpus: unattributed signer, vouched -> UnattributedUnclosed" 1 "UnattributedUnclosed" \
   -- run "$fix/red-corpus-unattributed-vouched.yaml"
 
+# --- node/backing-converse: CorroborationBacked / VouchBacked run one
+# direction only, SCOPED TO CLAIMS (TDD reds) --------------------------------
+#
+# `corroborated => check.ran` and `vouched => witness` are both stated;
+# neither converse is. A CLAIM may therefore carry evidence its own declared
+# backing denies — a `witness` beside `grade: unclosed`, or a ran `check`
+# beside a claim graded anything but `corroborated` — and today's law is
+# silent. Architect coherence read: .ledger/deposits/provenance-gate/
+# architect-seat/coherence-provenance-gate.md [PC4]-[PC8] (commit 116b5f6);
+# queue entries [D33]-[D39] (.ledger 1680b22).
+#
+# SCOPED TO CLAIMS is the corrected reading, not the original one: the
+# coherence read's own open question ([PC9]) was closed by a FOLLOW-UP
+# architect ruling landed after this node was dispatched —
+# .ledger/deposits/provenance-gate/architect-seat/ruling-backing-cure.md
+# (.ledger commit 678dd1d, `at:: 40de5f4`). Reading the thirteen rather than
+# their shape, it found seven are NOT violations: six `residual` questions
+# whose ran check establishes the finding's EXISTENCE (never its discharge —
+# `residual` means open by theorem, and a command proving a finding is real
+# does not contradict that), plus one residual question with a witness doing
+# the same testimonial work. `[CU2]`: "a question's evidence attaches to its
+# existence, not to its answer" — so the converse clauses must be SCOPED TO
+# CLAIMS; unscoped, they would refuse correct entries and teach their authors
+# to delete the evidence that makes findings checkable. `[CU9]` names this
+# node explicitly: "the red suite on node/backing-converse was dispatched
+# against the UNSCOPED clauses... its fixtures are re-pointed at the
+# claim-scoped clauses before implementation" — this block is that
+# re-pointing. The dispatching composer has NOT yet seen this ruling; it postdates
+# this node's IBC and is reported alongside this suite, not silently absorbed.
+#
+# Every case in this block currently EXPORTS CLEAN (rc=0) against the
+# unmodified law — verified per fixture, not assumed. The RED cases assert
+# the ACCEPTANCE state (refused, naming the predicate the converse clause
+# extends) against today's actual clean export — the mismatch IS the red,
+# matching this file's own node/provenance-gate precedent above. The GREEN
+# cases assert a state that is ALREADY true today and MUST STAY true once the
+# scoped converse lands — permanent pins, not reds. Predicate names are the
+# minimal-diff reading of the deposits' own framing ("the cure is two
+# converse clauses" — extending CorroborationBacked and VouchBacked in place,
+# never new predicates); an implementation that adds new predicate names
+# instead will need this suite's tokens updated alongside c12's closed set.
+#
+# Paired at both granularities per this file's own standing rule ("never
+# single-entry reds alone") even though the converse extends predicates
+# already reused verbatim inside EntryStore's per-entry fold (`lifted`) — so
+# no granularity-asymmetry gap is structurally possible here the way it was
+# for DischargeBacked. The corpus pairs are the proof of that, not a hedge
+# against a known gap.
+#
+# FORWARD-DIRECTION NON-REGRESSION: the converse must be added ALONGSIDE the
+# existing forward clause (an OR'd extra condition), never in its place. A
+# corroborated claim whose check was never run must keep failing — that is
+# the direction CorroborationBacked already states, and the two cases already
+# pinning it above continue to guard it unchanged: the CANARY
+# ("CANARY: string-backed corroborated claim, check unrun -> CorroborationBacked",
+# red-corroboration-unrun.yaml) and "corroborated claim, no check at all ->
+# CorroborationBacked" (red-corroboration-no-check.yaml). No new fixture adds
+# value here — a converse implementation that dropped the forward clause
+# instead of OR-ing into it would already flip those two cases green, and
+# this suite would catch it without any addition.
+expect "unclosed claim naming a witness -> VouchBacked" 1 "VouchBacked" \
+  -- run "$fix/red-unclosed-claim-with-witness.yaml"
+expect "unclosed claim naming a ran check -> CorroborationBacked" 1 "CorroborationBacked" \
+  -- run "$fix/red-unclosed-claim-with-ran-check.yaml"
+# THE MUST-NOT-REGRESS PIN (claims): a corroborated claim that ALSO names a
+# witness is legitimate and must stay green. A converse phrased as "witness
+# present -> vouched" would wrongly refuse this; the correct converse reads
+# "witness present -> backing in {vouched, corroborated}". This green is as
+# load-bearing as any red above it.
+expect "corroborated claim also naming a witness -> export clean" 0 "" \
+  -- run "$fix/green-corroborated-claim-with-witness.yaml"
+# THE MUST-NOT-REGRESS PINS (questions, ruling-backing-cure [CU1]/[CU2]): a
+# residual question naming a witness or a ran check is legitimate testimony
+# to the finding's existence and must stay green — an UNSCOPED converse would
+# wrongly refuse both, which is exactly the corpus-cited defect the ruling
+# reads directly (2026-08-11-state-typed:Z1 and the six
+# audit-typed-claims-campaign Q21-Q26 entries).
+expect "residual question naming a witness -> export clean" 0 "" \
+  -- run "$fix/green-residual-question-with-witness.yaml"
+expect "residual question naming a ran check -> export clean" 0 "" \
+  -- run "$fix/green-residual-question-with-ran-check.yaml"
+expect "corpus: unclosed claim naming a witness -> VouchBacked" 1 "VouchBacked" \
+  -- run "$fix/red-corpus-unclosed-witness-converse.yaml"
+expect "corpus: unclosed claim naming a ran check -> CorroborationBacked" 1 "CorroborationBacked" \
+  -- run "$fix/red-corpus-unclosed-ran-check-converse.yaml"
+expect "corpus: corroborated claim also naming a witness -> export clean" 0 "" \
+  -- run "$fix/green-corpus-corroborated-witness.yaml"
+expect "corpus: residual question naming a witness -> export clean" 0 "" \
+  -- run "$fix/green-corpus-residual-with-witness.yaml"
+expect "corpus: residual question naming a ran check -> export clean" 0 "" \
+  -- run "$fix/green-corpus-residual-with-ran-check.yaml"
+
+# (mutation) prove the claim-scoping on both converse clauses is
+# load-bearing: a mutant that widens them to cover questions too must flip
+# the residual-question must-not-regress pins RED, which is exactly the
+# false refusal ruling-backing-cure.md [CU2] warns against (a question's
+# evidence attests to a finding's existence, not its discharge). The mutant
+# drops the `!(matches n.assertion 'claim "claim")` guard from both clauses
+# — the unique literal each one opens with, verified below before use —
+# rather than patching the tracked file in place.
+converse_mut="$(mktemp -d)"
+cp "$law" "$converse_mut/entry.ncl"
+cp "$root/ledger/contracts/tag_registry.ncl" "$converse_mut/tag_registry.ncl"
+cp "$apply" "$converse_mut/entry_apply.ncl"
+sed -i 's/&& (!(matches n.assertion '"'"'claim "claim")/\&\& (false/g' "$converse_mut/entry.ncl"
+[ "$(grep -c '&& (false' "$converse_mut/entry.ncl")" = "2" ] \
+  || { echo "ENV: converse claim-scope mutation did not apply to both clauses — the literal moved"; exit 2; }
+converse_fails=0
+for f in green-residual-question-with-witness green-residual-question-with-ran-check; do
+  mutant_out="$(cd "$root" && nickel export "$fix/$f.yaml" \
+    --apply-contract "$converse_mut/entry_apply.ncl" 2>&1)"
+  mutant_rc=$?
+  if [ "$mutant_rc" -ne 0 ]; then
+    echo "PASS  (mutation) widened converse scope flips $f red — the claim-scoping is load-bearing"
+  else
+    echo "FAIL  (mutation) $f still exports clean under a widened converse scope — the scoping proves nothing"
+    printf '%s\n' "$mutant_out" | tail -3
+    converse_fails=$((converse_fails + 1))
+  fi
+done
+[ "$converse_fails" = "0" ] || fails=$((fails + 1))
+rm -rf "$converse_mut"
+
 # --- cure_for: pinned against the ibc-pass1.md §2b table, NOT its own branches
 # The six expected strings are HARDCODED here (sourced from the paper's cell
 # table via the boundary); deriving them from cure_for itself would be the

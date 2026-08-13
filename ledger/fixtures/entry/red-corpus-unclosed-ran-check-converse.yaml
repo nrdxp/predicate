@@ -1,0 +1,36 @@
+# Corpus pairing for the CorroborationBacked claim-scoped converse
+# (node/backing-converse). Clean entry first, violation second.
+entries:
+  - id: e-clean
+    statement: "A clean corroborated claim, unrelated to the violation below."
+    assertion: claim
+    backing: corroborated
+    signer:
+      kind: agent
+      name: architect-seat
+    check:
+      command: "nickel typecheck ledger/contracts/entry.ncl"
+      ran: true
+      at: "deadbeef01"
+    axes:
+      determined: true
+      certifiable: true
+      monotone: true
+  - id: e-unclosed-ran-check
+    statement: "An unclosed claim naming a check, inside a corpus."
+    assertion: claim
+    backing: unclosed
+    signer:
+      kind: agent
+      name: architect-seat
+    because:
+      - kind: corpus
+        name: e-clean
+    check:
+      command: "nickel typecheck ledger/contracts/entry.ncl"
+      ran: true
+      at: "deadbeef06"
+    axes:
+      determined: true
+      certifiable: false
+      monotone: true
