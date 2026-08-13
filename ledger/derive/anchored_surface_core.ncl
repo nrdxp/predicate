@@ -16,8 +16,26 @@
 # half of the old split that measured a real, corpus-side property and
 # needed no labels to do it ([HV5]).
 #
-# Input shape: { entries = [Entry, ..], anchors = [String, ..], ranker = String }
-# `entries` is the validated export's own field — untouched, not re-shaped.
+# Input shape:
+#   { entries = [Entry, ..], directives = [Directive, ..] | optional,
+#     anchors = [String, ..], ranker = String }
+# `entries` and `directives` are the validated export's own fields —
+# untouched, not re-shaped. `directives` mirrors entry.ncl's own optional-
+# field idiom (a corpus predating directives, or a caller that strips them,
+# carries no such field) and defaults to `[]` below.
+#
+# DIRECTIVES TRANSIT THE WALK BUT NEVER SURFACE IN ITS OUTPUT. A directive
+# closes by authority, not evidence (docs/entries.md's own grade vocabulary),
+# so it carries no backing/closure state on the axis `is_member` measures —
+# admitting it as a candidate would misrepresent a standing rule as an
+# unresolved evidentiary claim. The architect's own measurement of this
+# view ([A4] in ruling-hooks-boundary.md) scopes the emitted text to
+# "questions and unclosed claims" — directives are excluded from that scope
+# by the ruling itself, not by an omission this file introduces. What the
+# ruling does NOT exempt them from is the GRAPH: `[A4]`'s check runs "two
+# edges over the declared provenance and closure graph", and a directive is
+# a first-class node of that graph — reachable as an anchor, and as a
+# two-hop bridge between two entries that each cite it.
 #
 # Reuse, not redefinition (ruling-hooks-boundary.md's no-second-definition
 # rule; ruling-open-surface-node.md U4/U6). `law.corpus_edges_of` and
@@ -42,6 +60,12 @@ let set_insert = fun id s => if std.record.has_field id s then s else std.record
 
 fun input =>
   let entries = input.entries in
+  let directives =
+    if std.record.has_field "directives" input then input.directives else []
+  in
+  let directive_id_set =
+    std.array.fold_left (fun acc d => set_insert d.id acc) {} directives
+  in
   let id_map = std.array.fold_left (fun acc e => std.record.insert e.id e acc) {} entries in
   let is_claim = fun e => law.matches e.assertion 'claim "claim" in
 
@@ -90,13 +114,24 @@ fun input =>
     std.record.update a (cur @ [b]) adj
   in
   let add_undirected = fun adj pair => add_edge (add_edge adj pair.from pair.to) pair.to pair.from in
+  # `entries @ directives`, not `entries` alone: a directive is a first-class
+  # node of the walk (see the header comment), and folding it in here — same
+  # `refs_of`-guarded helpers, same shape — is what lets an anchor land on a
+  # directive id and lets a directive bridge two entries that each cite it.
+  # `law.refs_of` is guarded (`[]` when the field is absent), so a directive
+  # object (id + statement, no depends/because/discharges/supersedes today —
+  # entry.ncl's own comment on why they close by authority, not derivation)
+  # contributes no OUTGOING edge of its own; it still becomes an adjacency
+  # key via the INCOMING half `add_undirected` adds for every entry that
+  # cites it, which is what makes it reachable at all.
+  let graph_nodes = entries @ directives in
   let directed_pairs =
     std.array.fold_left
       (fun acc e =>
         let outs = (law.corpus_edges_of e) @ (law.refs_of "discharges" e) @ (law.refs_of "supersedes" e) in
         acc @ (std.array.map (fun r => { from = e.id, to = r }) outs))
       []
-      entries
+      graph_nodes
   in
   let adj = std.array.fold_left add_undirected {} directed_pairs in
   let neighbors_of = fun id => if std.record.has_field id adj then adj."%{id}" else [] in
@@ -201,20 +236,36 @@ fun input =>
   # (corroborated/vouched, `is_member` above) — a property of the CORPUS,
   # decidable without a graph walk, and true regardless of anchor, ranker,
   # or budget: a backed target can never surface no matter how it is
-  # reached.
+  # reached. Folded over `graph_nodes` (entries @ directives, see above) for
+  # the same future-proofing reason as `directed_pairs`, though a directive
+  # contributes none today: `law.corpus_edges_of` on one yields `[]`.
   let derivation_pairs =
     std.array.fold_left
       (fun acc e => acc @ (std.array.map (fun r => { from = e.id, to = r }) (law.corpus_edges_of e)))
       []
-      entries
+      graph_nodes
+  in
+  # A pair whose TARGET is a directive is neither backed nor unbacked — a
+  # directive carries no evidentiary state at all (it closes by authority),
+  # so counting it toward this metric's "backed" numerator would misreport
+  # WHY it can never surface. `id_map` (entries only) already reflects that:
+  # without this filter such a pair falls through `eligible`'s has_field
+  # guard as "not found" and is silently folded into `count` alongside
+  # genuinely backed targets — a real corpus's own `because -> directive`
+  # citations already produce this miscount today. Scoping `derivation_pairs`
+  # to entry-typed targets before `eligible` keeps this metric measuring
+  # exactly what its own name and doc comment claim: the backed axis, and
+  # nothing a directive citation has any bearing on.
+  let entry_targeted_pairs =
+    std.array.filter (fun pr => !(std.record.has_field pr.to directive_id_set)) derivation_pairs
   in
   let eligible = fun pr => std.record.has_field pr.to id_map && is_member (id_map."%{pr.to}") in
-  let eligible_pairs = std.array.filter eligible derivation_pairs in
+  let eligible_pairs = std.array.filter eligible entry_targeted_pairs in
 
   {
     candidates = ranked_candidates,
     excluded_backed = {
-      count = std.array.length derivation_pairs - std.array.length eligible_pairs,
-      total = std.array.length derivation_pairs,
+      count = std.array.length entry_targeted_pairs - std.array.length eligible_pairs,
+      total = std.array.length entry_targeted_pairs,
     },
   }

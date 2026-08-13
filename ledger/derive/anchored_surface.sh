@@ -178,18 +178,26 @@ if [ "$apply_rc" -ne 0 ]; then
   exit 1
 fi
 
-# Build the core's input record: the validated export's `entries`, plus the
-# run's own anchors/ranker (unconditionally — this call is not special-cased
-# for `--self-evaluate`). `excluded_backed` ignores anchors/ranker/budget:
-# it is a corpus property, computed the same regardless of what a caller
-# passed for any of the three.
+# Build the core's input record: the validated export's `entries` AND
+# `directives`, plus the run's own anchors/ranker (unconditionally — this
+# call is not special-cased for `--self-evaluate`). `directives` was
+# previously dropped here, which excluded a whole node class from the
+# two-hop walk the core performs — a dispatch naming a directive id had
+# nothing to anchor against, and derivation edges landing on a directive
+# were miscounted by the core as "backed" (they are neither backed nor
+# unbacked; a directive closes by authority, not evidence — a different
+# axis the core must now be able to recognize). `.get(..., [])` matches
+# entry.ncl's own optional-field idiom for corpora predating directives.
+# `excluded_backed` ignores anchors/ranker/budget: it is a corpus property,
+# computed the same regardless of what a caller passed for any of the three.
 request_json="$TMP/request.json"
 python3 - "$extract_json" "$request_json" "$ranker" "${anchors[@]}" <<'PYEOF'
 import json, sys
 extract_path, request_path, ranker = sys.argv[1], sys.argv[2], sys.argv[3]
 anchors = sys.argv[4:]
 export = json.load(open(extract_path))
-json.dump({"entries": export["entries"], "anchors": anchors, "ranker": ranker},
+json.dump({"entries": export["entries"], "directives": export.get("directives", []),
+           "anchors": anchors, "ranker": ranker},
           open(request_path, "w"))
 PYEOF
 
