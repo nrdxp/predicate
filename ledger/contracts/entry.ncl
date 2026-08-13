@@ -421,16 +421,40 @@
   # claim is SHAPE-VALID and the record shows it — which is what makes
   # self-vouch detection queryable at all.
 
-  # A corroborated claim must name a check that WAS RUN. This is the single
-  # distinction absent from every existing predicate contract.
-  CorroborationBacked = fun n =>
-    !(matches n.backing 'corroborated "corroborated")
-    || (std.record.has_field "check" n && n.check.ran),
+  # Shared by both converse clauses below: is this entry's declared backing
+  # one of the two CLOSED species (corroborated or vouched)? The forward
+  # clauses already pin which companion each closed backing requires; the
+  # converse's only job is to ask whether a companion present without one of
+  # these two backings is a claim understating its own closure.
+  backing_closed = fun n =>
+    matches n.backing 'corroborated "corroborated" || matches n.backing 'vouched "vouched",
 
-  # A vouched claim must name its witness and the state it testified against.
+  # A corroborated claim must name a check that WAS RUN (forward), and a
+  # CLAIM naming a ran check must declare itself closed (converse — ruling
+  # ruling-backing-cure.md [CU2], ruling-converse-phrasing.md [BC2]/[BC3]).
+  # The converse is scoped to claims and ORs into the forward clause, never
+  # replaces it: a corroborated claim whose check was never run must keep
+  # failing, and a QUESTION's ran check testifies to a finding's existence,
+  # not its discharge, so it stays exempt (residual entries carrying a ran
+  # check are legitimate).
+  CorroborationBacked = fun n =>
+    (!(matches n.backing 'corroborated "corroborated")
+     || (std.record.has_field "check" n && n.check.ran))
+    && (!(matches n.assertion 'claim "claim")
+        || !(std.record.has_field "check" n)
+        || !n.check.ran
+        || backing_closed n),
+
+  # A vouched claim must name its witness and the state it testified against
+  # (forward), and a CLAIM naming a witness must declare itself closed
+  # (converse, same ruling, same claim scoping — a question's witness
+  # testifies to its existence, not its discharge).
   VouchBacked = fun n =>
-    !(matches n.backing 'vouched "vouched")
-    || std.record.has_field "witness" n,
+    (!(matches n.backing 'vouched "vouched")
+     || std.record.has_field "witness" n)
+    && (!(matches n.assertion 'claim "claim")
+        || !(std.record.has_field "witness" n)
+        || backing_closed n),
 
   # MISCLOSURE MADE UNREPRESENTABLE. A `discharges` edge asserts that this
   # entry ANSWERS the question it names, so only an entry that itself carries

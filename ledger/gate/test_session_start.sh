@@ -145,7 +145,12 @@ assert_py "(a) recent activity's own citations lead to a co-cited candidate" "$p
 corpus, _ = build_corpus(ledger_root)
 surface = ss.compute_surface(ledger_root, proj)
 hit = "log/b" in surface.text and "log/a" not in surface.text.split("dropped for budget")[0].split("Full surface")[0]
-ok = surface.candidate_count == 1 and surface.included_count == 1 and "log/b" in surface.text
+ok = (
+    surface.candidate_count == 1
+    and surface.included_count == 1
+    and "log/b" in surface.text
+    and surface.status == ss.STATUS_OK
+)
 reason = f"surface={surface}"
 '
 run_hook "$proj"
@@ -190,9 +195,9 @@ rm -rf "$proj"
 # ─── (c) no .ledger present ──────────────────────────────────────────────────
 proj="$(make_git_repo)"
 run_hook "$proj"
-assert_py "(c) no .ledger -> empty surface" "$proj" '
+assert_py "(c) no .ledger -> empty surface, status=no-anchors" "$proj" '
 surface = ss.compute_surface(ledger_root, proj)
-ok = surface.text == "" and surface.candidate_count == 0
+ok = surface.text == "" and surface.candidate_count == 0 and surface.status == ss.STATUS_NO_ANCHORS
 reason = f"surface={surface}"
 '
 if [ "$(cat "$tmp/stdout.json")" = "{}" ]; then
@@ -205,9 +210,9 @@ rm -rf "$proj"
 # ─── (d) .ledger present but empty ──────────────────────────────────────────
 proj="$(make_git_repo)"
 mkdir -p "$proj/.ledger"
-assert_py "(d) empty .ledger (no .md files) -> empty surface" "$proj" '
+assert_py "(d) empty .ledger (no .md files) -> empty surface, status=no-anchors" "$proj" '
 surface = ss.compute_surface(ledger_root, proj)
-ok = surface.text == "" and surface.candidate_count == 0
+ok = surface.text == "" and surface.candidate_count == 0 and surface.status == ss.STATUS_NO_ANCHORS
 reason = f"surface={surface}"
 '
 rm -rf "$proj"
@@ -268,11 +273,22 @@ surface_full = ss.compute_surface(ledger_root, proj, budget=100000)
 surface_tiny = ss.compute_surface(ledger_root, proj, budget=400)
 ok = (
     surface_full.candidate_count > 5
+    and surface_full.status == ss.STATUS_OK
     and surface_tiny.dropped_count > 0
     and surface_tiny.included_count + surface_tiny.dropped_count == surface_tiny.candidate_count
     and str(surface_tiny.dropped_count) in surface_tiny.text
 )
 reason = f"full={surface_full}\ntiny={surface_tiny}"
+'
+assert_py "(g2) a budget too small to fit even one row reports status=budget-exhausted" "$proj" '
+surface_zero = ss.compute_surface(ledger_root, proj, budget=0)
+ok = (
+    surface_zero.candidate_count > 0
+    and surface_zero.included_count == 0
+    and surface_zero.dropped_count == surface_zero.candidate_count
+    and surface_zero.status == ss.STATUS_BUDGET_EXHAUSTED
+)
+reason = f"surface_zero={surface_zero}"
 '
 rm -rf "$proj"
 
@@ -388,6 +404,15 @@ claims = ss.compute_claim_surface(ledger_root)
 ok = claims.candidate_count >= 1 and "near-claim:NEAR1" in claims.text
 reason = f"claims={claims}"
 '
+assert_py "(i3) a non-empty claim surface states status=ok and included+dropped==considered" "$proj" '
+claims = ss.compute_claim_surface(ledger_root)
+ok = (
+    claims.status == ss.STATUS_OK
+    and claims.included_count > 0
+    and claims.included_count + claims.dropped_count == claims.candidate_count
+)
+reason = f"claims={claims}"
+'
 rm -rf "$proj"
 
 # ─── (i2) full envelope: both contributions land in one additionalContext ──
@@ -454,6 +479,169 @@ ctx = data.get("hookSpecificOutput", {}).get("additionalContext", "")
 ok = "## Record open surface" in ctx and "## Open claims near the work" in ctx and "near-claim:NEAR1" in ctx and "log/b" in ctx
 reason = f"ctx={ctx}"
 '
+rm -rf "$proj"
+
+# ─── (q1)/(q2)/(q3)/(q4): status vocabulary — distinguishing empty-because-
+# nothing from empty-because-broke (the defect the lead-maintainer filed:
+# the claim contribution was dormant for hours because its corpus failed
+# entry_apply.ncl validation, and the payload looked identical to a working
+# one with nothing to say — the only way anyone knew was tracing it by
+# hand). Every assertion below is on the STRUCTURED `status` field, never
+# scraped text, matching this suite's own governing rule. All four target
+# compute_claim_surface, the one contribution with an actual subprocess
+# primitive (anchored_surface.sh) able to fail independently of finding
+# nothing — the fourth state (upstream-failure) has no equivalent in
+# compute_surface, which calls candidate_links as plain Python, never a
+# subprocess. ────────────────────────────────────────────────────────────
+
+# (q1) no anchors available at all: a corpus with a valid header but zero
+# declared entries anywhere — neither a dispatch (none given) nor the
+# recency fallback (nothing declared in the recent window) can name one.
+proj="$(make_git_repo)"
+mkdir -p "$proj/.ledger/log"
+cat > "$proj/.ledger/log/noentry.md" <<'EOF'
+# a doc with a header but zero declared entries
+
+`signer:: agent/test` · `at:: 0000000`
+
+nothing declared here at all.
+EOF
+assert_py "(q1) no declared entries anywhere -> status=no-anchors" "$proj" '
+claims = ss.compute_claim_surface(ledger_root)
+ok = claims.status == ss.STATUS_NO_ANCHORS and claims.text == "" and claims.candidate_count == 0
+reason = f"claims={claims}"
+'
+rm -rf "$proj"
+
+# (q2) anchors present but nothing reached: the sole declared entry is
+# already backed (corroborated, check ran) and isolated — no discharge, no
+# derivation edges — so the two-hop walk's own reachable set excludes it
+# (backed claims are never open-surface members, anchored_surface_core.ncl's
+# own is_member) and returns zero candidates even though a real anchor was
+# found and the primitive ran cleanly.
+proj="$(make_git_repo)"
+mkdir -p "$proj/.ledger/log"
+cat > "$proj/.ledger/log/backed-only.md" <<'EOF'
+# a doc whose only declared entry is already backed, isolated
+
+`signer:: agent/test` · `at:: 0000000`
+
+`[BACKED1] grade::proved` A claim that is corroborated and isolated — no
+discharge, no derivation edges to or from anything else in the corpus.
+`check:: true; at 0000000`
+EOF
+assert_py "(q2) a real anchor whose own reachable set is empty -> status=no-results" "$proj" '
+claims = ss.compute_claim_surface(ledger_root)
+ok = (
+    claims.status == ss.STATUS_NO_RESULTS
+    and claims.anchor_count == 1
+    and claims.candidate_count == 0
+    and claims.text == ""
+)
+reason = f"claims={claims}"
+'
+rm -rf "$proj"
+
+# (q3) candidates found, but the budget cannot fit even the first row —
+# reuses (i)'s own fixture shape (a single open NEAR1 entry).
+proj="$(make_git_repo)"
+mkdir -p "$proj/.ledger/log"
+cat > "$proj/.ledger/log/near-claim.md" <<'EOF'
+# an older doc holding an open question near the work
+
+`signer:: agent/test` · `at:: 0000000`
+
+`[NEAR1] grade::frontier` An open question sitting near where the work is
+about to happen.
+`discharge:: whatever eventually answers this` `closer:: agent/test`
+EOF
+assert_py "(q3) a budget of zero cannot fit any candidate -> status=budget-exhausted" "$proj" '
+claims = ss.compute_claim_surface(ledger_root, budget=0)
+ok = (
+    claims.status == ss.STATUS_BUDGET_EXHAUSTED
+    and claims.candidate_count > 0
+    and claims.included_count == 0
+    and claims.dropped_count == claims.candidate_count
+)
+reason = f"claims={claims}"
+'
+rm -rf "$proj"
+
+# (q4) upstream failure: the sole declared entry is grade::proved (claims
+# corroboration) but names no check at all — a real defect entry_apply.ncl
+# rejects (CorroborationBacked, test_entry.sh's own case). extract_entries.py
+# still extracts the id (it does not validate), so the recency fallback
+# finds a real anchor and _run() even gets as far as invoking
+# anchored_surface.sh — which then re-extracts, re-validates, and exits 1.
+proj="$(make_git_repo)"
+mkdir -p "$proj/.ledger/log"
+cat > "$proj/.ledger/log/bad.md" <<'EOF'
+# a doc with an invalid corroborated claim (no check named at all)
+
+`signer:: agent/test` · `at:: 0000000`
+
+`[BAD1] grade::proved` A claim declared proved but with no check named.
+EOF
+assert_py "(q4) a corpus that fails entry_apply.ncl validation -> status=upstream-failure" "$proj" '
+claims = ss.compute_claim_surface(ledger_root)
+ok = (
+    claims.status == ss.STATUS_UPSTREAM_FAILURE
+    and claims.anchor_count == 1
+    and claims.candidate_count == 0
+    and claims.text == ""
+)
+reason = f"claims={claims}"
+'
+# (q4b) the same fixture, through the full script's stdin/stdout contract:
+# a total stdout of bare {} (nothing to inject, doc-surface has no header
+# document to co-cite from either) alongside a stderr status line naming
+# the real reason — proving the distinguishable line reaches the one
+# channel a human tracing this by hand would actually read.
+run_hook "$proj"
+if grep -q "claim-surface status=upstream-failure" "$tmp/stderr.txt"; then
+  pass "(q4b) full script's stderr states status=upstream-failure for the claim contribution"
+else
+  fail "(q4b) full script's stderr states status=upstream-failure for the claim contribution" "stderr=$(cat "$tmp/stderr.txt")"
+fi
+rm -rf "$proj"
+
+# ─── MUTATION 5: prove (q1) can fail ────────────────────────────────────────
+# Breaks the "no anchors" status line so it always reports STATUS_OK
+# regardless of the real reason — the mutant must report status=ok on a
+# corpus with zero declared entries, proving (q1) can discriminate an empty
+# contribution reporting the WRONG reason, not just discriminate empty vs.
+# non-empty.
+mutant5="$tmp/mutant5_session_start.py"
+sed 's/return ClaimSurface(0, 0, 0, 0, "", STATUS_NO_ANCHORS)$/return ClaimSurface(0, 0, 0, 0, "", STATUS_OK)/' "$hook" > "$mutant5"
+proj="$(make_git_repo)"
+mkdir -p "$proj/.ledger/log"
+cat > "$proj/.ledger/log/noentry.md" <<'EOF'
+# a doc with a header but zero declared entries
+
+`signer:: agent/test` · `at:: 0000000`
+
+nothing declared here at all.
+EOF
+python3 - "$proj" "$mutant5" <<PY
+import sys, importlib.util
+sys.path.insert(0, "$root/ledger/derive")
+proj_path, mutant_path = sys.argv[1], sys.argv[2]
+spec = importlib.util.spec_from_file_location("mutant5_ss", mutant_path)
+mutant_ss = importlib.util.module_from_spec(spec)
+sys.modules["mutant5_ss"] = mutant_ss
+spec.loader.exec_module(mutant_ss)
+from pathlib import Path
+mutant_ss.PLUGIN_ROOT = Path("$root")
+proj = Path(proj_path)
+claims = mutant_ss.compute_claim_surface(proj / ".ledger")
+sys.exit(0 if claims.status == mutant_ss.STATUS_OK else 1)
+PY
+mutant_reports_wrong_reason=$?
+if [ "$mutant_reports_wrong_reason" -eq 0 ]; then
+  pass "(mutation 5) breaking the no-anchors status report makes an empty contribution claim status=ok"
+else
+  fail "(mutation 5) mutant still reports the real reason — assertion (q1) cannot discriminate this defect"
+fi
 rm -rf "$proj"
 
 # ─── (m)/(n)/(m2): node/dispatch-anchoring — dispatch text is the PRIMARY

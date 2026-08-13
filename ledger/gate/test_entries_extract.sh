@@ -843,6 +843,30 @@ assert export["entries"] == [], export["entries"]
 print("INVALID-ONLY-GRADES-OK")
 EOF
 
+# --- performance regression guard: chain_floor at corpus scale ---------------
+#
+# The pre-fix chain_floor view recomputed EVERY entry's floor on EVERY
+# propagation round regardless of whether anything downstream had changed,
+# so cost grew with rounds x corpus size — against the live corpus (over a
+# thousand entries) that OOM-killed the process. The fix replaced the
+# whole-corpus round loop with a bounded per-claim walk (entries_query.ncl,
+# `walk`), so nothing here should ever again scale with corpus size the way
+# the old version did.
+#
+# ledger/fixtures/entry/regression-chain-floor-scale.yaml is a GENERATED
+# fixture (see its own header) shaped like the live corpus — many bounded
+# derivation chains rather than one — at a scale (900 entries, 45 chains of
+# depth 20) that reliably OOM-kills the pre-fix implementation under this
+# same memory cap; reproduce with `git stash` at the pre-fix revision and
+# rerun this one export. The cap and timeout below are the regression's
+# whole point, never relaxed to make a slow implementation pass: a
+# resurgence of the old cost must fail this gate, not merely run slower.
+regression_fixture="$root/ledger/fixtures/entry/regression-chain-floor-scale.yaml"
+[ -f "$regression_fixture" ] || { echo "ENV: regression fixture missing: $regression_fixture"; exit 2; }
+expect "regression: chain_floor over a 900-entry/depth-20 corpus stays under a 4GB cap and 60s, where the pre-fix version OOM-killed the process" \
+  0 "" \
+  -- bash -c "ulimit -v 4000000; timeout 60 nickel export '$regression_fixture' --apply-contract '$query'"
+
 echo
 if [ "$fails" -eq 0 ]; then echo "test_entries_extract: ALL PASS"; exit 0; fi
 echo "test_entries_extract: $fails FAILURE(S)"; exit 1

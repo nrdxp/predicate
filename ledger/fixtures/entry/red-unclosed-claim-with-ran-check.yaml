@@ -1,0 +1,29 @@
+# Converse red (node/backing-converse), CorroborationBacked's CLAIM-scoped
+# half. A CLAIM naming a check that WAS RUN but graded `unclosed` is the
+# genuine violation the scoped converse exists to catch — unlike a question's
+# check (which only ever attests the finding's existence, per
+# ruling-backing-cure.md [CU1]), a claim's ran check is exactly the closing
+# evidence CorroborationBacked's forward half already requires when backing
+# IS corroborated; naming one while leaving the grade `unclosed` is the entry
+# understating its own backing. Provenance-gate-clean (a `because` edge)
+# deliberately, so ProvenanceGate is not what refuses it. Exports clean
+# (rc=0) today — the forward-only CorroborationBacked is vacuously true for a
+# non-corroborated backing and never reads `check` at all in that case.
+id: r-unclosed-ran-check
+statement: "An unclosed claim naming a check nobody's forward clause reads."
+assertion: claim
+backing: unclosed
+signer:
+  kind: agent
+  name: architect-seat
+because:
+  - kind: corpus
+    name: e-proved
+check:
+  command: "nickel typecheck ledger/contracts/entry.ncl"
+  ran: true
+  at: "deadbeef06"
+axes:
+  determined: true
+  certifiable: false
+  monotone: true

@@ -1,14 +1,50 @@
 #!/usr/bin/env python3
-"""Convergence: the discharge rate over each direction's terminal questions.
+"""Convergence: the satisfaction rate over each direction's terminal targets.
 
 A direction is non-terminal by construction, so it is never "done". What is
-measurable is the fraction of its terminal questions that have been discharged.
+measurable is the fraction of its terminal targets that have been satisfied.
 
-Openness is DERIVED, not authored: a question is open iff no entry in the corpus
-names it in `discharges` or `supersedes`. There is no status field to maintain
-and none to fall stale.
+A terminal target is a PAIR of nodes, not one (architect ruling,
+ruling-terminal-composition [TC1]): the TARGET states what should be and
+closes by authority, never by evidence; the SATISFACTION is a separate claim,
+made only once the target is met, carrying its own check and graded `proved`
+(backing `corroborated`). Convergence is the fraction of a direction's
+targets for which a corroborated satisfaction-claim exists -- not the
+fraction merely named in some entry's `discharges` edge, which is a weaker
+claim a stale or unproven entry could also make.
 
-A direction with no terminal questions has an UNDEFINED rate, not a zero one --
+TWO SHAPES, ONE MEASURE, DURING THE TRANSITION
+------------------------------------------------
+The register converts direction by direction, tag by tag, never all at once,
+so a single corpus can carry both shapes of terminal target at the same time:
+
+  * QUESTION-shaped (legacy): an `entries` node, `assertion: question`,
+    marker `<DIRECTION>-<TAG>`. This is how every terminal item was written
+    before the ruling. Openness here predates the pair vocabulary -- it is
+    closed by ANY entry naming it in `discharges` or `supersedes`, regardless
+    of that entry's own backing -- and changing that reading now would
+    silently rewrite the meaning of every terminal item already landed under
+    it. So this shape keeps its original rule.
+
+  * DIRECTIVE-shaped (the ruling's converted form): a `directives` node under
+    document stem `directions`, marker `<DIRECTION>-<TAG>`, grade `directive`.
+    A directive is not an assertion of fact and cannot self-report progress,
+    so it is satisfied only by a SEPARATE claim: an entry with
+    `assertion: claim`, `backing: corroborated`, naming the target in its own
+    `discharges`. `supersedes` does not count here -- it retires an item, it
+    does not assert the item was met.
+
+Reading only the directive shape would report every direction UNDEFINED (zero
+denominator) against a corpus the conversion has not reached yet -- the
+silent-wrong-answer direction the ruling exists to close, not open. So both
+shapes are read and folded into one denominator per direction; a target's
+shape decides which satisfaction rule applies to IT, never which directions
+get measured at all.
+
+Openness/satisfaction is DERIVED, not authored: there is no status field to
+maintain and none to fall stale.
+
+A direction with no terminal targets has an UNDEFINED rate, not a zero one --
 reporting 0/0 as zero would read as "no progress" when it means "no denominator
 has been drafted", and those demand opposite responses.
 
@@ -19,7 +55,7 @@ Usage:
 Exit codes:
     0  clean measurement, no findings.
     2  usage or environment error (missing argument, unreadable corpus).
-    3  one or more findings (a marker shaped like a terminal question that
+    3  one or more findings (a marker shaped like a terminal target that
        does not parse, or no direction register found) -- the report is
        still emitted; the findings are what need attention.
 """
@@ -28,12 +64,14 @@ import json
 import re
 import sys
 
-# A terminal question's marker names its direction with a hyphen:
+# A terminal target's marker names its direction with a hyphen:
 # `<DIRECTION>-<TAG>` (e.g. `D1-T5`). This matches anything shaped like that
 # compound form -- a direction-like prefix (letters then digits) followed by
 # ONE separator -- regardless of which separator was actually used, so a
-# wrong separator is caught as a malformed terminal question rather than
-# silently read as an ordinary, non-terminal one.
+# wrong separator is caught as a malformed terminal target rather than
+# silently read as an ordinary, non-terminal one. Applies identically to
+# question-shaped entry ids and directive-shaped directive ids -- the shape
+# rule does not depend on which register a marker was written into.
 TERMINAL_SHAPE = re.compile(r"^([A-Za-z]+\d+)([-_])(.+)$")
 
 
@@ -43,7 +81,10 @@ def load(path):
 
 
 def discharged_ids(entries):
-    """Ids named by any entry's closure edges. Openness is the complement."""
+    """Ids named by any entry's closure edges -- the LEGACY openness rule for
+    question-shaped terminal targets, backing-independent. A question and its
+    discharging entry were always an implicit two-node pair; this reads it
+    exactly as every terminal item landed under this shape already expects."""
     closed = set()
     for entry in entries:
         for kind in ("discharges", "supersedes"):
@@ -52,53 +93,81 @@ def discharged_ids(entries):
     return closed
 
 
-def group_by_direction(entries, directives):
-    """Terminal questions keyed by direction, plus any that failed to parse.
-
-    Directives arrive in their own top-level list rather than among the
-    entries -- the extractor routes them there because a directive closes by
-    authority rather than by evidence. Only directives whose document stem is
-    literally "directions" are directions in this tool's sense: other
-    directive-graded nodes elsewhere in the corpus (goals, constraints,
-    acceptance criteria) are not per-direction terminal-question registers.
-
-    A marker shaped like `<DIRECTION>-<TAG>` groups under DIRECTION. A marker
-    shaped the same way but joined by the wrong separator (`D1_T5` rather than
-    `D1-T5`) still names a direction it is TERMINAL_SHAPE-matched against, but
-    it is not grouped there: silently leaving it out of every direction's
-    denominator would understate its question count and inflate the reported
-    rate with nothing to notice by, so it is reported as a finding instead of
-    dropped. A marker with no such shape at all (a general, non-directional
-    question) is not terminal-shaped and is skipped without comment -- that is
-    not a parse failure, it is a question this tool was never asked about.
-    """
-    directions, terminals, findings = {}, {}, []
+def corroborated_targets(entries):
+    """Ids discharged by a CORROBORATED claim -- the satisfaction half of the
+    explicit terminal pair a directive-shaped target composes with
+    (ruling-terminal-composition [TC1]/[TC5]/[TC6]). Narrower than
+    `discharged_ids` on purpose: an uncorroborated claim (backing vouched,
+    unclosed, or residual) naming the target in `discharges` does not count
+    -- that is the whole point of the ruling -- and `supersedes` is excluded
+    entirely, because retiring a target is not asserting it was met."""
+    satisfied = set()
     for entry in entries:
-        if entry.get("assertion") != "question":
+        if entry.get("assertion") != "claim" or entry.get("backing") != "corroborated":
             continue
-        marker = entry["id"].split(":")[-1]
+        for target in entry.get("discharges") or []:
+            satisfied.add(target)
+    return satisfied
+
+
+def _terminal_groups(items, findings, kind_label):
+    """Bucket items whose marker is TERMINAL_SHAPE-matched, keyed by
+    direction head. Shared between question-shaped entries and
+    directive-shaped directives -- the shape rule and the malformed-separator
+    finding are identical in both registers; only the source collection and
+    the label in the finding's prose differ."""
+    grouped = {}
+    for item in items:
+        marker = item["id"].split(":")[-1]
         shape = TERMINAL_SHAPE.match(marker)
         if not shape:
             continue
         head, sep, _tag = shape.groups()
         if sep == "-":
-            terminals.setdefault(head, []).append(entry)
+            grouped.setdefault(head, []).append(item)
         else:
             findings.append(
                 {
                     "kind": "malformed-marker",
-                    "id": entry["id"],
+                    "id": item["id"],
                     "reason": (
-                        f"marker '{marker}' looks like a terminal question for "
-                        f"{head} but is joined with '{sep}', not '-' -- excluded "
-                        "from every direction's count rather than guessed at"
+                        f"marker '{marker}' looks like a terminal {kind_label} "
+                        f"for {head} but is joined with '{sep}', not '-' -- "
+                        "excluded from every direction's count rather than "
+                        "guessed at"
                     ),
                 }
             )
+    return grouped
+
+
+def group_by_direction(entries, directives):
+    """Direction registers, plus their terminal targets split by shape.
+
+    Only directives whose document stem is literally "directions" are
+    directions in this tool's sense: other directive-graded nodes elsewhere
+    in the corpus (goals, constraints, acceptance criteria) are not
+    per-direction terminal registers. Within that stem, a directive whose
+    marker is TERMINAL_SHAPE'd is one of a direction's converted targets, not
+    the direction node itself.
+    """
+    findings = []
+
+    questions = [e for e in entries if e.get("assertion") == "question"]
+    question_terminals = _terminal_groups(questions, findings, "question")
+
+    directions = {}
+    target_directives = []
     for directive in directives:
         doc, _, marker = directive["id"].rpartition(":")
-        if doc == "directions":
+        if doc != "directions":
+            continue
+        if TERMINAL_SHAPE.match(marker):
+            target_directives.append(directive)
+        else:
             directions[marker] = directive
+    directive_terminals = _terminal_groups(target_directives, findings, "directive")
+
     if not directions:
         findings.append(
             {
@@ -110,33 +179,43 @@ def group_by_direction(entries, directives):
                 ),
             }
         )
-    return directions, terminals, findings
+    return directions, question_terminals, directive_terminals, findings
 
 
 def measure(corpus):
     entries = corpus["entries"]
     closed = discharged_ids(entries)
-    directions, terminals, findings = group_by_direction(
+    satisfied = corroborated_targets(entries)
+    directions, question_terminals, directive_terminals, findings = group_by_direction(
         entries, corpus.get("directives", [])
     )
     grades = corpus.get("grades", {})
 
     report = []
     for name in sorted(directions):
-        questions = terminals.get(name, [])
-        done = [q for q in questions if q["id"] in closed]
+        questions = question_terminals.get(name, [])
+        targets = directive_terminals.get(name, [])
+        total = len(questions) + len(targets)
+        done = sum(1 for q in questions if q["id"] in closed) + sum(
+            1 for t in targets if t["id"] in satisfied
+        )
         report.append(
             {
                 "direction": name,
                 "statement": directions[name]["statement"][:90],
-                "total": len(questions),
-                "discharged": len(done),
+                "total": total,
+                "discharged": done,
                 # None, never 0.0 -- an undrafted denominator is not stalled work
-                "rate": (len(done) / len(questions)) if questions else None,
+                "rate": (done / total) if total else None,
                 "open": [
                     {"id": q["id"], "grade": grades.get(q["id"], "?")}
                     for q in questions
                     if q["id"] not in closed
+                ]
+                + [
+                    {"id": t["id"], "grade": grades.get(t["id"], "?")}
+                    for t in targets
+                    if t["id"] not in satisfied
                 ],
             }
         )
@@ -191,15 +270,15 @@ def main(argv):
         print()
         for row in per_direction:
             if row["rate"] is None:
-                head = f"{row['direction']}: UNDEFINED (no terminal questions drafted)"
+                head = f"{row['direction']}: UNDEFINED (no terminal targets drafted)"
             else:
                 head = (
                     f"{row['direction']}: {row['discharged']}/{row['total']} "
                     f"({row['rate']:.0%})"
                 )
             print(head)
-            for question in row["open"]:
-                print(f"    open  {question['id']}  [{question['grade']}]")
+            for item in row["open"]:
+                print(f"    open  {item['id']}  [{item['grade']}]")
             print()
 
     for finding in findings:

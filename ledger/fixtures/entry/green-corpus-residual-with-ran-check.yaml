@@ -1,0 +1,34 @@
+# Corpus pairing for the claim-scoped CorroborationBacked converse's
+# exemption (node/backing-converse): a residual question naming a ran check
+# stays green inside an aggregate too.
+entries:
+  - id: e-clean
+    statement: "A clean corroborated claim, unrelated to the entry below."
+    assertion: claim
+    backing: corroborated
+    signer:
+      kind: agent
+      name: architect-seat
+    check:
+      command: "nickel typecheck ledger/contracts/entry.ncl"
+      ran: true
+      at: "deadbeef01"
+    axes:
+      determined: true
+      certifiable: true
+      monotone: true
+  - id: q-residual-ran-check
+    statement: "Which admission policy should a consuming gate adopt?"
+    assertion: question
+    backing: residual
+    signer:
+      kind: agent
+      name: architect-seat
+    discharge: "A ruled admission policy for a consuming gate."
+    closer:
+      kind: human
+      name: nrd
+    check:
+      command: "grep -rn admission_policy ledger/contracts/*.ncl"
+      ran: true
+      at: "deadbeef05"

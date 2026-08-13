@@ -82,6 +82,15 @@ Claude Code's own changelog where noted:
   - Emit nothing rather than something wrong: an absent .ledger, an empty
     corpus, or zero candidates all print `{}` — no additionalContext key
     at all, never an apologetic empty string.
+  - Observability (STDERR, never stdout): each contribution writes one
+    status line to stderr on every invocation — `status=`, `considered=`,
+    `included=`, `dropped=` (see the STATUS_* constants below) — so a
+    reader can tell an honestly empty result (no anchors, or a search that
+    found nothing) apart from an upstream failure (the primitive exited
+    non-zero or returned something unusable) or a budget too small to fit
+    anything, none of which render identically to a working contribution
+    with nothing to say. This is diagnostic only: it never touches
+    additionalContext and never affects the exit-nothing contract above.
 """
 
 from __future__ import annotations
@@ -116,6 +125,41 @@ CLAIM_BUDGET = BUDGET_CHARS - DOC_BUDGET
 # "what was just touched", not a history sweep — a large window dilutes
 # toward "the whole corpus is recent" in an actively-written record.
 RECENT_ANCHOR_COUNT = 5
+
+# Status vocabulary shared by both contributions (Surface and ClaimSurface
+# below): the fix for this hook's own shipped defect — an empty payload
+# carried no counts and no marker, so a reader could not tell "nothing
+# relevant" from "broke" (the claim contribution went dormant for hours on a
+# corpus that failed entry_apply.ncl validation, and the identical-looking
+# `{}` on stdout was the only visible symptom; tracing it required reading
+# code by hand). These five states are the ones the two compute_* functions
+# below can actually land in — not an enum (this module has no other enum
+# and one would be a new idiom for a single field; plain string constants
+# match ClaimSurface's own pre-existing anchor_source convention
+# "dispatch"/"recency"/"").
+#   STATUS_OK               — at least one item was included in the render.
+#   STATUS_NO_ANCHORS       — nothing to search FROM: an absent/empty corpus,
+#                              or (claim surface only) neither the dispatch
+#                              nor the recency fallback named a real anchor.
+#   STATUS_NO_RESULTS       — a search was attempted (anchors/branch tokens
+#                              existed) and came back with zero candidates.
+#   STATUS_BUDGET_EXHAUSTED — candidates were found but the budget could not
+#                              fit even the first one.
+#   STATUS_UPSTREAM_FAILURE — claim surface only: the anchored_surface.sh
+#                              subprocess either exited non-zero (corpus
+#                              extraction/validation failure, timeout,
+#                              missing binary — _run()'s own collapse of all
+#                              three to None) or returned output this hook
+#                              could not parse as the expected {candidates:
+#                              [...]} shape. Both mean the same thing to a
+#                              reader: the primitive did not deliver a
+#                              usable result, as opposed to delivering an
+#                              honestly empty one.
+STATUS_OK = "ok"
+STATUS_NO_ANCHORS = "no-anchors"
+STATUS_NO_RESULTS = "no-results"
+STATUS_BUDGET_EXHAUSTED = "budget-exhausted"
+STATUS_UPSTREAM_FAILURE = "upstream-failure"
 
 # A qualified entry id (`stem:MARKER`, extract_entries.py's own id shape —
 # stems may lead with a date, so digits open them, matching BRACKET_REF_RE's
@@ -230,6 +274,9 @@ class Surface:
     included_count: int
     dropped_count: int
     text: str  # "" means nothing to inject
+    status: str  # one of the STATUS_* constants above; no default — every
+    # return site states its own reason explicitly rather than inheriting
+    # one by omission, the same discipline STATUS_* exists to enforce.
 
 
 def compute_surface(ledger_root: Path, project_root: Path, budget: int = BUDGET_CHARS) -> Surface:
@@ -240,7 +287,7 @@ def compute_surface(ledger_root: Path, project_root: Path, budget: int = BUDGET_
 
     corpus, _warnings = build_corpus(ledger_root)
     if not corpus:
-        return Surface(0, 0, 0, 0, "")
+        return Surface(0, 0, 0, 0, "", STATUS_NO_ANCHORS)
 
     recent_ids = recent_anchor_ids(corpus, ledger_root, RECENT_ANCHOR_COUNT)
     # The co-citation anchor set is what the recently-touched documents
@@ -256,6 +303,13 @@ def compute_surface(ledger_root: Path, project_root: Path, budget: int = BUDGET_
     anchors = frozenset(anchor_targets)
 
     branch_tokens = current_branch_tokens(project_root)
+
+    # Nothing to search FROM (no citations out of the recent window, no
+    # branch-name tokens): distinct from a search that ran and came back
+    # empty (below) — the two are different facts about the corpus, not the
+    # same "nothing" rendered twice.
+    if not anchors and not branch_tokens:
+        return Surface(len(recent_ids), 0, 0, 0, "", STATUS_NO_ANCHORS)
 
     merged: Dict[Tuple[str, str], Candidate] = {}
     if anchors:
@@ -273,7 +327,7 @@ def compute_surface(ledger_root: Path, project_root: Path, budget: int = BUDGET_
     candidates.sort(key=lambda c: (-c.strength, c.kind, c.target))
 
     if not candidates:
-        return Surface(len(recent_ids), 0, 0, 0, "")
+        return Surface(len(recent_ids), 0, 0, 0, "", STATUS_NO_RESULTS)
 
     topic_clause = " and the current branch" if branch_tokens else ""
     lines = [
@@ -309,7 +363,8 @@ def compute_surface(ledger_root: Path, project_root: Path, budget: int = BUDGET_
         + " ".join(sorted(f"{r}.md" for r in recent_ids))
     )
     text = "\n".join(lines)
-    return Surface(len(recent_ids), len(candidates), included, dropped, text)
+    status = STATUS_OK if included > 0 else STATUS_BUDGET_EXHAUSTED
+    return Surface(len(recent_ids), len(candidates), included, dropped, text, status)
 
 
 @dataclasses.dataclass
@@ -322,6 +377,7 @@ class ClaimSurface:
     included_count: int
     dropped_count: int
     text: str  # "" means nothing to inject
+    status: str  # one of the STATUS_* constants above; no default, see Surface
     anchor_source: str = ""  # "dispatch", "recency", or "" (no anchors at all)
 
 
@@ -587,7 +643,7 @@ def compute_claim_surface(
 
     corpus, _warnings = build_corpus(ledger_root)
     if not corpus:
-        return ClaimSurface(0, 0, 0, 0, "")
+        return ClaimSurface(0, 0, 0, 0, "", STATUS_NO_ANCHORS)
 
     entries = _export_entries(ledger_root)
 
@@ -611,7 +667,7 @@ def compute_claim_surface(
         if anchors:
             anchor_source = "recency"
     if not anchors:
-        return ClaimSurface(0, 0, 0, 0, "")
+        return ClaimSurface(0, 0, 0, 0, "", STATUS_NO_ANCHORS)
 
     cmd = [
         str(PLUGIN_ROOT / "ledger" / "derive" / "anchored_surface.sh"),
@@ -621,16 +677,23 @@ def compute_claim_surface(
         cmd += ["--anchor", a]
     out = _run(cmd, ledger_root, timeout=15)
     if out is None:
-        return ClaimSurface(len(anchors), 0, 0, 0, "", anchor_source)
+        # _run() collapses a non-zero exit, a timeout, and a missing binary
+        # to None alike (its own docstring) — the primitive itself failed,
+        # never a candidate this hook could distinguish from an honestly
+        # empty result.
+        return ClaimSurface(len(anchors), 0, 0, 0, "", STATUS_UPSTREAM_FAILURE, anchor_source)
 
     try:
         result = json.loads(out)
         candidates = result["candidates"]
     except (json.JSONDecodeError, KeyError, TypeError):
-        return ClaimSurface(len(anchors), 0, 0, 0, "", anchor_source)
+        # The primitive exited 0 but its --json output was not the expected
+        # {candidates: [...]} shape — equally "upstream did not deliver a
+        # usable result", the same reader-facing fact as the branch above.
+        return ClaimSurface(len(anchors), 0, 0, 0, "", STATUS_UPSTREAM_FAILURE, anchor_source)
 
     if not candidates:
-        return ClaimSurface(len(anchors), 0, 0, 0, "", anchor_source)
+        return ClaimSurface(len(anchors), 0, 0, 0, "", STATUS_NO_RESULTS, anchor_source)
 
     anchor_clause = (
         "entries the walk's own dispatch names" if anchor_source == "dispatch"
@@ -666,7 +729,32 @@ def compute_claim_surface(
         + " ".join(f"--anchor {a}" for a in anchors)
     )
     text = "\n".join(lines)
-    return ClaimSurface(len(anchors), len(candidates), included, dropped, text, anchor_source)
+    status = STATUS_OK if included > 0 else STATUS_BUDGET_EXHAUSTED
+    return ClaimSurface(len(anchors), len(candidates), included, dropped, text, status, anchor_source)
+
+
+def _status_line(label: str, s) -> str:
+    """One line per contribution, always emitted to STDERR — this is the
+    fix for this hook's own shipped defect (see STATUS_* above): a reader
+    tracing why nothing was injected, or whether a contribution is dormant,
+    previously had no signal at all, an empty payload rendering identically
+    to a working one with nothing to say. Deliberately stderr, never stdout:
+    the module docstring's 'emit nothing rather than something wrong' rule
+    governs the model-visible additionalContext channel specifically, not
+    this one — a status line here never becomes prompt content and never
+    counts against BUDGET_CHARS. Duck-typed over Surface/ClaimSurface (both
+    carry the same four count fields plus `status`); ClaimSurface's own
+    anchor_source is appended when present, since dispatch-vs-recency is
+    itself diagnostic for that contribution."""
+    extra = ""
+    anchor_source = getattr(s, "anchor_source", "")
+    if anchor_source:
+        extra = f" anchor_source={anchor_source}"
+    return (
+        f"session_start: {label} status={s.status} "
+        f"considered={s.candidate_count} included={s.included_count} "
+        f"dropped={s.dropped_count}{extra}"
+    )
 
 
 def main() -> int:
@@ -684,6 +772,12 @@ def main() -> int:
 
         surface = compute_surface(ledger_root, project_root, budget=DOC_BUDGET)
         claims = compute_claim_surface(ledger_root, input_data, budget=CLAIM_BUDGET)
+        # Always written, on every path (ok, empty, or degraded alike) —
+        # the observability gap this fix closes was exactly the absence of
+        # any such line, not a wrong one on the failure paths only.
+        sys.stderr.write(_status_line("doc-surface", surface) + "\n")
+        sys.stderr.write(_status_line("claim-surface", claims) + "\n")
+
         parts = [s.text for s in (surface, claims) if s.text]
         if not parts:
             print(json.dumps({}))

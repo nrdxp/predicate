@@ -213,6 +213,20 @@ let GateEntry = {
     } | GateEntry,
 
     {
+      gate        = "ledger/gate/trial_merge.sh",
+      scope       = 'orchestration,
+      fires_when  = "composer or orchestrator, before the real `git merge` of a node or campaign branch into master; trial-merges the branch into a throwaway clone and runs the merged tree's full test_*.sh battery, failing on any cross-branch regression a per-branch gate cannot see (deferred-queue [D79]-[D81]). Not CI-wired: CI's pull_request trigger already checks out GitHub's merge ref post-hoc, but this project's composer merges locally via git CLI before a forge ever sees the branch (constitution: forge observes, never gates), so the pre-merge window this closes has no push/PR event to hang a CI step on",
+      applies_to  = "human + agent",
+    } | GateEntry,
+
+    {
+      gate        = "ledger/gate/test_trial_merge.sh",
+      scope       = 'orchestration,
+      fires_when  = "CI gate-test step; fixture suite for trial_merge.sh — a cross-branch regression on disjoint files with a clean merge (the D79-81 fixture), a clean merge staying green, a conflict reported distinctly from a battery failure, a pre-existing branch failure carried forward rather than blamed on the merge, and a real invocation against this repo's own master leaving git status, worktree list, and refs/heads byte-identical",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
       gate        = "ledger/gate/test_gates.sh",
       scope       = 'orchestration,
       fires_when  = "CI gate-test step; exercises ledger-validate, authority overlay, doc-link, recorder, adherence, orphan, selfcontained, sync-sketch, and commit-msg gates from main tree and linked worktree",

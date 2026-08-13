@@ -150,17 +150,12 @@ std.contract.custom (fun label value =>
 
       # --- chain floors ---------------------------------------------------
       #
-      # A least-fixed-point over the derivation edges, computed by iterating
-      # the one-step relation once per entry rather than by recursing: a
-      # `because` cycle would make the recursive reading diverge, and the
-      # record cannot rule cycles out (EntryStore requires resolution, not
-      # acyclicity). N iterations reach the fixed point for any acyclic
-      # chain, since no path is longer than the corpus; a cycle simply keeps
-      # the empty floor set, which reads correctly as "bottoms out nowhere".
-      # Whether an entry names an external antecedent is now read straight off
-      # its own `because` array (ruling-provenance-representation [SR2]): the
-      # sidecar join this used to reassemble by hand, at read time, is gone —
-      # the tag travels with the ref itself.
+      # Where each claim's support bottoms out, following derivation edges
+      # transitively (`walk`, defined below `leaf_floor`). Whether an entry
+      # names an external antecedent is read straight off its own `because`
+      # array (ruling-provenance-representation [SR2]): the sidecar join
+      # this used to reassemble by hand, at read time, is gone — the tag
+      # travels with the ref itself.
       let has_external = fun e =>
         std.array.any
           (fun r => law.matches r.kind 'external "external")
@@ -179,35 +174,53 @@ std.contract.custom (fun label value =>
         else if has_external e then { external = true }
         else { unbacked = true }
       in
-      let step = fun prev =>
-        std.array.fold_left
-          (fun acc e =>
-            let edges = law.corpus_edges_of e in
-            let floors =
-              if is_closed_evidence e || std.array.length edges == 0 then
-                leaf_floor e
-              else
-                # Support BRANCHES at this entry: the edges are followed, and
-                # the entry's own external refs are a branch beside them that
-                # the walk cannot follow. Seeding the union carries that branch
-                # INTO the fixed point, so anything deriving from this entry
-                # inherits it; unioning it onto the assembled rows instead
-                # would report the branch at the entry that names the ref and
-                # lose it one hop down.
-                std.array.fold_left
-                  (fun u r => add_all u (std.record.fields prev."%{r}"))
-                  (if has_external e then { external = true } else {})
-                  edges
-            in
-            std.record.insert e.id floors acc)
-          {}
-          entries
+      # This used to be a ROUND-BASED fixed point: one pass over every
+      # corpus entry, repeated until nothing changed. "Iterate to
+      # convergence instead of N unconditional passes" turns out to need
+      # more than a smarter loop bound: EVERY round-based fixed point tried
+      # here (whole-record `==`, a monotone-sum proxy, a blind fixed round
+      # count, restricting each round to only the entries that can still
+      # move) reconstructs the WHOLE floors record on EVERY round, and
+      # measured against the live corpus that reconstruction is what
+      # exhausts memory — independent of round count (two rounds over the
+      # full corpus is fine; four is not) and independent of per-round
+      # payload size (plain integers hit the same wall). A GLOBAL record
+      # threaded through repeated whole-corpus folds is the shared culprit
+      # across every variant, so the fix replaces the shape rather than
+      # tuning it further: `walk` is a
+      # PER-CLAIM bounded DFS along `corpus_edges_of`, with no floors record
+      # threaded across a round boundary at all. `visiting` is the
+      # cycle-breaker EntryStore's acyclicity gap requires (a `because`
+      # cycle would otherwise diverge): a cycle member reached while it is
+      # already on the current walk's stack contributes nothing FROM THAT
+      # EDGE, matching the fixed-point reading exactly — an entry reached by
+      # a SEPARATE, non-cyclic path still contributes normally, which is why
+      # two claims deriving from each other in a cycle can still both
+      # resolve `closed` through a shared ancestor neither edge of the cycle
+      # itself supplies. A directive resolves via `by_id`'s absence check —
+      # it is never in `entries`, closes by authority rather than evidence,
+      # and contributes nothing to a union it is walked into
+      # (ruling-terminal-composition [TC5] widens `depends`/`because` to
+      # legitimately name one).
+      let by_id =
+        std.array.fold_left (fun acc e => std.record.insert e.id e acc) {} entries
       in
-      let floors_of =
-        std.array.fold_left
-          (fun acc _e => step acc)
-          (std.array.fold_left (fun acc e => std.record.insert e.id {} acc) {} entries)
-          entries
+      let rec walk = fun visiting id =>
+        if !(std.record.has_field id by_id) then
+          {}
+        else if std.record.has_field id visiting then
+          {}
+        else
+          let e = by_id."%{id}" in
+          let edges = law.corpus_edges_of e in
+          if is_closed_evidence e || std.array.length edges == 0 then
+            leaf_floor e
+          else
+            let visiting_here = std.record.insert id true visiting in
+            std.array.fold_left
+              (fun u r => add_all u (std.record.fields (walk visiting_here r)))
+              (if has_external e then { external = true } else {})
+              edges
       in
 
       # --- tags -------------------------------------------------------------
@@ -271,7 +284,7 @@ std.contract.custom (fun label value =>
           entries
           |> std.array.filter is_claim
           |> std.array.map (fun e =>
-            { id = e.id, floors = std.record.fields floors_of."%{e.id}" }),
+            { id = e.id, floors = std.record.fields (walk {} e.id) }),
         with_tags | not_exported = fun required =>
           let checked = required | Array law.TagName in
           entries
