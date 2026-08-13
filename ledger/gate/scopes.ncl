@@ -157,6 +157,20 @@ let GateEntry = {
     } | GateEntry,
 
     {
+      gate        = "ledger/gate/clause_backing.py",
+      scope       = 'orchestration,
+      fires_when  = "derives each always-on-law clause's backing from its own declaration: resolves the named gate case against that gate's live source, proves the check holds against the rendered law and stops holding once the clause's text is removed, and errors on a declaration naming a missing gate or one whose check survives the clause it claims to guard; run manually by a dev/agent and exercised by test_clause_backing.sh",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
+      gate        = "ledger/gate/test_clause_backing.sh",
+      scope       = 'orchestration,
+      fires_when  = "CI clause-backing step; fixture suite for clause_backing.py pinning that a declaration naming a nonexistent gate is caught and that a decorative pattern - one surviving removal of the clause it claims to guard - is caught",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
       gate        = "ledger/gate/check_scopes.sh",
       scope       = 'orchestration,
       fires_when  = "CI gate-scope step and manual; verifies every gate in the actual surface is declared in scopes.ncl (fails on omission)",
