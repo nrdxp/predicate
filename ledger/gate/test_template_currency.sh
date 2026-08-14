@@ -27,14 +27,22 @@
 # graded `proved`) for precedent that this is the strongest tier available
 # here.
 #
-# CASE 1's EXTRACTION CONVENTION (this suite's own design choice, since no
-# extraction tooling exists yet — [T13]/[Y3]/[Y4] confirm none does): the
-# template's example floor MUST be embedded as a single fenced code block
-# opened with a bare ```yaml line and closed with a bare ``` line. Extraction
-# is a literal substring pull (awk), never a semantic transform — this is the
-# "template's example CAN BE that fixture" reading of [B12], not a generator.
-# An implementer is free to propose a different convention, but must then
-# amend this suite's `extract_example` function to match, in the same commit.
+# CASE 1's CONVENTION (REVISED by the node 4a implementer, superseding this
+# suite's original fenced-yaml-in-markdown design): [B12] ruled "the
+# template's example can be that fixture OR be checked against it, leaving
+# one artifact rather than three." An embedded copy inside templates/IBC.md
+# is still a SECOND artifact sitting beside `boundary_procedure_honest.ncl`
+# — even mechanically re-validated on every run, it is duplicated content
+# that a human or a future edit can let drift apart in substance while
+# staying textually present. The literal "one artifact" reading is to
+# require the template to NAME the canonical fixture and to validate THAT
+# fixture directly, embedding nothing. Nickel's `--field` flag does not
+# compose with `--apply-contract` (it applies the contract to the whole
+# top-level record before projecting, so `boundary_procedure_honest.ncl`'s
+# sibling `steps_instance` field trips "extra fields"); the working
+# projection is a one-line stdin expression, tested directly against this
+# tree (`ledger/fixtures/boundary_procedure_honest.ncl`'s `output` field
+# exports clean under `worker_ibc_apply.ncl`, rc=0).
 #
 # THE TRUE RED BASELINE (verified independently a third time by this walk,
 # corroborating .ledger/log/2026-08-14-the-specimen-was-run.md [Y1] and
@@ -59,41 +67,42 @@ template="$root/templates/IBC.md"
 skill="$root/skills/boundary/SKILL.md"
 persona="$root/conditioning/personas/boundary-worker.ncl"
 apply="$root/ledger/contracts/worker_ibc_apply.ncl"
+fixture_rel="ledger/fixtures/boundary_procedure_honest.ncl"
+fixture="$root/$fixture_rel"
 
 command -v nickel >/dev/null 2>&1 || { echo "ENV: nickel not found on PATH"; exit 2; }
 [ -f "$template" ] || { echo "ENV: template missing: $template"; exit 2; }
 [ -f "$skill" ] || { echo "ENV: skill missing: $skill"; exit 2; }
 [ -f "$persona" ] || { echo "ENV: persona missing: $persona"; exit 2; }
 [ -f "$apply" ] || { echo "ENV: apply-file missing: $apply"; exit 2; }
+[ -f "$fixture" ] || { echo "ENV: fixture missing: $fixture"; exit 2; }
 
 fails=0
 pass() { echo "PASS  $1"; }
 fail() { echo "FAIL  $1"; shift; printf '%s\n' "$@" | sed 's/^/      /'; fails=$((fails + 1)); }
 
-# Extracts the FIRST ```yaml ... ``` fenced block in templates/IBC.md. A
-# literal substring pull, never a semantic transform (see header). Empty
-# output when no such fence exists — the current, defect state.
-extract_example() {
-  awk '/^```yaml$/{f=1;next} /^```$/{if (f) exit; next} f' "$template"
-}
-
-# --- Case 1 (load-bearing): the template's own example validates ----------
+# --- Case 1 (load-bearing): the template's referenced worked example ------
+# --- validates --------------------------------------------------------------
 # THE PROPERTY: a teaching artifact's own example MUST validate against the
-# contract it teaches ([B12]). Currently there is no ```yaml fence in the
-# template at all ([B14]: zero occurrences of "yaml" in the file), so
-# extraction yields empty content and the Nickel export fails on an empty
-# record rather than on any field-shape mismatch — a different failure than
-# the S1-3 cascade below, and the one this case actually gates.
-tmp_example="$(mktemp)"
-trap 'rm -f "$tmp_example"' EXIT
-extract_example > "$tmp_example"
-out="$(nickel export "$tmp_example" --apply-contract "$apply" 2>&1)"; rc=$?
-if [ "$rc" -eq 0 ]; then
-  pass "case 1: template's extracted example floor validates (rc=0)"
+# contract it teaches ([B12]). Two sub-checks: the template must NAME the
+# canonical fixture (so a reader can find the worked instance at all), and
+# that exact fixture's `output` field must export clean through the
+# apply-contract — the projection Nickel's `--field` cannot give in
+# combination with `--apply-contract` (see header), done here with a
+# one-line stdin expression run from the repo root.
+ref_hits="$(grep -c "$fixture_rel" "$template")"
+if [ "$ref_hits" -eq 0 ]; then
+  fail "case 1: template names its canonical worked example" \
+    "grep -c $fixture_rel templates/IBC.md -> 0, want > 0"
 else
-  fail "case 1: template's extracted example floor validates" \
-    "got rc=$rc, want rc=0 (no \`\`\`yaml fence found in templates/IBC.md yet)" \
-    "$out"
+  out="$(cd "$root" && printf '(import "%s").output' "$fixture_rel" \
+    | nickel export --apply-contract "$apply" 2>&1)"; rc=$?
+  if [ "$rc" -eq 0 ]; then
+    pass "case 1: template's referenced worked example validates (rc=0)"
+  else
+    fail "case 1: template's referenced worked example validates" \
+      "got rc=$rc, want rc=0" "$out"
+  fi
 fi
 
 # --- Case 2: the template names the artifact class it teaches -------------

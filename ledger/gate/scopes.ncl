@@ -535,6 +535,13 @@ let GateEntry = {
     } | GateEntry,
 
     {
+      gate        = "ledger/gate/test_template_currency.sh",
+      scope       = 'orchestration,
+      fires_when  = "CURRENCY check (distinct from PRESENCE and ADHERENCE — see the suite's own header) that templates/IBC.md, skills/boundary/SKILL.md and conditioning/personas/boundary-worker.ncl still agree with worker_ibc.ncl's graded IBC shape: the template names its artifact class and its own worked example (ledger/fixtures/boundary_procedure_honest.ncl's `output` field) validates via nickel export --apply-contract, the premises format no longer instructs the superseded Check/Verified pair, and the skill/persona name the closed-record companions (backing, signer, axes, discharge, closer); run manually by a dev/agent — not currently wired into ci.yml",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
       gate        = "ledger/gate/test_convergence.sh",
       scope       = 'orchestration,
       fires_when  = "CI convergence step; fixture corpora over ledger/derive/convergence.py pinning the UNDEFINED-vs-zero rate split (a direction with no terminal questions), partial and full discharge counts, closure by supersedes as well as discharges, corpus-wide counts independent of any direction, a hyphen-vs-underscore malformed terminal-question marker reported rather than silently dropped from its denominator, an empty direction register reported rather than a silent empty pass, and the no-args/unreadable-corpus CLI convention",
