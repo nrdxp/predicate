@@ -84,6 +84,15 @@ Rationale: what reliably triggers early fallback in a capable walker is a
 *verifiable contradiction* between frame and world — vague unease does not.
 A falsifiable premise is a manufactured tripwire.
 
+The floor renders a premise as a CLOSED claim entry
+(`ledger/contracts/entry.ncl`'s `Entry`, narrowed by `worker_ibc.ncl`'s
+`PremiseChecked`): its `backing` names the evidence species (corroborated |
+vouched | unclosed | residual), its `signer` designates who is asserting it,
+and its `axes` records the author's own assessment of the claim's
+coordinates (determined, certifiable, monotone) — required on every
+premise, since an IBC author is obligated to assess the ground the dispatch
+will stand on.
+
 ### S2 — REJECTION_GENRE
 
 The IBC MUST state that rejecting the frame is a success condition, and
@@ -110,6 +119,12 @@ A question that fits none of the sets is an unresolved unknown: the IBC is
 not sufficient and MUST NOT be dispatched. Genuinely architectural
 questions MUST NOT be fake-resolved at the cheap tier; ambiguities MUST NOT
 be left for the expensive tier.
+
+A question the refinement loop cannot yet resolve is carried forward in the
+floor as an `unknowns` entry (`worker_ibc.ncl`'s `UnknownChecked`): a
+question entry that MUST carry both a `discharge` condition (what would
+close it) and a `closer` (who can) — a question missing either is not
+routable, which is the same insufficiency this table already names.
 
 ### S4 — EVALUATOR_ATTACHMENT
 

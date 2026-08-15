@@ -13,13 +13,15 @@ an attack sweep yields zero grounded objections.
 
 **Optimize for cheap rejection.** A good IBC does not maximize the odds of success
 — it makes a wrong frame refutable in its first hundred tokens, not its last fifty
-thousand. State every premise as a falsifiable tripwire (S1) and make rejecting the
-frame an explicit success path (S2).
+thousand. State every premise as a falsifiable tripwire (S1) — closed as a claim
+entry with its `backing`, `signer`, and `axes` — and make rejecting the frame an
+explicit success path (S2).
 
 **Partition every in-scope question (S3).** Each is RESOLVED (answered, evidence
 attached), DELEGATED (the walker's, with genuine discretion), or RESERVED (the
-human's — encountering one is a halt predicate). A question fitting none means the
-boundary is insufficient: do not dispatch.
+human's — encountering one is a halt predicate). An unresolved question stays a
+routable entry carrying its `discharge` condition and `closer`. A question fitting
+none means the boundary is insufficient: do not dispatch.
 
 **S7 is the primary constraint.** Boundary mass scales inversely with walker
 capability: name exactly one disciplining workflow and inline only its load-bearing
