@@ -33,6 +33,10 @@
 
 ## Metadata
 
+<!-- Floor fields: `id`, `tier` (both NonEmptyString) and `discipline` — S7:
+     exactly ONE control loop, the shared enum in discipline.ncl (core |
+     refine | doc | form | spec). -->
+
 | Field | Value |
 | :--- | :--- |
 | **ID** | <!-- e.g. P3, or topic slug --> |
@@ -145,8 +149,9 @@
 
 ## Context Map (S5)
 
-<!-- Pointers and verbatim excerpts ONLY — never paraphrase. The boundary
-     author selects; the walker reads primary sources directly.
+<!-- Floor field: `context_map` — Array String. Pointers and verbatim
+     excerpts ONLY — never paraphrase. The boundary author selects; the
+     walker reads primary sources directly.
 
      Format:
      - `path/to/file:120-180` — [why this matters, one line]
