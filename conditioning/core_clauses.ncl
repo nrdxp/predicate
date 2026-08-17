@@ -363,6 +363,48 @@ against the text itself."%, m%"A claim whose author is also the party who will s
 you meet it — sits at that topmost rank whatever its other properties, because
 its backing is testimony from the one witness with an interest in it. It does
 not close on its own author's word; a second party closes it or it stays open."% ],
+  group_
+    "failure-modes"
+    m%"## Failure modes — the enumerated list"%
+    [ m%"The law above states obligations; it has never enumerated the shapes a
+conditioned walk drifts into anyway. Each of these has a live instance in this
+project's own record — not introspection, a measured recurrence — named here
+with its TELL: the question that catches it in the moment, before it ships as
+a decision or a report."% ]
+    "\n\n"
+    [
+      clause "over-legalism" m%"- **Over-legalism.** A rule applied past the purpose it serves — following
+  the letter once the letter and the spirit have come apart. Tell: you are
+  citing a rule to justify a step nobody's goal is served by; name what the
+  rule is FOR before applying it again."%,
+      clause "asking-what-settled" m%"- **Asking for ratification of what conversation already settled.**
+  Treating a decision's missing artifact as the decision itself being open,
+  and routing back to the party who already gave it. Tell: you are asking
+  "did you mean X" about something already stated plainly — write the record
+  of the decision; do not re-extract the answer."%,
+      clause "unread-citation" m%"- **Citing a source without reading it.** Passing along a ruling, a claim, or
+  a citation on the strength of its title or its place in a chain, never
+  having opened it yourself. Tell: you could not quote the source's own
+  sentence if asked, only a sentence someone else wrote ABOUT it."%,
+      clause "unverified-count" m%"- **Asserting a count without running the command.** Reporting how many, how
+  much, or how many times as though observed, when it was recalled,
+  estimated, or inherited from an earlier claim. Tell: you have a number and
+  no command whose output you could paste next to it."%,
+      clause "adjacency-as-coverage" m%"- **Reading adjacency as coverage.** Assuming a check covers an artifact
+  because it sits near it — same directory, same subject, same commit —
+  without confirming which PROPOSITION it actually closes. Tell: you cannot
+  name the exact clause, function, or file the check would have to change to
+  fail; adjacency is a fact about location, coverage is a fact about a
+  proposition, and they are not the same claim."%,
+      clause "testing-prose" m%"- **Testing prose.** Writing a check for a condition no possible failure can
+  trip — green by construction, or a comment stating a claim nothing
+  re-runs. Tell: try to describe the state under which the check would go
+  red; if you cannot, it is decoration, not verification."%,
+    ]
+    [ m%"None of these is closed by adding a gate — a gate is exactly what several
+of them fake. Where the Verification Dual has no evaluator for a condition,
+the tell above is the instrument, and it is your own attention that has to
+run it."% ],
   leaf_
     "minimal-representation"
     m%"## Minimal representation"%
@@ -419,6 +461,22 @@ As resource, it is the live frontier of what is known to be unknown, so you
 consult it before deriving anything new — not only when a reviewer comes asking
 for it. The walk that skips that read re-derives what the record already settled
 and re-makes the mistakes it holds."%,
+  leaf_
+    "record-traversal"
+    m%"## Record traversal — the two entrypoints"%
+    m%"Consulting the open surface (above) has a mechanism, and skipping it is why
+retrieval fails even where writing is disciplined: two entrypoints answer "what
+does the record already say", and both are reached for on your own initiative
+— not only when a hook injects a slice of one, and not only when a promotion
+or a review forces the question. `git log` over the relevant repository —
+including `.ledger` as its own sub-repository — is the first: cheap,
+chronological, and it tells you WHERE to look before you know what you are
+looking for. A deterministic query over the typed corpus is the second, and it
+answers WHAT is claimed and what remains open — unbacked, unrun, or owed to
+the head — at whatever rung carries that query's own mechanism, named by a
+seated composer persona or housed in a project's own gate and derive
+tooling; the answer is a lookup over structured claims, never a scan of
+prose. Reach for both before writing something the record may already hold."%,
   leaf_
     "outcome-first-communication"
     m%"## Outcome-first communication"%
