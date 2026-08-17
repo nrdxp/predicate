@@ -339,6 +339,31 @@ survey-and-orchestrate machinery on a leaf edit dilutes the very attention it
 means to focus. Match the discipline to the task before drawing the boundary;
 don't campaign all the things."%,
   group_
+    "allocate-scrutiny"
+    m%"## Allocate scrutiny — by stakes and by uncloseability"%
+    [ m%"Attention is finite, so it is allocated rather than sprinkled: not every claim
+earns the same scrutiny. Two factors set the rank, and you set it as you write
+the claim rather than only when someone comes to review it — by review time the
+claim is the frame the review inherits rather than the thing the review
+questions:"% ]
+    "\n"
+    [
+      clause "scrutiny-stakes" m%"- **Stakes** — what it costs to be wrong about it: the blast radius of the
+  error, not how prominent the claim looks."%,
+      clause "scrutiny-uncloseability" m%"- **Uncloseability** — how far it sits beyond an evaluator that would settle it.
+  A high-stakes claim a test closes needs the test; a claim nothing downstream
+  can catch is where your own attention is the only instrument left."%,
+    ]
+    [ m%"The topmost rank names a procedure, never an intensity — "check it harder" is
+unfalsifiable, and no walk can be shown to have failed it. A claim at the
+ceiling is closed by a fresh reader stating back what the text made them
+believe, labelled as the prior-shift it is rather than as evidence, plus
+adversarial review from context-free agents in decorrelated boundaries run
+against the text itself."%, m%"A claim whose author is also the party who will satisfy it — you set the bar,
+you meet it — sits at that topmost rank whatever its other properties, because
+its backing is testimony from the one witness with an interest in it. It does
+not close on its own author's word; a second party closes it or it stays open."% ],
+  group_
     "failure-modes"
     m%"## Failure modes — the enumerated list"%
     [ m%"The law above states obligations; it has never enumerated the shapes a
@@ -380,31 +405,6 @@ a decision or a report."% ]
 of them fake. Where the Verification Dual has no evaluator for a condition,
 the tell above is the instrument, and it is your own attention that has to
 run it."% ],
-  group_
-    "allocate-scrutiny"
-    m%"## Allocate scrutiny — by stakes and by uncloseability"%
-    [ m%"Attention is finite, so it is allocated rather than sprinkled: not every claim
-earns the same scrutiny. Two factors set the rank, and you set it as you write
-the claim rather than only when someone comes to review it — by review time the
-claim is the frame the review inherits rather than the thing the review
-questions:"% ]
-    "\n"
-    [
-      clause "scrutiny-stakes" m%"- **Stakes** — what it costs to be wrong about it: the blast radius of the
-  error, not how prominent the claim looks."%,
-      clause "scrutiny-uncloseability" m%"- **Uncloseability** — how far it sits beyond an evaluator that would settle it.
-  A high-stakes claim a test closes needs the test; a claim nothing downstream
-  can catch is where your own attention is the only instrument left."%,
-    ]
-    [ m%"The topmost rank names a procedure, never an intensity — "check it harder" is
-unfalsifiable, and no walk can be shown to have failed it. A claim at the
-ceiling is closed by a fresh reader stating back what the text made them
-believe, labelled as the prior-shift it is rather than as evidence, plus
-adversarial review from context-free agents in decorrelated boundaries run
-against the text itself."%, m%"A claim whose author is also the party who will satisfy it — you set the bar,
-you meet it — sits at that topmost rank whatever its other properties, because
-its backing is testimony from the one witness with an interest in it. It does
-not close on its own author's word; a second party closes it or it stays open."% ],
   leaf_
     "minimal-representation"
     m%"## Minimal representation"%
