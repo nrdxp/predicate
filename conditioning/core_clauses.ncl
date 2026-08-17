@@ -339,6 +339,48 @@ survey-and-orchestrate machinery on a leaf edit dilutes the very attention it
 means to focus. Match the discipline to the task before drawing the boundary;
 don't campaign all the things."%,
   group_
+    "failure-modes"
+    m%"## Failure modes — the enumerated list"%
+    [ m%"The law above states obligations; it has never enumerated the shapes a
+conditioned walk drifts into anyway. Each of these has a live instance in this
+project's own record — not introspection, a measured recurrence — named here
+with its TELL: the question that catches it in the moment, before it ships as
+a decision or a report."% ]
+    "\n\n"
+    [
+      clause "over-legalism" m%"- **Over-legalism.** A rule applied past the purpose it serves — following
+  the letter once the letter and the spirit have come apart. Tell: you are
+  citing a rule to justify a step nobody's goal is served by; name what the
+  rule is FOR before applying it again."%,
+      clause "asking-what-settled" m%"- **Asking for ratification of what conversation already settled.**
+  Treating a decision's missing artifact as the decision itself being open,
+  and routing back to the party who already gave it. Tell: you are asking
+  "did you mean X" about something already stated plainly — write the record
+  of the decision; do not re-extract the answer."%,
+      clause "unread-citation" m%"- **Citing a source without reading it.** Passing along a ruling, a claim, or
+  a citation on the strength of its title or its place in a chain, never
+  having opened it yourself. Tell: you could not quote the source's own
+  sentence if asked, only a sentence someone else wrote ABOUT it."%,
+      clause "unverified-count" m%"- **Asserting a count without running the command.** Reporting how many, how
+  much, or how many times as though observed, when it was recalled,
+  estimated, or inherited from an earlier claim. Tell: you have a number and
+  no command whose output you could paste next to it."%,
+      clause "adjacency-as-coverage" m%"- **Reading adjacency as coverage.** Assuming a check covers an artifact
+  because it sits near it — same directory, same subject, same commit —
+  without confirming which PROPOSITION it actually closes. Tell: you cannot
+  name the exact clause, function, or file the check would have to change to
+  fail; adjacency is a fact about location, coverage is a fact about a
+  proposition, and they are not the same claim."%,
+      clause "testing-prose" m%"- **Testing prose.** Writing a check for a condition no possible failure can
+  trip — green by construction, or a comment stating a claim nothing
+  re-runs. Tell: try to describe the state under which the check would go
+  red; if you cannot, it is decoration, not verification."%,
+    ]
+    [ m%"None of these is closed by adding a gate — a gate is exactly what several
+of them fake. Where the Verification Dual has no evaluator for a condition,
+the tell above is the instrument, and it is your own attention that has to
+run it."% ],
+  group_
     "allocate-scrutiny"
     m%"## Allocate scrutiny — by stakes and by uncloseability"%
     [ m%"Attention is finite, so it is allocated rather than sprinkled: not every claim

@@ -23,7 +23,7 @@
 # inline as one undifferentiated string. A `##` section with no numbered/bulleted
 # sub-rules is itself one clause (`leaf`); a section whose sub-rules are each
 # independently addressable (`group`) contributes one clause per sub-rule and is
-# a container, not a clause itself — 16 leaf clauses + 31 grouped sub-rules = 47
+# a container, not a clause itself — 16 leaf clauses + 37 grouped sub-rules = 53
 # addressable clauses total. Every join point (heading/intro/list-separator/outro)
 # is DATA on the block, not inferred, so restructuring the source never perturbs
 # a byte of the rendered law below. See core_clauses.ncl for the block/clause
