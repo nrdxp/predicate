@@ -18,10 +18,16 @@
 #             true, seat_role false, seating_declared None, failed == [],
 #             would_deny_if_enforced false — both via evaluate() directly
 #             and through the full script's stdout ({} exactly).
-#   (b)       an empty/malformed dispatch: every discriminating check false,
-#             would_deny_if_enforced TRUE — yet the full script's stdout is
-#             STILL exactly {} and exit is STILL 0. This is the load-bearing
-#             property: shadow mode never denies even when it would.
+#   (b)/(d)   an empty dispatch (no prompt at all): nothing was inspected, so
+#             every prompt-dependent check is None (not-applicable, never
+#             False) and would_deny_if_enforced is null, not true — the same
+#             not-applicable rule seating_declared already follows. The full
+#             script's stdout is still exactly {} and exit is still 0.
+#   (b2)/(d2) a REAL dispatch with real prose that genuinely fails every
+#             check: every check false, would_deny_if_enforced TRUE — yet
+#             the full script's stdout is STILL exactly {} and exit is
+#             STILL 0. This is the load-bearing property: shadow mode never
+#             denies even when it genuinely would.
 #   (c)-(k)   crash safety: missing tool_input, empty stdin, invalid JSON,
 #             a non-string prompt/description/subagent_type, a huge prompt,
 #             a unicode prompt — every path exits 0 with stdout exactly {}.
@@ -133,6 +139,18 @@ command -v git >/dev/null 2>&1 || { echo "ENV: git not found on PATH" >&2; exit 
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 
+# ISOLATION (node/shadow-hook): the real hook resolves its log location from
+# the dispatch's own `cwd`, falling back to $CLAUDE_PROJECT_DIR, falling back
+# to the invoking process's actual cwd. Every fixture below passes an
+# explicit `cwd` pointing under $tmp; this export is the safety net for the
+# two fixtures whose whole point is malformed/empty stdin (no JSON to carry a
+# cwd field at all) — without it those two calls would resolve through the
+# process's real cwd and write into the PRODUCTION ledger, which is exactly
+# the contamination this suite must never reproduce. $tmp is not a git repo,
+# so `git rev-parse --show-toplevel` fails inside it and resolve_project_root
+# returns $tmp itself rather than climbing anywhere.
+export CLAUDE_PROJECT_DIR="$tmp"
+
 fails=0
 pass() { echo "PASS  $1"; }
 fail() { echo "FAIL  $1${2:+ -- $2}"; fails=$((fails + 1)); }
@@ -213,7 +231,16 @@ reason = f"result={result}"
 '
 
 stdin_a="$tmp/stdin_a.json"
-python3 - "$stdin_a" <<'PY'
+# Two DISTINCT args -- the output path and the isolation cwd -- indexed
+# directly (sys.argv[2], no ternary/default). A prior version of this
+# fixture defaulted a missing cwd arg to "." and, worse, was invoked with
+# only the output-path arg so that path was silently reused AS the cwd
+# value; since it named a file rather than a directory,
+# resolve_project_root's `path.is_dir()` check failed and the hook fell
+# through to the real invoking process's cwd, writing this fixture straight
+# into the PRODUCTION ledger. Direct indexing turns a missing arg into an
+# immediate IndexError instead of a silent fallback.
+python3 - "$stdin_a" "$tmp" <<'PY'
 import json, sys
 FRAGMENTS = {
     "workspace": "WORKSPACE: /var/home/nrd/git/wt/cond-hooks",
@@ -224,13 +251,14 @@ FRAGMENTS = {
     "seating": "this is your first seating",
 }
 prompt = "\n".join(FRAGMENTS[k] for k in ["workspace", "branch", "base", "sanction", "sources"])
+out_path, cwd = sys.argv[1], sys.argv[2]
 payload = {
     "tool_name": "Task",
     "tool_input": {"prompt": prompt, "subagent_type": "general-purpose", "description": "test dispatch"},
     "session_id": "sess-a",
-    "cwd": sys.argv[1] if len(sys.argv) > 1 else ".",
+    "cwd": cwd,
 }
-with open(sys.argv[1], "w") as f:
+with open(out_path, "w") as f:
     json.dump(payload, f)
 PY
 run_hook "$stdin_a"
@@ -241,9 +269,42 @@ else
   fail "(a2) full script emits bare {} and exit 0 for a well-formed dispatch" "rc=$rc_a stdout=$(cat "$tmp/stdout.json")"
 fi
 
-# ─── (b) empty/malformed dispatch: would_deny true, output STILL {} ────────
-assert_py "(b) an empty dispatch: every check false, would_deny_if_enforced true" '
+# ─── (b) an empty dispatch: NOTHING was inspected, output STILL {} ─────────
+# No prompt text means no dispatch prose was ever inspected -- every
+# prompt-dependent check reports None (not-applicable), never False; False
+# would assert an absence this check never looked for, the same rule
+# seating_declared already follows for a non-seat dispatch. would_deny is
+# null, not true: an uninspected dispatch is not a failed one.
+assert_py "(b) an empty dispatch: no prompt inspected -- every check None, would_deny_if_enforced null" '
 result = ph.evaluate("", "")
+c = result["checks"]
+ok = (
+    c["workspace_path"] is None and c["branch"] is None and c["base_commit"] is None
+    and c["sanction"] is None and c["cited_sources"] is None
+    and c["seat_role"] is False and c["seating_declared"] is None
+    and result["failed"] == []
+    and result["would_deny"] is None
+)
+reason = f"result={result}"
+'
+
+stdin_b="$tmp/stdin_b.json"
+printf '{"tool_name": "Task", "tool_input": {"prompt": "", "subagent_type": "", "description": ""}, "cwd": "%s"}' "$tmp" > "$stdin_b"
+run_hook "$stdin_b"
+rc_b=$?
+if [ "$rc_b" -eq 0 ] && [ "$(cat "$tmp/stdout.json")" = "{}" ] && ! grep -q "permissionDecision" "$tmp/stdout.json"; then
+  pass "(d) an empty dispatch (would_deny=null, nothing inspected) still emits bare {} and exit 0"
+else
+  fail "(d) an empty dispatch (would_deny=null, nothing inspected) still emits bare {} and exit 0" "rc=$rc_b stdout=$(cat "$tmp/stdout.json")"
+fi
+
+# ─── (b2) a REAL malformed dispatch: real prose, genuinely fails checks ─────
+# Distinct from (b)/(d): here a prompt WAS inspected and genuinely lacks
+# every marker, so would_deny_if_enforced is true (not null) -- this is the
+# fixture MUTATION 1 below needs, since a mutant that only denies when
+# would_deny is true cannot be caught by a would_deny=null case.
+assert_py "(b2) a real dispatch missing every marker: every check false, would_deny_if_enforced true" '
+result = ph.evaluate("hello world, please help", "general-purpose")
 c = result["checks"]
 ok = (
     c["workspace_path"] is False and c["branch"] is False and c["base_commit"] is False
@@ -255,20 +316,20 @@ ok = (
 reason = f"result={result}"
 '
 
-stdin_b="$tmp/stdin_b.json"
-printf '{"tool_name": "Task", "tool_input": {"prompt": "", "subagent_type": "", "description": ""}}' > "$stdin_b"
-run_hook "$stdin_b"
-rc_b=$?
-if [ "$rc_b" -eq 0 ] && [ "$(cat "$tmp/stdout.json")" = "{}" ] && ! grep -q "permissionDecision" "$tmp/stdout.json"; then
-  pass "(d) THE LOAD-BEARING PROPERTY: a maximally-malformed dispatch (would_deny=true) still emits bare {} and exit 0"
+stdin_malformed="$tmp/stdin_malformed.json"
+printf '{"tool_name": "Task", "tool_input": {"prompt": "hello world, please help", "subagent_type": "general-purpose", "description": "malformed"}, "cwd": "%s"}' "$tmp" > "$stdin_malformed"
+run_hook "$stdin_malformed"
+rc_malformed=$?
+if [ "$rc_malformed" -eq 0 ] && [ "$(cat "$tmp/stdout.json")" = "{}" ] && ! grep -q "permissionDecision" "$tmp/stdout.json"; then
+  pass "(d2) THE LOAD-BEARING PROPERTY: a real dispatch that genuinely fails every check (would_deny=true) still emits bare {} and exit 0"
 else
-  fail "(d) THE LOAD-BEARING PROPERTY: a maximally-malformed dispatch still emits bare {} and exit 0" "rc=$rc_b stdout=$(cat "$tmp/stdout.json")"
+  fail "(d2) THE LOAD-BEARING PROPERTY: a real dispatch that genuinely fails every check still emits bare {} and exit 0" "rc=$rc_malformed stdout=$(cat "$tmp/stdout.json")"
 fi
 
 # ─── (c)-(k) crash safety ───────────────────────────────────────────────────
 
 stdin_c="$tmp/stdin_c.json"
-printf '{"tool_name": "Task"}' > "$stdin_c"
+printf '{"tool_name": "Task", "cwd": "%s"}' "$tmp" > "$stdin_c"
 run_hook "$stdin_c"
 if [ $? -eq 0 ] && [ "$(cat "$tmp/stdout.json")" = "{}" ]; then
   pass "(c) missing tool_input entirely — exit 0, bare {}"
@@ -295,7 +356,7 @@ else
 fi
 
 stdin_nonstr="$tmp/stdin_nonstr.json"
-printf '{"tool_name": "Task", "tool_input": {"prompt": 12345, "subagent_type": "general-purpose"}}' > "$stdin_nonstr"
+printf '{"tool_name": "Task", "tool_input": {"prompt": 12345, "subagent_type": "general-purpose"}, "cwd": "%s"}' "$tmp" > "$stdin_nonstr"
 run_hook "$stdin_nonstr"
 if [ $? -eq 0 ] && [ "$(cat "$tmp/stdout.json")" = "{}" ] && grep -q "internal error" "$tmp/stderr.txt"; then
   pass "(h) a non-string prompt (int) — exit 0, bare {}, stderr names the internal error"
@@ -304,7 +365,7 @@ else
 fi
 
 stdin_nonstr2="$tmp/stdin_nonstr2.json"
-printf '{"tool_name": "Task", "tool_input": {"prompt": "hello", "subagent_type": ["a", "list"], "description": {"not": "a string"}}}' > "$stdin_nonstr2"
+printf '{"tool_name": "Task", "tool_input": {"prompt": "hello", "subagent_type": ["a", "list"], "description": {"not": "a string"}}, "cwd": "%s"}' "$tmp" > "$stdin_nonstr2"
 run_hook "$stdin_nonstr2"
 if [ $? -eq 0 ] && [ "$(cat "$tmp/stdout.json")" = "{}" ]; then
   pass "(i) non-string subagent_type/description — exit 0, bare {}"
@@ -313,12 +374,13 @@ else
 fi
 
 stdin_huge="$tmp/stdin_huge.json"
-python3 - "$stdin_huge" <<'PY'
+python3 - "$stdin_huge" "$tmp" <<'PY'
 import json, sys
 payload = {
     "tool_name": "Task",
     "tool_input": {"prompt": "X" * 500000, "subagent_type": "general-purpose", "description": "huge"},
     "session_id": "sess-huge",
+    "cwd": sys.argv[2],
 }
 with open(sys.argv[1], "w") as f:
     json.dump(payload, f)
@@ -331,12 +393,13 @@ else
 fi
 
 stdin_unicode="$tmp/stdin_unicode.json"
-python3 - "$stdin_unicode" <<'PY'
+python3 - "$stdin_unicode" "$tmp" <<'PY'
 import json, sys
 payload = {
     "tool_name": "Task",
     "tool_input": {"prompt": "调度 🚀 ünïcödé WORKSPACE: /a/b/c branch tip", "subagent_type": "general-purpose", "description": "unicode dispatch"},
     "session_id": "sess-uni",
+    "cwd": sys.argv[2],
 }
 with open(sys.argv[1], "w") as f:
     json.dump(payload, f, ensure_ascii=False)
@@ -586,13 +649,19 @@ else
 fi
 
 # ─── MUTATION 1: prove the never-deny contract can fail ────────────────────
+# Uses stdin_malformed, not stdin_b: would_deny is now null (not true) for a
+# truly empty dispatch, so a mutant gated on `if result["would_deny"]` would
+# never fire against stdin_b any more (null is falsy) and (d) could not
+# discriminate the regression. stdin_malformed carries real prose that
+# genuinely fails every check (would_deny=true), which the mutant's
+# conditional does trip on.
 mutant1="$tmp/mutant1_shadow.py"
 sed 's/print(json.dumps({}))/print(json.dumps({"hookSpecificOutput": {"permissionDecision": "deny"}} if result["would_deny"] else {}))/' "$hook" > "$mutant1"
-run_hook_file "$mutant1" "$stdin_b"
+run_hook_file "$mutant1" "$stdin_malformed"
 if grep -q "permissionDecision" "$tmp/stdout.json"; then
-  pass "(mutation 1) an enforcing regression on the malformed dispatch now surfaces a permissionDecision — (d) can catch this"
+  pass "(mutation 1) an enforcing regression on the malformed dispatch now surfaces a permissionDecision — (d2) can catch this"
 else
-  fail "(mutation 1) mutant still emits bare {} — assertion (d) cannot discriminate an enforcing regression" "stdout=$(cat "$tmp/stdout.json")"
+  fail "(mutation 1) mutant still emits bare {} — assertion (d2) cannot discriminate an enforcing regression" "stdout=$(cat "$tmp/stdout.json")"
 fi
 
 # ─── MUTATION 2: prove discrimination (l) can fail ──────────────────────────
