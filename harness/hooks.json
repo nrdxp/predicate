@@ -1,5 +1,5 @@
 {
-  "description": "Injects the record's structural open surface (co-citation and stem/title-overlap candidates over .ledger) into a fresh agent's context at session start, and into every Task-dispatched subagent's context at its own start (node/dispatch-anchoring: SessionStart alone never fires for a subagent — a distinct event, SubagentStart, does).",
+  "description": "Injects the record's structural open surface (co-citation and stem/title-overlap candidates over .ledger) into a fresh agent's context at session start, and into every Task-dispatched subagent's context at its own start (node/dispatch-anchoring: SessionStart alone never fires for a subagent — a distinct event, SubagentStart, does). Also runs a SHADOW-MODE PreToolUse check on every Agent/Task dispatch (node/cond-hooks): it logs what the composer's dispatch rules would have flagged and never emits a deny — see harness/pretooluse_agent_shadow.py's own docstring for the fail-open contract this relies on.",
   "hooks": {
     "SessionStart": [
       {
@@ -20,6 +20,18 @@
           {
             "type": "command",
             "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/harness/session_start.py\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Task|Agent",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/harness/pretooluse_agent_shadow.py\"",
             "timeout": 10
           }
         ]
