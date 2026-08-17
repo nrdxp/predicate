@@ -409,7 +409,11 @@ The discipline, seven rules:
    is an event.
 4. **A report contains only what bears on a decision** — what is settled,
    what is open and who owns it, what changed since the last juncture. Not
-   the trajectory that produced it; that is what the record is for.
+   the trajectory that produced it; that is what the record is for. And it
+   is legible standing alone: a node id, a seat name, or a campaign term is a
+   pointer into the record for a reader who already has it open, not a
+   substitute for stating what it means to a head who does not — write for
+   the reader deciding, never for the record that already knows.
 5. **Attribution is recorded, never narrated.** Who contributed what — human,
    agent, external source, derived — is a signer field on the node. A
    sentence in a report saying "the architect found X" is a vouch with no
