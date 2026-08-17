@@ -162,6 +162,28 @@ def evaluate(prompt: str, subagent_type: str) -> dict:
     a string cannot, but a caller relying on that without stating it is how
     a future edit here quietly breaks the never-block contract, hence
     stating it)."""
+    seat = is_seat_dispatch(subagent_type)
+
+    if not prompt:
+        # No prompt text means no dispatch prose was ever inspected — every
+        # prompt-dependent check is not-applicable (None), never False.
+        # False would assert an absence this check never looked for (the
+        # same rule seating_declared already follows below), and a
+        # would_deny built on regexes run against an empty string is not
+        # evidence about the dispatch, it is an artifact of the empty
+        # string. seat_role stays a real verdict: it reads subagent_type,
+        # not the prompt, so it is available regardless.
+        checks = {
+            "workspace_path": None,
+            "branch": None,
+            "base_commit": None,
+            "sanction": None,
+            "cited_sources": None,
+            "seat_role": seat,
+            "seating_declared": None,
+        }
+        return {"checks": checks, "failed": [], "would_deny": None}
+
     checks = {
         "workspace_path": bool(ABS_PATH_RE.search(prompt)),
         "branch": bool(BRANCH_KW_RE.search(prompt)),
@@ -169,7 +191,6 @@ def evaluate(prompt: str, subagent_type: str) -> dict:
         "sanction": bool(SANCTION_KW_RE.search(prompt)),
         "cited_sources": bool(CITED_SOURCE_RE.search(prompt)),
     }
-    seat = is_seat_dispatch(subagent_type)
     checks["seat_role"] = seat
     # seating_declared is only a meaningful check for a seat dispatch; for a
     # non-seat worker it is reported None (not applicable), never False —
