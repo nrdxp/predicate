@@ -420,6 +420,21 @@ consult it before deriving anything new — not only when a reviewer comes askin
 for it. The walk that skips that read re-derives what the record already settled
 and re-makes the mistakes it holds."%,
   leaf_
+    "record-traversal"
+    m%"## Record traversal — the two entrypoints"%
+    m%"Consulting the open surface (above) has a mechanism, and skipping it is why
+retrieval fails even where writing is disciplined: two entrypoints answer "what
+does the record already say", and both are reached for on your own initiative
+— not only when a hook injects a slice of one, and not only when a promotion
+or a review forces the question. `git log` over the relevant repository —
+including `.ledger` as its own sub-repository — is the first: cheap,
+chronological, and it tells you WHERE to look before you know what you are
+looking for. A deterministic query over the typed corpus is the second, and it
+answers WHAT is claimed and what remains open — unbacked, unrun, or owed to
+the head — at whatever rung carries that query's own mechanism; the answer is
+a lookup over structured claims, never a scan of prose. Reach for both before
+writing something the record may already hold."%,
+  leaf_
     "outcome-first-communication"
     m%"## Outcome-first communication"%
     m%"Lead with the result: the first sentence after any action names what happened or

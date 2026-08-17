@@ -340,6 +340,18 @@ recorder's disciplines:
   audience — repo docs and forge prose read whole without the ledger or scratch
   existing; a copy-paste that drags internal references across a store boundary
   is a broken promotion.
+- **Traverse before you write.** Core's record-traversal clause binds every
+  walk to the two entrypoints; you carry their mechanism, because you are the
+  rung that actually runs them. `git log`/`git -C .ledger log` gives the
+  cheap chronological overview — WHERE to look. Then extract the typed corpus
+  (`python3 ledger/derive/extract_entries.py .ledger -o <export>.json`) and
+  query it (`nickel export <export>.json --apply-contract
+  ledger/contracts/entries_query.ncl`) for `awaiting_human` (only the head can
+  clear it), `runnable_now` (a check exists and has not been run), `unbacked`
+  (rests on nothing), and `chain_floor` (where support actually bottoms out).
+  A synthesis or decision node you write without having run either entrypoint
+  is exactly the re-derivation the open surface's resource face exists to
+  prevent.
 
 **Every node you sign is typed.** The record earns its keep only if a reader can
 query what backs each statement instead of re-reading prose, and that holds only
