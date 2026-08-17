@@ -78,6 +78,44 @@
 #       (y), re-run against the mutant, now reports a match, proving that
 #       case can fail rather than passing regardless of matcher content.
 #
+# WHY ONLY SIX MUTATIONS, NOT ONE PER ASSERTION -- deliberate, not an
+# oversight. The six above cover the highest-stakes invariant classes; the
+# remaining cases were judged to route through paths those six already
+# exercise, rather than needing an independent mutant each:
+#   - (c)/(f)/(g)/(i)/(j)/(k), the other crash-safety variants, all funnel
+#     through the same top-level try/except MUTATION 5 narrows -- a defect
+#     in any of them surfaces as the same "outer except stops catching"
+#     failure mode MUTATION 5 already proves discoverable.
+#   - (r)/(s)/(u), the JSONL-validity/unicode-round-trip logging cases,
+#     share the same `json.dumps(record, sort_keys=True)` serialization
+#     path MUTATION 4 mutates (removing the truncation slice); a broken
+#     serializer would surface the same way.
+#   - (v)/(w)/(x), the structural hooks.json reads, read the exact same
+#     file MUTATION 6 mutates (widening the matcher) -- a parse-shape
+#     defect in any of them is the same class of file-content mutation.
+# A reader extending this suite should mutate a NEW invariant class, not
+# add a seventh mutation to a class these six already cover.
+#
+# THE LIVE END-TO-END REGISTRATION TEST IS NOT CLOSED. This suite proves
+# hooks.json's declared SHAPE (parses, right tiers, matcher excludes
+# SendMessage and the Task-family tools) and the hook's OWN behavior under
+# direct invocation -- it does not prove the running Claude Code harness
+# actually invokes this hook, unmodified, in a live session. That would
+# require breaking the registered hook in a real session and confirming a
+# dispatch still proceeds; this environment's own permission classifier
+# denies the recursive agentic execution that would take, so no walk in
+# this line of work has run it. Standing in its place: a prior walk built a
+# disposable scratch project with its own settings registering a PreToolUse
+# hook on Bash pointing at a script with a literal syntax error, ran a task
+# in it, and the command executed normally (fail-open under a broken hook,
+# consistent with the docs-verified contract) -- then ran a CONTROL in the
+# same setup with a WORKING hook that writes a marker file, and the marker
+# appeared, proving the harness genuinely invokes a hook in that
+# configuration at all (so the broken-hook result was not merely "never
+# called"). That proof was relayed by the dispatching composer, not
+# independently reproduced by the walk that wrote this suite -- a future
+# reader closing this gap should reproduce it directly, not just cite it.
+#
 # Usage: test_pretooluse_agent_shadow.sh
 # Exit:  0 = all cases matched, 1 = a case mismatched, 2 = environment error.
 set -u
