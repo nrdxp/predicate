@@ -360,6 +360,13 @@ let GateEntry = {
     } | GateEntry,
 
     {
+      gate        = "ledger/gate/test_pretooluse_agent_shadow.sh",
+      scope       = 'orchestration,
+      fires_when  = "CI gate-test step; exercises harness/pretooluse_agent_shadow.py (the shadow-mode PreToolUse hook on Agent/Task dispatch, node/shadow-hook) and its registration in harness/hooks.json — a complete dispatch reporting every discriminating check true, a malformed dispatch reporting would_deny_if_enforced=true while STILL emitting bare {} and exit 0 (the load-bearing never-deny property), crash safety across missing/malformed/non-string/huge/unicode input, per-element discrimination (each of workspace/branch/base-commit/sanction/cited-sources flips independently on omission), seat-role detection and seating-declaration discrimination, JSONL logging with truncated/redacted prompt and description heads, hooks.json's PreToolUse registration, and matcher exclusion of SendMessage and the Task-family tools (TaskCreate/TaskUpdate/TaskGet/TaskList/TaskStop) per code.claude.com/docs/en/hooks' exact-string-alternation semantics, plus six mutation demonstrations (never-deny, one discrimination check, seat detection, log truncation, crash-safety except-narrowing, matcher exclusion) proving each corresponding assertion can fail",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
       gate        = "ledger/gate/test_conditioning_sweep.sh",
       scope       = 'orchestration,
       fires_when  = "CI conditioning-sweep step; asserts every conditioning/*.ncl behaves per its declared polarity, machine-guarding the HasCore injection-rule proof",
