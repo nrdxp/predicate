@@ -652,8 +652,8 @@ doc = json.load(open(sys.argv[1]))
 [k2] = [e for e in doc["entries"] if e["id"] == "mention-midclause-companion:K2"]
 assert "witness" not in k1, k1
 assert "source:: same" in k1["statement"], k1
-assert k2.get("tags") == ["mention-guard"], k2
-assert k2.get("because") == [{"kind": "corpus", "name": "mention-midclause-companion:K1"}], k2
+assert k2.get("tags") == ["D1"], k2
+assert k2["check"]["command"] == "true", k2
 EOF
 if [ "$midclause_ok" -eq 1 ]; then
   echo "PASS  (extract=$mcrc nickel=$mcnrc) mention: mid-clause tokens with a value are still mentions, excluded"

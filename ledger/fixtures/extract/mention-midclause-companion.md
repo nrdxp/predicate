@@ -7,5 +7,5 @@
 going past it, describing the split rather than declaring a witness.
 `derives-from:: [K2]`
 
-`[K2] grade::cited` `derives-from:: [K1]`, the same worked example
-`tags:: mention-guard`
+`[K2] grade::proved` `check:: true`, verified against the same worked example
+`tags:: D1`
