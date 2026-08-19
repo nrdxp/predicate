@@ -223,6 +223,72 @@ expect_rc "(f) exit 1 -- the merge commit does not count as a test:" 1 "" -- nod
 git -C "$repo" checkout -q master
 
 # =============================================================================
+# Path-scoping (AI7): the rail proves ORDER, and order presupposes an
+# evaluator that can distinguish correct from incorrect. For prose (AI7's
+# named case: conditioning/**, docs/**, and -- this suite's own
+# generalization of AI7's stated principle to every markdown file, since a
+# doc-audit link check is no less a presence check than a conditioning
+# sentinel grep -- any *.md path anywhere) the only available evaluator is a
+# presence check, which proves nothing about correctness, so D3-T9's
+# ordering requirement does not bind a commit that touches no code path.
+# Everything NOT matched by the prose rule defaults to CODE -- the
+# conservative direction, matching this gate's own AMBIGUOUS posture of
+# never assuming the flattering reading.
+# =============================================================================
+
+# (j) regression guard: an explicit CODE-path implementation with no
+# preceding test: commit must still FAIL after path-scoping lands -- proves
+# the rail was narrowed, not disabled.
+echo "=== (j) code-path feat: with no preceding test: -> still FAIL ==="
+git -C "$repo" checkout -q -b node-j "$root_sha"
+touch_file "$repo" ledger/gate/new_check.py "code"
+commit_all "$repo" "feat: add a new gate check, untested"
+expect_rc "(j) exit 1 -- code path still enforced" 1 "" -- node-j --against master
+expect_rc "(j) reports FAIL" 1 "FAIL" -- node-j --against master
+git -C "$repo" checkout -q master
+
+# (k) a branch touching ONLY prose paths, implementation landing BEFORE any
+# test: commit (the ordering that fails every other case in this suite) ->
+# PASS: a presence-check evaluator cannot ground a red baseline, so prose
+# is exempt from the ordering requirement entirely.
+echo "=== (k) prose-only branch, feat: before test: -> PASS (exempt) ==="
+git -C "$repo" checkout -q -b node-k "$root_sha"
+touch_file "$repo" conditioning/guide.ncl "prose data"
+commit_all "$repo" "feat: expand the conditioning composition"
+touch_file "$repo" docs/notes.md "prose doc"
+commit_all "$repo" "docs: describe the expansion"
+expect_rc "(k) exit 0 -- prose commits never enter the ordering" 0 "" -- node-k --against master
+expect_rc "(k) reports PASS" 0 "PASS" -- node-k --against master
+git -C "$repo" checkout -q master
+
+# (l) MIXED commit: a single feat: commit touches both a prose path and a
+# code path, with no preceding test: -> still FAIL. Prose sharing a commit
+# with code does not launder the code (dispatch's mixed-commit rule).
+echo "=== (l) mixed commit (code+prose), no preceding test: -> FAIL ==="
+git -C "$repo" checkout -q -b node-l "$root_sha"
+touch_file "$repo" docs/l-note.md "prose"
+touch_file "$repo" ledger/gate/l-mixed.py "code"
+commit_all "$repo" "feat: mixed doc note and gate change"
+expect_rc "(l) exit 1 -- mixed commit still counts as code" 1 "" -- node-l --against master
+expect_rc "(l) reports FAIL" 1 "FAIL" -- node-l --against master
+git -C "$repo" checkout -q master
+
+# (m) a prose-only test: commit does not satisfy the ordering for a LATER
+# code-path implementation commit -- closes the symmetric gaming loophole:
+# an evaluator that never touched a code path cannot ground a red baseline
+# for one, any more than a prose implementation needs one.
+echo "=== (m) prose-only test: does not launder a later code feat: -> FAIL ==="
+git -C "$repo" checkout -q -b node-m "$root_sha"
+touch_file "$repo" docs/m-plan.md "prose"
+commit_all "$repo" "test: describe the plan for the change"
+touch_file "$repo" ledger/gate/m-impl.py "code"
+commit_all "$repo" "feat: implement the change the doc planned"
+expect_rc "(m) exit 1 -- a prose test: does not cover a code feat:" 1 "" -- node-m --against master
+expect_rc "(m) says no evaluator commit at all" 1 \
+  "no evaluator commit at all in range" -- node-m --against master
+git -C "$repo" checkout -q master
+
+# =============================================================================
 # (g) --sweep mode: aggregate PASS/FAIL/AMBIGUOUS/SKIP over multiple merges,
 # including an octopus merge reported SKIP
 # =============================================================================
