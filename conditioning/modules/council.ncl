@@ -89,8 +89,11 @@ settled record — decisions, closed claims, prior work, a COMPLETED gate — is
 yours in every phase. What is never yours pre-deposit is a sibling seat's
 testimony on the still-open question you are seated for, and that boundary is
 demarcated in the data, not by path: every extracted node carries its
-`signer`. Pre-deposit, run the typed query with sibling seats filtered out of
-the export between the recipe's two steps:
+`signer`. The exclusion set is DATA, not inference: the sibling names your
+convening dispatch states; the `-seat` suffix in the printed form below is
+the fallback for a dispatch that names none, and it is a convention — it
+cannot see a summoned guest. Pre-deposit, run the typed query with those
+siblings filtered out of the export between the recipe's two steps:
 
   python3 -c "import json,sys; p,me=sys.argv[1:3]; d=json.load(open(p)); d[
   'entries']=[e for e in d['entries'] if not (e['signer'].get('kind')=='agent'
@@ -99,10 +102,24 @@ the export between the recipe's two steps:
 
 The cut is deliberately wider than the unsafe set — it also drops sibling
 testimony on settled questions, whose outcomes still reach you as prior work
-— and it has a limit to hold it to: the filter removes a sibling's DIRECT
-testimony, not composer-signed prose narrating a sibling's verdict in the
-flight log or the decision ledger. What reaches you through those channels
-pre-deposit is the composer's to govern, not yours to fetch beyond this.
+— and it has two limits to hold it to, a near one and a far one. Near:
+the filter removes a sibling's SIGNATURE, not its testimony — worker-signed
+nodes that carry a seat's finding survive it, and structurally so, because
+core's relay rule obliges a worker node to name the seat whose finding it
+carries: the better the record's relay discipline, the more relayed seat
+findings pass through. Far: composer-signed prose narrating a sibling's
+verdict in the flight log or the decision ledger is outside the export
+entirely. The filtered read NARROWS exposure, it does not eliminate it; what
+reaches you through either leak is the composer's to govern, not yours to
+fetch beyond this.
+And this branch fails in its own way, so it carries its own rule: the
+filter can turn a green corpus red by orphaning a cross-signer provenance
+edge — a surviving node pointing at a dropped one — so a red that appears
+only here is the filter's artifact, not a finding about the corpus. Confirm
+which you have by re-running the query over the UNFILTERED export with its
+output discarded (an exit code exposes no testimony); either way, do not
+chase it pre-deposit — proceed from what your convening handed you and note
+the state in your deposit.
 Once your own deposit is committed, the topic's typed corpus — unfiltered —
 is the deliberation instrument:
   %{import "../fragments/corpus_query.ncl"}.
