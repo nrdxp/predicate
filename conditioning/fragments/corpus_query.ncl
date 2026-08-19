@@ -1,11 +1,12 @@
-# conditioning/modules/corpus_query.ncl
+# conditioning/fragments/corpus_query.ncl
 #
 # FRAGMENT, not a class station: the typed-corpus query recipe, single-sourced
 # and interpolated (%{import ...}) into the two carriers that teach it —
 # conditioning/personas/composer.ncl and conditioning/modules/council.ncl — so
 # the two copies cannot drift: the duplication sweep compares core against
 # delta and cannot see two deltas that never co-render in one prompt. Never
-# listed in a compose.ncl module list. Lines carry a two-space indent because
+# listed in a compose.ncl module list; fragments/ holds interpolation targets
+# only. Lines carry a two-space indent because
 # both interpolation sites sit inside indented list context.
 # Export: `nickel export --format text conditioning/modules/corpus_query.ncl`
 

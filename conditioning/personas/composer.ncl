@@ -359,7 +359,7 @@ recorder's disciplines:
   walk to the two entrypoints; you carry their mechanism, because you are the
   rung that actually runs them. `git log`/`git -C .ledger log` gives the
   cheap chronological overview — WHERE to look. Then
-  %{import "../modules/corpus_query.ncl"}.
+  %{import "../fragments/corpus_query.ncl"}.
   The same corpus carries `directions.md`, the register you alone sign: a
   target closes only when a SEPARATE corroborated claim names it in
   `discharges`, never when the work satisfying it merely lands —

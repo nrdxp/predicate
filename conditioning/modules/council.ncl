@@ -94,7 +94,7 @@ of a command you run over a record built to narrate gate outcomes.
 Pre-deposit, a missing input is a question routed to the composer, not a
 license to fetch. Once your own deposit is committed, the topic's typed
 corpus becomes the deliberation instrument:
-  %{import "corpus_query.ncl"}.
+  %{import "../fragments/corpus_query.ncl"}.
 Ground every deliberation-phase correction in those views and cite the view
 beside the claim: an assertion that resolves a question the query lists
 `awaiting_human`, or vouches a claim it lists `unbacked`, is refuted by the
