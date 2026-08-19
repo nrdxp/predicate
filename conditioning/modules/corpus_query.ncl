@@ -12,8 +12,9 @@
 m%"extract the typed corpus from ONE record namespace
   (`python3 ledger/derive/extract_entries.py <dir> -o <export>.json`, with
   `<dir>` scoped to the namespace you are reading, e.g.
-  `.ledger/deposits/<topic>` — the whole-corpus `.ledger` form fails while
-  pre-standard findings remain anywhere in the record), then query it
+  `.ledger/deposits/<topic>` — the query stops at the FIRST backing-contract
+  violation among extracted entries, so a whole-corpus `.ledger` run fails
+  while any entry anywhere in the record is mis-backed), then query it
   (`nickel export <export>.json --apply-contract
   ledger/contracts/entries_query.ncl`) for `awaiting_human` (only the head
   can clear it), `runnable_now` (a check exists and has not been run),
