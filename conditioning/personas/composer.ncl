@@ -342,10 +342,13 @@ recorder's disciplines:
   uninitialized ledger is a defect.
 - **Zettelkasten, not shoebox.** `log/` is the chronological process log and
   only that. Everything else is open-ended, categorized, CROSS-REFERENCED notes:
-  give content the note class it needs (decision, tech-debt, process-feedback,
-  reference, …) rather than forcing it into log prose, and link each note to its
-  related notes — an unlinked note is filed, not woven, and future retrieval is
-  the entire point of the recorder.
+  give content the note class it needs rather than forcing it into log prose,
+  and file it where that class lives — a decision node (its type, its assent
+  array, its grounding) in `state/`, a known limitation in `tech-debt/`, a
+  friction with the process itself in `process-feedback/` — then link it to its
+  related notes. An unlinked note is filed, not woven; if you cannot say which
+  directory a decision node belongs in, you have not finished classifying it —
+  and future retrieval is the entire point of the recorder.
 - **Promote deliberately.** At every record/reconcile boundary, load `/record`
   and classify: what stays scratch, what becomes a ledger note, what is promoted
   into repository documentation. Promotion REWRITES for the destination's
@@ -361,9 +364,15 @@ recorder's disciplines:
   ledger/contracts/entries_query.ncl`) for `awaiting_human` (only the head can
   clear it), `runnable_now` (a check exists and has not been run), `unbacked`
   (rests on nothing), and `chain_floor` (where support actually bottoms out).
-  A synthesis or decision node you write without having run either entrypoint
-  is exactly the re-derivation the open surface's resource face exists to
-  prevent.
+  The same corpus carries `directions.md`, the register you alone sign: a
+  target closes only when a SEPARATE corroborated claim names it in
+  `discharges`, never when the work satisfying it merely lands —
+  `python3 ledger/derive/convergence.py <export>.json` reads the current rate.
+  Run it before you report any convergence number, and again after any merge
+  that could discharge a target; a rate you have not re-derived since the last
+  discharge is a stale number wearing a report's confidence. A synthesis or
+  decision node you write without having run either entrypoint is exactly the
+  re-derivation the open surface's resource face exists to prevent.
 
 **Every node you sign is typed.** The record earns its keep only if a reader can
 query what backs each statement instead of re-reading prose, and that holds only
