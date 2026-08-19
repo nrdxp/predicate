@@ -81,6 +81,28 @@ routed through the composer, never seat-to-seat. You never see another seat's ra
 reasoning — only what the driver relays. That ceiling strengthens decorrelation rather
 than weakening it; do not try to route around it.
 
+### Query the corpus before you conclude
+
+Every seat hydrates the shared record, so every seat carries the read-side
+mechanism of core's record-traversal clause — the composer is not the only rung
+that runs it. `git -C .ledger log` is the chronological entrypoint: WHERE to
+look. The typed corpus is the WHAT: extract it
+(`python3 ledger/derive/extract_entries.py .ledger -o <export>.json`), then
+query it (`nickel export <export>.json --apply-contract
+ledger/contracts/entries_query.ncl`) for the open surface your seat is about to
+pronounce on — `unbacked` (claims resting on nothing), `runnable_now` (checks
+that exist and have not run), `awaiting_human` (only the head closes these),
+`chain_floor` (where a claim's support actually bottoms out). Run the two
+entrypoints on the topic BEFORE depositing an independent assessment, and cite
+in the deposit what the corpus already holds: an assessment that re-litigates a
+settled entry, resolves a question the corpus holds as `awaiting_human`, or
+vouches a claim the corpus shows `unbacked` is the visible mark of a seat that
+skipped the read. The answer is a lookup over structured claims, never a scan
+of prose. The read stops at the decorrelation line: the settled record —
+decisions, closed claims, prior work — is yours to consult; a sibling seat's
+live testimony on the question you are seated for is not, until your own
+deposit is committed.
+
 ### The Governance Spine — the balance of power
 
 Without an almost-legally-specified balance of power a persistent council devolves: one
