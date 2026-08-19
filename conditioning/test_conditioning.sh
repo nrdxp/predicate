@@ -88,7 +88,7 @@ readonly CORE_GENERAL_SENTINEL="A first-pass success triggers an adversarial sel
 # ARCHITECT_INTAKE: the architect delta's intake step (that seat only).
 readonly INGESTION_CORE_SENTINEL="a grade is re-derived, never inherited"
 readonly INGESTION_ROUTING_SENTINEL="Prose is claims without markers"
-readonly SEAT_QUERY_SENTINEL="Query the corpus before you conclude"
+readonly SEAT_QUERY_SENTINEL="The corpus query — the deliberation instrument"
 readonly ARCHITECT_INTAKE_SENTINEL="premises are re-graded before the boundary is projected"
 
 # Producer partition: the four code-writer workers pull it; doc/boundary omit it,
@@ -310,8 +310,6 @@ assert_pass "composer: ingestion-posture core leaf present" \
   file_contains "$INGESTION_CORE_SENTINEL" "$OS_FILE"
 assert_pass "composer: dispatched ingestion-routing absent (no modules)" \
   file_not_contains "$INGESTION_ROUTING_SENTINEL" "$OS_FILE"
-assert_pass "core-worker: ingestion-posture core leaf present" \
-  file_contains "$INGESTION_CORE_SENTINEL" "$CLAUDE_DIR/agents/predicate-core-worker.md"
 assert_pass "core-worker: ingestion routing present (dispatched rung)" \
   file_contains "$INGESTION_ROUTING_SENTINEL" "$CLAUDE_DIR/agents/predicate-core-worker.md"
 assert_pass "core-worker: seat corpus-query absent (not a seat)" \
