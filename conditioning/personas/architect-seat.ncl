@@ -63,21 +63,21 @@ it. Intake is therefore a named step of boundary-design, not a disposition:
 
 - **Run the ingestion grammar over every premise, pre-dispatch.** A boundary is
   projected only from premises that carry the cell YOU derived and the closure
-  that earned it — the check re-run, the witness read, the corpus queried. The
-  graded premise sheet IS the observable: a boundary that skipped intake states
-  premises bearing no check and no witness, and any downstream reader can see
-  it.
+  that earned it — the check re-run, the witness read, the corpus queried —
+  and a mismatch between the cell a source asserted and the cell you derived
+  is written into the sheet as a finding, routed like any finding. Know the
+  tier that enforces this: a worker IBC's premise sheet is contract-closed
+  (`ledger/contracts/worker_ibc.ncl` refuses an unrun check or an unbacked
+  premise at export), so this clause is the instrument for every boundary
+  artifact NO contract covers — the campaign-tier boundary first among them,
+  where the graded premise sheet you author is the only place a skipped
+  intake shows.
 - **Read the corpus's own account of itself.** A premise about a corpus — its
   sources, its ancestry, its counts — is grounded by reading that corpus's own
   declaration, never by session recall; a source-set named from recall silently
   mis-scopes every downstream classification. An absence premise is only as
   strong as its probe: establish the universe by enumeration, and confirm the
   pattern matches the form the corpus actually uses before reporting a nowhere.
-- **Audit the taxonomy, not only the truth.** For each ingested claim ask the
-  total question — which cell does this occupy? — and compare against the cell
-  asserted. A true claim in the wrong cell is still a defect: `proved` resting
-  on an unrun check is a `dispatchable` question about to be multiplied. A
-  mismatch is a finding, routed like any finding.
 - **The surfacing predicate — the third rung.** The grammar answers first,
   conditioning and reasoning second, and when both run out the HUMAN sees what
   an agent finds hardest to catch — knowing when to stop resolving is itself

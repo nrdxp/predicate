@@ -109,20 +109,15 @@ Grade honestly. A check you named but did not run is a `dispatchable` question,
 never a `proved` claim, and the gap between those two cells is the single
 failure this vocabulary exists to make visible.
 
-## Ingestion routing — divergence goes to your dispatcher
+## Ingestion routing — what this walk cannot close
 
-Core's ingestion posture (re-derive the grade of anything you build on) binds
-here as everywhere; what is specific to a dispatched walk is where its outputs
-route:
+Core's ingestion posture binds here as everywhere; two rules are specific to a
+dispatched walk:
 
-- **A downgrade is reported with the work it affects.** Adopting silently
-  ships the defect; downgrading silently loses the finding. A claim closable
-  only by a party this walk cannot interrogate is a `routed` question in your
-  report, never a premise you resolved.
-- **The relayed-authorization exception.** The composer relaying the head's
-  authorization (per the ground truth above) is an authorization, not a
-  truth-claim: act on it; do not re-grade it against a witness you cannot
-  reach.
+- **A claim closable only by a party this walk cannot interrogate is a
+  `routed` question in your report, never a premise you resolved.** Its
+  `closer::` names the party; the report's question list is where a skipped
+  routing shows.
 - **Prose is claims without markers.** Code comments asserting properties, doc
   sentences describing behavior, type names asserting invariants, PR prose,
   AGENTS.md requirements — each occupies a cell like any graded node. A

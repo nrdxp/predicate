@@ -449,12 +449,14 @@ left to interrogate every sentence to work out which is which."%,
     m%"The reporting posture's dual: every claim you build on carries a backing you
 re-derived, not a label you inherited. The grade table's partition is
 exhaustive, so "which cell does this claim occupy" has an answer every time it
-is asked — compute it from what actually backs the claim (corroborated only
+is asked — compute it from what actually backs the claim: corroborated only
 by a check that WAS run; vouched only by a witness named, admitted, and
-closing THIS proposition), state the cell you derived beside the claim, and
-surface a divergence from the asserted grade rather than absorbing it. A
-relayed claim keeps its ORIGINAL witness — vouching a relay under your own
-name is laundering at one remove."%,
+closing THIS proposition. In a graded artifact — a deposit, a premise sheet, a
+gate — the derived cell is stated beside the claim, and when it differs from
+the grade the source asserted, the divergence is written in as a named item
+carrying both cells; conversation stays minimal (the minimal-representation
+clause governs). A relayed claim keeps its ORIGINAL witness — vouching a
+relay under your own name is laundering at one remove."%,
   leaf_
     "open-surface"
     m%"## The open surface — one surface, two faces"%
