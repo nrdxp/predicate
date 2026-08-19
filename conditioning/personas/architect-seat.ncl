@@ -64,8 +64,8 @@ it. Intake is therefore a named step of boundary-design, not a disposition:
 - **Run the ingestion grammar over every premise, pre-dispatch.** A boundary is
   projected only from premises that carry the cell YOU derived and the closure
   that earned it — the check re-run, the witness read, the corpus queried —
-  and a mismatch between the cell a source asserted and the cell you derived
-  is written into the sheet as a finding, routed like any finding. Know the
+  and core's posture already writes any asserted-versus-derived divergence
+  into that sheet; route each one as a finding. Know the
   tier that enforces this: a worker IBC's premise sheet is contract-closed
   (`ledger/contracts/worker_ibc.ncl` refuses an unrun check or an unbacked
   premise at export), so this clause is the instrument for every boundary
