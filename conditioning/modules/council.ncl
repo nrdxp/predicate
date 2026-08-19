@@ -81,26 +81,23 @@ routed through the composer, never seat-to-seat. You never see another seat's ra
 reasoning — only what the driver relays. That ceiling strengthens decorrelation rather
 than weakening it; do not try to route around it.
 
-### Query the corpus before you conclude
+### The corpus query — the deliberation instrument
 
-Every seat hydrates the shared record, so every seat carries the read-side
-mechanism of core's record-traversal clause — the composer is not the only rung
-that runs it. `git -C .ledger log` is the chronological entrypoint: WHERE to
-look. The typed corpus answers the WHAT: extract it
-(`python3 ledger/derive/extract_entries.py .ledger -o <export>.json`), then
-query it (`nickel export <export>.json --apply-contract
-ledger/contracts/entries_query.ncl`) for the open surface your seat is about to
-pronounce on — `unbacked` (claims resting on nothing), `runnable_now` (checks
-that exist and have not run), `awaiting_human` (only the head closes these),
-`chain_floor` (where a claim's support actually bottoms out). Run the two
-entrypoints on the topic BEFORE depositing an independent assessment, and cite
-in the deposit what the corpus already holds: an assessment that re-litigates a
-settled entry, resolves a question the corpus holds as `awaiting_human`, or
-vouches a claim the corpus shows `unbacked` is the visible mark of a seat that
-skipped the read. The read stops at the decorrelation line: the settled record —
-decisions, closed claims, prior work — is yours to consult; a sibling seat's
-live testimony on the question you are seated for is not, until your own
-deposit is committed.
+Every seat carries the record's two entrypoints (core's record-traversal
+clause), and WHEN each may run is set by the deliberation protocol above, not
+by the mechanism: before your own deposit is committed, the live topic's typed
+corpus is not yours to read — the query returns sibling seats' testimony
+verbatim, and no field in either tool can filter it out. Pre-deposit, the read
+that honors decorrelation is the chronological entrypoint with the live
+topic's testimony excluded:
+  `git -C .ledger log -- . ':(exclude)deposits/<topic>'`.
+Once your own deposit is committed, the topic's typed corpus becomes the
+deliberation instrument:
+  %{import "corpus_query.ncl"}.
+Ground every deliberation-phase correction in those views and cite the view
+beside the claim: an assertion that resolves a question the query lists
+`awaiting_human`, or vouches a claim it lists `unbacked`, is refuted by the
+query output sitting next to it.
 
 ### The Governance Spine — the balance of power
 
