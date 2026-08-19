@@ -85,19 +85,23 @@ than weakening it; do not try to route around it.
 
 Every seat carries the record's two entrypoints (core's record-traversal
 clause), and WHEN each may run is set by the deliberation protocol above, not
-by the mechanism: before your own deposit is committed, the live topic's typed
-corpus is not yours to read — the query returns sibling seats' testimony
-verbatim, and no field in either tool can filter it out. Pre-deposit, the read
-that honors decorrelation is the chronological entrypoint with the live
-topic's testimony excluded:
-  `git -C .ledger log -- . ':(exclude)deposits/<topic>'`.
-Once your own deposit is committed, the topic's typed corpus becomes the
-deliberation instrument:
+by the mechanism: before your own deposit is committed, the record is not
+yours to read for context. The typed query returns sibling seats' testimony
+verbatim with no field to filter it, and the narrative stores — the flight
+log, the decision ledger — exist to record what seats decided, so
+decorrelation-safety is a property of what your convening HANDED you, never
+of a command you run over a record built to narrate gate outcomes.
+Pre-deposit, a missing input is a question routed to the composer, not a
+license to fetch. Once your own deposit is committed, the topic's typed
+corpus becomes the deliberation instrument:
   %{import "corpus_query.ncl"}.
 Ground every deliberation-phase correction in those views and cite the view
 beside the claim: an assertion that resolves a question the query lists
 `awaiting_human`, or vouches a claim it lists `unbacked`, is refuted by the
-query output sitting next to it.
+query output sitting next to it. And when the query itself exits red — it
+stops at the first backing violation in the scoped namespace — that state IS
+the citation: report it as a finding and ground corrections in the deposits
+directly until the record is repaired.
 
 ### The Governance Spine — the balance of power
 
