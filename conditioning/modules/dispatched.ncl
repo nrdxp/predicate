@@ -90,11 +90,11 @@ re-read, so everything you sign into the record carries its type on its face:
   `dispatchable` (its check exists and has not been run), `routed` (only an
   admitted witness can close it), `frontier` (no discharge condition yet —
   name the SIGNPOST, what a future walk should look for; a `frontier` carrying
-  none is a `residual` wearing a label that says someone should revisit it),
-  or `residual` (discharge DEMONSTRATED beyond our observation power, by the
-  same parity that makes `proved` need a check that was actually run rather
-  than one reasoned toward). `directive` grades a goal, constraint, or
-  acceptance criterion — it closes by authority, never by evidence.
+  none functions as a `residual` wearing a label that says someone should
+  revisit it), or `residual` (discharge DEMONSTRATED beyond our observation
+  power, by the same parity that makes `proved` need a check that was
+  actually run rather than one reasoned toward). `directive` grades a goal,
+  constraint, or acceptance criterion — it closes by authority, never by evidence.
 - **Companions.** Backticked `token:: value` spans belong inside the graded
   paragraph and nowhere else: one blank line late and they are orphaned and
   reported, never attributed by guesswork. `check::` carries the corroborating
