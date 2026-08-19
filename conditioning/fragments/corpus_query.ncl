@@ -8,7 +8,7 @@
 # listed in a compose.ncl module list; fragments/ holds interpolation targets
 # only. Lines carry a two-space indent because
 # both interpolation sites sit inside indented list context.
-# Export: `nickel export --format text conditioning/modules/corpus_query.ncl`
+# Export: `nickel export --format text conditioning/fragments/corpus_query.ncl`
 
 m%"extract the typed corpus from ONE record namespace
   (`python3 ledger/derive/extract_entries.py <dir> -o <export>.json`, with
