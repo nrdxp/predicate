@@ -84,16 +84,27 @@ than weakening it; do not try to route around it.
 ### The corpus query — the deliberation instrument
 
 Every seat carries the record's two entrypoints (core's record-traversal
-clause), and WHEN each may run is set by the deliberation protocol above, not
-by the mechanism: before your own deposit is committed, the record is not
-yours to read for context. The typed query returns sibling seats' testimony
-verbatim with no field to filter it, and the narrative stores — the flight
-log, the decision ledger — exist to record what seats decided, so
-decorrelation-safety is a property of what your convening HANDED you, never
-of a command you run over a record built to narrate gate outcomes.
-Pre-deposit, a missing input is a question routed to the composer, not a
-license to fetch. Once your own deposit is committed, the topic's typed
-corpus becomes the deliberation instrument:
+clause); the deliberation protocol above sets what each phase may read. The
+settled record — decisions, closed claims, prior work, a COMPLETED gate — is
+yours in every phase. What is never yours pre-deposit is a sibling seat's
+testimony on the still-open question you are seated for, and that boundary is
+demarcated in the data, not by path: every extracted node carries its
+`signer`. Pre-deposit, run the typed query with sibling seats filtered out of
+the export between the recipe's two steps:
+
+  python3 -c "import json,sys; p,me=sys.argv[1:3]; d=json.load(open(p)); d[
+  'entries']=[e for e in d['entries'] if not (e['signer'].get('kind')=='agent'
+  and e['signer'].get('name','').endswith('-seat') and e['signer']['name']!=me
+  )]; json.dump(d,open(p,'w'))" <export>.json <your-seat>
+
+The cut is deliberately wider than the unsafe set — it also drops sibling
+testimony on settled questions, whose outcomes still reach you as prior work
+— and it has a limit to hold it to: the filter removes a sibling's DIRECT
+testimony, not composer-signed prose narrating a sibling's verdict in the
+flight log or the decision ledger. What reaches you through those channels
+pre-deposit is the composer's to govern, not yours to fetch beyond this.
+Once your own deposit is committed, the topic's typed corpus — unfiltered —
+is the deliberation instrument:
   %{import "../fragments/corpus_query.ncl"}.
 Ground every deliberation-phase correction in those views and cite the view
 beside the claim: an assertion that resolves a question the query lists
