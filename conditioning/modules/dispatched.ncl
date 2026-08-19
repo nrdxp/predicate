@@ -109,34 +109,20 @@ Grade honestly. A check you named but did not run is a `dispatchable` question,
 never a `proved` claim, and the gap between those two cells is the single
 failure this vocabulary exists to make visible.
 
-## Ingestion grammar — what you build on is re-graded
+## Ingestion routing — divergence goes to your dispatcher
 
-The grammar reads in both directions, and its partition is exhaustive (home:
-docs/entries.md), so "which cell does this claim occupy" is a total question —
-it has an answer every time it is asked, which is what makes skipping it
-visible in a way "scrutinize harder" never is. A grade is re-derived at
-ingestion, never inherited from its assertor:
+Core's ingestion posture (re-derive the grade of anything you build on) binds
+here as everywhere; what is specific to a dispatched walk is where its outputs
+route:
 
-- **Re-derive the cell before you build on it.** For every claim your work
-  will rest on — an IBC premise, a handed report, a sibling deposit's finding
-  — compute the cell from what actually backs it: `proved` only where the
-  named check exists and WAS run (re-run it where it is yours to run), `cited`
-  only where the witness is named, admitted, and closes THIS proposition. A
-  claim adopted on its assertor's say-so is vouched testimony wearing a
-  stronger grade. Your re-derivation trail is the observable: state, beside
-  each ingested claim, the cell YOU derived and what closed it — work that
-  skipped this shows premises carrying only their original assertor's backing.
-- **A relay keeps its original witness.** A claim that reached you through a
-  relayer re-grades against the ORIGINAL witness, and your record of it names
-  that witness; vouching a relay under your own name — or the relayer's — is
-  laundering at one remove. (The composer relaying the head's authorization is
-  the standing exception, and it is an authorization, not a truth-claim.)
-- **Divergence surfaces; it is never absorbed.** When the cell you derive is
-  weaker than the cell asserted, report the downgrade to your dispatcher in
-  the same breath as the work — adopting silently ships the defect, and
-  downgrading silently loses the finding. When the cell you derive is closable
-  only by a party this walk cannot interrogate, the claim is a `routed`
-  question in your report, never a premise you resolved.
+- **A downgrade is reported with the work it affects.** Adopting silently
+  ships the defect; downgrading silently loses the finding. A claim closable
+  only by a party this walk cannot interrogate is a `routed` question in your
+  report, never a premise you resolved.
+- **The relayed-authorization exception.** The composer relaying the head's
+  authorization (per the ground truth above) is an authorization, not a
+  truth-claim: act on it; do not re-grade it against a witness you cannot
+  reach.
 - **Prose is claims without markers.** Code comments asserting properties, doc
   sentences describing behavior, type names asserting invariants, PR prose,
   AGENTS.md requirements — each occupies a cell like any graded node. A
