@@ -2,7 +2,7 @@
 """Derive always-on-law clause backing from the clauses' OWN declarations.
 
 `conditioning/core_clauses.ncl` carries a `backing` field: for a subset of its
-46 clauses, a claim of the shape `{gate, case}` — "the `case`-named assertion
+clauses, a claim of the shape `{gate, case}` — "the `case`-named assertion
 inside `gate` is a check that would notice this clause's removal from the
 rendered law." This module is the derivation that PROVES or REFUTES that
 claim; nothing here ever authors a verdict. A clause absent from `backing` is
