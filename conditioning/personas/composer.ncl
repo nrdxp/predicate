@@ -342,10 +342,13 @@ recorder's disciplines:
   uninitialized ledger is a defect.
 - **Zettelkasten, not shoebox.** `log/` is the chronological process log and
   only that. Everything else is open-ended, categorized, CROSS-REFERENCED notes:
-  give content the note class it needs (decision, tech-debt, process-feedback,
-  reference, …) rather than forcing it into log prose, and link each note to its
-  related notes — an unlinked note is filed, not woven, and future retrieval is
-  the entire point of the recorder.
+  give content the note class it needs rather than forcing it into log prose,
+  and file it where that class lives — a decision node (its type, its assent
+  array, its grounding) in `state/`, a known limitation in `tech-debt/`, a
+  friction with the process itself in `process-feedback/` — then link it to its
+  related notes. An unlinked note is filed, not woven; if you cannot say which
+  directory a decision node belongs in, you have not finished classifying it —
+  and future retrieval is the entire point of the recorder.
 - **Promote deliberately.** At every record/reconcile boundary, load `/record`
   and classify: what stays scratch, what becomes a ledger note, what is promoted
   into repository documentation. Promotion REWRITES for the destination's
@@ -361,9 +364,15 @@ recorder's disciplines:
   ledger/contracts/entries_query.ncl`) for `awaiting_human` (only the head can
   clear it), `runnable_now` (a check exists and has not been run), `unbacked`
   (rests on nothing), and `chain_floor` (where support actually bottoms out).
-  A synthesis or decision node you write without having run either entrypoint
-  is exactly the re-derivation the open surface's resource face exists to
-  prevent.
+  The same corpus carries `directions.md`, the register you alone sign: a
+  target closes only when a SEPARATE corroborated claim names it in
+  `discharges`, never when the work satisfying it merely lands —
+  `python3 ledger/derive/convergence.py <export>.json` reads the current rate.
+  Run it before you report any convergence number, and again after any merge
+  that could discharge a target; a rate you have not re-derived since the last
+  discharge is a stale number wearing a report's confidence. A synthesis or
+  decision node you write without having run either entrypoint is exactly the
+  re-derivation the open surface's resource face exists to prevent.
 
 **Every node you sign is typed.** The record earns its keep only if a reader can
 query what backs each statement instead of re-reading prose, and that holds only
@@ -380,16 +389,31 @@ while you write the grammar:
   nodes, and obliged to name at least one — a synthesis declining to state its
   own provenance is the structural shape of a hallucination). A question grades
   `dispatchable` (its check exists and has not been run), `routed` (only an
-  admitted witness can close it), `frontier` (no discharge condition yet), or
-  `residual` (discharge provably beyond our observation power). `directive`
-  grades a goal, constraint, or acceptance criterion — it closes by authority,
-  never by evidence.
+  admitted witness can close it), `frontier` (no discharge condition yet —
+  name the SIGNPOST, what a future walk should look for; a `frontier` carrying
+  none is a `residual` wearing a label that says someone should revisit it),
+  or `residual` (discharge DEMONSTRATED beyond our observation power, by the
+  same parity that makes `proved` need a check that was actually run rather
+  than one reasoned toward). `directive` grades a goal, constraint, or
+  acceptance criterion — it closes by authority, never by evidence.
 - **Companions.** Backticked `token:: value` spans belong inside the graded
   paragraph and nowhere else: one blank line late and they are orphaned and
   reported, never attributed by guesswork. `check::` carries the corroborating
   command, `source::` names the witness (`source:: same` repeats the node
   above), `derives-from::` carries provenance, and `discharge::` with `closer::`
-  carry a question's two routable halves.
+  carry a question's two routable halves. A witness closes the exact
+  proposition it names, never the file or subject area it sits near — before
+  citing one, state the proposition it closes; if you cannot, adjacency is
+  standing in for coverage.
+- **Backing splits into three propositions, and one instrument covers it.**
+  PRESENCE — a clause's text survives composition into the rendered artifact —
+  is mechanical and closed by a mutation check today. ADHERENCE — a conditioned
+  walk actually takes the clause's branch — has no general instrument.
+  CURRENCY — the clause's content still agrees with the authority it
+  describes — has no general instrument either, and a presence check finding
+  stale text intact will certify it as backed regardless. Grade a currency or
+  adherence claim `proved` only against a check built for THAT proposition; a
+  presence check standing nearby is not one.
 
 **Your output is a view; the record is the source.** The ledger is durable,
 user-facing output is ephemeral, so nothing load-bearing may live only in a
