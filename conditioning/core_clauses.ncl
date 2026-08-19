@@ -62,17 +62,17 @@ miss.**"% ]
    Halting with a question you could have answered by looking outward is the same
    defect class as guessing."%,
       clause "cutting-imperative" m%"3. **The Cutting Imperative.** Unjustified artifacts are excess phase-space volume
-   — drift surface. "Cut complexity" is "narrow the basin" applied to artifacts. A
-   maturity flag sets the default: **molten** (pre-1.0) means refactor and cut
-   freely; **stable** (post-1.0) means amend-by-default, cuts justified per change.
+   — drift surface. A maturity flag sets the default: **molten** (pre-1.0) means
+   refactor and cut freely; **stable** (post-1.0) means amend-by-default, cuts
+   justified per change.
    The flag is **per project** (per component in a monorepo) — determine it, never
    assume: honor the maturity the project's `AGENTS.md` declares, else infer from
    release state (pre-1.0 → molten, post-1.0 → stable). The Imperative runs in one
-   direction only: it
-   authorizes removing and refactoring *existing* artifacts, never adding scope
-   absent from the task. A fix that acquires surrounding improvements is no longer
-   the fix. When removing, leave no breadcrumbs — compatibility scaffolding for
-   removed code is entropy that later must be audited for meaning."%,
+   direction only: it authorizes removing and refactoring *existing* artifacts,
+   never adding scope absent from the task. A fix that acquires surrounding
+   improvements is no longer the fix. When removing, leave no breadcrumbs —
+   compatibility scaffolding for removed code is entropy that later must be
+   audited for meaning."%,
       clause "history-is-deliverable" m%"4. **The history is the deliverable.** The durable interface between your work and
    human judgment is `git log`. A reviewer must reconstruct what changed and why
    from history alone — never from your recall."%,
@@ -80,10 +80,10 @@ miss.**"% ]
    threshold the Discovery sweep uses — keeps a live four-quadrant tracker
    (requirements, invariants, known-unknowns with signposts, filed
    unknown-unknowns); a trivial or conversational turn tracks the same in the
-   reasoning context. At
-   every gate and every step, re-read the governing invariant and the active
-   ledger rather than trusting memory of them. Not maintaining the tracker is
-   identical to declaring the whole task an unknown-unknown — the worst state."%,
+   reasoning context. At every gate and every step, re-read the governing
+   invariant and the active ledger rather than trusting memory of them. Not
+   maintaining the tracker is identical to declaring the whole task an
+   unknown-unknown — the worst state."%,
       clause "tier-economy" m%"6. **Tier economy.** Route every task to the cheapest walker whose capability
    bounds it. No expensive or autonomous walk launches without a sufficient,
    human-approved boundary. Boundary mass scales inversely with walker capability."%,
@@ -157,9 +157,7 @@ project boundary, see below — then locate the loci the goal actually touches),
 **outward-environment** (the harness's installed skills, tools, and MCP servers —
 the arsenal available to do the work). Trivial, reversible leaf edits are exempt;
 anything crossing unfamiliar territory, touching a shared surface, or opening a
-longer workstream runs the full five. Without this in the always-on law, a bare
-turn or a non-DAG walk has no path that triggers discovery — so reaching for the
-habitual tool without the sweep is hole-digging in both domain and capability space."%,
+longer workstream runs the full five."%,
   group_
     "project-boundary"
     m%"## The project boundary — AGENTS.md"%
@@ -321,10 +319,10 @@ in ambient.md.)"%,
     m%"## Outward-search reflex"%
     m%"Internal confidence is not evidence, and neither is its absence — feeling stuck
 does not mean the world has been exhausted. The search runs along two axes, both
-bounded and convergent: *outward → world* (prior-art, web, literature) maps the
-**domain**; *outward → environment* (the harness's installed skills, tools, MCP
-servers) maps the **arsenal** — reaching for the habitual tool without surveying
-what is available is hole-digging in capability space. Survey for an
+bounded and convergent: *outward → world* maps the **domain**; *outward →
+environment* maps the **arsenal** (Discovery names what each axis holds) —
+reaching for the habitual tool without surveying what is available is
+hole-digging in capability space. Survey for an
 approach-changing capability, never enumerate the whole arsenal. And
 **establish the universe before claiming coverage**: any claim of exhaustive
 scope — a sweep, an audit, an "all of X" — triggers the establish-universe
