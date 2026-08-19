@@ -79,6 +79,18 @@ readonly ARCHITECT_ORCH_SENTINEL="You are the default interactive walker AND the
 # producer. HACORE_SNIPPET guards only core's opening line, not this bullet.
 readonly CORE_GENERAL_SENTINEL="A first-pass success triggers an adversarial self-audit"
 
+# Ingestion sentinels — pin the claim-intake discipline at its three rungs.
+# INGESTION_CORE: the core leaf (reaches every role, the composer included).
+# INGESTION_ROUTING: the dispatched remainder (dispatched rungs only — its
+# absence from the composer render pins that the routing text stays at the
+# dispatched rung rather than leaking into the always-on surface).
+# SEAT_QUERY: the council module's corpus-query mechanism (seats only).
+# ARCHITECT_INTAKE: the architect delta's intake step (that seat only).
+readonly INGESTION_CORE_SENTINEL="a grade is re-derived, never inherited"
+readonly INGESTION_ROUTING_SENTINEL="Prose is claims without markers"
+readonly SEAT_QUERY_SENTINEL="Query the corpus before you conclude"
+readonly ARCHITECT_INTAKE_SENTINEL="premises are re-graded before the boundary is projected"
+
 # Producer partition: the four code-writer workers pull it; doc/boundary omit it,
 # and the composer output style omits it too (a moderator, not a code-writer — 3a).
 readonly PRODUCER_PULL_WORKERS=(core-worker refine-worker form-worker spec-worker)
@@ -286,6 +298,32 @@ for role in "${COUNCIL_ROLES[@]}"; do
   assert_pass "$role: producer sentinel absent (seat is not a code-writer)" \
     file_not_contains "$PRODUCER_SENTINEL" "$agent_file"
 done
+
+# 3i. Ingestion discipline at its three rungs. The core posture reaches every
+# render (composer included); the dispatched routing remainder reaches every
+# dispatched render and MUST NOT reach the composer (whose surface is core +
+# constitution, no modules); the corpus query reaches seats and only seats;
+# the intake step reaches the architect seat and no sibling seat.
+echo ""
+echo "── 3i. Ingestion discipline sentinels ───────────────────────────────────"
+assert_pass "composer: ingestion-posture core leaf present" \
+  file_contains "$INGESTION_CORE_SENTINEL" "$OS_FILE"
+assert_pass "composer: dispatched ingestion-routing absent (no modules)" \
+  file_not_contains "$INGESTION_ROUTING_SENTINEL" "$OS_FILE"
+assert_pass "core-worker: ingestion-posture core leaf present" \
+  file_contains "$INGESTION_CORE_SENTINEL" "$CLAUDE_DIR/agents/predicate-core-worker.md"
+assert_pass "core-worker: ingestion routing present (dispatched rung)" \
+  file_contains "$INGESTION_ROUTING_SENTINEL" "$CLAUDE_DIR/agents/predicate-core-worker.md"
+assert_pass "core-worker: seat corpus-query absent (not a seat)" \
+  file_not_contains "$SEAT_QUERY_SENTINEL" "$CLAUDE_DIR/agents/predicate-core-worker.md"
+for role in "${COUNCIL_ROLES[@]}"; do
+  assert_pass "$role: corpus-query section present (council module)" \
+    file_contains "$SEAT_QUERY_SENTINEL" "$CLAUDE_DIR/agents/predicate-$role.md"
+done
+assert_pass "architect-seat: intake section present" \
+  file_contains "$ARCHITECT_INTAKE_SENTINEL" "$CLAUDE_DIR/agents/predicate-architect-seat.md"
+assert_pass "lead-maintainer-seat: intake section absent (architect delta only)" \
+  file_not_contains "$ARCHITECT_INTAKE_SENTINEL" "$CLAUDE_DIR/agents/predicate-lead-maintainer-seat.md"
 
 # 3g. Reclassified-to-core principle reaches review-only roles. One-shot
 # skepticism moved producer→core, so unlike PRODUCER_SENTINEL it MUST render in
