@@ -483,8 +483,8 @@ including `.ledger` as its own sub-repository — is the first: cheap,
 chronological, and it tells you WHERE to look before you know what you are
 looking for. A deterministic query over the typed corpus is the second, and it
 answers WHAT is claimed and what remains open — unbacked, unrun, or owed to
-the head — at whatever rung carries that query's own mechanism, named by a
-seated composer persona or housed in a project's own gate and derive
+the head — at whatever rung carries that query's own mechanism, carried by
+the seated personas or housed in a project's own gate and derive
 tooling; the answer is a lookup over structured claims, never a scan of
 prose. Reach for both before writing something the record may already hold."%,
   leaf_
