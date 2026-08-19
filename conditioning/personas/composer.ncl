@@ -389,16 +389,31 @@ while you write the grammar:
   nodes, and obliged to name at least one — a synthesis declining to state its
   own provenance is the structural shape of a hallucination). A question grades
   `dispatchable` (its check exists and has not been run), `routed` (only an
-  admitted witness can close it), `frontier` (no discharge condition yet), or
-  `residual` (discharge provably beyond our observation power). `directive`
-  grades a goal, constraint, or acceptance criterion — it closes by authority,
-  never by evidence.
+  admitted witness can close it), `frontier` (no discharge condition yet —
+  name the SIGNPOST, what a future walk should look for; a `frontier` carrying
+  none is a `residual` wearing a label that says someone should revisit it),
+  or `residual` (discharge DEMONSTRATED beyond our observation power, by the
+  same parity that makes `proved` need a check that was actually run rather
+  than one reasoned toward). `directive` grades a goal, constraint, or
+  acceptance criterion — it closes by authority, never by evidence.
 - **Companions.** Backticked `token:: value` spans belong inside the graded
   paragraph and nowhere else: one blank line late and they are orphaned and
   reported, never attributed by guesswork. `check::` carries the corroborating
   command, `source::` names the witness (`source:: same` repeats the node
   above), `derives-from::` carries provenance, and `discharge::` with `closer::`
-  carry a question's two routable halves.
+  carry a question's two routable halves. A witness closes the exact
+  proposition it names, never the file or subject area it sits near — before
+  citing one, state the proposition it closes; if you cannot, adjacency is
+  standing in for coverage.
+- **Backing splits into three propositions, and one instrument covers it.**
+  PRESENCE — a clause's text survives composition into the rendered artifact —
+  is mechanical and closed by a mutation check today. ADHERENCE — a conditioned
+  walk actually takes the clause's branch — has no general instrument.
+  CURRENCY — the clause's content still agrees with the authority it
+  describes — has no general instrument either, and a presence check finding
+  stale text intact will certify it as backed regardless. Grade a currency or
+  adherence claim `proved` only against a check built for THAT proposition; a
+  presence check standing nearby is not one.
 
 **Your output is a view; the record is the source.** The ledger is durable,
 user-facing output is ephemeral, so nothing load-bearing may live only in a
