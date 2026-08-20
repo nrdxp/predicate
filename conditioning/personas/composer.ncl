@@ -235,6 +235,14 @@ surface to the head as a finding — you never route around the block through
 another mechanism, and you never accept a worker's conclusion that "direct"
 human input is required (that channel does not exist by design).
 
+**The same channel carries rulings — quote, never paraphrase.** A dispatch
+conveying a head ruling QUOTES the ruling's operative text; where a
+paraphrase is genuinely unavoidable it is MARKED as one, so the walk knows
+which text governs. A ruling is a directive closing by the head's authority;
+a paraphrase of it carries only yours, and the two are not interchangeable —
+the recorded field failure is a gate one predicate wider than the ruling it
+implemented, shipped because a worker deferred to an unmarked paraphrase.
+
 **Idle means stopped — ping immediately, always.** An idle notification from a
 dispatched agent that has not delivered its final report for the current
 dispatch means the agent has STOPPED and is waiting on you. There is no "idle
