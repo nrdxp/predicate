@@ -289,6 +289,49 @@ expect_rc "(m) says no evaluator commit at all" 1 \
 git -C "$repo" checkout -q master
 
 # =============================================================================
+# Net-effect scoping (AI8): per-commit code-path membership (AI7, above) is
+# necessary but not sufficient -- a commit that touches a code path but
+# whose content nets to nothing against the base (e.g. a revert pair) has no
+# implementation for a red baseline to precede, the same reasoning AI7
+# applies to prose extended to a branch's NET diff over code paths rather
+# than per-commit membership. This is checked by comparing the two trees
+# directly (git diff base..tip, name-only, code-path-filtered) -- never by
+# summing per-commit line counts, which would let an unrelated file's
+# coincidental line parity launder real changes elsewhere.
+# =============================================================================
+
+# (n) a code file added then fully reverted -- net-empty over the only code
+# path touched at all -- no preceding test:, would FAIL under pure per-commit
+# scoping (AI7 alone) but must PASS once net effect is checked (AI8). This is
+# the live pass/architect-intake shape: 1b6d4b8 changes a docstring line,
+# d29a77d reverts it, net diff over code paths is empty.
+echo "=== (n) code change fully reverted -> net-empty -> PASS (AI8) ==="
+git -C "$repo" checkout -q -b node-n "$root_sha"
+touch_file "$repo" n-code.py "line one"
+commit_all "$repo" "fix: touch n-code, untested"
+rm -f "$repo/n-code.py"
+commit_all "$repo" "revert: drop n-code, net-empty"
+expect_rc "(n) exit 0 -- net-empty code diff, nothing to precede" 0 "" -- node-n --against master
+expect_rc "(n) reports PASS" 0 "PASS" -- node-n --against master
+git -C "$repo" checkout -q master
+
+# (o) THE TRAP: two code files change in one commit, only ONE is reverted --
+# net diff is non-empty (the kept file still differs from base), so this
+# must still FAIL. Proves net-effect scoping checks EVERY code path
+# independently, never aggregate line counts or aggregate file-count parity
+# -- a partial revert can never launder the file that stayed changed.
+echo "=== (o) two files change, only one reverted -> net non-empty -> still FAIL ==="
+git -C "$repo" checkout -q -b node-o "$root_sha"
+touch_file "$repo" o-keep.py "kept"
+touch_file "$repo" o-revert.py "temp"
+commit_all "$repo" "fix: add two files, untested"
+rm -f "$repo/o-revert.py"
+commit_all "$repo" "revert: drop o-revert only"
+expect_rc "(o) exit 1 -- o-keep.py still nets non-empty" 1 "" -- node-o --against master
+expect_rc "(o) reports FAIL" 1 "FAIL" -- node-o --against master
+git -C "$repo" checkout -q master
+
+# =============================================================================
 # (g) --sweep mode: aggregate PASS/FAIL/AMBIGUOUS/SKIP over multiple merges,
 # including an octopus merge reported SKIP
 # =============================================================================
