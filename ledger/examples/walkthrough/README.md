@@ -57,21 +57,36 @@ most of the point.
 
 ## What the shapes mean
 
-Every paragraph says what kind of thing it is. There are two questions to ask
-about any statement: **is it a claim or a question**, and **what stands behind
-it**. Those are tracked separately, which is why "I ran the test" and "someone
-told me" never collapse into the same state.
+Every paragraph says what kind of thing it is. Two questions get asked about any statement, and they are asked separately:
+**is it a claim or a question**, and **what stands behind it**. Three answers
+to the second — a check that was run, a person who vouched, or nothing yet.
+Two times three is the whole vocabulary:
 
-| in `deposit.md` | what it is |
-| :--- | :--- |
-| `[W3]`, `[W4]` `proved` | a claim closed by a check that was actually run |
-| `[W5]` `cited` | a claim closed by a named person — go ask them, do not re-litigate |
-| `[W6]` `synthesis` | reasoning built on other entries; it names which ones |
-| `[W7]` `dispatchable` | a question whose check exists and simply has not been run |
-| `[W8]` `routed` | a question no command can answer; it names the person who can |
-| `[W9]` `frontier` | nobody knows yet and there is no check to write, so it carries a signpost |
-| `[W10]` `residual` | answerable by nothing that still exists; naming it stops a future walk trying |
-| `[W1]`, `[W2]` `directive` | a goal or a constraint — true because someone with the authority said so |
+|              | a check that ran | a person vouched | nothing yet |
+| :----------- | :--------------- | :--------------- | :---------- |
+| **claim**    | `proved` `[W3]` `[W4]` | `cited` `[W5]` | `synthesis` `[W6]` |
+| **question** | `dispatchable` `[W7]` | `routed` `[W8]` | `frontier` `[W9]` |
+
+Read across the top row: `[W4]` was measured, `[W5]` is what a colleague said,
+`[W6]` is reasoning built on both. Down the second: `[W7]`'s check exists and
+nobody has run it, `[W8]` needs a person because no command answers it, `[W9]`
+is not yet understood well enough to have a check at all — so it carries a
+signpost saying where to look.
+
+Those six are the whole of it. Everything about how well something is known
+lands in exactly one of them, and there is a proof that no seventh is needed.
+
+Two more markers appear in `deposit.md` and neither adds a seventh state:
+
+- `[W10]` `residual` — a question answerable by nothing that still exists. This
+  is a fourth answer to "what stands behind it", and it attaches only to
+  questions. That restriction is not a rule someone chose: because every claim
+  in the table above has a cure, no *claim* can ever be permanently open, so
+  this can only ever be question-shaped.
+- `[W1]`, `[W2]` `directive` — a goal and a constraint. These are not in the
+  table because they are not true or false at all. A goal does not become more
+  established when evidence arrives; it holds because someone with the standing
+  to set it said so. Asking what backs a directive is a category error.
 
 `[W13]` closes `[W7]` by naming it. That is the only way a question closes: a
 separate entry with real backing points at it. There is no status field to
