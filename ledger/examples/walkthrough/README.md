@@ -68,11 +68,23 @@ Two times three is the whole vocabulary:
 | **claim**    | `proved` `[W3]` `[W4]` | `cited` `[W5]` | `synthesis` `[W6]` |
 | **question** | `dispatchable` `[W7]` | `routed` `[W8]` | `frontier` `[W9]` |
 
-Read across the top row: `[W4]` was measured, `[W5]` is what a colleague said,
-`[W6]` is reasoning built on both. Down the second: `[W7]`'s check exists and
-nobody has run it, `[W8]` needs a person because no command answers it, `[W9]`
-is not yet understood well enough to have a check at all — so it carries a
-signpost saying where to look.
+The names are meant literally, which is easier to see with the example beside
+them:
+
+- **`proved`** — someone ran something and it came out that way. `[W4]` is a
+  timing, taken by running the suite.
+- **`cited`** — you can cite a person for it. `[W5]` is what a colleague said
+  about a decision made two years ago; the record names her so a later reader
+  goes and asks rather than re-litigating it.
+- **`synthesis`** — put together out of other entries. `[W6]` is an argument
+  resting on `[W4]` and `[W5]`, and it says so; nothing new was observed.
+- **`dispatchable`** — ready to be handed off. `[W7]`'s check already exists
+  and nobody has run it yet, so it can go straight into a queue as work.
+- **`routed`** — it has an address. `[W8]` asks whether 2m40s is fast enough,
+  which no command answers, so it names the person who decides.
+- **`frontier`** — the edge of what is understood. Nobody knows why `[W9]`
+  happens and there is no check to write yet, so it carries a signpost —
+  where the next person should look — instead of a task nobody can do.
 
 Those six are the whole of it. Everything about how well something is known
 lands in exactly one of them, and there is a proof that no seventh is needed.
