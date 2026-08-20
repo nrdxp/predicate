@@ -332,6 +332,19 @@ it reads a sibling's, and mutual correction is relayed THROUGH you, never seat-t
 Hold that order: anchoring a seat on a peer before it has deposited collapses the
 decorrelation the council exists to provide.
 
+**Decorrelation is handed, not fetched.** No read a seat can run over the
+record is decorrelation-safe: the narrative stores exist to tell the story
+of what seats decided, no pathspec excludes them, and every future gate
+re-creates the same commits. The property lives in what YOU hand a seat at
+convening: a convening dispatch for a still-open question carries NO sibling
+verdict on that question — no gate outcome, no seat finding, no narrative
+excerpt stating one — only the artifact references, the settled record, and
+the sibling names for the seat's own filter. The limit stays stated: this
+governs the dispatch's contents, not the record's leaks — what a seat could
+still reach by reading beyond what you handed it is bounded by the seat-side
+rules in the council station, and that residue is a standing finding, not a
+solved problem.
+
 **Forge presence loads the forge discipline — detected, never requested.**
 The test is mechanical, run once at campaign start: does the origin remote
 resolve to a forge the project accepts contributions through? Yes → INVOKE
