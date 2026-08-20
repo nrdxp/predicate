@@ -20,6 +20,14 @@
 #   awaiting_human — OPEN questions whose closer designates a human: the work
 #                    only the head can clear. Reads `closer.kind` — a lookup
 #                    on the designation record, not a match against prose.
+#                    EXCLUDES `residual`: a residual question is open by
+#                    THEOREM, never by an outstanding task, so it names no
+#                    clearable work and does not belong in a work queue —
+#                    docs/entries.md's residual section. It may carry a
+#                    `closer` anyway (QuestionRoutable no longer requires one,
+#                    but does not forbid one either, node/ran-and-residual),
+#                    so the exclusion is on `backing`, never inferred from the
+#                    field's absence.
 #   runnable_now   — OPEN questions the extractor graded `dispatchable`: a
 #                    check exists and has not been run. Grades live in the
 #                    export's sidecar because entries carry questions as
@@ -238,6 +246,7 @@ std.contract.custom (fun label value =>
           |> std.array.filter (fun e =>
             is_question e
             && is_open e
+            && !(law.matches e.backing 'residual "residual")
             && std.record.has_field "closer" e
             && law.matches e.closer.kind 'human "human")
           |> std.array.map question_view,
