@@ -481,6 +481,30 @@ assert floors["amendment-note:X4"] == ["unbacked"], floors
 print("AMEND-VIEWS-OK")
 EOF
 
+# --- node/ran-and-residual: awaiting_human excludes residual -----------------
+#
+# `residual` is open BY THEOREM (docs/entries.md's residual section): no work
+# exists to clear it, so it does not belong in a work queue even when it
+# carries a human closer. This fixture is a minimal pair differing only in
+# `backing`: a routed question with a human closer (real work, must appear)
+# beside a residual one with the SAME closer (must not). A view that reads
+# `closer.kind` alone and ignores `backing` puts both in the queue.
+
+expect "residual/awaiting-human: clean fixture extracts, exit 0" 0 "" \
+  -- python3 "$extractor" "$fix/residual-awaiting-note.md" -o "$tmp/residual-awaiting.yaml"
+
+nickel export "$tmp/residual-awaiting.yaml" --apply-contract "$query" \
+  > "$tmp/residual-awaiting-query.json" 2>/dev/null
+expect "residual/awaiting-human: residual excluded, routed included" \
+  0 "RESIDUAL-AWAITING-OK" \
+  -- python3 - "$tmp/residual-awaiting-query.json" <<'EOF'
+import json, sys
+q = json.load(open(sys.argv[1]))
+ids = [row["id"] for row in q["awaiting_human"]]
+assert ids == ["residual-awaiting-note:R1"], ids
+print("RESIDUAL-AWAITING-OK")
+EOF
+
 # --- the mixed floor: an external branch BESIDE an internal one --------------
 #
 # The amendment golden above reaches `external` only from an EDGE-FREE leaf,
