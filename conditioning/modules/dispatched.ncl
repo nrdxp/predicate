@@ -108,4 +108,22 @@ re-read, so everything you sign into the record carries its type on its face:
 Grade honestly. A check you named but did not run is a `dispatchable` question,
 never a `proved` claim, and the gap between those two cells is the single
 failure this vocabulary exists to make visible.
+
+## Ingestion routing — what this walk cannot close
+
+Core's ingestion posture binds here as everywhere; two rules are specific to a
+dispatched walk:
+
+- **A claim closable only by a party this walk cannot interrogate is a
+  `routed` question in your report, never a premise you resolved.** Its
+  `closer::` names the party; the report's question list is where a skipped
+  routing shows.
+- **Prose is claims without markers.** Code comments asserting properties, doc
+  sentences describing behavior, type names asserting invariants, PR prose,
+  AGENTS.md requirements — each occupies a cell like any graded node. A
+  comment that names its own command is a CHECK with a last-run age: grow the
+  surface it quantifies over and the claim is `dispatchable` until that
+  command is re-run — the tests that were already green do not close it. A doc
+  sentence with no witness and no check is its author's vouch at some commit,
+  and it is exactly as strong as that.
 "%

@@ -444,6 +444,20 @@ four hundred is a clean one. This is an obligation, not a courtesy: a reader
 given only your findings cannot tell a saturated report from a thin one, and is
 left to interrogate every sentence to work out which is which."%,
   leaf_
+    "ingestion-posture"
+    m%"## Ingestion posture — a grade is re-derived, never inherited"%
+    m%"The reporting posture's dual: every claim you build on carries a backing you
+re-derived, not a label you inherited. The grade table's partition is
+exhaustive, so "which cell does this claim occupy" has an answer every time it
+is asked — compute it from what actually backs the claim: corroborated only
+by a check that WAS run; vouched only by a witness named, admitted, and
+closing THIS proposition. In a graded artifact — a deposit, a premise sheet, a
+gate — the derived cell is stated beside the claim, and when it differs from
+the grade the source asserted, the divergence is written in as a named item
+carrying both cells; conversation stays minimal (the minimal-representation
+clause governs). A relayed claim keeps its ORIGINAL witness — vouching a
+relay under your own name is laundering at one remove."%,
+  leaf_
     "open-surface"
     m%"## The open surface — one surface, two faces"%
     m%"The claims a record asserts without backing and the questions it leaves
@@ -471,8 +485,8 @@ including `.ledger` as its own sub-repository — is the first: cheap,
 chronological, and it tells you WHERE to look before you know what you are
 looking for. A deterministic query over the typed corpus is the second, and it
 answers WHAT is claimed and what remains open — unbacked, unrun, or owed to
-the head — at whatever rung carries that query's own mechanism, named by a
-seated composer persona or housed in a project's own gate and derive
+the head — at whatever rung carries that query's own mechanism, carried by
+the seated personas or housed in a project's own gate and derive
 tooling; the answer is a lookup over structured claims, never a scan of
 prose. Reach for both before writing something the record may already hold."%,
   leaf_

@@ -358,12 +358,8 @@ recorder's disciplines:
 - **Traverse before you write.** Core's record-traversal clause binds every
   walk to the two entrypoints; you carry their mechanism, because you are the
   rung that actually runs them. `git log`/`git -C .ledger log` gives the
-  cheap chronological overview — WHERE to look. Then extract the typed corpus
-  (`python3 ledger/derive/extract_entries.py .ledger -o <export>.json`) and
-  query it (`nickel export <export>.json --apply-contract
-  ledger/contracts/entries_query.ncl`) for `awaiting_human` (only the head can
-  clear it), `runnable_now` (a check exists and has not been run), `unbacked`
-  (rests on nothing), and `chain_floor` (where support actually bottoms out).
+  cheap chronological overview — WHERE to look. Then
+  %{import "../fragments/corpus_query.ncl"}.
   The same corpus carries `directions.md`, the register you alone sign: a
   target closes only when a SEPARATE corroborated claim names it in
   `discharges`, never when the work satisfying it merely lands —
