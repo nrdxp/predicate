@@ -223,6 +223,141 @@ expect_rc "(f) exit 1 -- the merge commit does not count as a test:" 1 "" -- nod
 git -C "$repo" checkout -q master
 
 # =============================================================================
+# Path-scoping (AI7): the rail proves ORDER, and order presupposes an
+# evaluator that can distinguish correct from incorrect. For prose (AI7's
+# named case: conditioning/**, docs/**, and -- this suite's own
+# generalization of AI7's stated principle to every markdown file, since a
+# doc-audit link check is no less a presence check than a conditioning
+# sentinel grep -- any *.md path anywhere) the only available evaluator is a
+# presence check, which proves nothing about correctness, so D3-T9's
+# ordering requirement does not bind a commit that touches no code path.
+# Everything NOT matched by the prose rule defaults to CODE -- the
+# conservative direction, matching this gate's own AMBIGUOUS posture of
+# never assuming the flattering reading.
+# =============================================================================
+
+# (j) regression guard: an explicit CODE-path implementation with no
+# preceding test: commit must still FAIL after path-scoping lands -- proves
+# the rail was narrowed, not disabled.
+echo "=== (j) code-path feat: with no preceding test: -> still FAIL ==="
+git -C "$repo" checkout -q -b node-j "$root_sha"
+touch_file "$repo" ledger/gate/new_check.py "code"
+commit_all "$repo" "feat: add a new gate check, untested"
+expect_rc "(j) exit 1 -- code path still enforced" 1 "" -- node-j --against master
+expect_rc "(j) reports FAIL" 1 "FAIL" -- node-j --against master
+git -C "$repo" checkout -q master
+
+# (k) a branch touching ONLY prose paths, implementation landing BEFORE any
+# test: commit (the ordering that fails every other case in this suite) ->
+# PASS: a presence-check evaluator cannot ground a red baseline, so prose
+# is exempt from the ordering requirement entirely.
+echo "=== (k) prose-only branch, feat: before test: -> PASS (exempt) ==="
+git -C "$repo" checkout -q -b node-k "$root_sha"
+touch_file "$repo" conditioning/guide.ncl "prose data"
+commit_all "$repo" "feat: expand the conditioning composition"
+touch_file "$repo" docs/notes.md "prose doc"
+commit_all "$repo" "docs: describe the expansion"
+expect_rc "(k) exit 0 -- prose commits never enter the ordering" 0 "" -- node-k --against master
+expect_rc "(k) reports PASS" 0 "PASS" -- node-k --against master
+git -C "$repo" checkout -q master
+
+# (l) MIXED commit: a single feat: commit touches both a prose path and a
+# code path, with no preceding test: -> still FAIL. Prose sharing a commit
+# with code does not launder the code (dispatch's mixed-commit rule).
+echo "=== (l) mixed commit (code+prose), no preceding test: -> FAIL ==="
+git -C "$repo" checkout -q -b node-l "$root_sha"
+touch_file "$repo" docs/l-note.md "prose"
+touch_file "$repo" ledger/gate/l-mixed.py "code"
+commit_all "$repo" "feat: mixed doc note and gate change"
+expect_rc "(l) exit 1 -- mixed commit still counts as code" 1 "" -- node-l --against master
+expect_rc "(l) reports FAIL" 1 "FAIL" -- node-l --against master
+git -C "$repo" checkout -q master
+
+# (m) a prose-only test: commit does not satisfy the ordering for a LATER
+# code-path implementation commit -- closes the symmetric gaming loophole:
+# an evaluator that never touched a code path cannot ground a red baseline
+# for one, any more than a prose implementation needs one.
+echo "=== (m) prose-only test: does not launder a later code feat: -> FAIL ==="
+git -C "$repo" checkout -q -b node-m "$root_sha"
+touch_file "$repo" docs/m-plan.md "prose"
+commit_all "$repo" "test: describe the plan for the change"
+touch_file "$repo" ledger/gate/m-impl.py "code"
+commit_all "$repo" "feat: implement the change the doc planned"
+expect_rc "(m) exit 1 -- a prose test: does not cover a code feat:" 1 "" -- node-m --against master
+expect_rc "(m) says no evaluator commit at all" 1 \
+  "no evaluator commit at all in range" -- node-m --against master
+git -C "$repo" checkout -q master
+
+# (p) AI7's own words name the prose exemption as "conditioning/*.ncl", not
+# the whole conditioning/ directory -- a non-.ncl file under conditioning/
+# (install.sh, test_conditioning.sh: shell, not Nickel prompt-composition
+# source) is CODE like any other path, and must still FAIL with no
+# preceding test:. This is the regression fixture: nothing before it
+# exercised a conditioning/ path that was not *.ncl, so a directory-prefix
+# exemption covering the whole tree passed this case silently.
+echo "=== (p) .sh under conditioning/, no preceding test: -> FAIL (AI7's own text) ==="
+git -C "$repo" checkout -q -b node-p "$root_sha"
+touch_file "$repo" conditioning/install.sh "code"
+commit_all "$repo" "fix(install): branch on role mapping, untested"
+expect_rc "(p) exit 1 -- .sh under conditioning/ is code, not prose" 1 "" -- node-p --against master
+expect_rc "(p) reports FAIL" 1 "FAIL" -- node-p --against master
+git -C "$repo" checkout -q master
+
+# (q) regression guard: *.ncl under conditioning/ remains prose after (p)
+# narrows the exemption -- AI7's named case (Nickel prompt-composition
+# sources) must still be exempt, only the directory-wide default is cut.
+echo "=== (q) .ncl under conditioning/, no preceding test: -> PASS (still prose) ==="
+git -C "$repo" checkout -q -b node-q "$root_sha"
+touch_file "$repo" conditioning/guide.ncl "prose data"
+commit_all "$repo" "feat: expand the conditioning composition, untested"
+expect_rc "(q) exit 0 -- .ncl under conditioning/ stays exempt" 0 "" -- node-q --against master
+expect_rc "(q) reports PASS" 0 "PASS" -- node-q --against master
+git -C "$repo" checkout -q master
+
+# =============================================================================
+# Net-effect scoping (AI8): per-commit code-path membership (AI7, above) is
+# necessary but not sufficient -- a commit that touches a code path but
+# whose content nets to nothing against the base (e.g. a revert pair) has no
+# implementation for a red baseline to precede, the same reasoning AI7
+# applies to prose extended to a branch's NET diff over code paths rather
+# than per-commit membership. This is checked by comparing the two trees
+# directly (git diff base..tip, name-only, code-path-filtered) -- never by
+# summing per-commit line counts, which would let an unrelated file's
+# coincidental line parity launder real changes elsewhere.
+# =============================================================================
+
+# (n) a code file added then fully reverted -- net-empty over the only code
+# path touched at all -- no preceding test:, would FAIL under pure per-commit
+# scoping (AI7 alone) but must PASS once net effect is checked (AI8). This is
+# the live pass/architect-intake shape: 1b6d4b8 changes a docstring line,
+# d29a77d reverts it, net diff over code paths is empty.
+echo "=== (n) code change fully reverted -> net-empty -> PASS (AI8) ==="
+git -C "$repo" checkout -q -b node-n "$root_sha"
+touch_file "$repo" n-code.py "line one"
+commit_all "$repo" "fix: touch n-code, untested"
+rm -f "$repo/n-code.py"
+commit_all "$repo" "revert: drop n-code, net-empty"
+expect_rc "(n) exit 0 -- net-empty code diff, nothing to precede" 0 "" -- node-n --against master
+expect_rc "(n) reports PASS" 0 "PASS" -- node-n --against master
+git -C "$repo" checkout -q master
+
+# (o) THE TRAP: two code files change in one commit, only ONE is reverted --
+# net diff is non-empty (the kept file still differs from base), so this
+# must still FAIL. Proves net-effect scoping checks EVERY code path
+# independently, never aggregate line counts or aggregate file-count parity
+# -- a partial revert can never launder the file that stayed changed.
+echo "=== (o) two files change, only one reverted -> net non-empty -> still FAIL ==="
+git -C "$repo" checkout -q -b node-o "$root_sha"
+touch_file "$repo" o-keep.py "kept"
+touch_file "$repo" o-revert.py "temp"
+commit_all "$repo" "fix: add two files, untested"
+rm -f "$repo/o-revert.py"
+commit_all "$repo" "revert: drop o-revert only"
+expect_rc "(o) exit 1 -- o-keep.py still nets non-empty" 1 "" -- node-o --against master
+expect_rc "(o) reports FAIL" 1 "FAIL" -- node-o --against master
+git -C "$repo" checkout -q master
+
+# =============================================================================
 # (g) --sweep mode: aggregate PASS/FAIL/AMBIGUOUS/SKIP over multiple merges,
 # including an octopus merge reported SKIP
 # =============================================================================

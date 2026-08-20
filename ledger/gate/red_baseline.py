@@ -19,6 +19,70 @@ commit-boundary convention: land the evaluator as its own commit, before the
 implementation commit that satisfies it, so the ordering is checkable from
 the ref alone. This gate is that check.
 
+PATH SCOPE: PROSE IS EXEMPT (AI7)
+----------------------------------
+D3-T9's ordering requirement presupposes an evaluator able to distinguish
+CORRECT behavior from incorrect. For prose the only available evaluator is a
+presence check -- did the text land at all -- and a presence check's red
+state means the text is ABSENT, which proves nothing about whether the text
+is RIGHT. Ordering a presence check before the prose it checks is ceremony,
+not verification (.ledger/state/decisions-architect-intake.yaml, AI7).
+
+So this gate scopes to CODE paths: a commit that touches no code path never
+enters the impl/test ordering at all, regardless of its Conventional-Commit
+type. `is_prose_path()` names PROSE narrowly and defaults everything else to
+CODE -- the conservative direction, matching the AMBIGUOUS posture above
+(never assume the flattering reading for an unclassified path):
+
+  * everything under `docs/`;
+  * `*.ncl` files under `conditioning/` -- AI7's named case, stated in its
+    own words: "the rail fires for code paths and not for
+    conditioning/*.ncl or docs/". Only the Nickel prompt-composition
+    sources get the presence-check ceiling; a non-.ncl file under
+    conditioning/ -- `install.sh`, `test_conditioning.sh` -- is executable,
+    behavior-bearing code with its own pass/fail evaluator (the latter IS
+    that evaluator for the rest of the directory) and stays CODE like any
+    other script, regardless of which directory holds it;
+  * any `*.md` file anywhere in the repository (AI9) -- the same reasoning
+    generalized: a doc-audit link/anchor check is a presence check too, no
+    less than a conditioning sentinel grep, so a markdown file carries the
+    same ceiling regardless of which directory holds it.
+
+A MIXED commit -- touching both a prose path and a code path -- is scoped as
+CODE: prose sharing a commit with code does not launder the code out of
+D3-T9's requirement. A merge commit is always kept in scope (it is already
+never impl/test signal per Commit.ctype, so scoping changes nothing about
+its verdict, and dropping it would break the parent-chain bookkeeping
+--sweep relies on).
+
+NET EFFECT, NOT PER-COMMIT MEMBERSHIP (AI8)
+--------------------------------------------
+Per-commit code-path membership is necessary but not sufficient: a commit
+that touches a code path but whose content EXACTLY CANCELS an earlier
+commit on that same path (a revert pair) still has no implementation for a
+red baseline to precede -- AI7's own reasoning about presence-check
+evaluators, extended from "this commit touches no code" to "this range
+lands no code that differs from the base"
+(.ledger/state/decisions-architect-intake.yaml, AI8). Demonstrated live:
+pass/architect-intake's 1b6d4b8 (docstring line changed) and d29a77d (that
+line reverted) both touch a code path individually, so AI7's per-commit
+scoping alone still FAILs the range, even though `git diff --stat` between
+the two endpoints, restricted to code paths, is empty.
+
+So before the per-commit ordering check runs at all, this gate compares the
+base and tip TREES DIRECTLY (`git diff --name-only base tip`, restricted to
+code paths) -- never per-commit, and never by summing line counts. Tree
+comparison is what makes this safe against the aggregate-cancellation trap:
+a path that was added then fully reverted contributes nothing to that diff
+regardless of how many commits touched it in between, but a path with any
+FINAL difference from base -- a partial revert, an unrelated net change
+elsewhere -- still appears, because diff --name-only reports per-path
+content identity, never an aggregate count that two unrelated files'
+insertions and deletions could cancel by coincidence. Only when NO code
+path differs at all does the range short-circuit to PASS ahead of the
+ordering check; any non-empty code diff falls through to the unchanged
+per-commit classification above.
+
 WHAT COUNTS AS EVIDENCE, AND WHAT IT CANNOT SEE
 --------------------------------------------------
 The only signal available from committed history without deeper static
@@ -92,6 +156,17 @@ from dataclasses import dataclass, field
 
 IMPL_TYPES = {"feat", "fix"}
 TEST_TYPES = {"test"}
+# AI7 (.ledger/state/decisions-architect-intake.yaml): a path is PROSE --
+# exempt from D3-T9's ordering requirement, since its only evaluator is a
+# presence check -- when it sits under docs/ (any file), or is a *.ncl file
+# under conditioning/ (AI7's own words: "the rail fires for code paths and
+# not for conditioning/*.ncl or docs/" -- conditioning/ is scoped to its
+# Nickel prompt-composition sources, never the whole directory: install.sh
+# and test_conditioning.sh are executable, behavior-bearing code, not
+# prose, however they happen to be verified). Markdown anywhere is prose
+# too (AI9). Everything else defaults to CODE.
+DOCS_ROOT = "docs/"
+CONDITIONING_ROOT = "conditioning/"
 # Conventional-Commit header: type, optional (scope), optional breaking `!`,
 # then `: `. Anchored at the start -- a subject that merely CONTAINS a colon
 # further in (e.g. a default `Revert "type(scope): subject"` message) does
@@ -135,6 +210,17 @@ class Verdict:
     commits: list = field(default_factory=list)
 
 
+def is_prose_path(path: str) -> bool:
+    """PROSE (exempt from D3-T9's ordering) iff under docs/, or a *.ncl file
+    under conditioning/, or markdown anywhere -- see the module docstring's
+    PATH SCOPE section. A non-.ncl file under conditioning/ (install.sh,
+    test_conditioning.sh) is CODE, the conservative default that everything
+    unmatched here falls to."""
+    if path.startswith(DOCS_ROOT) or path.endswith(".md"):
+        return True
+    return path.startswith(CONDITIONING_ROOT) and path.endswith(".ncl")
+
+
 def run_git(repo: str, *args: str) -> str:
     proc = subprocess.run(["git", "-C", repo, *args], capture_output=True, text=True)
     if proc.returncode != 0:
@@ -166,6 +252,68 @@ def commits_between(repo: str, base_sha: str, tip_sha: str) -> list:
         n_parents = len(parents.split()) if parents.strip() else 0
         commits.append(Commit(sha=sha, subject=subject, n_parents=n_parents))
     return commits
+
+
+def commit_paths(repo: str, sha: str) -> set:
+    """Changed file paths for a single (non-merge) commit. `--root` makes a
+    parentless commit diff against the empty tree instead of returning
+    nothing; it is a no-op for every other commit, so it is always safe to
+    pass."""
+    out = run_git(repo, "diff-tree", "--no-commit-id", "--name-only", "-r", "--root", sha)
+    return {line for line in out.splitlines() if line}
+
+
+def touches_code(repo: str, c: "Commit") -> bool:
+    """A merge is never itself impl/test signal (Commit.ctype), so its path
+    set is irrelevant -- always in scope. A non-merge is in scope iff at
+    least one changed path is CODE (a mixed commit counts: prose does not
+    launder code out of the ordering requirement)."""
+    if c.n_parents >= 2:
+        return True
+    return any(not is_prose_path(p) for p in commit_paths(repo, c.sha))
+
+
+def scope_to_code(repo: str, commits: list) -> list:
+    """AI7 path scope: drop every commit that touches no code path -- it can
+    never be impl or test signal, so it never enters the ordering. Order is
+    preserved; indices into the returned list are what classify() reasons
+    over."""
+    return [c for c in commits if touches_code(repo, c)]
+
+
+def net_code_change(repo: str, base_sha: str, tip_sha: str) -> bool:
+    """AI8: True iff at least one code path's CONTENT differs between
+    base_sha and tip_sha -- comparing the two trees directly, never by
+    walking commits or summing line counts. A path added and later reverted
+    to its base content contributes nothing here no matter how many commits
+    touched it in between (a revert pair nets to no diff for that path); a
+    partial revert or an unrelated net change on any other code path is
+    still picked up, since each path's final content is compared
+    independently and never aggregated across paths."""
+    if base_sha == tip_sha:
+        return False
+    out = run_git(repo, "diff", "--name-only", base_sha, tip_sha)
+    paths = [p for p in out.splitlines() if p]
+    return any(not is_prose_path(p) for p in paths)
+
+
+def classify_range(repo: str, base_sha: str, tip_sha: str) -> Verdict:
+    """The rail's verdict for one [base_sha, tip_sha] range: AI8 first asks
+    whether the range lands any NET code change at all. If not -- a
+    net-cancelling revert pair, or simply no code touched -- there is no
+    implementation for a red baseline to precede, so the range short-
+    circuits to PASS ahead of the ordering check entirely. Only a range with
+    genuine net code change proceeds to AI7's unchanged per-commit
+    classification, scoped to the commits that touch a code path."""
+    commits = commits_between(repo, base_sha, tip_sha)
+    if not net_code_change(repo, base_sha, tip_sha):
+        return Verdict(
+            "PASS",
+            "no net code change across the range -- nothing for a red "
+            "baseline to precede (AI8)",
+            commits,
+        )
+    return classify(scope_to_code(repo, commits))
 
 
 def classify(commits: list) -> Verdict:
@@ -218,7 +366,7 @@ def gate_one(repo: str, branch_ref: str, base_ref: str) -> Verdict:
     branch_sha = resolve(repo, branch_ref)
     base_ref_sha = resolve(repo, base_ref)
     base_sha = run_git(repo, "merge-base", base_ref_sha, branch_sha).strip()
-    return classify(commits_between(repo, base_sha, branch_sha))
+    return classify_range(repo, base_sha, branch_sha)
 
 
 def sweep(repo: str, range_spec: str) -> list:
@@ -237,7 +385,7 @@ def sweep(repo: str, range_spec: str) -> list:
             continue
         p1, p2 = parents
         base_sha = run_git(repo, "merge-base", p1, p2).strip()
-        results.append((merge_sha, p2, classify(commits_between(repo, base_sha, p2))))
+        results.append((merge_sha, p2, classify_range(repo, base_sha, p2)))
     return results
 
 
