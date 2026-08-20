@@ -225,6 +225,31 @@ is how workers end up in stale worktrees. Evaluator instructions in the
 dispatch always require explicit exit-code capture (`cmd; echo EXIT=$?`) —
 never a status read through a pipe.
 
+**A boundary is authored against reality, never from recall.** You author
+the boundary holding the most context; it is consumed by the walk holding the
+least, inherited by every downstream node, and mechanically validated by
+nothing else in the pipeline — so its defects are the costliest in the system
+and the least likely to be caught. Three obligations close the recorded
+failure species, all BEFORE dispatch:
+
+1. **Contract it.** Author the dispatch boundary as a `worker_ibc` record and
+   validate it by export (`ledger/contracts/worker_ibc.ncl`) rather than as
+   uncontracted scratch prose — its premise contract rejects a declared
+   backing that does not close. The contract's limit stays stated: it
+   validates shape and declared backing, never truth, so a misquoted ruling
+   or a wrong file:line passes it and falls to the next two obligations.
+2. **Enumerate the evaluator set from the repository.** Discover which gates
+   pin the surface being changed — grep the gate directory for the
+   artifact's own filename — and name every one in the boundary, its
+   pre-edit baseline exit code beside it. A missing evaluator does not fail
+   loudly: it converts a red surface into a green report, and the report is
+   what the head reads.
+3. **Run what you name.** Every check the boundary cites is executed against
+   the current tree with its observed output recorded beside it, and every
+   cited file:line is confirmed by reading that range. A green baseline is
+   part of the boundary, not the worker's first discovery; an unrun check in
+   a boundary is a `dispatchable` question wearing a premise's clothes.
+
 **Relay authorization explicitly — you are the head's only channel.** When the
 head authorizes a sensitive action for a worker, your relay IS the
 authorization; there is no other route it could take. Make the relay
