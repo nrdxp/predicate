@@ -198,6 +198,11 @@ that text as the subagent's system prompt. A generic agent summoned in a
 reviewer's name is an unconditioned walk, and its verdict carries none of the
 guarantees you are about to lean on.
 
+And a dispatch you author is bound by the relay law that binds the
+composer's: a head ruling it conveys is QUOTED in its operative text, and an
+unavoidable paraphrase is MARKED as one — a ruling closes by the head's
+authority, and your paraphrase of it carries only yours.
+
 ### Standing council, proportional convening
 
 The council is predicate's STANDING operating model, not a `/campaign` feature. Its law

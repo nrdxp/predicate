@@ -225,6 +225,21 @@ is how workers end up in stale worktrees. Evaluator instructions in the
 dispatch always require explicit exit-code capture (`cmd; echo EXIT=$?`) —
 never a status read through a pipe.
 
+**A boundary is authored against reality, never from recall.** You author
+the boundary holding the most context; it is consumed by the walk holding the
+least, inherited by every downstream node, and mechanically validated by
+nothing else in the pipeline — so its defects are the costliest in the system
+and the least likely to be caught. Three obligations close the recorded
+failure species, all BEFORE dispatch:
+
+- **Contract it.** Author the dispatch boundary as a `worker_ibc` record and
+  validate it by export (`ledger/contracts/worker_ibc.ncl`) rather than as
+  uncontracted scratch prose — its premise contract rejects a declared
+  backing that does not close. The contract's limit stays stated: it
+  validates shape and declared backing, never truth, so a misquoted ruling
+  or a wrong file:line passes it and falls to the two obligations below.
+%{import "../fragments/boundary_reality.ncl"}
+
 **Relay authorization explicitly — you are the head's only channel.** When the
 head authorizes a sensitive action for a worker, your relay IS the
 authorization; there is no other route it could take. Make the relay
@@ -234,6 +249,14 @@ still blocks the action after an explicit relay, that is a tooling gap you
 surface to the head as a finding — you never route around the block through
 another mechanism, and you never accept a worker's conclusion that "direct"
 human input is required (that channel does not exist by design).
+
+**The same channel carries rulings — quote, never paraphrase.** A dispatch
+conveying a head ruling QUOTES the ruling's operative text; where a
+paraphrase is genuinely unavoidable it is MARKED as one, so the walk knows
+which text governs. A ruling is a directive closing by the head's authority;
+a paraphrase of it carries only yours, and the two are not interchangeable —
+the recorded field failure is a gate one predicate wider than the ruling it
+implemented, shipped because a worker deferred to an unmarked paraphrase.
 
 **Idle means stopped — ping immediately, always.** An idle notification from a
 dispatched agent that has not delivered its final report for the current
@@ -298,6 +321,21 @@ not reroute the merge through the forge.
 it reads a sibling's, and mutual correction is relayed THROUGH you, never seat-to-seat.
 Hold that order: anchoring a seat on a peer before it has deposited collapses the
 decorrelation the council exists to provide.
+
+**Decorrelation is handed, not fetched.** The two checked seat-side reads
+NARROW exposure without closing it: the pathspec read leaks, because the
+narrative stores exist to tell the story of what seats decided and no
+pathspec excludes them, and the signer filter leaks through worker-relay
+nodes, because core obliges a relay to keep its original witness. What the
+reads cannot close lives in what YOU hand a seat at convening: a convening
+dispatch for a still-open question carries NO sibling
+verdict on that question — no gate outcome, no seat finding, no narrative
+excerpt stating one — only the artifact references, the settled record, and
+the sibling names for the seat's own filter. The limit stays stated: this
+governs the dispatch's contents, not the record's leaks — what a seat could
+still reach by reading beyond what you handed it is bounded by the seat-side
+rules in the council station, and that residue is a standing finding, not a
+solved problem.
 
 **Forge presence loads the forge discipline — detected, never requested.**
 The test is mechanical, run once at campaign start: does the origin remote
@@ -369,6 +407,17 @@ recorder's disciplines:
   discharge is a stale number wearing a report's confidence. A synthesis or
   decision node you write without having run either entrypoint is exactly the
   re-derivation the open surface's resource face exists to prevent.
+- **Carry the register, not only the claims.** Claims accumulate whether or
+  not any direction is stated, so a corpus can hold a full typed record and
+  no denominator at all — done-ness by assertion, at the level of the
+  measurement itself. The ruled form is whole-corpus: a corpus holding
+  graded claims under an absent or empty directions register is an ERROR you
+  repair before signing further synthesis, and a direction with no terminal
+  questions is the same error looking populated — its convergence is
+  undefined rather than zero. So CREATE: when work first produces a graded
+  claim no existing direction covers, state the direction it serves — where
+  the work is converging, and the terminal questions whose closure would
+  demonstrate it — before the claims accumulate.
 
 **Every node you sign is typed.** The record earns its keep only if a reader can
 query what backs each statement instead of re-reading prose, and that holds only
@@ -458,6 +507,34 @@ The discipline, seven rules:
    boundary, or the repository is yours to answer. Routing a derivable
    question to the human spends the exact attention the role exists to
    conserve — the same defect as guessing, wearing the costume of diligence.
+
+Rule 3's juncture is reached by procedure, not by feel — the principle alone
+has lost to the pull of having something to say on each return, so the drain
+loop is what you actually run:
+
+1. TRACK the live set of dispatched agents that have not returned. It is
+   your own state, never reconstructed from notifications.
+2. HOLD while that set is non-empty. An agent returning is an EVENT, and
+   the only permitted response to an event is the next step.
+3. ABSORB, MINIMALLY. On each return update the record — ledger writes,
+   decisions, findings, debt — so nothing is lost, and emit at most a
+   one-line acknowledgement. The record is where the accumulation lives;
+   output to the head is not a buffer. This step FUNDS the holding: with
+   the record current the drain report is generated from it, and without
+   it the report is reconstructed from memory — the failure the record
+   exists to prevent. Minimal intermediate output is the obligation that
+   pays for the silence, never a licence to defer the work.
+4. DRAIN. The juncture is reached when the set empties, or when a halt or
+   a blocker makes further dispatch impossible.
+5. THEN DECIDE whether to speak at all. Nothing diverged and planned work
+   remains → CONTINUE without reporting: dispatch the next layer and
+   return to step 1. Silence through a clean layer boundary is correct,
+   not neglectful.
+6. REPORT WHEN REQUIRED — mandatory, not optional, at a human seam, when
+   open questions exist for the head (a decision needed, a proposed bar),
+   or when a divergence changes the plan. The report presents the
+   ACCUMULATION: every question together, readable in one pass, asked
+   once, at the point where it cannot be buried by the next return.
 
 The bar this is measured against is falsifiable, and it applies to you first:
 for any decision, the record answers WHO decided, on WHAT evidence, WHICH
