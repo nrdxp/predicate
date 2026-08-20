@@ -288,6 +288,32 @@ expect_rc "(m) says no evaluator commit at all" 1 \
   "no evaluator commit at all in range" -- node-m --against master
 git -C "$repo" checkout -q master
 
+# (p) AI7's own words name the prose exemption as "conditioning/*.ncl", not
+# the whole conditioning/ directory -- a non-.ncl file under conditioning/
+# (install.sh, test_conditioning.sh: shell, not Nickel prompt-composition
+# source) is CODE like any other path, and must still FAIL with no
+# preceding test:. This is the regression fixture: nothing before it
+# exercised a conditioning/ path that was not *.ncl, so a directory-prefix
+# exemption covering the whole tree passed this case silently.
+echo "=== (p) .sh under conditioning/, no preceding test: -> FAIL (AI7's own text) ==="
+git -C "$repo" checkout -q -b node-p "$root_sha"
+touch_file "$repo" conditioning/install.sh "code"
+commit_all "$repo" "fix(install): branch on role mapping, untested"
+expect_rc "(p) exit 1 -- .sh under conditioning/ is code, not prose" 1 "" -- node-p --against master
+expect_rc "(p) reports FAIL" 1 "FAIL" -- node-p --against master
+git -C "$repo" checkout -q master
+
+# (q) regression guard: *.ncl under conditioning/ remains prose after (p)
+# narrows the exemption -- AI7's named case (Nickel prompt-composition
+# sources) must still be exempt, only the directory-wide default is cut.
+echo "=== (q) .ncl under conditioning/, no preceding test: -> PASS (still prose) ==="
+git -C "$repo" checkout -q -b node-q "$root_sha"
+touch_file "$repo" conditioning/guide.ncl "prose data"
+commit_all "$repo" "feat: expand the conditioning composition, untested"
+expect_rc "(q) exit 0 -- .ncl under conditioning/ stays exempt" 0 "" -- node-q --against master
+expect_rc "(q) reports PASS" 0 "PASS" -- node-q --against master
+git -C "$repo" checkout -q master
+
 # =============================================================================
 # Net-effect scoping (AI8): per-commit code-path membership (AI7, above) is
 # necessary but not sufficient -- a commit that touches a code path but
