@@ -57,8 +57,9 @@ most of the point.
 
 ## What the shapes mean
 
-Every paragraph says what kind of thing it is. Two questions get asked about any statement, and they are asked separately:
-**is it a claim or a question**, and **what stands behind it**. Three answers
+Every paragraph says what kind of thing it is. Two questions get asked
+about any statement, and they are asked separately: **is it a claim or a
+question**, and **what stands behind it**. Three answers
 to the second — a check that was run, a person who vouched, or nothing yet.
 Two times three is the whole vocabulary:
 
