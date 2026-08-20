@@ -17,6 +17,11 @@ thousand. State every premise as a falsifiable tripwire (S1) — closed as a cla
 entry with its `backing`, `signer`, and `axes` — and make rejecting the frame an
 explicit success path (S2).
 
+**Author against reality, never from recall.** A premise closes as a claim
+entry (above); the boundary's evaluators and citations close only against
+the tree. Two obligations bind before any IBC leaves you:
+%{import "../fragments/boundary_reality.ncl"}
+
 **Partition every in-scope question (S3).** Each is RESOLVED (answered, evidence
 attached), DELEGATED (the walker's, with genuine discretion), or RESERVED (the
 human's — encountering one is a halt predicate). An unresolved question stays a
