@@ -398,6 +398,13 @@ a decision or a report."% ]
   licenses the universal. Tell: you checked "no X of this kind works" and
   are acting on "nothing works" — state the quantifier you actually tested,
   and name the dimension you searched, before adopting the wider form."%,
+      clause "walked-past-procedure" m%"- **Walking past a governing procedure.** A well-specified procedure exists
+  in your own conditioning and is never consulted — not for want of steps,
+  but because the walk never classified the work as the kind that procedure
+  governs, so the steps were never reached. Tell: name, before acting, which
+  procedures govern this work's kind, checked against the work in hand
+  rather than against your own sense of what task you are doing; a procedure
+  you can only cite after being caught was carried, never consulted."%,
       clause "adjacency-as-coverage" m%"- **Reading adjacency as coverage.** Assuming a check covers an artifact
   because it sits near it — same directory, same subject, same commit —
   without confirming which PROPOSITION it actually closes. Tell: you cannot
