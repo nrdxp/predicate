@@ -636,6 +636,35 @@ expect "red: unparseable closer designation is reported, exit 3" 3 "bad-closer" 
 expect "red: unparseable closer names its marker" 3 "\"marker\": \"R1\"" \
   -- python3 "$extractor" "$fix/red-closer-unparseable.md"
 
+# --- node/ran-and-residual: the exists/ran cut -------------------------------
+#
+# A `check::` span names a mechanism; docs/entries.md's "two evidence
+# species" says a `proved` claim closes only on one that RAN, never one that
+# merely exists. The parser cannot confirm a command executed — what it CAN
+# do is refuse to INFER a run from the command's presence alone, by reading
+# the record's own convention for a stated result (an arrow immediately
+# after the span: `check:: cmd` → observed output). B1 names a check and
+# states nothing; B2, immediately beside it, states its result and must
+# still extract — the report costs B1 its own node, nothing more.
+expect "red: an unrun check is reported, exit 3" 3 "" \
+  -- python3 "$extractor" "$fix/red-unrun-check.md" -o "$tmp/unrun-check.json"
+expect "red: the unrun node is dropped, the finding names it, the sibling survives" \
+  0 "UNRUN-CHECK-OK" \
+  -- python3 - "$tmp/unrun-check.json" <<'EOF'
+import json, sys
+export = json.load(open(sys.argv[1]))
+unrun = [f for f in export["findings"] if f["kind"] == "unrun-check"]
+assert unrun, export["findings"]
+assert unrun[0]["marker"] == "B1", unrun
+ids = [e["id"] for e in export["entries"]]
+assert "red-unrun-check:B1" not in ids, ids
+# The well-formed sibling, naming its result, survives beside the report.
+assert ids == ["red-unrun-check:B2"], ids
+b2 = export["entries"][0]
+assert b2["check"]["ran"] is True, b2
+print("UNRUN-CHECK-OK")
+EOF
+
 # --- the unmarked assertion, and the prose it must not swallow ---------------
 #
 # Every report above fires on a claim that was MARKED and then malformed. The
