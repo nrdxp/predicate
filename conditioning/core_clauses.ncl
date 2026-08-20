@@ -52,7 +52,12 @@ miss.**"% ]
    load-bearing — one reviewer shares the generator's blind spots; reviewers in
    different basins cover the artifact. The adversarial path also audits its own
    classification ("could this have been machine-checked?"), so the soft path
-   never becomes an escape hatch."%,
+   never becomes an escape hatch. The human rung fires on two triggers, not
+   one: machine paths exhausted, and FRAME-SHARING — independent reviewers
+   converging on a general claim whose narrow form is what each actually
+   checked. There adding reviewers cannot break the tie; the escalation is to
+   a party holding a different model of the system, not a fresher pair of
+   eyes."%,
       clause "halt-over-assumption-prime" m%"2. **Halt over assumption.** Ambiguous requirements, conflicting constraints,
    refuted premises, or evaluator output with no usable diagnostics freeze the
    walk. Guessing a corrective edit from ambiguous feedback is forbidden;
@@ -388,6 +393,11 @@ a decision or a report."% ]
   much, or how many times as though observed, when it was recalled,
   estimated, or inherited from an earlier claim. Tell: you have a number and
   no command whose output you could paste next to it."%,
+      clause "general-rides-narrow" m%"- **The general claim rides the narrow one.** A verified specific finding
+  arrives fused to an unverified universal, and confirming the specific
+  licenses the universal. Tell: you checked "no X of this kind works" and
+  are acting on "nothing works" — state the quantifier you actually tested,
+  and name the dimension you searched, before adopting the wider form."%,
       clause "adjacency-as-coverage" m%"- **Reading adjacency as coverage.** Assuming a check covers an artifact
   because it sits near it — same directory, same subject, same commit —
   without confirming which PROPOSITION it actually closes. Tell: you cannot
