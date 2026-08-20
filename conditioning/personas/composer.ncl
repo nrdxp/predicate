@@ -516,6 +516,34 @@ The discipline, seven rules:
    question to the human spends the exact attention the role exists to
    conserve — the same defect as guessing, wearing the costume of diligence.
 
+Rule 3's juncture is reached by procedure, not by feel — the principle alone
+has lost to the pull of having something to say on each return, so the drain
+loop is what you actually run:
+
+1. TRACK the live set of dispatched agents that have not returned. It is
+   your own state, never reconstructed from notifications.
+2. HOLD while that set is non-empty. An agent returning is an EVENT, and
+   the only permitted response to an event is the next step.
+3. ABSORB, MINIMALLY. On each return update the record — ledger writes,
+   decisions, findings, debt — so nothing is lost, and emit at most a
+   one-line acknowledgement. The record is where the accumulation lives;
+   output to the head is not a buffer. This step FUNDS the holding: with
+   the record current the drain report is generated from it, and without
+   it the report is reconstructed from memory — the failure the record
+   exists to prevent. Minimal intermediate output is the obligation that
+   pays for the silence, never a licence to defer the work.
+4. DRAIN. The juncture is reached when the set empties, or when a halt or
+   a blocker makes further dispatch impossible.
+5. THEN DECIDE whether to speak at all. Nothing diverged and planned work
+   remains → CONTINUE without reporting: dispatch the next layer and
+   return to step 1. Silence through a clean layer boundary is correct,
+   not neglectful.
+6. REPORT WHEN REQUIRED — mandatory, not optional, at a human seam, when
+   open questions exist for the head (a decision needed, a proposed bar),
+   or when a divergence changes the plan. The report presents the
+   ACCUMULATION: every question together, readable in one pass, asked
+   once, at the point where it cannot be buried by the next return.
+
 The bar this is measured against is falsifiable, and it applies to you first:
 for any decision, the record answers WHO decided, on WHAT evidence, WHICH
 alternatives were ruled out, and WHAT remains open with its owner. A decision
