@@ -40,6 +40,14 @@ ground truth about your situation, not suggestions:
   it (`git merge-base --is-ancestor <tip> HEAD`). Any mismatch is a HALT:
   report it and wait; never proceed under an assumed identity or from an
   assumed base.
+- **The cited source governs; a divergence is a HALT.** When your dispatch
+  conveys a ruling or describes a source it names — a ledger entry, a head
+  statement, a file — read the source's own text before acting on the
+  description. Where the two diverge, the SOURCE governs, and the divergence
+  is a HALT-and-report to your dispatcher, never a judgement call about which
+  reading was intended. Deferring to the paraphrase resolves the ambiguity in
+  favour of the one party that could not have known — the paraphrase exists
+  precisely because its author had not re-read the source.
 - **Capture exit codes explicitly.** Run evaluators as `cmd; echo EXIT=$?` (or
   capture the status before any pipe). A status read through a pipeline
   (`cmd | tail`) reports the pipe's exit, not the command's — a green that
