@@ -50,6 +50,34 @@ never impl/test signal per Commit.ctype, so scoping changes nothing about
 its verdict, and dropping it would break the parent-chain bookkeeping
 --sweep relies on).
 
+NET EFFECT, NOT PER-COMMIT MEMBERSHIP (AI8)
+--------------------------------------------
+Per-commit code-path membership is necessary but not sufficient: a commit
+that touches a code path but whose content EXACTLY CANCELS an earlier
+commit on that same path (a revert pair) still has no implementation for a
+red baseline to precede -- AI7's own reasoning about presence-check
+evaluators, extended from "this commit touches no code" to "this range
+lands no code that differs from the base"
+(.ledger/state/decisions-architect-intake.yaml, AI8). Demonstrated live:
+pass/architect-intake's 1b6d4b8 (docstring line changed) and d29a77d (that
+line reverted) both touch a code path individually, so AI7's per-commit
+scoping alone still FAILs the range, even though `git diff --stat` between
+the two endpoints, restricted to code paths, is empty.
+
+So before the per-commit ordering check runs at all, this gate compares the
+base and tip TREES DIRECTLY (`git diff --name-only base tip`, restricted to
+code paths) -- never per-commit, and never by summing line counts. Tree
+comparison is what makes this safe against the aggregate-cancellation trap:
+a path that was added then fully reverted contributes nothing to that diff
+regardless of how many commits touched it in between, but a path with any
+FINAL difference from base -- a partial revert, an unrelated net change
+elsewhere -- still appears, because diff --name-only reports per-path
+content identity, never an aggregate count that two unrelated files'
+insertions and deletions could cancel by coincidence. Only when NO code
+path differs at all does the range short-circuit to PASS ahead of the
+ordering check; any non-empty code diff falls through to the unchanged
+per-commit classification above.
+
 WHAT COUNTS AS EVIDENCE, AND WHAT IT CANNOT SEE
 --------------------------------------------------
 The only signal available from committed history without deeper static
@@ -238,6 +266,41 @@ def scope_to_code(repo: str, commits: list) -> list:
     return [c for c in commits if touches_code(repo, c)]
 
 
+def net_code_change(repo: str, base_sha: str, tip_sha: str) -> bool:
+    """AI8: True iff at least one code path's CONTENT differs between
+    base_sha and tip_sha -- comparing the two trees directly, never by
+    walking commits or summing line counts. A path added and later reverted
+    to its base content contributes nothing here no matter how many commits
+    touched it in between (a revert pair nets to no diff for that path); a
+    partial revert or an unrelated net change on any other code path is
+    still picked up, since each path's final content is compared
+    independently and never aggregated across paths."""
+    if base_sha == tip_sha:
+        return False
+    out = run_git(repo, "diff", "--name-only", base_sha, tip_sha)
+    paths = [p for p in out.splitlines() if p]
+    return any(not is_prose_path(p) for p in paths)
+
+
+def classify_range(repo: str, base_sha: str, tip_sha: str) -> Verdict:
+    """The rail's verdict for one [base_sha, tip_sha] range: AI8 first asks
+    whether the range lands any NET code change at all. If not -- a
+    net-cancelling revert pair, or simply no code touched -- there is no
+    implementation for a red baseline to precede, so the range short-
+    circuits to PASS ahead of the ordering check entirely. Only a range with
+    genuine net code change proceeds to AI7's unchanged per-commit
+    classification, scoped to the commits that touch a code path."""
+    commits = commits_between(repo, base_sha, tip_sha)
+    if not net_code_change(repo, base_sha, tip_sha):
+        return Verdict(
+            "PASS",
+            "no net code change across the range -- nothing for a red "
+            "baseline to precede (AI8)",
+            commits,
+        )
+    return classify(scope_to_code(repo, commits))
+
+
 def classify(commits: list) -> Verdict:
     """AC1-4 stated directly:
       1. a test: commit before an implementation commit -> PASS
@@ -288,8 +351,7 @@ def gate_one(repo: str, branch_ref: str, base_ref: str) -> Verdict:
     branch_sha = resolve(repo, branch_ref)
     base_ref_sha = resolve(repo, base_ref)
     base_sha = run_git(repo, "merge-base", base_ref_sha, branch_sha).strip()
-    commits = scope_to_code(repo, commits_between(repo, base_sha, branch_sha))
-    return classify(commits)
+    return classify_range(repo, base_sha, branch_sha)
 
 
 def sweep(repo: str, range_spec: str) -> list:
@@ -308,8 +370,7 @@ def sweep(repo: str, range_spec: str) -> list:
             continue
         p1, p2 = parents
         base_sha = run_git(repo, "merge-base", p1, p2).strip()
-        node_commits = scope_to_code(repo, commits_between(repo, base_sha, p2))
-        results.append((merge_sha, p2, classify(node_commits)))
+        results.append((merge_sha, p2, classify_range(repo, base_sha, p2)))
     return results
 
 
