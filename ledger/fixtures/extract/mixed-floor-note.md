@@ -21,7 +21,7 @@ rows are read from, would satisfy X1 and lose X2.
 ## Claims
 
 `[K1] grade::proved` The floor vocabulary is fixed by the entry contract.
-`check:: bash ledger/gate/test_entry.sh`
+`check:: bash ledger/gate/test_entry.sh` → EXIT=0.
 
 `[X1] grade::synthesis` Support branches into the corpus and out of it at the
 same node. `derives-from:: [K1], [[prior-art/floor-vocabulary]]`

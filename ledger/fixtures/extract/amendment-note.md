@@ -20,7 +20,7 @@ legitimately edge-free, and support that bottoms out in one is exactly what
 ## Claims
 
 `[K1] grade::proved` The ratification landed and the entry gate is green.
-`check:: bash ledger/gate/test_entry.sh` `axes:: +determined +certifiable +monotone`
+`check:: bash ledger/gate/test_entry.sh` → EXIT=0. `axes:: +determined +certifiable +monotone`
 `discharges:: [R1]`
 
 `[K2] grade::cited` The alias ruling covers the legacy corpus.

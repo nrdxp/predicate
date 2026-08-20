@@ -18,7 +18,7 @@ was written down), so this needs no second document to exercise the branch.
 ## Claims
 
 `[K1] grade::proved` The local anchor the surviving edge lands on.
-`check:: true`
+`check:: true` → EXIT=0.
 
 `[X1] grade::synthesis` One qualified corpus ref that resolves, one that
 names a stem this run never declares. `derives-from::

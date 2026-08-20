@@ -4,7 +4,7 @@
 
 `[U1] grade::proved` This document carries a graded node, so it is under the
 discipline and every claim in it is expected to state its backing.
-`check:: true`
+`check:: true` → EXIT=0.
 
 **Unclosed emphasis is still emphasis: this paragraph opens the record's
 assertive form and never closes the pair, so a detector keyed to the closing

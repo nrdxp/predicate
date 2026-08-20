@@ -12,7 +12,7 @@ puts the whole file under the discipline. A detector that decided scope where
 the paragraph was read has not seen this node yet, so it lets the claim
 through unnamed; the report is held until the document has been read for
 exactly that reason.
-`check:: true`
+`check:: true` → EXIT=0.
 
 The order above is the one an evasion arrives in most easily. A writer opens
 with the assertion they decline to type and grades further down, and every

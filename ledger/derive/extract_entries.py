@@ -106,6 +106,12 @@ BRACKET_REF_RE = re.compile(
     r"\[(?:([A-Za-z0-9][A-Za-z0-9-]*):)?([A-Za-z][A-Za-z0-9-]*)\]")
 # a source/derives-from value continues past its span as `, [[wiki]]` segments
 CONTINUATION_RE = re.compile(r"^\s*,?\s*(?:`(\[\[[^\]]+\]\])`|(\[\[[^\]]+\]\]))")
+# The record's own convention for a STATED result, distinguishing a check that
+# ran from one that merely exists: an arrow immediately after the `check::`
+# span, followed by observed output (`→ 2m40s, 412 passed, 0 failed.`). This is
+# the ONLY thing a prose parser can verify — never that the command was
+# actually executed, only that the author recorded what running it produced.
+CHECK_RESULT_RE = re.compile(r"^\s*→\s*\S")
 # The record's assertive form: a paragraph led by a bolded sentence. It is the
 # shape an unmarked claim keeps when its writer declines to type it, and the
 # only handle the grammar has on a claim that opens no marker at all.
@@ -304,10 +310,16 @@ def resolve_qualified(out: Extraction) -> None:
 
 
 def parse_node(rest: str, out: Extraction, doc: str, marker: str,
-               last_source: list[str]) -> tuple[str, dict[str, str]]:
-    """Walk the node's spans: collect companions, keep the rest as statement."""
+               last_source: list[str]) -> tuple[str, dict[str, str], bool | None]:
+    """Walk the node's spans: collect companions, keep the rest as statement.
+
+    The third return is whether a `check::` companion's span was immediately
+    followed by a stated result (CHECK_RESULT_RE) — None when no check
+    companion was present at all, so the caller can tell "no check" from
+    "check present, no result shown" without re-scanning."""
     companions: dict[str, str] = {}
     statement_parts: list[str] = []
+    check_ran: bool | None = None
     pos = 0
     while (span := SPAN_RE.search(rest, pos)) is not None:
         statement_parts.append(rest[pos : span.start()])
@@ -339,6 +351,8 @@ def parse_node(rest: str, out: Extraction, doc: str, marker: str,
                                "source:: same with no prior source in the document")
             elif token == "source":
                 last_source[:] = [value]
+            elif token == "check":
+                check_ran = bool(CHECK_RESULT_RE.match(rest[end:]))
             companions[token] = value
             pos = end
         elif token is not None and token not in RECOGNIZED:
@@ -351,7 +365,7 @@ def parse_node(rest: str, out: Extraction, doc: str, marker: str,
             pos = span.end()
     statement_parts.append(rest[pos:])
     statement = re.sub(r"\s+", " ", "".join(statement_parts)).strip()
-    return statement, companions
+    return statement, companions, check_ran
 
 
 def report_unplaced(block: str, out: Extraction, doc: str) -> None:
@@ -445,7 +459,7 @@ def extract_doc(path: Path, out: Extraction) -> None:
         grades_its_claims = True
         node_id = f"{doc}:{marker}"
         rest = block[marker_match.end():]
-        statement, companions = parse_node(rest, out, doc, marker, last_source)
+        statement, companions, check_ran = parse_node(rest, out, doc, marker, last_source)
         report_unplaced(rest, out, doc)
 
         if grade == "directive":
@@ -468,9 +482,34 @@ def extract_doc(path: Path, out: Extraction) -> None:
             "backing": backing,
             "signer": signer,
         }
+        # Deferred, not an immediate `continue`: an unrun check is reported
+        # and the node dropped from the export, but its OTHER companions are
+        # still walked so a second, independent defect on the same node (a
+        # malformed closer, an unadmitted tag) is still reported rather than
+        # silently swallowed by the first one found. Only the final append is
+        # skipped.
+        drop = False
         if "check" in companions:
-            entry["check"] = {"command": companions["check"], "ran": True,
-                              "at": anchor}
+            if backing == "corroborated" and not check_ran:
+                # The exists/ran cut (docs/entries.md "The two evidence
+                # species"): a check named but never shown to have run is not
+                # corroboration, it is a mechanism nobody executed. The
+                # parser cannot confirm a command actually ran; what it CAN
+                # refuse is INFERRING a run from the command's mere presence.
+                # So this is reported and the node dropped rather than
+                # emitted `corroborated` on no evidence — a walk that types a
+                # plausible `→ result` without running anything is still
+                # beyond what this check can catch.
+                out.report("unrun-check", doc, marker,
+                           f"`check:: {companions['check']}` names a command "
+                           "with no stated result; a proved claim closes "
+                           "only on a check that RAN, not one that merely "
+                           "exists (docs/entries.md, \"The two evidence "
+                           "species\")")
+                drop = True
+            else:
+                entry["check"] = {"command": companions["check"],
+                                  "ran": bool(check_ran), "at": anchor}
         if "source" in companions:
             entry["witness"] = {"name": companions["source"], "at": anchor}
         if "discharge" in companions:
@@ -520,6 +559,8 @@ def extract_doc(path: Path, out: Extraction) -> None:
             else:
                 out.report("bad-tags", doc, marker,
                            f"tags:: expects one or more tokens: `{companions['tags']}`")
+        if drop:
+            continue
         out.entries.append(entry)
         out.grades[node_id] = grade
 

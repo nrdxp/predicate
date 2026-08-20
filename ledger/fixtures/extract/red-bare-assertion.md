@@ -4,7 +4,7 @@
 
 `[U1] grade::proved` This document carries a graded node, so it is under the
 discipline and every claim in it is expected to state its backing.
-`check:: true`
+`check:: true` → EXIT=0.
 
 **The extractor places every claim the record makes.** This paragraph asserts
 in the document's own assertive form, opens no marker, and states no grade, so
