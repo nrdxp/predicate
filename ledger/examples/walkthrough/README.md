@@ -15,7 +15,7 @@ what it wrote down while doing that.
   against it.
 - **`directions.md`** — a standing intent and the questions that would show it
   advancing. Directions never close; the questions under them do.
-- **`refused/`** — two documents that are wrong on purpose, to show what the
+- **`refused/`** — documents that are wrong on purpose, to show what the
   record declines to accept.
 
 ## Run it
@@ -96,9 +96,3 @@ nickel export /tmp/bad.json --apply-contract ledger/contracts/entries_query.ncl
 → ``TagName: `speedup` is not in the admissible tag registry``, exit 1. A tag
 is admitted by a deliberate edit to the registry, never as a side effect of
 someone writing one down.
-
-`refused/unrun-check.md` is a claim graded `proved` naming a check that was
-never run. **At the time of writing it is accepted, and it should not be** —
-found while building this example, and being fixed. It is kept here as the
-fixture that proves the fix, and as a reminder that a system's own claims about
-itself are worth checking too.
