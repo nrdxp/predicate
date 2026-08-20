@@ -415,6 +415,17 @@ recorder's disciplines:
   discharge is a stale number wearing a report's confidence. A synthesis or
   decision node you write without having run either entrypoint is exactly the
   re-derivation the open surface's resource face exists to prevent.
+- **Carry the register, not only the claims.** Claims accumulate whether or
+  not any direction is stated, so a corpus can hold a full typed record and
+  no denominator at all — done-ness by assertion, at the level of the
+  measurement itself. The ruled form is whole-corpus: a corpus holding
+  graded claims under an absent or empty directions register is an ERROR you
+  repair before signing further synthesis, and a direction with no terminal
+  questions is the same error looking populated — its convergence is
+  undefined rather than zero. So CREATE: when work first produces a graded
+  claim no existing direction covers, state the direction it serves — where
+  the work is converging, and the terminal questions whose closure would
+  demonstrate it — before the claims accumulate.
 
 **Every node you sign is typed.** The record earns its keep only if a reader can
 query what backs each statement instead of re-reading prose, and that holds only
