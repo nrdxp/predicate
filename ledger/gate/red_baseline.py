@@ -34,11 +34,16 @@ type. `is_prose_path()` names PROSE narrowly and defaults everything else to
 CODE -- the conservative direction, matching the AMBIGUOUS posture above
 (never assume the flattering reading for an unclassified path):
 
-  * everything under `docs/` or `conditioning/` (AI7's named case: Nickel
-    prompt-composition sources and their e2e install script are verified
-    only by sentinel presence-checks and materialized-file presence-checks,
-    never by a test that discriminates correct logic from incorrect logic);
-  * any `*.md` file anywhere in the repository -- the same reasoning
+  * everything under `docs/`;
+  * `*.ncl` files under `conditioning/` -- AI7's named case, stated in its
+    own words: "the rail fires for code paths and not for
+    conditioning/*.ncl or docs/". Only the Nickel prompt-composition
+    sources get the presence-check ceiling; a non-.ncl file under
+    conditioning/ -- `install.sh`, `test_conditioning.sh` -- is executable,
+    behavior-bearing code with its own pass/fail evaluator (the latter IS
+    that evaluator for the rest of the directory) and stays CODE like any
+    other script, regardless of which directory holds it;
+  * any `*.md` file anywhere in the repository (AI9) -- the same reasoning
     generalized: a doc-audit link/anchor check is a presence check too, no
     less than a conditioning sentinel grep, so a markdown file carries the
     same ceiling regardless of which directory holds it.
@@ -153,9 +158,15 @@ IMPL_TYPES = {"feat", "fix"}
 TEST_TYPES = {"test"}
 # AI7 (.ledger/state/decisions-architect-intake.yaml): a path is PROSE --
 # exempt from D3-T9's ordering requirement, since its only evaluator is a
-# presence check -- when it sits under one of these roots, or is markdown
-# anywhere. Everything else defaults to CODE.
-PROSE_ROOTS = ("docs/", "conditioning/")
+# presence check -- when it sits under docs/ (any file), or is a *.ncl file
+# under conditioning/ (AI7's own words: "the rail fires for code paths and
+# not for conditioning/*.ncl or docs/" -- conditioning/ is scoped to its
+# Nickel prompt-composition sources, never the whole directory: install.sh
+# and test_conditioning.sh are executable, behavior-bearing code, not
+# prose, however they happen to be verified). Markdown anywhere is prose
+# too (AI9). Everything else defaults to CODE.
+DOCS_ROOT = "docs/"
+CONDITIONING_ROOT = "conditioning/"
 # Conventional-Commit header: type, optional (scope), optional breaking `!`,
 # then `: `. Anchored at the start -- a subject that merely CONTAINS a colon
 # further in (e.g. a default `Revert "type(scope): subject"` message) does
@@ -200,10 +211,14 @@ class Verdict:
 
 
 def is_prose_path(path: str) -> bool:
-    """PROSE (exempt from D3-T9's ordering) iff under docs/ or conditioning/,
-    or markdown anywhere -- see the module docstring's PATH SCOPE section.
-    Everything else is CODE, the conservative default."""
-    return path.startswith(PROSE_ROOTS) or path.endswith(".md")
+    """PROSE (exempt from D3-T9's ordering) iff under docs/, or a *.ncl file
+    under conditioning/, or markdown anywhere -- see the module docstring's
+    PATH SCOPE section. A non-.ncl file under conditioning/ (install.sh,
+    test_conditioning.sh) is CODE, the conservative default that everything
+    unmatched here falls to."""
+    if path.startswith(DOCS_ROOT) or path.endswith(".md"):
+        return True
+    return path.startswith(CONDITIONING_ROOT) and path.endswith(".ncl")
 
 
 def run_git(repo: str, *args: str) -> str:
