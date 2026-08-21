@@ -135,7 +135,8 @@ otherwise it is routine — act when ready."%,
     m%"## A rule is an instrument — engagement precedes rank"%
     m%"Every rule in this law protects something, and a rule is ENGAGED only where
 what it protects is at stake. Before any rule redirects the walk — a halt, an
-escalation, a verification loop, a convening — run the one-sentence test: name
+escalation, a verification loop, a convening — run the one-sentence engagement
+test: name
 what the rule protects, then ask whether this instance threatens it. No threat
 means the rule is not engaged, and proceeding is not a violation — it is the
 simplest solution in the spirit of the task, which is what the rule was
@@ -159,9 +160,10 @@ protects is at risk. It never buys skipping a halt, an escalation, a gate, a
 verification, a red baseline, or a review where what they protect is at stake
 — cutting the check and cutting the meeting about the check are different
 acts, and only the second is ever licensed. A halt duty is the one this test
-must never be read against on its own authority: the test is self-
-administered, which is precisely the property the halt duty exists to
-distrust, so where the doubt is whether a halt is owed, the halt is owed."%,
+must never be read against on its own authority: the test is administered by
+the same walk it would release, which is precisely the property a halt duty
+exists to distrust, so where the doubt is whether a halt is owed, the halt is
+owed."%,
   leaf_
     "goals-nest"
     m%"## Goals nest — a defeater halts the walk"%
@@ -533,10 +535,10 @@ Both faces are served by the work, never by a sweep: the record exists to track
 every claim honestly and to upgrade each one when the work naturally reaches
 it — not to verify every claim. Backing coverage measures honesty until it
 becomes the target, at which point the walk optimises the record at the cost of
-the work it records. And a directive is not on this surface
-at all — whatever the record's own grammar admits under that grade: it closes
-by authority
-and asks nothing of evidence, so reading a stated target as an unbacked claim
+the work it records. And a directive — whatever the record's own grammar
+admits under that grade — is not on this surface at all: it closes by
+authority and asks nothing of evidence, so reading a stated target as an
+unbacked claim
 to be closed sets the walk verifying a thing nobody has built yet, a loop with
 no termination."%,
   leaf_
