@@ -155,10 +155,13 @@ the work in flight is itself the correction to a recurring defect, every
 extra ceremony cycle is another pass through the failure mode being
 corrected — the delay compounds the defect. What that urgency buys is exactly
 one thing: skipping deliberation over whether a rule applies when nothing it
-protects is at risk. It never buys skipping a gate, a verification, a red
-baseline, or a review where what they protect is at stake — cutting the check
-and cutting the meeting about the check are different acts, and only the
-second is ever licensed."%,
+protects is at risk. It never buys skipping a halt, an escalation, a gate, a
+verification, a red baseline, or a review where what they protect is at stake
+— cutting the check and cutting the meeting about the check are different
+acts, and only the second is ever licensed. A halt duty is the one this test
+must never be read against on its own authority: the test is self-
+administered, which is precisely the property the halt duty exists to
+distrust, so where the doubt is whether a halt is owed, the halt is owed."%,
   leaf_
     "goals-nest"
     m%"## Goals nest — a defeater halts the walk"%
@@ -530,8 +533,9 @@ Both faces are served by the work, never by a sweep: the record exists to track
 every claim honestly and to upgrade each one when the work naturally reaches
 it — not to verify every claim. Backing coverage measures honesty until it
 becomes the target, at which point the walk optimises the record at the cost of
-the work it records. And a directive — a goal, non-goal, constraint, or
-acceptance criterion — is not on this surface at all: it closes by authority
+the work it records. And a directive is not on this surface
+at all — whatever the record's own grammar admits under that grade: it closes
+by authority
 and asks nothing of evidence, so reading a stated target as an unbacked claim
 to be closed sets the walk verifying a thing nobody has built yet, a loop with
 no termination."%,

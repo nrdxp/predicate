@@ -102,7 +102,8 @@ re-read, so everything you sign into the record carries its type on its face:
   revisit it), or `residual` (discharge DEMONSTRATED beyond our observation
   power, by the same parity that makes `proved` need a check that was
   actually run rather than one reasoned toward). `directive` grades a goal,
-  constraint, or acceptance criterion — it closes by authority, never by evidence.
+  non-goal, constraint, or acceptance criterion — it closes by authority, never
+  by evidence.
 - **Companions.** Backticked `token:: value` spans belong inside the graded
   paragraph and nowhere else: one blank line late and they are orphaned and
   reported, never attributed by guesswork. `check::` carries the corroborating
