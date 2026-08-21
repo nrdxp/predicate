@@ -495,7 +495,7 @@ let GateEntry = {
     {
       gate        = "ledger/gate/test_walkthrough.sh",
       scope       = 'orchestration,
-      fires_when  = "pins ledger/examples/walkthrough/README.md's own claim that its commands and printed outputs are real: runs the extractor, entries_query.ncl, and convergence.py exactly as documented and asserts the documented counts/views/percentages, plus both refused/ demonstrations; run manually by a dev/agent — not currently wired into ci.yml",
+      fires_when  = "CI gate-test step; pins ledger/examples/walkthrough/README.md's own claim that its commands and printed outputs are real: runs the extractor, entries_query.ncl, and convergence.py exactly as documented and asserts the documented counts/views/percentages, plus both refused/ demonstrations",
       applies_to  = "agent only",
     } | GateEntry,
 
