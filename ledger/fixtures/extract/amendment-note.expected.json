@@ -2,7 +2,7 @@
   "entries": [
     {
       "id": "amendment-note:K1",
-      "statement": "The ratification landed and the entry gate is green. → EXIT=0.",
+      "statement": "The ratification landed and the entry gate is green.",
       "assertion": "claim",
       "backing": "corroborated",
       "signer": {

@@ -13,4 +13,4 @@ for a finding that names the grade.
 
 `[G2] grade::proved` A well-formed sibling still extracts beside the report:
 one invented grade costs its own node and nothing standing next to it.
-`check:: true` → EXIT=0.
+`check:: true`

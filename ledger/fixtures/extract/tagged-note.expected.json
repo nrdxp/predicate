@@ -2,7 +2,7 @@
   "entries": [
     {
       "id": "tagged-note:K1",
-      "statement": "First entry, serving D1 alone. → EXIT=0.",
+      "statement": "First entry, serving D1 alone.",
       "assertion": "claim",
       "backing": "corroborated",
       "signer": {
@@ -20,7 +20,7 @@
     },
     {
       "id": "tagged-note:K2",
-      "statement": "Second entry, serving both D1 and D2. → EXIT=0.",
+      "statement": "Second entry, serving both D1 and D2.",
       "assertion": "claim",
       "backing": "corroborated",
       "signer": {
@@ -39,7 +39,7 @@
     },
     {
       "id": "tagged-note:K3",
-      "statement": "Third entry, serving D2 alone. → EXIT=0.",
+      "statement": "Third entry, serving D2 alone.",
       "assertion": "claim",
       "backing": "corroborated",
       "signer": {
@@ -57,7 +57,7 @@
     },
     {
       "id": "tagged-note:K4",
-      "statement": "Fourth entry, untagged — the absence-query control. → EXIT=0.",
+      "statement": "Fourth entry, untagged — the absence-query control.",
       "assertion": "claim",
       "backing": "corroborated",
       "signer": {
@@ -72,7 +72,7 @@
     },
     {
       "id": "tagged-note:K5",
-      "statement": "Fifth entry, serving D2 alongside the topical tag perf — the direction-plus-topic composition the retired enumerated views could never answer. → EXIT=0.",
+      "statement": "Fifth entry, serving D2 alongside the topical tag perf — the direction-plus-topic composition the retired enumerated views could never answer.",
       "assertion": "claim",
       "backing": "corroborated",
       "signer": {
@@ -91,7 +91,7 @@
     },
     {
       "id": "tagged-note:K6",
-      "statement": "Sixth entry, serving all three at once: D1, D2, and perf. → EXIT=0.",
+      "statement": "Sixth entry, serving all three at once: D1, D2, and perf.",
       "assertion": "claim",
       "backing": "corroborated",
       "signer": {
@@ -111,7 +111,7 @@
     },
     {
       "id": "tagged-note:K7",
-      "statement": "Seventh entry, serving the topical tag perf alone. → EXIT=0.",
+      "statement": "Seventh entry, serving the topical tag perf alone.",
       "assertion": "claim",
       "backing": "corroborated",
       "signer": {

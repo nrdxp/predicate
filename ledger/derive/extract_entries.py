@@ -106,14 +106,6 @@ BRACKET_REF_RE = re.compile(
     r"\[(?:([A-Za-z0-9][A-Za-z0-9-]*):)?([A-Za-z][A-Za-z0-9-]*)\]")
 # a source/derives-from value continues past its span as `, [[wiki]]` segments
 CONTINUATION_RE = re.compile(r"^\s*,?\s*(?:`(\[\[[^\]]+\]\])`|(\[\[[^\]]+\]\]))")
-# A `check::` span carries no independent, parser-observable mark of whether
-# the command actually ran — no punctuation convention stands in for that.
-# Authorship IS the attestation: a signer who writes `check:: <cmd>` into a
-# signed record is vouching they ran it, the same way any other testimony in
-# this grammar is trusted to its signer rather than re-derived from prose
-# shape. So a check companion's mere presence sets `ran = true`; a reader who
-# doubts a specific claim re-runs the named command themselves, which is
-# the whole point of the grade being falsifiable at all.
 # The record's assertive form: a paragraph led by a bolded sentence. It is the
 # shape an unmarked claim keeps when its writer declines to type it, and the
 # only handle the grammar has on a claim that opens no marker at all.

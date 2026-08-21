@@ -2,7 +2,7 @@
   "entries": [
     {
       "id": "external-provenance-note:K1",
-      "statement": "The floor vocabulary is fixed by the entry contract. → EXIT=0.",
+      "statement": "The floor vocabulary is fixed by the entry contract.",
       "assertion": "claim",
       "backing": "corroborated",
       "signer": {

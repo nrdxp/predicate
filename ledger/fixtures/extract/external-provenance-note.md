@@ -13,7 +13,7 @@ on the entry that states it.
 ## Claims
 
 `[K1] grade::proved` The floor vocabulary is fixed by the entry contract.
-`check:: bash ledger/gate/test_entry.sh` → EXIT=0.
+`check:: bash ledger/gate/test_entry.sh`
 
 `[X1] grade::synthesis` Support names one corpus antecedent and one that
 structurally cannot be a corpus entry, on the same node. `derives-from:: [K1],
