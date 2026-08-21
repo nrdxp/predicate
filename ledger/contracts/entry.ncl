@@ -491,9 +491,24 @@
     || std.array.length (provenance_of n) > 0
     || std.array.length (refs_of "supersedes" n) > 0,
 
-  # A question carries BOTH halves or it is not routable.
+  # A question carries BOTH halves or it is not routable — EXCEPT `residual`,
+  # which is exempt by the same theorem that puts it on the question side at
+  # all (ResidualIsQuestion): discharge PROVABLY does not exist at our
+  # observation power. Routing demands a `closer` — a party who COULD close
+  # the question — and forcing one onto a residual entry would make every
+  # author name a closer who by definition never can, the identical category
+  # error `Closer`'s own kind set already refuses for `derived` and
+  # `unattributed` signers (no reachable party to designate). Docs/entries.md
+  # states the same call directly: "Do not build a check for a residual
+  # question; name the import it represents and keep it visible" — a
+  # `discharge`/`closer` pair IS that check-in-waiting, and residual has none
+  # to wait for. This EXEMPTS, it does not FORBID: an entry may still carry
+  # both (the routed-question shape stays valid data), so nothing already
+  # authored that way is made invalid — only the requirement to author it
+  # that way is lifted.
   QuestionRoutable = fun n =>
     !(matches n.assertion 'question "question")
+    || matches n.backing 'residual "residual"
     || (std.record.has_field "discharge" n && std.record.has_field "closer" n),
 
   # `residual` means open by theorem. DERIVED, not stipulated: the cell table

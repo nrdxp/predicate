@@ -493,6 +493,13 @@ let GateEntry = {
     } | GateEntry,
 
     {
+      gate        = "ledger/gate/test_walkthrough.sh",
+      scope       = 'orchestration,
+      fires_when  = "CI gate-test step; pins ledger/examples/walkthrough/README.md's own claim that its commands and printed outputs are real: runs the extractor, entries_query.ncl, and convergence.py exactly as documented and asserts the documented counts/views/percentages, plus both refused/ demonstrations",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
       gate        = "ledger/gate/test_entry.sh",
       scope       = 'orchestration,
       fires_when  = "nickel fixture suite for entry.ncl (the ledger typed-claim entry shape) via entry_apply.ncl; run manually by a dev/agent — not currently wired into ci.yml",

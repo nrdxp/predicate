@@ -38,6 +38,7 @@ jobs:
           bash ledger/gate/test_red_baseline.sh
           bash ledger/gate/test_install_hooks.sh
           bash ledger/gate/test_pre_merge_commit.sh
+          bash ledger/gate/test_walkthrough.sh
 
       - name: contract typecheck (all ledger/contracts/*.ncl)
         run: bash ledger/gate/test_contract_typecheck.sh

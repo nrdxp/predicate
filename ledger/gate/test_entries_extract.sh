@@ -481,6 +481,30 @@ assert floors["amendment-note:X4"] == ["unbacked"], floors
 print("AMEND-VIEWS-OK")
 EOF
 
+# --- node/ran-and-residual: awaiting_human excludes residual -----------------
+#
+# `residual` is open BY THEOREM (docs/entries.md's residual section): no work
+# exists to clear it, so it does not belong in a work queue even when it
+# carries a human closer. This fixture is a minimal pair differing only in
+# `backing`: a routed question with a human closer (real work, must appear)
+# beside a residual one with the SAME closer (must not). A view that reads
+# `closer.kind` alone and ignores `backing` puts both in the queue.
+
+expect "residual/awaiting-human: clean fixture extracts, exit 0" 0 "" \
+  -- python3 "$extractor" "$fix/residual-awaiting-note.md" -o "$tmp/residual-awaiting.yaml"
+
+nickel export "$tmp/residual-awaiting.yaml" --apply-contract "$query" \
+  > "$tmp/residual-awaiting-query.json" 2>/dev/null
+expect "residual/awaiting-human: residual excluded, routed included" \
+  0 "RESIDUAL-AWAITING-OK" \
+  -- python3 - "$tmp/residual-awaiting-query.json" <<'EOF'
+import json, sys
+q = json.load(open(sys.argv[1]))
+ids = [row["id"] for row in q["awaiting_human"]]
+assert ids == ["residual-awaiting-note:R1"], ids
+print("RESIDUAL-AWAITING-OK")
+EOF
+
 # --- the mixed floor: an external branch BESIDE an internal one --------------
 #
 # The amendment golden above reaches `external` only from an EDGE-FREE leaf,
@@ -635,6 +659,35 @@ expect "red: unparseable closer designation is reported, exit 3" 3 "bad-closer" 
   -- python3 "$extractor" "$fix/red-closer-unparseable.md"
 expect "red: unparseable closer names its marker" 3 "\"marker\": \"R1\"" \
   -- python3 "$extractor" "$fix/red-closer-unparseable.md"
+
+# --- node/ran-and-residual: `ran` follows authorship, not punctuation -------
+#
+# CORRECTED (the head's own ruling on AI13, superseding an earlier pass on
+# this same node that inferred `ran` from an arrow glyph): a `check::` span
+# carries no parser-observable mark of whether the command actually ran, and
+# no punctuation convention stands in for that. Authorship IS the
+# attestation — a signer who writes `check:: <cmd>` into a signed record is
+# vouching they ran it. So `ran` is unconditionally true wherever a check
+# companion is present, whether or not it also states an observed result,
+# and NO node is ever omitted from the export for carrying one. B1 states no
+# result and B2 does; both extract, both `ran: true` — stating a result
+# changes nothing about `ran`, only a reader's own confidence.
+expect "check-ran: both nodes extract, exit 0" 0 "" \
+  -- python3 "$extractor" "$fix/check-ran-by-authorship.md" -o "$tmp/check-ran.json"
+expect "check-ran: authorship alone sets ran=true, result text or not" \
+  0 "CHECK-RAN-OK" \
+  -- python3 - "$tmp/check-ran.json" <<'EOF'
+import json, sys
+export = json.load(open(sys.argv[1]))
+assert export["findings"] == [], export["findings"]
+ids = [e["id"] for e in export["entries"]]
+assert ids == ["check-ran-by-authorship:B1", "check-ran-by-authorship:B2"], ids
+b1 = next(e for e in export["entries"] if e["id"] == "check-ran-by-authorship:B1")
+b2 = next(e for e in export["entries"] if e["id"] == "check-ran-by-authorship:B2")
+assert b1["check"]["ran"] is True, b1
+assert b2["check"]["ran"] is True, b2
+print("CHECK-RAN-OK")
+EOF
 
 # --- the unmarked assertion, and the prose it must not swallow ---------------
 #

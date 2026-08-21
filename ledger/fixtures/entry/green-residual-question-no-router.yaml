@@ -1,0 +1,15 @@
+# node/ran-and-residual: QuestionRoutable's residual exemption. A residual
+# question is open BY THEOREM (ResidualIsQuestion) — discharge provably does
+# not exist at our observation power, so there is no condition to state and
+# no party who could ever close it. Requiring `discharge`/`closer` anyway (the
+# pre-fix shape) forced every author to name a closer who by definition can
+# never close the question — the same category error `Closer`'s own kind set
+# already refuses for `derived`/`unattributed` signers. This fixture carries
+# NEITHER field and must still export clean.
+id: q-residual-no-router
+statement: "Would this refactor have changed the outcome of flaky failures never recorded?"
+assertion: question
+backing: residual
+signer:
+  kind: agent
+  name: core-worker

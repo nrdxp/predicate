@@ -478,6 +478,13 @@ expect "residual question naming a witness -> export clean" 0 "" \
   -- run "$fix/green-residual-question-with-witness.yaml"
 expect "residual question naming a ran check -> export clean" 0 "" \
   -- run "$fix/green-residual-question-with-ran-check.yaml"
+# node/ran-and-residual: QuestionRoutable's residual exemption — see the
+# fixture's own header. A bare residual question, carrying neither
+# `discharge` nor `closer`, must export clean; the non-residual case (a
+# question missing one or both routing halves) stays refused, already pinned
+# above and by red-corpus-question-unroutable.yaml on the corpus path.
+expect "residual question naming neither discharge nor closer -> export clean" 0 "" \
+  -- run "$fix/green-residual-question-no-router.yaml"
 expect "corpus: unclosed claim naming a witness -> VouchBacked" 1 "VouchBacked" \
   -- run "$fix/red-corpus-unclosed-witness-converse.yaml"
 expect "corpus: unclosed claim naming a ran check -> CorroborationBacked" 1 "CorroborationBacked" \
@@ -519,6 +526,33 @@ for f in green-residual-question-with-witness green-residual-question-with-ran-c
 done
 [ "$converse_fails" = "0" ] || fails=$((fails + 1))
 rm -rf "$converse_mut"
+
+# (mutation) prove QuestionRoutable's residual exemption (node/ran-and-residual)
+# is load-bearing: a mutant that drops the exemption clause must flip the
+# bare-residual green fixture RED — exactly the pre-fix defect, where an
+# author had to name a closer for a question that by theorem can never be
+# closed. The mutant removes the exemption's own unique line rather than
+# patching the tracked file in place.
+routable_mut="$(mktemp -d)"
+cp "$law" "$routable_mut/entry.ncl"
+cp "$root/ledger/contracts/tag_registry.ncl" "$routable_mut/tag_registry.ncl"
+cp "$apply" "$routable_mut/entry_apply.ncl"
+[ "$(grep -c "|| matches n.backing 'residual \"residual\"" "$routable_mut/entry.ncl")" = "1" ] \
+  || { echo "ENV: QuestionRoutable exemption clause not found once in the tracked law — the literal moved or the fix is not landed"; exit 2; }
+sed -i "/|| matches n.backing 'residual \"residual\"/d" "$routable_mut/entry.ncl"
+[ "$(grep -c "|| matches n.backing 'residual \"residual\"" "$routable_mut/entry.ncl")" = "0" ] \
+  || { echo "ENV: QuestionRoutable exemption mutation did not remove the clause — the literal moved"; exit 2; }
+mutant_out="$(cd "$root" && nickel export "$fix/green-residual-question-no-router.yaml" \
+  --apply-contract "$routable_mut/entry_apply.ncl" 2>&1)"
+mutant_rc=$?
+if [ "$mutant_rc" -ne 0 ]; then
+  echo "PASS  (mutation) dropping the residual exemption flips green-residual-question-no-router red — the exemption is load-bearing"
+else
+  echo "FAIL  (mutation) green-residual-question-no-router still exports clean with the exemption removed — the exemption proves nothing"
+  printf '%s\n' "$mutant_out" | tail -3
+  fails=$((fails + 1))
+fi
+rm -rf "$routable_mut"
 
 # --- cure_for: pinned against the ibc-pass1.md §2b table, NOT its own branches
 # The six expected strings are HARDCODED here (sourced from the paper's cell

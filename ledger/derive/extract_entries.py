@@ -469,8 +469,14 @@ def extract_doc(path: Path, out: Extraction) -> None:
             "signer": signer,
         }
         if "check" in companions:
-            entry["check"] = {"command": companions["check"], "ran": True,
-                              "at": anchor}
+            # `ran` is unconditionally true here: the signer wrote this span
+            # into a SIGNED record, and that authorship is itself the
+            # attestation that the command ran (ruling AI13's correction —
+            # no punctuation convention stands in for a signer's testimony).
+            # The parser cannot observe a run and does not try to; a reader
+            # who doubts a specific claim re-runs the named command.
+            entry["check"] = {"command": companions["check"],
+                              "ran": True, "at": anchor}
         if "source" in companions:
             entry["witness"] = {"name": companions["source"], "at": anchor}
         if "discharge" in companions:
