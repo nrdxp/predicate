@@ -660,41 +660,33 @@ expect "red: unparseable closer designation is reported, exit 3" 3 "bad-closer" 
 expect "red: unparseable closer names its marker" 3 "\"marker\": \"R1\"" \
   -- python3 "$extractor" "$fix/red-closer-unparseable.md"
 
-# --- node/ran-and-residual: the exists/ran cut is REPORTED, never a drop ----
+# --- node/ran-and-residual: `ran` follows authorship, not punctuation -------
 #
-# A `check::` span names a mechanism; docs/entries.md's "two evidence
-# species" distinguishes a check that RAN from one that merely exists. The
-# parser cannot confirm a command executed — what it CAN do is refuse to
-# INFER a run from the command's presence alone, by reading the record's own
-# convention for a stated result (an arrow immediately after the span:
-# `check:: cmd` → observed output). Ruling AI13 (.ledger/state/
-# decisions-architect-intake.yaml): a derivation tool never omits a node for
-# ANY reason — judging a node's admissibility is the type layer's job
-# (entry.ncl's CorroborationBacked), never this string parser's. So B1, which
-# names a check and states nothing, still appears in the export with
-# `check.ran: false`, and the finding still fires so a reader knows to go
-# verify it independently. B2, immediately beside it, states its result and
-# extracts with `check.ran: true` — the report changes nothing about which
-# nodes appear, only the honesty of `ran`.
-expect "red: an unrun check is still reported, exit 3" 3 "" \
-  -- python3 "$extractor" "$fix/red-unrun-check.md" -o "$tmp/unrun-check.json"
-expect "red: the unrun node is EMITTED (check.ran=false), sibling too" \
-  0 "UNRUN-CHECK-OK" \
-  -- python3 - "$tmp/unrun-check.json" <<'EOF'
+# CORRECTED (the head's own ruling on AI13, superseding an earlier pass on
+# this same node that inferred `ran` from an arrow glyph): a `check::` span
+# carries no parser-observable mark of whether the command actually ran, and
+# no punctuation convention stands in for that. Authorship IS the
+# attestation — a signer who writes `check:: <cmd>` into a signed record is
+# vouching they ran it. So `ran` is unconditionally true wherever a check
+# companion is present, whether or not it also states an observed result,
+# and NO node is ever omitted from the export for carrying one. B1 states no
+# result and B2 does; both extract, both `ran: true` — stating a result
+# changes nothing about `ran`, only a reader's own confidence.
+expect "check-ran: both nodes extract, exit 0" 0 "" \
+  -- python3 "$extractor" "$fix/check-ran-by-authorship.md" -o "$tmp/check-ran.json"
+expect "check-ran: authorship alone sets ran=true, result text or not" \
+  0 "CHECK-RAN-OK" \
+  -- python3 - "$tmp/check-ran.json" <<'EOF'
 import json, sys
 export = json.load(open(sys.argv[1]))
-unrun = [f for f in export["findings"] if f["kind"] == "unrun-check"]
-assert unrun, export["findings"]
-assert unrun[0]["marker"] == "B1", unrun
-# The finding must no longer claim the node was dropped -- it wasn't.
-assert "drop" not in unrun[0]["reason"].lower(), unrun[0]["reason"]
+assert export["findings"] == [], export["findings"]
 ids = [e["id"] for e in export["entries"]]
-assert ids == ["red-unrun-check:B1", "red-unrun-check:B2"], ids
-b1 = next(e for e in export["entries"] if e["id"] == "red-unrun-check:B1")
-b2 = next(e for e in export["entries"] if e["id"] == "red-unrun-check:B2")
-assert b1["check"]["ran"] is False, b1
+assert ids == ["check-ran-by-authorship:B1", "check-ran-by-authorship:B2"], ids
+b1 = next(e for e in export["entries"] if e["id"] == "check-ran-by-authorship:B1")
+b2 = next(e for e in export["entries"] if e["id"] == "check-ran-by-authorship:B2")
+assert b1["check"]["ran"] is True, b1
 assert b2["check"]["ran"] is True, b2
-print("UNRUN-CHECK-OK")
+print("CHECK-RAN-OK")
 EOF
 
 # --- the unmarked assertion, and the prose it must not swallow ---------------
