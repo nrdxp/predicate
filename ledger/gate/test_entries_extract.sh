@@ -228,6 +228,32 @@ expect "red: pre-standard doc (no signer:: header) is reported whole" 3 "\"kind\
 expect "red: source:: same with no prior source is reported" 3 "\"kind\": \"unresolved-anaphora\"" \
   -- python3 "$extractor" "$fix/red-orphan-same.md"
 
+# node/anaphora-stub-written-after-diagnosis: the diagnosis above must not
+# fall through to a write. The prior case only pins that the finding fires;
+# it says nothing about the entry's own fields, so a stub witness naming the
+# unresolved token itself ("same") satisfies it just as well as a correct
+# fix. This case pins the entry directly: `source:: same` with nothing to
+# resolve against must leave K1 with NO `witness` field at all — reported and
+# honestly unclosed, never a witness stub named "same" that is not a witness.
+python3 "$extractor" "$fix/red-orphan-same.md" -o "$tmp/orphan-same.json" \
+  2>"$tmp/orphan-same.err"; orphan_same_rc=$?
+orphan_same_ok=1
+[ "$orphan_same_rc" -eq 3 ] || orphan_same_ok=0
+grep -q "unresolved-anaphora" "$tmp/orphan-same.err" || orphan_same_ok=0
+python3 - "$tmp/orphan-same.json" <<'EOF' || orphan_same_ok=0
+import json, sys
+export = json.load(open(sys.argv[1]))
+[k1] = [e for e in export["entries"] if e["id"] == "red-orphan-same:K1"]
+assert "witness" not in k1, k1
+EOF
+if [ "$orphan_same_ok" -eq 1 ]; then
+  echo "PASS  (rc=$orphan_same_rc) anaphora stub: unresolved source:: same writes no witness"
+else
+  echo "FAIL  (rc=$orphan_same_rc) anaphora stub: unresolved source:: same writes no witness"
+  tail -5 "$tmp/orphan-same.err" "$tmp/orphan-same.json" 2>/dev/null
+  fails=$((fails + 1))
+fi
+
 expect "red: signer kind outside the five modes is reported" 3 "\"kind\": \"bad-header\"" \
   -- python3 "$extractor" "$fix/red-bad-header.md"
 

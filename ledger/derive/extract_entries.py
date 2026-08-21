@@ -337,6 +337,13 @@ def parse_node(rest: str, out: Extraction, doc: str, marker: str,
                 else:
                     out.report("unresolved-anaphora", doc, marker,
                                "source:: same with no prior source in the document")
+                    # Report and SKIP the write: the node stays honestly
+                    # unclosed rather than carrying a witness stub named
+                    # "same" that is not a witness (the diagnosed defect —
+                    # falling through to `companions[token] = value` here
+                    # writes the unresolved literal as if it resolved).
+                    pos = end
+                    continue
             elif token == "source":
                 last_source[:] = [value]
             companions[token] = value

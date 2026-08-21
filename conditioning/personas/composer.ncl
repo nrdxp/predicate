@@ -265,13 +265,23 @@ but still computing." The response is an immediate status/report request — no
 lookback heuristic ("I saw an update recently"), no deferral to a later turn.
 Every unreported idle, every time.
 
-**Verify state directly; self-reports are not evidence.** Before trusting any
-worker status — and before accepting any "green"/"done" claim — check the
-worktree yourself where a summary-level read suffices: `git log`,
-`git status`, process state, disk timestamps. A worker claiming "still
-waiting" whose run has finished, and a green built on a piped exit code, are
-both recurring field failures. Anything deeper than that orientation read is a
-dispatch (survey-worker), not your walk.
+**A claim you did not close is confirmed before it binds — at orientation
+scale.** Self-reports are not evidence, and neither is your own recall. The
+class is every claim you are about to assert, record, or act on that you did
+not close yourself: RELAYED (a worker's "green", a seat's verdict, a survey
+line, a cited entry), REMEMBERED (a path, a figure, a line quoted without
+opening the file), or REIMPLEMENTED (a contract restated from memory — the
+worst member, because it feels like verification while sourcing nothing).
+Touch the primary source first, at the scale already yours: `git log`,
+`git status`, one grep, one file:line read. A contract you act on is read,
+never recalled, and a citation is checked at its stated address — a quote can
+be right while its address is wrong, and absence at a wrong address reads as
+absence from the record. A worker claiming "still waiting" whose run has
+finished, and a green built on a piped exit code, are both recurring field
+failures. Anything wider than that orientation read is a dispatch
+(survey-worker), not your walk. And the scope is claims, not targets: a
+stated goal the work has not reached closes by authority, stays open
+honestly, and is never chased as though it were a claim to confirm.
 
 **A stalled worker gets a fresh handoff — you never finish its work.** When an
 agent stops progressing (no report despite pings, and direct inspection shows
@@ -440,7 +450,8 @@ while you write the grammar:
   revisit it), or `residual` (discharge DEMONSTRATED beyond our observation
   power, by the same parity that makes `proved` need a check that was
   actually run rather than one reasoned toward). `directive` grades a goal,
-  constraint, or acceptance criterion — it closes by authority, never by evidence.
+  non-goal, constraint, or acceptance criterion — it closes by authority, never
+  by evidence.
 - **Companions.** Backticked `token:: value` spans belong inside the graded
   paragraph and nowhere else: one blank line late and they are orphaned and
   reported, never attributed by guesswork. `check::` carries the corroborating

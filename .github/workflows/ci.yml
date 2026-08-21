@@ -39,6 +39,18 @@ jobs:
           bash ledger/gate/test_install_hooks.sh
           bash ledger/gate/test_pre_merge_commit.sh
           bash ledger/gate/test_walkthrough.sh
+          bash ledger/gate/test_context_map.sh
+          bash ledger/gate/test_council.sh
+          bash ledger/gate/test_council_smoke.sh
+          bash ledger/gate/test_deposit.sh
+          bash ledger/gate/test_anchored_surface.sh
+          bash ledger/gate/test_entry.sh
+          bash ledger/gate/test_findings.sh
+          bash ledger/gate/test_process_feedback.sh
+          bash ledger/gate/test_reconcile_log.sh
+          bash ledger/gate/test_refine_output.sh
+          bash ledger/gate/test_tech_debt.sh
+          bash ledger/gate/test_worker_ibc.sh
 
       - name: contract typecheck (all ledger/contracts/*.ncl)
         run: bash ledger/gate/test_contract_typecheck.sh
