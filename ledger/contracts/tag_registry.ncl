@@ -16,6 +16,13 @@
 # namespace by design); `category` stays recorded here purely as
 # classification metadata for a reader browsing the registry itself.
 #
+# `conditioning` was admitted after a node was found carrying it unadmitted.
+# The bar is admit-then-use and that node was written the other way round, so
+# the question at repair was which half to correct. Admitted rather than
+# struck because the conditioning layer is a standing subsystem a reader
+# would ask about; the same node's `cutting-pass` was struck instead, being
+# one pass's name rather than anything a second entry would ever carry.
+#
 # `perf` is the first registered topic tag (node/tag-query,
 # ledger/log/2026-08-12-tagging-hypothesis.md's own composer dispatch: "do
 # not tag any existing entry... ship the mechanism and the registry" no
@@ -28,6 +35,7 @@
   D1 = { category = "direction" },
   D2 = { category = "direction" },
   D3 = { category = "direction" },
+  conditioning = { category = "topic" },
   failure-class = { category = "topic" },
   gate-mechanism = { category = "topic" },
   perf = { category = "topic" },
