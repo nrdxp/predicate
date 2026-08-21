@@ -121,9 +121,22 @@ it for being off-topic has thrown away the most expensive thing it produced.
 `refused/unadmitted-tag.md` uses a tag nobody registered:
 
 ```
+python3 ledger/derive/extract_entries.py ledger/examples/walkthrough/refused/unadmitted-tag.md -o /tmp/bad.json
 nickel export /tmp/bad.json --apply-contract ledger/contracts/entries_query.ncl
 ```
 
 → ``TagName: `speedup` is not in the admissible tag registry``, exit 1. A tag
 is admitted by a deliberate edit to the registry, never as a side effect of
 someone writing one down.
+
+`refused/dangling-reference.md` points a `derives-from::` edge at an id no
+document in the corpus declares:
+
+```
+python3 ledger/derive/extract_entries.py ledger/examples/walkthrough/refused/dangling-reference.md -o /tmp/bad2.json
+```
+
+→ `` `[deposit:W99]` is a qualified reference to an id the corpus does not
+declare; the edge is dropped``, exit 3. The extractor reports it and drops
+the edge rather than silently keeping a link to nothing — a derivation tool
+never omits what it cannot place; it says so and moves on.
