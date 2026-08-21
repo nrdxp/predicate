@@ -12,6 +12,8 @@ See the [Getting Started Guide](docs/getting-started.md) to integrate Predicate 
 
 The doctrine below is heavy; the daily experience is not. A concrete example: you ask the agent to fix a bug and invoke the `core` workflow (`predicate:core`). Instead of editing the implementation directly, the agent first writes a test that captures the bug and runs it to confirm it *fails* (a baseline failure — proof the test actually exercises the bug). Only then does it write the fix, re-running the test until it passes. When it commits, the `commit-msg` hook rejects the message if it does not follow Conventional Commits form or references context a stranger could not resolve. None of that is the agent remembering to be careful — each step is a gate that *blocks* until satisfied. The rest of this document explains why those gates are shaped the way they are.
 
+A fuller, runnable worked example — a real record an agent wrote while cutting a test suite down to size — lives at [`ledger/examples/walkthrough/`](ledger/examples/walkthrough/README.md).
+
 ## Repository structure
 
 ```

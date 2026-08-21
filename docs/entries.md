@@ -4,6 +4,9 @@
 > first — it defines the vocabulary (*walk*, *IBC*, *Nickel*, *deposit*,
 > *.ledger*, the *Verification Dual*) this document uses.
 
+> Want it concrete? [`ledger/examples/walkthrough/`](../ledger/examples/walkthrough/README.md)
+> is a runnable corpus that instantiates every grade below once.
+
 Every entry in a predicate record carries its evidence — or visibly does not.
 This document is the **single home** of the typed-claim vocabulary: what an
 entry asserts, what backs it, who signed it, and who may write which record.

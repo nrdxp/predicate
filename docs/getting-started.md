@@ -223,6 +223,8 @@ Confirm your agent runner detects and loads the Predicate configuration.
 
 ## Next Steps
 
+- **See it in action:** Walk through a real, runnable example of the record
+  system at [ledger/examples/walkthrough/](../ledger/examples/walkthrough/README.md).
 - **Custom content:** See [authoring.md](authoring.md) for writing your own
   custom skills.
 - **Architecture overview:** See [predicate-architecture.md](predicate-architecture.md) for the
