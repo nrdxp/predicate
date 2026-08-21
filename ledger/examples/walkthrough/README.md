@@ -23,10 +23,13 @@ what it wrote down while doing that.
 Extract the prose into structured entries:
 
 ```
-python3 ledger/derive/extract_entries.py ledger/examples/walkthrough -o /tmp/wt.json
+python3 ledger/derive/extract_entries.py ledger/examples/walkthrough/deposit.md ledger/examples/walkthrough/directions.md -o /tmp/wt.json
 ```
 
-→ 11 entries, 5 directives, 0 findings.
+→ 11 entries, 5 directives, 0 findings. (Point the extractor at the whole
+`ledger/examples/walkthrough` directory instead and it also sweeps up this
+README and `refused/` — both hold graded-looking prose deliberately, so the
+corpus proper is these two files.)
 
 Ask what is open, what is backed by nothing, and what only a person can settle:
 
@@ -34,7 +37,7 @@ Ask what is open, what is backed by nothing, and what only a person can settle:
 nickel export /tmp/wt.json --apply-contract ledger/contracts/entries_query.ncl
 ```
 
-→ `awaiting_human` holds two questions, `runnable_now` one, `unbacked` one.
+→ `awaiting_human` holds one question, `runnable_now` one, `unbacked` one.
 Nothing was marked open or closed by hand — it is computed from the links
 between entries.
 
