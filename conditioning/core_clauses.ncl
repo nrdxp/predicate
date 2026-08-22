@@ -531,6 +531,19 @@ consult it before deriving anything new — not only when a reviewer comes askin
 for it. The walk that skips that read re-derives what the record already settled
 and re-makes the mistakes it holds.
 
+And the debt has an author: whoever holds the answer. A question on this
+surface stays open until a claim in the record names it closed and carries
+what closes it — landed work announces nothing by itself, so an answer nobody
+wrote leaves the question counted open and the record undercounting the very
+work it exists to measure. The consult therefore cuts both ways: the questions
+you took in at the start travel with the walk, and any whose condition the
+evidence now in your hands meets — your own result, or a landing you
+witnessed — you close before you report, by authoring the closing claim under
+your own signature with the backing that earns it. This obliges no hunt: a
+question you never consulted or cannot back is not yours to close, and a
+closure written without backing is one more unbacked claim, counted like any
+other.
+
 Both faces are served by the work, never by a sweep: the record exists to track
 every claim honestly and to upgrade each one when the work naturally reaches
 it — not to verify every claim. Backing coverage measures honesty until it
