@@ -15,6 +15,16 @@
 # once the carrier is added to that same scope -- nothing about either
 # document changes between the two invocations.
 #
+# ledger/fixtures/topic_query/xtopic/ reproduces the real defect this suite
+# was extended for (architect-seat ruling [ST47]): the caller's scope selects
+# what is DISPLAYED, but the closed set must be computed over the WHOLE
+# corpus, never just the paths the caller happened to pass. xtopic/asking/
+# carries the question; xtopic/elsewhere/ carries its carrier, in a
+# DIFFERENT topic the caller never names. TOPIC_QUERY_LEDGER_ROOT is the
+# test seam standing in for the real ledger root ($root/.ledger in
+# production) so this proves the mechanism without depending on -- or
+# writing into -- the live corpus.
+#
 # Usage: test_topic_query.sh
 # Exit:  0 = every case matched, 1 = a case mismatched, 2 = environment error.
 set -u
@@ -23,11 +33,16 @@ root="$(cd "$here/../.." && pwd)"
 tool="$root/ledger/gate/topic_query.sh"
 open="$root/ledger/fixtures/topic_query/open"
 carrier="$root/ledger/fixtures/topic_query/carrier"
+xtopic="$root/ledger/fixtures/topic_query/xtopic"
+asking="$xtopic/asking"
+elsewhere="$xtopic/elsewhere"
 
 command -v python3 >/dev/null 2>&1 || { echo "ENV: python3 not found on PATH"; exit 2; }
 command -v nickel >/dev/null 2>&1 || { echo "ENV: nickel not found on PATH"; exit 2; }
 [ -d "$open" ] || { echo "ENV: open fixture missing: $open"; exit 2; }
 [ -d "$carrier" ] || { echo "ENV: carrier fixture missing: $carrier"; exit 2; }
+[ -d "$asking" ] || { echo "ENV: xtopic/asking fixture missing: $asking"; exit 2; }
+[ -d "$elsewhere" ] || { echo "ENV: xtopic/elsewhere fixture missing: $elsewhere"; exit 2; }
 
 fails=0
 # expect DESC EXPECTED-RC KEYWORD -- COMMAND...
@@ -69,6 +84,23 @@ if [ "$(printf '%s' "$out" | tr -d '[:space:]')" = "[]" ]; then
   echo "PASS  (0) the closed view is an explicit empty array, not silence"
 else
   echo "FAIL  the closed view did not print an explicit []: $out"
+  fails=$((fails + 1))
+fi
+
+# Cross-topic closure (architect-seat ruling [ST47]). The carrier lives in a
+# topic the caller never names; scoping to the question's own topic ALONE
+# must still see it closed once the corpus root spans both.
+expect "the cross-topic question, scoped alone with the default (real) ledger root, stays open (control)" 0 "asked:Q9" \
+  -- "$tool" awaiting_human "$asking"
+
+expect "the same question, scoped to its own topic alone, closes once the corpus root spans its carrier's topic too" 0 "" \
+  -- env TOPIC_QUERY_LEDGER_ROOT="$xtopic" "$tool" awaiting_human "$asking"
+
+out="$(env TOPIC_QUERY_LEDGER_ROOT="$xtopic" "$tool" awaiting_human "$asking" 2>&1)"
+if [ "$(printf '%s' "$out" | tr -d '[:space:]')" = "[]" ]; then
+  echo "PASS  (0) the cross-topic closed view is an explicit empty array, not silence"
+else
+  echo "FAIL  the cross-topic closed view did not print an explicit []: $out"
   fails=$((fails + 1))
 fi
 
