@@ -593,7 +593,7 @@ let GateEntry = {
     {
       gate        = "ledger/gate/test_directions_register.sh",
       scope       = 'orchestration,
-      fires_when  = "run manually by a dev/agent — not currently wired into ci.yml; fixture suite for directions_register.py over synthetic standalone corpora (empty register, no terminal targets, clean, claims-free questions-only) pinning AI5's two conditions and that a corpus holding only questions owes no register",
+      fires_when  = "CI directions-register step; fixture suite for directions_register.py over synthetic standalone corpora (empty register, no terminal targets, clean, claims-free questions-only) pinning AI5's two conditions and that a corpus holding only questions owes no register",
       applies_to  = "agent only",
     } | GateEntry,
 

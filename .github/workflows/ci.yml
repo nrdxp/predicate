@@ -136,6 +136,14 @@ jobs:
       - name: terminal freshness check (directions:D3-T10 fixtures)
         run: bash ledger/gate/test_terminal_freshness.sh
 
+      # directions_register.py itself is NOT run here, for the same reason
+      # self_vouch.py and terminal_freshness.py are not: it reads the main
+      # tree's .ledger, which is gitignored project state absent from every
+      # CI checkout. This suite exercises the derivation against synthetic
+      # fixture corpora instead.
+      - name: directions-register completeness check (directions:D3-T12 fixtures)
+        run: bash ledger/gate/test_directions_register.sh
+
       - name: gate-scope completeness (fails on undeclared gate)
         run: bash ledger/gate/check_scopes.sh
 

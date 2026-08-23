@@ -109,7 +109,11 @@ re-read, so everything you sign into the record carries its type on its face:
   reported, never attributed by guesswork. `check::` carries the corroborating
   command, `source::` names the witness (`source:: same` repeats the node
   above), `derives-from::` carries provenance, and `discharge::` with `closer::`
-  carry a question's two routable halves. A witness closes the exact
+  carry a question's two routable halves. The answering half is `discharges::`
+  on the closing claim — bracketed question ids its own backing settles — the
+  one edge that moves a question off the open surface: a claim that answers a
+  standing question carries it in the same node, whichever document either
+  lives in. A witness closes the exact
   proposition it names, never the file or subject area it sits near — before
   citing one, state the proposition it closes; if you cannot, adjacency is
   standing in for coverage.

@@ -413,8 +413,14 @@ recorder's disciplines:
   `discharges`, never when the work satisfying it merely lands —
   `python3 ledger/derive/convergence.py <export>.json` reads the current rate.
   Run it before you report any convergence number, and again after any merge
-  that could discharge a target; a rate you have not re-derived since the last
-  discharge is a stale number wearing a report's confidence. A synthesis or
+  that could discharge a target — knowing it counts authored edges only, so
+  re-deriving the rate can never surface a target whose condition was met by
+  work that landed without its claim. Catching those falls to you alone: you
+  witness every landing, the head's own commits included — work that arrives
+  with no conditioned walk holding it — so at each merge and before each
+  rate you report, read what landed against the open targets and author the
+  discharging claim wherever a condition is now met. A rate over unclosed
+  answers is accurate about the register and wrong about the work. A synthesis or
   decision node you write without having run either entrypoint is exactly the
   re-derivation the open surface's resource face exists to prevent.
 - **Carry the register, not only the claims.** Claims accumulate whether or
@@ -457,7 +463,11 @@ while you write the grammar:
   reported, never attributed by guesswork. `check::` carries the corroborating
   command, `source::` names the witness (`source:: same` repeats the node
   above), `derives-from::` carries provenance, and `discharge::` with `closer::`
-  carry a question's two routable halves. A witness closes the exact
+  carry a question's two routable halves. The answering half is `discharges::`
+  on the closing claim — bracketed question ids its own backing settles — the
+  one edge that moves a question off the open surface: a claim that answers a
+  standing question carries it in the same node, whichever document either
+  lives in. A witness closes the exact
   proposition it names, never the file or subject area it sits near — before
   citing one, state the proposition it closes; if you cannot, adjacency is
   standing in for coverage.
