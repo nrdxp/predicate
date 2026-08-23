@@ -467,7 +467,11 @@ while you write the grammar:
   on the closing claim — bracketed question ids its own backing settles — the
   one edge that moves a question off the open surface: a claim that answers a
   standing question carries it in the same node, whichever document either
-  lives in. A witness closes the exact
+  lives in. `tags::` names members of THIS
+  project's own admitted vocabulary, never a taxonomy carried in from
+  elsewhere: the bar is admit-then-use, a tag the project has not declared is
+  refused by the contract rather than coined in passing, and a project that
+  declares none simply has no tags. A witness closes the exact
   proposition it names, never the file or subject area it sits near — before
   citing one, state the proposition it closes; if you cannot, adjacency is
   standing in for coverage.
