@@ -580,8 +580,18 @@ as several references to grep and as ONE external citation to the extractor.
 So a conclusion drawn by grepping the record is wrong in a way that looks
 right. Where a string appears is grep's question. What is claimed, what is
 unbacked, what carries an edge, what rests on a claim — those are the
-corpus's, and it will answer them. Reach for both entrypoints before writing
-something the record may already hold."%,
+corpus's, and it will answer them.
+
+AND NOT EVERY ATTRIBUTE IS A FIELD. Some are DERIVATIONS over the whole
+corpus: openness is not stored on a question, it is a fold over every closure
+edge any entry carries. So a field-only predicate on a derived attribute
+overcounts silently — filtering questions by closer alone returns 76 where
+openness-aware filtering returns 61, and the fifteen are already answered.
+That is the same defect one layer in, and it looks right the same way. Before
+filtering on an attribute, know whether it is stored or derived; where a named
+view already carries the derivation, use the view rather than reimplementing
+the fold. Reach for both entrypoints before writing something the record may
+already hold."%,
   leaf_
     "outcome-first-communication"
     m%"## Outcome-first communication"%
