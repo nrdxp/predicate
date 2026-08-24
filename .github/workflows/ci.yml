@@ -37,7 +37,6 @@ jobs:
           bash ledger/gate/test_trial_merge.sh
           bash ledger/gate/test_red_baseline.sh
           bash ledger/gate/test_install_hooks.sh
-          bash ledger/gate/test_pre_merge_commit.sh
           bash ledger/gate/test_walkthrough.sh
           bash ledger/gate/test_context_map.sh
           bash ledger/gate/test_council.sh

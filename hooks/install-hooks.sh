@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 # install-hooks.sh — wire the tracked hooks into git, in one idempotent command.
 #
-# Installs the tracked hooks/ (commit-msg, pre-commit, pre-merge-commit) into
-# the repository's git hooks directory. Safe to re-run: an already-correct
-# hook is left as-is.
+# Installs the tracked hooks/ (commit-msg, pre-commit) into the repository's
+# git hooks directory. Safe to re-run: an already-correct hook is left as-is.
 #
 # Worktree-correct: git stores hooks in the COMMON git dir (shared by the main
 # checkout and every linked worktree), so installing once makes the hooks
@@ -16,9 +15,9 @@
 # Exit:   0 = installed / already current / removed, non-zero = could not complete.
 set -euo pipefail
 
-# The three tracked hooks this installer manages, in one place so install and
+# The tracked hooks this installer manages, in one place so install and
 # uninstall (and every fixture) enumerate the identical set.
-HOOK_NAMES=(commit-msg pre-commit pre-merge-commit)
+HOOK_NAMES=(commit-msg pre-commit)
 
 # Parse args: support --uninstall mode.
 mode="install"

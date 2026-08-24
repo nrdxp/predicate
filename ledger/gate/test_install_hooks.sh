@@ -27,9 +27,7 @@
 #       sources the plugin's own hooks/ regardless of worktree topology.
 #   (d) UNINSTALL, REAL FILE PRESERVED -- a real (non-symlink) hook file at
 #       the destination, ours or a user's own, is never removed by
-#       --uninstall, for every hook name the installer manages (a regression
-#       check covering the third hook, pre-merge-commit, added alongside
-#       this fix).
+#       --uninstall, for every hook name the installer manages.
 #
 # Usage: test_install_hooks.sh
 # Exit:  0 = every case matched, 1 = a case mismatched, 2 = environment error.
@@ -72,7 +70,7 @@ seed_selfhost_repo() { # dir installer-path
   mkdir -p "$dir/hooks"
   cp "$installer" "$dir/hooks/install-hooks.sh"
   chmod +x "$dir/hooks/install-hooks.sh"
-  for hook in commit-msg pre-commit pre-merge-commit; do
+  for hook in commit-msg pre-commit; do
     printf '#!/usr/bin/env bash\nexit 0\n' > "$dir/hooks/$hook"
     chmod +x "$dir/hooks/$hook"
   done
@@ -165,8 +163,7 @@ fi
 
 # =============================================================================
 # Case (d): uninstall never removes a real (non-symlink) hook file -- ours or
-# a user's own -- for every hook name the installer manages, including the
-# third hook (pre-merge-commit) added alongside this fix.
+# a user's own -- for every hook name the installer manages.
 # =============================================================================
 echo "=== case (d): uninstall preserves a real hook file, every managed hook name ==="
 proj_d="$scratch/uninstall-project"
@@ -175,7 +172,7 @@ printf 'root\n' > "$proj_d/root.txt"
 commit_all "$proj_d" "chore: seed project"
 common_hooks_d="$(resolve_common_hooks_dir "$proj_d")"
 mkdir -p "$common_hooks_d"
-for hook in commit-msg pre-commit pre-merge-commit; do
+for hook in commit-msg pre-commit; do
   printf '#!/usr/bin/env bash\n# a real, user-owned hook -- never a predicate symlink\nexit 0\n' \
     > "$common_hooks_d/$hook"
   chmod +x "$common_hooks_d/$hook"
@@ -184,13 +181,13 @@ done
 out_d="$(cd "$proj_d" && bash "$installer_src" --uninstall 2>&1)"
 rc_d=$?
 d_ok=1
-for hook in commit-msg pre-commit pre-merge-commit; do
+for hook in commit-msg pre-commit; do
   if [[ -L "$common_hooks_d/$hook" ]] || [[ ! -f "$common_hooks_d/$hook" ]]; then
     d_ok=0
   fi
 done
 if [[ "$rc_d" -eq 0 ]] && [[ "$d_ok" -eq 1 ]]; then
-  echo "PASS  case (d): all three real hook files survive --uninstall untouched"
+  echo "PASS  case (d): both real hook files survive --uninstall untouched"
 else
   echo "FAIL  case (d): rc=$rc_d, real hook file(s) touched or removed" >&2
   echo "$out_d" >&2
