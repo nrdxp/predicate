@@ -591,6 +591,13 @@ let GateEntry = {
     } | GateEntry,
 
     {
+      gate        = "ledger/gate/test_dependents_query.sh",
+      scope       = 'orchestration,
+      fires_when  = "run manually by a dev/agent — not currently wired into ci.yml; fixture suite for entries_query.ncl's dependents_of view, proving the reverse walk is transitive rather than one-level, terminates on a cycle without a node reporting itself as its own dependent, and stays inside the cost cap chain_floor's own generated-fixture guard uses",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
       gate        = "ledger/gate/test_entries_integrity.sh",
       scope       = 'orchestration,
       fires_when  = "run manually by a dev/agent — not currently wired into ci.yml; fixture suite for entries_integrity.sh proving the wrapper correctly invokes the extractor and the contract and correctly propagates their verdict as its own exit code, reusing test_entries_extract.sh's and test_corpus_ids.sh's existing fixtures rather than re-authoring them",
