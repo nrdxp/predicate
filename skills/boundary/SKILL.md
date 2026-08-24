@@ -196,6 +196,33 @@ drops invariants it cannot rank).
 
 ---
 
+## Where approval attaches
+
+Prime Invariant 6 requires a sufficient, **human-approved** boundary before
+an expensive or autonomous walk. It does not say at what granularity that
+approval attaches, and this skill and
+[orchestration](../orchestration/SKILL.md) had drifted apart in the gap —
+this document gating every IBC while the machinery that actually dispatches
+approves layer-0 in batch, authors later-layer IBCs just-in-time, and names
+pausing between layers approval theatre.
+
+**The head ruled the granularity** (`.ledger/state/decisions-dispatch-granularity.yaml`,
+`DG1`): approval attaches to the **frame that was discussed and agreed**,
+never to each IBC. Inside an agreed frame, purely mechanical execution
+proceeds autonomously and needs no further gate.
+
+**What escalates is divergence, not cost.** "Expensive or autonomous" fires
+on every dispatch and therefore discriminates nothing. A seam is genuine
+when the work carries outstanding nuance, or when the path could depart
+from what was agreed — S3's RESERVED set is this same predicate stated per
+question. Encountering one is a halt, exactly as S3 says.
+
+So the loop below runs where the frame itself is in question: the goal is
+open, the premises are unverified, or the walk could reasonably diverge
+from what was agreed. It does not run over a mechanical step inside a
+frame the human already approved — there the IBC is checked against the
+sufficiency conditions and dispatched.
+
 ## The Boundary Refinement Loop
 
 `/boundary` manufactures $\text{IBC}^*$ as the fixed point of a cheap
@@ -283,7 +310,12 @@ authoring time, against the tip the worker will actually see.
    cite a sufficiency condition ID and concrete evidence are filtered, per
    the Grounded Critique Invariant in [rules.md](../../rules.md).
 5. **HUMAN_DISPATCH_GATE:** $\text{IBC}^*$ MUST receive human approval
-   before an expensive or autonomous walk launches from it.
+   before an expensive or autonomous walk launches from it. Per `DG1` that
+   approval attaches to the agreed frame, not to each IBC: a walk executing
+   mechanically inside a frame the human approved carries it already, and a
+   walk that could diverge from that frame does not — the latter is the
+   seam, and dispatching it unapproved is the violation this directive
+   names.
 
 ---
 

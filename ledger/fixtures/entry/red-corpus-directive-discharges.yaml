@@ -1,0 +1,26 @@
+# Corpus red: a directive itself bears a `discharges` edge. The reported
+# defect (a discharges span on a directive vanishing at extraction) is not
+# the actual failure this fixture pins — ruling-terminal-composition [TC1]/
+# [TC5]/[TC6] already establishes the correct pattern: a directive is a
+# TARGET, and a CLAIM discharges it (see green-corpus-discharges-directive
+# above). A directive bearing `discharges` itself is the misclosure that
+# pattern refuses: a directive carries no evidence, so it cannot ALSO be the
+# carrier that closes something else. `DirectiveClosesByAuthority` names
+# this by the same discipline `DischargeBacked` already applies to claims.
+directives:
+  - id: d-goal
+    statement: "The register never silently drops a companion."
+    provenance: "architect ruling on the terminal composition"
+    discharges:
+      - e-question
+entries:
+  - id: e-question
+    statement: "Does the extractor drop directive companions?"
+    assertion: question
+    backing: unclosed
+    signer:
+      kind: agent
+      name: composer
+    discharge: "a fix lands and the corpus stays clean"
+    closer:
+      kind: agent

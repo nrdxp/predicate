@@ -1,0 +1,29 @@
+# Corpus green: a directive carrying every companion it may legitimately
+# bear at once (provenance, discharge, closer, because, tags) — the
+# positive pin beside red-corpus-directive-discharges.yaml's negative one,
+# proving the closed Directive shape is not merely permissive-by-omission.
+directives:
+  - id: d-goal
+    statement: "The register never silently drops a companion."
+    provenance: "architect ruling on the terminal composition"
+    discharge: "a fix lands and the corpus stays clean"
+    closer:
+      kind: agent
+    because:
+      - kind: corpus
+        name: e-ground
+      - kind: external
+        name: prior-art/directive-shape
+    tags:
+      - D1
+entries:
+  - id: e-ground
+    statement: "Every claim and question already carries its companions honestly."
+    assertion: claim
+    backing: unclosed
+    signer:
+      kind: agent
+      name: composer
+    because:
+      - kind: external
+        name: prior-art/typed-claims

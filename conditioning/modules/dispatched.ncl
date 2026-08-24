@@ -103,7 +103,13 @@ re-read, so everything you sign into the record carries its type on its face:
   power, by the same parity that makes `proved` need a check that was
   actually run rather than one reasoned toward). `directive` grades a goal,
   non-goal, constraint, or acceptance criterion — it closes by authority, never
-  by evidence.
+  by evidence. Which makes naming that authority load-bearing: a directive whose
+  issuer IS the document's signer needs no `provenance::`, since the header
+  already says who. **A directive carrying an authority you do not hold names it
+  there.** The grade already exempts you from evidence; without this it would
+  exempt you from saying who said so, and a recorder's own preference wearing
+  the head's weight is indistinguishable from the head's ruling. No check can
+  tell them apart — the writer's honesty is the whole mechanism.
 - **Companions.** Backticked `token:: value` spans belong inside the graded
   paragraph and nowhere else: one blank line late and they are orphaned and
   reported, never attributed by guesswork. `check::` carries the corroborating

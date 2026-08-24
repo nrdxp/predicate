@@ -629,6 +629,76 @@
     asContract "UnattributedUnclosed" UnattributedUnclosed,
   ],
 
+  # --- Directive: the ledger corpus's OWN shape, distinct from worker_ibc.ncl's
+  #
+  # `worker_ibc.ncl` already declares a `Directive` for the boundary a single
+  # worker executes under (goal, non-goals, constraints, criteria) — closed,
+  # `provenance` a mandatory `Signer` record, no `discharge`/`closer` at all,
+  # because an IBC directive is authored fresh and closes on the spot. THIS
+  # `Directive` governs a different surface entirely: the corpus a whole
+  # ledger accumulates (`ledger/derive/extract_entries.py`'s `out.directives`,
+  # `.ledger/directions.md`'s terminal targets), where a directive is often
+  # authored with no stated authority at all (59 of the 80 live corpus
+  # directives, measured at this commit) and where `discharge`/`closer`
+  # legitimately track a TARGET's satisfaction condition and who could meet
+  # it (ruling-terminal-composition [TC1]/[TC10]/[TC12]; `.ledger/
+  # directions.md`'s own prose: "A target states what should be and closes
+  # by authority; the satisfaction is a separate claim... Satisfaction is
+  # derived, never authored"). `provenance` here is therefore free prose
+  # (the live corpus never writes a `{kind, name}` record into it), not the
+  # IBC's `Signer` — a genuinely different shape for a genuinely different
+  # authoring context, not a narrowing of the same one.
+  #
+  # The field set is the live corpus's own usage, exhaustively measured: of
+  # the eighty directive nodes across `.ledger`, none carries `check`,
+  # `source` (witness), `axes`, or `freshness` — a directive "carries no
+  # backing field" (ruling-terminal-composition [TC12]) and the closed shape
+  # below refuses all four as extras, same as `worker_ibc.ncl`'s Directive
+  # refuses them, though for its own separately-stated reason
+  # (docs/entries.md "Directives — closure by authority"). `supersedes` is
+  # left undeclared for the same reason (zero live occurrences, and nothing
+  # in the ruling record judges it either way) — Cutting Imperative: this
+  # contract encodes what is asked and observed, not a guess about a shape
+  # nobody has written yet.
+  Directive = {
+    id | NonEmptyString,
+    statement | NonEmptyString,
+    provenance | NonEmptyString | optional,
+    discharge | NonEmptyString | optional,
+    closer | Closer | optional,
+    because | Array ProvenanceRef | optional,
+    tags | Array TagName | optional,
+
+    # Declared, not omitted — DECLARING it here is what lets
+    # `DirectiveClosesByAuthority` below give its own named, teaching
+    # message instead of Nickel's generic "extra field" error. An omitted
+    # field and a declared-but-refused field read identically to an
+    # author (both reject `discharges::` on a directive); they read very
+    # differently to whoever has to fix it.
+    discharges | Array Ref | optional,
+  },
+
+  # THE MISCLOSURE, one level up from `DischargeBacked`. A directive closes
+  # by AUTHORITY (docs/entries.md "Directives — closure by authority"; it
+  # "carries no truth-value, so it cannot close by evidence") — so it cannot
+  # ALSO be the carrier of a `discharges` edge, which asserts the opposite:
+  # that THIS entry holds closed evidence answering some other open item.
+  # `DischargeBacked` already refuses this for claims (a `synthesis` or a
+  # `question` cannot discharge); directives route around `Entry` entirely
+  # (`out.directives`, never `out.entries` — ruling-terminal-composition
+  # [TC3]) and would otherwise carry the edge unrefused. The correct
+  # carrier — proved by ruling-terminal-composition [TC1]/[TC5]/[TC6] and
+  # pinned green in `green-corpus-discharges-directive.yaml` above — is a
+  # SEPARATE claim naming the directive as what it discharges, never the
+  # directive naming what it discharges.
+  DirectiveClosesByAuthority = std.contract.custom (fun _label d =>
+    if std.array.length (refs_of "discharges" d) == 0
+    then 'Ok d
+    else 'Error { message = "DirectiveClosesByAuthority: a directive closes by authority and cannot bear a closure edge -- the carrier must be a claim citing it as witness" }
+  ),
+
+  DirectiveChecked = std.contract.all_of [Directive, DirectiveClosesByAuthority],
+
   # --- EntryStore: corpus-level integrity -----------------------------------
   #
   # Intrinsic gate over an aggregate `{ entries = [...] }` instance —
@@ -713,6 +783,18 @@
       if std.record.has_field "directives" value then value.directives else []
     in
     let directive_ids = std.array.map (fun d => d.id) directives in
+    # Per-directive conformance, EAGER for the same reason `_entry_conformance`
+    # is: `std.contract.apply` alone stays lazy and a shape-malformed or
+    # misclosed directive would slip through `nickel export` unread. A
+    # directive is validated ONLY here — it is never a member of `entries`,
+    # so `_entry_conformance`'s fold never reaches it, and a per-directive
+    # check that runs only where nothing calls it is a check that never runs.
+    let _directive_conformance =
+      std.array.fold_left
+        (fun acc d => std.deep_seq (d | DirectiveChecked) acc)
+        null
+        directives
+    in
     # The resolvable space: entries' own ids plus every directive id, folded
     # onto a COPY of id_set so uniqueness (above) never sees the union.
     let resolvable_id_set =
@@ -830,6 +912,7 @@
     # Force the per-element applications before the structural verdict so a
     # malformed entry fails the contract rather than being skipped lazily.
     std.seq _entry_conformance (
+    std.seq _directive_conformance (
       if !unique_ids then 'Error { message = "EntryStore: duplicate entry id" }
       else if !all_edges_resolve then
         'Error { message = "EntryStore: dangling edge — a depends/because ref does not resolve to a declared entry or directive id" }
@@ -842,6 +925,6 @@
       else if !supersession_terminates then
         'Error { message = "EntryStore: SupersessionTerminates — the supersedes relation cycles, so the entries it retires name no surviving entry to carry them" }
       else 'Ok value
-    )
+    ))
   ),
 }

@@ -922,6 +922,73 @@ assert export["entries"] == [], export["entries"]
 print("INVALID-ONLY-GRADES-OK")
 EOF
 
+# --- node/directive-companions: the extractor stops dropping -----------------
+#
+# The reported defect: a `discharges::` span on a `directive` node vanished
+# silently — the directive branch emitted only `{id, statement}` plus
+# optional `provenance`, then `continue`d past every other companion
+# `parse_node` had already parsed. Confirmed against the PRE-FIX extractor
+# (git HEAD at this suite's own authoring commit) before any code changed:
+# `python3 <(git show HEAD:ledger/derive/extract_entries.py)
+# directive-companions-note.md` exits 0 and its lone directive carries only
+# `id`, `statement`, `provenance` — `discharge`, `closer`, `because`
+# (derives-from), `discharges`, and `tags` are silently gone, with no
+# finding raised. That is the omission ruling AI13 forbids a derivation tool
+# from committing for any reason: judging admissibility belongs to the type
+# layer (entry.ncl), never to this parser.
+#
+# The fix: `attach_companions` is now shared, verbatim, by both the
+# claim/question branch and the directive branch, so a directive's node
+# carries every companion its author wrote — `discharges` included — and
+# whether that companion belongs on a directive is entry.ncl's
+# `Directive`/`DirectiveClosesByAuthority` call, exercised at the contract
+# layer (ledger/fixtures/entry/red-corpus-directive-discharges.yaml), never
+# this parser's guess.
+expect "directive-companions: clean fixture extracts, exit 0" 0 "" \
+  -- python3 "$extractor" "$fix/directive-companions-note.md" -o "$tmp/directive-companions.yaml"
+expect "directive-companions: output matches the expected JSON exactly" 0 "" \
+  -- diff "$fix/directive-companions-note.expected.json" "$tmp/directive-companions.yaml"
+
+# (mutation) prove the golden is load-bearing for the closure edge
+# specifically: reverting the directive branch to the pre-fix `{id,
+# statement, provenance}`-only shape must make this golden diff — the
+# failure mode the fix exists to prevent. The mutant lives in its own tmp
+# copy rather than patching the tracked file in place.
+directive_mut="$(mktemp -d)"
+cp "$extractor" "$directive_mut/extract_entries.py"
+if ! python3 - "$directive_mut/extract_entries.py" <<'PYEOF'
+import re, sys
+path = sys.argv[1]
+src = open(path, encoding="utf-8").read()
+old = '''            if "provenance" in companions:
+                entry["provenance"] = companions["provenance"]
+            attach_companions(entry, companions, out, doc, marker, anchor)
+            out.directives.append(entry)'''
+new = '''            if "provenance" in companions:
+                entry["provenance"] = companions["provenance"]
+            out.directives.append(entry)'''
+assert old in src, "the tracked directive-branch pattern was not found — the literal moved"
+src = src.replace(old, new, 1)
+open(path, "w", encoding="utf-8").write(src)
+PYEOF
+then
+  echo "ENV: directive-branch mutation could not be constructed — the literal moved"
+  exit 2
+fi
+mutant_out="$(cd "$root" && python3 "$directive_mut/extract_entries.py" \
+  "$fix/directive-companions-note.md" -o "$tmp/directive-companions-mut.yaml" 2>&1)"
+mutant_rc=$?
+if [ "$mutant_rc" -eq 0 ] \
+   && ! diff -q "$fix/directive-companions-note.expected.json" "$tmp/directive-companions-mut.yaml" >/dev/null 2>&1; then
+  echo "PASS  (mutation) reverting to the pre-fix directive branch makes the golden diverge — the fix is load-bearing"
+else
+  echo "FAIL  (mutation) golden still matches (or extractor errored) with the drop restored — the pin proves nothing"
+  echo "  mutant rc=$mutant_rc"
+  printf '%s\n' "$mutant_out" | tail -5
+  fails=$((fails + 1))
+fi
+rm -rf "$directive_mut"
+
 # --- performance regression guard: chain_floor at corpus scale ---------------
 #
 # The pre-fix chain_floor view recomputed EVERY entry's floor on EVERY

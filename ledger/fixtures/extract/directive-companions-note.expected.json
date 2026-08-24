@@ -1,0 +1,62 @@
+{
+  "entries": [
+    {
+      "id": "directive-companions-note:K1",
+      "statement": "A claim the directive below cites as its ground. → EXIT=0",
+      "assertion": "claim",
+      "backing": "corroborated",
+      "signer": {
+        "kind": "agent",
+        "name": "composer"
+      },
+      "check": {
+        "command": "true",
+        "ran": true,
+        "at": "abc1234"
+      }
+    },
+    {
+      "id": "directive-companions-note:Q1",
+      "statement": "A question the directive below wrongly claims to discharge — a directive has no evidence to close anything with.",
+      "assertion": "question",
+      "backing": "unclosed",
+      "signer": {
+        "kind": "agent",
+        "name": "composer"
+      },
+      "discharge": "nothing needs to happen for this fixture",
+      "closer": {
+        "kind": "agent"
+      }
+    }
+  ],
+  "directives": [
+    {
+      "id": "directive-companions-note:D1",
+      "statement": "Every companion the grammar recognizes lands on the node, not only its provenance.",
+      "provenance": "architect ruling, this session",
+      "discharge": "draft the fix and land it",
+      "closer": {
+        "kind": "agent"
+      },
+      "because": [
+        {
+          "kind": "corpus",
+          "name": "directive-companions-note:K1"
+        }
+      ],
+      "discharges": [
+        "directive-companions-note:Q1"
+      ],
+      "tags": [
+        "D1"
+      ]
+    }
+  ],
+  "grades": {
+    "directive-companions-note:K1": "proved",
+    "directive-companions-note:Q1": "dispatchable",
+    "directive-companions-note:D1": "directive"
+  },
+  "findings": []
+}
