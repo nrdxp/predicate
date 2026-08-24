@@ -1,0 +1,21 @@
+# Single-entry green: the anchored {scope, at} form of freshness -- the NEW
+# admissible shape, alongside the pre-existing free-prose string (see
+# green-freshness-string.yaml, the backward-compatible pin).
+id: e-freshness-record
+statement: "The gate stays green under the currency mechanism's scope."
+assertion: claim
+backing: corroborated
+signer:
+  kind: agent
+  name: composer
+check:
+  command: "bash ledger/gate/test_entry.sh"
+  ran: true
+  at: "deadbeef01"
+axes:
+  determined: true
+  certifiable: true
+  monotone: false
+freshness:
+  scope: "ledger/contracts/entry.ncl"
+  at: "deadbeef01"

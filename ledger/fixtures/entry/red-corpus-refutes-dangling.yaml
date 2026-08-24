@@ -1,0 +1,19 @@
+# Corpus red: a `refutes` edge naming no declared id.
+entries:
+  - id: e-refute-anchored
+    statement: "Refutes an id nothing in this corpus declares."
+    assertion: claim
+    backing: corroborated
+    signer:
+      kind: agent
+      name: composer
+    check:
+      command: "true"
+      ran: true
+      at: "deadbeef01"
+    axes:
+      determined: true
+      certifiable: true
+      monotone: true
+    refutes:
+      - e-nowhere

@@ -1,0 +1,37 @@
+# Corpus green: a `refutes` edge resolves to a declared CLAIM -- the shape
+# RefutesTargetsClaims exists to admit. e-target is monotone (an occurrence
+# claim), so entries_query.ncl's species derivation reads this pair as
+# born-false regardless of anchor equality (monotone_refutation_is_born_false).
+entries:
+  - id: e-target
+    statement: "`depends::` is authored somewhere in the record."
+    assertion: claim
+    backing: corroborated
+    signer:
+      kind: agent
+      name: composer
+    check:
+      command: "grep -rc 'depends::' .ledger/ | grep -vc ':0$'"
+      ran: true
+      at: "deadbeef01"
+    axes:
+      determined: true
+      certifiable: true
+      monotone: true
+  - id: e-refute-anchored
+    statement: "e-target is false: zero occurrences measured, at a later anchor."
+    assertion: claim
+    backing: corroborated
+    signer:
+      kind: agent
+      name: composer
+    check:
+      command: "grep -rc 'depends::' .ledger/ | grep -vc ':0$'"
+      ran: true
+      at: "deadbeef02"
+    axes:
+      determined: true
+      certifiable: true
+      monotone: true
+    refutes:
+      - e-target

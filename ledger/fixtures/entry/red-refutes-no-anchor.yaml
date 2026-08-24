@@ -1,0 +1,18 @@
+# Single-entry red: a `refutes` edge with neither `check` nor `witness`.
+# RF2 (compiled `rfl`): an UNANCHORED "C is false" is definitionally the
+# model's own canonical non-monotone expiring claim, not a verdict --
+# RefutesAnchored refuses it. `because` is present so this fixture trips
+# ONLY RefutesAnchored, never ProvenanceGate (unclosed claims still need
+# provenance).
+id: r-refute-noanchor
+statement: "Claims e-target is false, but carries no check or witness of its own."
+assertion: claim
+backing: unclosed
+signer:
+  kind: agent
+  name: architect-seat
+because:
+  - kind: corpus
+    name: e-target
+refutes:
+  - e-target

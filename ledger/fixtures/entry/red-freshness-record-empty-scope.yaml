@@ -1,0 +1,22 @@
+# Single-entry red: the anchored freshness record with an empty scope --
+# Freshness.scope is NonEmptyString, and a coordinate the author did not
+# assert is a silently wrong classification, never a benign omission
+# (ruling [N1]).
+id: r-freshness-empty-scope
+statement: "A freshness record naming no scope at all."
+assertion: claim
+backing: corroborated
+signer:
+  kind: agent
+  name: composer
+check:
+  command: "true"
+  ran: true
+  at: "deadbeef01"
+axes:
+  determined: true
+  certifiable: true
+  monotone: false
+freshness:
+  scope: ""
+  at: "deadbeef01"

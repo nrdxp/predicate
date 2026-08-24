@@ -1,0 +1,21 @@
+# Single-entry green: a refutation carrying its own check -- the anchor
+# RefutesAnchored requires. Resolution of the `refutes` target is a corpus
+# property (see the green-corpus-refutes-* / red-corpus-refutes-* fixtures);
+# at this granularity only the anchor is decidable.
+id: e-refute-anchored
+statement: "e-target's occurrence claim is false: the command found zero matches."
+assertion: claim
+backing: corroborated
+signer:
+  kind: agent
+  name: composer
+check:
+  command: "grep -rc 'depends::' .ledger/ | grep -vc ':0$'"
+  ran: true
+  at: "deadbeef09"
+axes:
+  determined: true
+  certifiable: true
+  monotone: true
+refutes:
+  - e-target

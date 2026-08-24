@@ -311,6 +311,51 @@
     at | CommitRef,
   },
 
+  # --- Freshness: the T3 cure, and the one field that lacked the anchor
+  # Check and Witness already carry -------------------------------------------
+  #
+  # A non-monotone claim's cure was pure prose -- a mechanism NAMED, never
+  # anchored, so staleness against it was a judgement rather than a lookup
+  # (architect ruling, .ledger/deposits/expiry-mechanics/architect-seat/
+  # 2026-08-24-ruling-expiry-mechanics.md [EX1]/[R1]). The fix transposes the
+  # SAME anchor discipline onto this field: a scope (a git pathspec) plus the
+  # commit it was authored against. Currency then becomes a condition on the
+  # record, not a duration -- `git diff --quiet <at> HEAD -- <scope>` IS the
+  # evaluator (ledger/gate/currency.py) -- and lapse detection is monotone
+  # even though currency itself is not ([R3]/[LM2], compiled in
+  # factoring-trust/.scratch/Lapse.lean).
+  #
+  # BACKWARD COMPATIBLE, DELIBERATELY, NOT MIGRATED: the live corpus carries
+  # 23 `freshness::` spans, all free prose naming a mechanism, ZERO already
+  # anchored (measured, [EX2]). Requiring the record shape everywhere would
+  # either invent a scope and an anchor none of those 23 authors ever
+  # asserted -- exactly the fabricated coordinate ruling [N1] refuses ("a
+  # coordinate the author did not assert is a silently wrong classification,
+  # not a benign omission") -- or redden the whole corpus at once and block
+  # every subsequent `.ledger` commit, including the one recording this
+  # change (the log/ commit gate validates the WHOLE corpus on every touch,
+  # per this pass's own premise 4). So both forms stay valid: the free-prose
+  # string, unchanged, for every cure already on record; the anchored record,
+  # for a NEW cure that wants a machine-checkable currency verdict rather
+  # than a name to trust. Nothing here silently upgrades a string into a
+  # record -- that is deliberate future authoring, per entry, never a bulk
+  # reinterpretation of prose nobody re-read.
+  Freshness = {
+    scope | NonEmptyString,  # a git pathspec; COVERAGE of the claim's real
+                              # dependent set is a known gap this contract
+                              # does not close (LM7/[R4]) -- tracked as
+                              # tech-debt, never papered over with a
+                              # heuristic this contract cannot ground.
+    at | CommitRef,
+  },
+
+  FreshnessValue = std.contract.custom (fun label v =>
+    if std.is_string v then
+      std.contract.check NonEmptyString label v
+    else
+      std.contract.check Freshness label v
+  ),
+
   # --- The three axes -------------------------------------------------------
   #
   # From the paper's cell table: three binary axes, eight nominal cells, six
@@ -382,8 +427,11 @@
     # Required when a claim is non-monotone: the cell table's cure for a T3
     # failure is a freshness mechanism or an accepted expiry. Naming it is
     # what stops a non-monotone claim being promoted into documentation as a
-    # standing invariant that quietly expires.
-    freshness | NonEmptyString | optional,
+    # standing invariant that quietly expires. Two admissible forms -- see
+    # `FreshnessValue` above: free prose (the 23 live spans, unanchored, kept
+    # valid rather than migrated) or the anchored `{scope, at}` record (a new
+    # cure that wants a machine-checkable currency verdict).
+    freshness | FreshnessValue | optional,
 
     depends | Array Ref | optional,
     because | Array ProvenanceRef | optional,
@@ -398,6 +446,24 @@
     # EntryStore — the retirement chain must reach a survivor.
     discharges | Array Ref | optional,
     supersedes | Array Ref | optional,
+
+    # `refutes` -- the falsity edge (docs/entries.md "Refutation is an edge,
+    # not a state"; .ledger/log/2026-08-24-refutation-is-one-anchored-edge.md
+    # RF2/RF4). ONE anchored claim naming another entry's negation; the
+    # SPECIES -- born-false vs became-false -- is DERIVED at query time from
+    # anchor-comparison and the target's axes (entries_query.ncl), never
+    # authored here, mirroring `is_open`'s own derived-never-authored rule.
+    # A refuting entry must itself be anchored: RF2 proves by compiled `rfl`
+    # (`refutes (inclusionClaim e) = absenceClaim e`) that an UNANCHORED
+    # "C is false" is definitionally the model's own canonical non-monotone
+    # expiring claim, not a verdict -- so `refutes` with neither `check` nor
+    # `witness` is refused by `RefutesAnchored` below, the SAME anchor
+    # Check/Witness already carry, transposed onto this edge rather than
+    # given a new field of its own. Targets only claims, never a question or
+    # directive (`RefutesTargetsClaims` in EntryStore) -- the dual of
+    # `discharges`' claim -> question-or-directive typing: a refutation
+    # answers "is C false", and only a claim asserts a C to be false.
+    refutes | Array Ref | optional,
 
     # Self-classification, orthogonal to backing/assertion (never a third
     # reading of either axis): a member of the registry above, per entry, any
@@ -609,7 +675,18 @@
     !(matches n.signer.kind 'unattributed "unattributed")
     || matches n.backing 'unclosed "unclosed",
 
-  # The closed predicate set, lifted. Exactly these eleven and no others.
+  # Theory-forced (RF2, compiled `rfl`:
+  # `refutes (inclusionClaim e) = absenceClaim e`): a refutation with no
+  # anchor is a live, unanchored claim wearing a verdict's clothes, not a
+  # refutation entry. The anchor is whichever of Check/Witness this entry's
+  # own backing already supplies -- no new field, the same transposition
+  # `refutes`'s own comment states.
+  RefutesAnchored = fun n =>
+    std.array.length (refs_of "refutes" n) == 0
+    || std.record.has_field "check" n
+    || std.record.has_field "witness" n,
+
+  # The closed predicate set, lifted. Exactly these twelve and no others.
   # std.contract.all_of reports the FIRST failing contract, but every red
   # fixture is single-violation by construction (proved by reversing this
   # list: all cases still pass), so order is currently irrelevant to
@@ -627,6 +704,7 @@
     asContract "NonMonotoneNamesCure" NonMonotoneNamesCure,
     asContract "SignerDesignates" SignerDesignates,
     asContract "UnattributedUnclosed" UnattributedUnclosed,
+    asContract "RefutesAnchored" RefutesAnchored,
   ],
 
   # --- Directive: the ledger corpus's OWN shape, distinct from worker_ibc.ncl's
@@ -855,6 +933,28 @@
             (refs_of "discharges" en))
         entries
     in
+    # claim set (record) -- the same O(1) idiom as question_set, and its
+    # dual: `refutes` targets a claim, never a question or directive
+    # (RefutesTargetsClaims below), since a refutation answers "is C false"
+    # and only a claim asserts a C to be false.
+    let claim_set =
+      std.array.fold_left
+        (fun acc en =>
+          if matches en.assertion 'claim "claim"
+             && !(std.record.has_field en.id acc)
+          then std.record.insert en.id true acc
+          else acc)
+        {}
+        entries
+    in
+    let refutes_targets_claims =
+      std.array.all
+        (fun en =>
+          std.array.all
+            (fun r => std.record.has_field r claim_set)
+            (refs_of "refutes" en))
+        entries
+    in
     # SupersessionTerminates. Resolution was the only condition the corpus
     # placed on a supersession edge, and resolution does not bound the walk: a
     # resolved cycle retires every entry it touches and delivers no survivor.
@@ -922,6 +1022,10 @@
         'Error { message = "EntryStore: dangling supersedes — a supersession edge does not resolve to a declared entry or directive id" }
       else if !discharges_target_questions then
         'Error { message = "EntryStore: discharges target is not a question or directive — a claim answers questions or directives, nothing else" }
+      else if !(resolves "refutes") then
+        'Error { message = "EntryStore: dangling refutes — a refutation edge does not resolve to a declared entry id" }
+      else if !refutes_targets_claims then
+        'Error { message = "EntryStore: refutes target is not a claim — a refutation edge only targets claims, never a question or directive" }
       else if !supersession_terminates then
         'Error { message = "EntryStore: SupersessionTerminates — the supersedes relation cycles, so the entries it retires name no surviving entry to carry them" }
       else 'Ok value

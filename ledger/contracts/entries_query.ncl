@@ -123,6 +123,35 @@
 #                    per-claim walk itself cheaper, so this reuses that
 #                    exact trade rather than inventing a second one.
 #
+#   refutations    — one row per `refutes` edge: {refutation, target, species}.
+#                    The SPECIES ("born-false" / "became-false" /
+#                    "unclassifiable-refutation") is DERIVED, never
+#                    authored — mirroring `is_open` above — from
+#                    anchor-comparison (the refuting entry's own check/
+#                    witness anchor against the target's) and the target's
+#                    axes (architect ruling .ledger/deposits/expiry-
+#                    mechanics/architect-seat/2026-08-24-ruling-expiry-
+#                    mechanics.md; .ledger/log/2026-08-24-refutation-is-
+#                    one-anchored-edge.md RF3/RF4). A target with no anchor
+#                    of its own is `unclassifiable-refutation`, never
+#                    guessed. GIT ANCESTRY of a non-equal anchor pair is
+#                    NOT decided here — this file has no repository access
+#                    — so the "became-false" branch trusts the corpus's own
+#                    append-only rail; ledger/gate/currency.py is the tool
+#                    that verifies that trust against the real repository
+#                    and reports `anchor-not-an-ancestor` when it does not
+#                    hold.
+#
+#   impeachment_queue — the born-false-on-CLOSED collision the `impeachment`
+#                    theorem names: a snapshot-sound closure and a true
+#                    refutation at the same anchor are jointly impossible,
+#                    so the model proves the pair contradictory and cannot
+#                    itself say which party lied. Every row here is a
+#                    `refutations` row whose target is `corroborated` or
+#                    `vouched` and whose species is `born-false` — routed to
+#                    a human closer, NEVER auto-resolved by this view or any
+#                    other.
+#
 # The parameterized TAG selector (ledger/log/2026-08-12-tagging-hypothesis.md
 # [G4]: ten of eleven wanted queries are tag SET OPERATIONS, not traversal).
 # node/tag-query's dispatch: the head's actual requirement is COMPOSITION —
@@ -355,6 +384,81 @@ std.contract.custom (fun label value =>
             direct
       in
 
+      # --- refutations (the falsity edge, species DERIVED) -----------------
+      #
+      # RF4/[R1]/[AD1]: one anchored edge, two derived verdicts, zero
+      # authored labels — the SAME derived-never-authored rule `is_open`
+      # already applies to closure. `anchor_of` reads the anchor Check/
+      # Witness already carry (RefutesAnchored, entry.ncl, guarantees a
+      # REFUTING entry always has one; a TARGET may not).
+      let anchor_of = fun e =>
+        if std.record.has_field "check" e then e.check.at
+        else if std.record.has_field "witness" e then e.witness.at
+        else null
+      in
+      # Species, per RF3/RF4/monotone_refutation_is_born_false:
+      #   - target unanchored                       -> unclassifiable-refutation
+      #   - target's own axes are +monotone          -> born-false, ALWAYS
+      #     (a monotone claim once true stays true, so a later-anchored
+      #     refutation convicts the claim's own birth anchor, mechanically —
+      #     no anchor comparison needed for this branch)
+      #   - refutation.anchor == target.anchor       -> born-false
+      #   - otherwise                                -> became-false
+      #     (git ANCESTRY of a non-equal anchor pair is not decidable inside
+      #     Nickel — no repository access here — so this branch assumes the
+      #     append-only ordering the corpus's own never-rewrite rail
+      #     maintains, per H1/[LM3]/[LM6]; ledger/gate/currency.py is the
+      #     tool that verifies that ordering against the real repository,
+      #     including the `anchor-not-an-ancestor` report when it does not
+      #     hold — a git-level precondition this pure-value derivation
+      #     cannot itself check.)
+      let refutation_species = fun refuting_anchor target =>
+        let target_anchor = anchor_of target in
+        if target_anchor == null then
+          "unclassifiable-refutation"
+        else if std.record.has_field "axes" target && target.axes.monotone then
+          "born-false"
+        else if refuting_anchor == target_anchor then
+          "born-false"
+        else
+          "became-false"
+      in
+      let refuting_entries =
+        std.array.filter (fun e => std.array.length (law.refs_of "refutes" e) > 0) entries
+      in
+      let refutation_rows =
+        std.array.fold_left
+          (fun acc e =>
+            let refuting_anchor = anchor_of e in
+            acc
+            @ (law.refs_of "refutes" e
+               |> std.array.map (fun tid =>
+                 if !(std.record.has_field tid by_id) then
+                   # EntryStore already refuses a dangling `refutes` at the
+                   # corpus granularity; this branch only guards a query run
+                   # over a lone, unvalidated entry export.
+                   { refutation = e.id, target = tid, species = "unclassifiable-refutation" }
+                 else
+                   { refutation = e.id, target = tid,
+                     species = refutation_species refuting_anchor by_id."%{tid}" })))
+          []
+          refuting_entries
+      in
+      # Impeachment queue: the born-false-on-CLOSED collision RF3/RF4/the
+      # `impeachment` theorem name — a snapshot-sound closure and a true
+      # refutation at the same anchor are jointly impossible, so the model
+      # proves the pair contradictory and cannot itself name which party
+      # lied. Routed to a human closer, NEVER auto-resolved: this view is a
+      # derived READ of the collision, not a resolution of it.
+      let impeachment_rows =
+        std.array.filter
+          (fun row =>
+            row.species == "born-false"
+            && std.record.has_field row.target by_id
+            && is_closed_evidence (by_id."%{row.target}"))
+          refutation_rows
+      in
+
       # --- tags -------------------------------------------------------------
       #
       # `has_tag`/`tags_of` read straight off the entry. The registry
@@ -423,6 +527,8 @@ std.contract.custom (fun label value =>
           |> std.array.filter is_claim
           |> std.array.map (fun e =>
             { id = e.id, dependents = std.record.fields (dependents_walk {} e.id) }),
+        refutations = refutation_rows,
+        impeachment_queue = impeachment_rows,
         with_tags | not_exported = fun required =>
           let checked = required | Array law.TagName in
           entries

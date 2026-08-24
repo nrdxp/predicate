@@ -644,6 +644,42 @@ else
 fi
 rm -rf "$routable_mut"
 
+# --- node/refutation-and-currency: `refutes` edge + anchored freshness -------
+#
+# The falsity edge (docs/entries.md "Refutation is an edge, not a state";
+# .ledger/log/2026-08-24-refutation-is-one-anchored-edge.md) and the anchored
+# freshness shape (.ledger/deposits/expiry-mechanics/architect-seat/
+# 2026-08-24-ruling-expiry-mechanics.md) are one mechanism: both transpose
+# Check/Witness's existing anchor discipline onto a field that lacked it.
+
+# RefutesAnchored: a refutation with no check/witness of its own is refused
+# at the LONE-entry granularity -- theory-forced (RF2, compiled `rfl`).
+expect "refutes with no check/witness -> RefutesAnchored" 1 "RefutesAnchored" \
+  -- run "$fix/red-refutes-no-anchor.yaml"
+expect "refutes carrying its own check -> export clean" 0 "" \
+  -- run "$fix/green-refutation-anchored.yaml"
+
+# refutes edge resolution + target-typing: corpus-only properties, the exact
+# shape discharges/supersedes already prove at this granularity.
+expect "corpus: refutes names no declared id -> dangling refutes" 1 \
+  "dangling refutes" \
+  -- run "$fix/red-corpus-refutes-dangling.yaml"
+expect "corpus: refutes resolves to a QUESTION -> RefutesTargetsClaims" 1 \
+  "refutes target is not a claim" \
+  -- run "$fix/red-corpus-refutes-targets-question.yaml"
+expect "corpus: refutes resolves to a declared claim -> export clean" 0 "" \
+  -- run "$fix/green-corpus-refutes-claim.yaml"
+
+# Freshness: two admissible forms, both green; each malformed record form red.
+expect "freshness as the pre-existing free-prose string -> export clean" 0 "" \
+  -- run "$fix/green-freshness-string.yaml"
+expect "freshness as the anchored {scope, at} record -> export clean" 0 "" \
+  -- run "$fix/green-freshness-record.yaml"
+expect "freshness record with an empty scope -> refused" 1 "" \
+  -- run "$fix/red-freshness-record-empty-scope.yaml"
+expect "freshness record anchored to a movable ref (branch name) -> refused" 1 "" \
+  -- run "$fix/red-freshness-record-movable-ref.yaml"
+
 # --- cure_for: pinned against the ibc-pass1.md §2b table, NOT its own branches
 # The six expected strings are HARDCODED here (sourced from the paper's cell
 # table via the boundary); deriving them from cure_for itself would be the
@@ -686,20 +722,22 @@ check_cure "undet+non-mono -> T1+T3 (certifiable undefined)" \
   'T1+T3: an admitted signer, plus a freshness mechanism'
 
 # --- law-shape checks (c8, c9, c12) ------------------------------------------
-# c12: the predicate set is CLOSED — exactly the eleven (DischargeBacked
+# c12: the predicate set is CLOSED — exactly the twelve (DischargeBacked
 # joined the ten per the recovered-edges amendment; UnattributedUnclosed
-# joined the nine per the unattributed-closure ruling), the removed admission
-# predicate absent (non-comment scope, per c6's structural-not-lexical rule).
+# joined the nine per the unattributed-closure ruling; RefutesAnchored joined
+# the eleven per the refutation-and-currency pass, RF2's compiled `rfl`), the
+# removed admission predicate absent (non-comment scope, per c6's
+# structural-not-lexical rule).
 names="$(grep -v '^ *#' "$law" \
-  | grep -oE '(CorroborationBacked|VouchBacked|ProvenanceGate|QuestionRoutable|ResidualIsQuestion|ClaimHasAxes|CertifiabilityFibered|NonMonotoneNamesCure|SignerDesignates|UnattributedUnclosed|DischargeBacked|NoSelfVouch)' \
+  | grep -oE '(CorroborationBacked|VouchBacked|ProvenanceGate|QuestionRoutable|ResidualIsQuestion|ClaimHasAxes|CertifiabilityFibered|NonMonotoneNamesCure|SignerDesignates|UnattributedUnclosed|DischargeBacked|RefutesAnchored|NoSelfVouch)' \
   | sort -u)"
 want_names="$(printf '%s\n' CertifiabilityFibered ClaimHasAxes CorroborationBacked \
   DischargeBacked NonMonotoneNamesCure ProvenanceGate QuestionRoutable \
-  ResidualIsQuestion SignerDesignates UnattributedUnclosed VouchBacked | sort)"
+  RefutesAnchored ResidualIsQuestion SignerDesignates UnattributedUnclosed VouchBacked | sort)"
 if [ "$names" = "$want_names" ]; then
-  echo "PASS  (0) c12: predicate set closed at exactly the eleven"
+  echo "PASS  (0) c12: predicate set closed at exactly the twelve"
 else
-  echo "FAIL  c12: exported predicate set diverges from the closed eleven"
+  echo "FAIL  c12: exported predicate set diverges from the closed twelve"
   diff <(printf '%s\n' "$want_names") <(printf '%s\n' "$names")
   fails=$((fails + 1))
 fi

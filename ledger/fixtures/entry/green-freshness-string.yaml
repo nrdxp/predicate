@@ -1,0 +1,20 @@
+# Single-entry green: the pre-existing free-prose form of freshness, pinned
+# explicitly so the backward-compatible decision (entry.ncl's Freshness
+# comment) has a standing regression guard rather than resting only on the
+# absence of a red.
+id: e-freshness-string
+statement: "The mechanism is re-run over the live corpus on every gate invocation."
+assertion: claim
+backing: corroborated
+signer:
+  kind: agent
+  name: composer
+check:
+  command: "bash ledger/gate/test_entry.sh"
+  ran: true
+  at: "deadbeef01"
+axes:
+  determined: true
+  certifiable: true
+  monotone: false
+freshness: "re-run terminal_freshness.py over the live corpus"
