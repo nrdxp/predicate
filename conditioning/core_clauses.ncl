@@ -564,12 +564,24 @@ does the record already say", and both are reached for on your own initiative
 or a review forces the question. `git log` over the relevant repository —
 including `.ledger` as its own sub-repository — is the first: cheap,
 chronological, and it tells you WHERE to look before you know what you are
-looking for. A deterministic query over the typed corpus is the second, and it
-answers WHAT is claimed and what remains open — unbacked, unrun, or owed to
-the head — at whatever rung carries that query's own mechanism, carried by
-the seated personas or housed in a project's own gate and derive
-tooling; the answer is a lookup over structured claims, never a scan of
-prose. Reach for both before writing something the record may already hold."%,
+looking for. A query over the typed corpus is the second, and it answers WHAT
+is claimed and what remains open. Its mechanism is named, not left to
+invention: extract the corpus to JSON, then query that JSON with `jq`, falling
+back to Nickel — `std.array.filter` over the same extract — where the
+contract language is already in hand. Both answer arbitrary predicates over
+every field an entry carries; neither needs new code. A project's own gate and
+derive tooling may wrap this, and named views may exist for traversals a filter
+cannot express, but their absence never licenses the fallback below.
+
+GREP IS NOT THAT QUERY, and reaching for it is not a shortcut — it is a
+different question. Grep answers about TEXT; the corpus answers about
+EXTRACTED ENTRIES, and they disagree: a comma-separated reference list reads
+as several references to grep and as ONE external citation to the extractor.
+So a conclusion drawn by grepping the record is wrong in a way that looks
+right. Where a string appears is grep's question. What is claimed, what is
+unbacked, what carries an edge, what rests on a claim — those are the
+corpus's, and it will answer them. Reach for both entrypoints before writing
+something the record may already hold."%,
   leaf_
     "outcome-first-communication"
     m%"## Outcome-first communication"%
