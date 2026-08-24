@@ -1,0 +1,142 @@
+# Fixture for dependents_of (entries_query.ncl) -- the reverse of
+# chain_floor's graph. Hand-authored, small, exercising the cases a
+# shallow (non-recursive) implementation would get wrong:
+#
+#   dep:A <- dep:B <- dep:C <- dep:D   a genuine 3-hop `because` chain.
+#     dependents_of(dep:A) must include dep:C and dep:D -- neither is
+#     directly adjacent to dep:A, so a one-hop-only reverse lookup would
+#     miss them and still look plausible on dep:B alone.
+#
+#   dep:I <- dep:H                     a `depends` edge, disjoint from the
+#     `because` chain above, proving `depends` reverses too.
+#
+#   dep:B <- dep:E                     `depends`, feeding INTO the chain
+#     above: dep:E depends on dep:B, so if dep:A is wrong, dep:B, dep:C,
+#     dep:D AND dep:E all rest on it -- dependents_of(dep:A) must reach
+#     dep:E through the *mixed* edge chain, not just same-kind edges.
+#
+#   dep:F <-> dep:G                    a `because` CYCLE (entry.ncl notes
+#     cycles are representable and chain_floor's own `walk` guards
+#     against them; dependents_of must terminate the same way, and each
+#     must appear in the OTHER's dependents exactly once).
+#
+#   dep:Z --external--> "dep:A"        a `because` ref tagged `external`
+#     that happens to NAME dep:A's id string. Must NOT appear in
+#     dependents_of(dep:A): external refs have no corpus node to land on
+#     (corpus_edges_of's own filter), and this pins that the filter is
+#     still honoured in reverse.
+#
+#   dep:Lonely                         a leaf nothing points at --
+#     dependents_of(dep:Lonely) must be the explicit empty array.
+entries:
+- id: dep:A
+  statement: Floor claim, corroborated leaf.
+  assertion: claim
+  backing: corroborated
+  signer:
+    kind: agent
+    name: worker
+  check:
+    command: 'true'
+    ran: true
+    at: deadbeef01
+- id: dep:B
+  statement: Derives from A via because.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: dep:A
+- id: dep:C
+  statement: Derives from B via because.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: dep:B
+- id: dep:D
+  statement: Derives from C via because.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: dep:C
+- id: dep:I
+  statement: Floor claim, corroborated leaf, disjoint from the A chain.
+  assertion: claim
+  backing: corroborated
+  signer:
+    kind: agent
+    name: worker
+  check:
+    command: 'true'
+    ran: true
+    at: deadbeef01
+- id: dep:H
+  statement: Depends on I directly (depends, not because).
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  depends:
+  - dep:I
+- id: dep:E
+  statement: Depends on B directly -- mixes into the because chain above B.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  depends:
+  - dep:B
+- id: dep:F
+  statement: Cycle member, because-derives from G.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: dep:G
+- id: dep:G
+  statement: Cycle member, because-derives from F.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: corpus
+    name: dep:F
+- id: dep:Z
+  statement: because-cites an EXTERNAL referent that happens to name dep:A.
+  assertion: claim
+  backing: unclosed
+  signer:
+    kind: agent
+    name: worker
+  because:
+  - kind: external
+    name: dep:A
+- id: dep:Lonely
+  statement: Floor claim nothing points at.
+  assertion: claim
+  backing: corroborated
+  signer:
+    kind: agent
+    name: worker
+  check:
+    command: 'true'
+    ran: true
+    at: deadbeef01

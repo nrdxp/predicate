@@ -57,6 +57,72 @@
 #                    leaf with no support at all), `external` (support that
 #                    left the corpus, so the record cannot follow it).
 #
+#   dependents_of  — the DUAL of chain_floor: where chain_floor follows a
+#                    claim's derivation edges DOWN to where support bottoms
+#                    out, dependents_of follows the SAME edges UP, from a
+#                    claim to every entry that transitively rests on it —
+#                    the missing direction the theory motivating this view
+#                    names directly: a claim found false has no way, today,
+#                    to enumerate what was built on it. Every other view
+#                    here runs downward; this is the first that does not.
+#
+#                    EDGE CHOICE: both `depends` and `because`'s
+#                    corpus-tagged refs reverse — i.e. the exact edge set
+#                    `corpus_edges_of` already names, the same graph
+#                    chain_floor walks forward. `depends`'s documented
+#                    consequence ("this entry breaks" if the target is
+#                    deleted, entry.ncl) is the more literal fit for a name
+#                    like "dependents", and it was the first edge
+#                    considered alone. It was rejected as the SOLE edge for
+#                    two convergent reasons: structurally, `corpus_edges_of`
+#                    already treats `depends` and because-corpus refs as one
+#                    graph for the downward walk, and reversing only half of
+#                    that graph would make chain_floor and dependents_of two
+#                    different relations wearing a shared name rather than
+#                    duals of one; empirically, the live corpus was measured
+#                    at this commit to carry ZERO `depends` edges anywhere
+#                    (`depends::` has never been authored in `.ledger` — the
+#                    extractor's ledger-dialect grammar does not even emit
+#                    it, per test_entries_extract.sh's own note on the
+#                    point), so a depends-only reverse would be correct and
+#                    permanently EMPTY against every real query — unable to
+#                    do the one thing this view exists to do. `because` is
+#                    weaker in its forward consequence (an orphaned STATED
+#                    REASON, not entry breakage) but it is how the corpus
+#                    actually records derivation: a `synthesis` claim is
+#                    obliged to name at least one antecedent through it
+#                    (docs/entries.md), so "what cites this claim as its
+#                    reason" is precisely "what needs re-review if the claim
+#                    is wrong" — the repair-selection question this view
+#                    answers. `because`'s external half stays excluded
+#                    exactly as it is forward: `corpus_edges_of` already
+#                    filters to corpus-tagged refs only, so reusing it
+#                    verbatim costs nothing extra and an external referent
+#                    still has no corpus node for either direction to land
+#                    on.
+#
+#                    CYCLES: guarded the same way `chain_floor`'s `walk`
+#                    guards them — a `visiting` set per traversal branch, so
+#                    a cycle member reached while already on the current
+#                    walk's stack contributes nothing FROM THAT EDGE (and
+#                    still contributes normally if reached by a separate,
+#                    non-cyclic path). EntryStore proves no such acyclicity
+#                    for depends/because (only `supersedes` is checked to
+#                    terminate), so the same guard chain_floor needs going
+#                    down is needed going up.
+#
+#                    PERFORMANCE: one reverse-adjacency map built once, O(E)
+#                    over the corpus (`depended_by`, the `by_id` idiom
+#                    inverted), then a PER-CLAIM bounded DFS over it — the
+#                    same shape chain_floor settled on after its own
+#                    round-based whole-corpus fixed point exhausted memory
+#                    at scale (see chain_floor's `walk` comment above). No
+#                    cross-claim memoization is added on top: chain_floor's
+#                    own fix was replacing the round-based GLOBAL record
+#                    with independent per-claim walks, not making the
+#                    per-claim walk itself cheaper, so this reuses that
+#                    exact trade rather than inventing a second one.
+#
 # The parameterized TAG selector (ledger/log/2026-08-12-tagging-hypothesis.md
 # [G4]: ten of eleven wanted queries are tag SET OPERATIONS, not traversal).
 # node/tag-query's dispatch: the head's actual requirement is COMPOSITION —
@@ -231,6 +297,64 @@ std.contract.custom (fun label value =>
               edges
       in
 
+      # --- dependents (upward) ---------------------------------------------
+      #
+      # The reverse of chain_floor's graph, over the identical edge set
+      # (`corpus_edges_of` — see the header comment's EDGE CHOICE section
+      # for why `depends` alone was rejected). `depended_by` is the one
+      # reverse-adjacency build, O(edges): for every entry, invert each of
+      # its corpus-walkable edges into the map, target -> [citing ids].
+      let depended_by =
+        std.array.fold_left
+          (fun acc e =>
+            std.array.fold_left
+              (fun a target =>
+                let cur = if std.record.has_field target a then a."%{target}" else [] in
+                std.record.update target (cur @ [e.id]) a)
+              acc
+              (law.corpus_edges_of e))
+          {}
+          entries
+      in
+      # PER-CLAIM bounded DFS over `depended_by`, `visiting`-guarded exactly
+      # like `walk` above: a cycle member already on the current branch's
+      # stack contributes nothing from that edge, and a separate,
+      # non-cyclic path to the same id still contributes normally. Unlike
+      # `walk`, whose answer is a category label rather than a set of ids,
+      # this walk's answer IS the set of ids reached — so the "contributes
+      # nothing" rule has to be enforced at the point an id is ADDED to the
+      # result, not only at the point recursion would re-enter it (see the
+      # guard inside the fold below).
+      let rec dependents_walk = fun visiting id =>
+        if std.record.has_field id visiting then
+          {}
+        else
+          let visiting_here = std.record.insert id true visiting in
+          let direct =
+            if std.record.has_field id depended_by then depended_by."%{id}" else []
+          in
+          std.array.fold_left
+            (fun acc dep_id =>
+              # `dep_id` closing a cycle back onto the CURRENT branch (the
+              # root or any ancestor already on the stack) contributes
+              # nothing from this edge — not just "do not recurse further",
+              # but "do not record dep_id as newly reached either": adding
+              # it unconditionally here would let a pure cycle (dep:F <->
+              # dep:G, neither edge supplying anything from outside) report
+              # each claim as its own transitive dependent, which is not a
+              # real answer to "what rests on this claim" — it rests on
+              # itself only in the trivial, unhelpful sense every element of
+              # a cycle does.
+              if std.record.has_field dep_id visiting_here then
+                acc
+              else
+                add_all
+                  (add_all acc [dep_id])
+                  (std.record.fields (dependents_walk visiting_here dep_id)))
+            {}
+            direct
+      in
+
       # --- tags -------------------------------------------------------------
       #
       # `has_tag`/`tags_of` read straight off the entry. The registry
@@ -294,6 +418,11 @@ std.contract.custom (fun label value =>
           |> std.array.filter is_claim
           |> std.array.map (fun e =>
             { id = e.id, floors = std.record.fields (walk {} e.id) }),
+        dependents_of =
+          entries
+          |> std.array.filter is_claim
+          |> std.array.map (fun e =>
+            { id = e.id, dependents = std.record.fields (dependents_walk {} e.id) }),
         with_tags | not_exported = fun required =>
           let checked = required | Array law.TagName in
           entries
