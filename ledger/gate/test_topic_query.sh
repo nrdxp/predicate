@@ -36,6 +36,7 @@ carrier="$root/ledger/fixtures/topic_query/carrier"
 xtopic="$root/ledger/fixtures/topic_query/xtopic"
 asking="$xtopic/asking"
 elsewhere="$xtopic/elsewhere"
+tagreg="$root/ledger/fixtures/topic_query/tagreg"
 
 command -v python3 >/dev/null 2>&1 || { echo "ENV: python3 not found on PATH"; exit 2; }
 command -v nickel >/dev/null 2>&1 || { echo "ENV: nickel not found on PATH"; exit 2; }
@@ -43,6 +44,7 @@ command -v nickel >/dev/null 2>&1 || { echo "ENV: nickel not found on PATH"; exi
 [ -d "$carrier" ] || { echo "ENV: carrier fixture missing: $carrier"; exit 2; }
 [ -d "$asking" ] || { echo "ENV: xtopic/asking fixture missing: $asking"; exit 2; }
 [ -d "$elsewhere" ] || { echo "ENV: xtopic/elsewhere fixture missing: $elsewhere"; exit 2; }
+[ -d "$tagreg" ] || { echo "ENV: tagreg fixture missing: $tagreg"; exit 2; }
 
 fails=0
 # expect DESC EXPECTED-RC KEYWORD -- COMMAND...
@@ -103,6 +105,20 @@ else
   echo "FAIL  the cross-topic closed view did not print an explicit []: $out"
   fails=$((fails + 1))
 fi
+
+
+# --- project-local tag registry (tag-registry-ships-predicate-vocabulary.yaml) --
+#
+# ledger/contracts/tag_registry.ncl ships EMPTY, so a corpus carrying a tag
+# only a PROJECT's own registry admits must not be refused merely for
+# running through this wrapper rather than entries_integrity.sh — both
+# compose the project registry sibling to the ledger root the same way
+# (ledger/gate/compose_tag_registry.sh). tagreg/ carries one entry tagged
+# with a tag ONLY its own sibling tag_registry.ncl admits; TOPIC_QUERY_LEDGER_ROOT
+# points the tool at it directly (this is a hermetic fixture, not the live
+# corpus, per this suite's own xtopic/ convention above).
+expect "a tag only the project-local registry admits is not refused" 0 "" \
+  -- env TOPIC_QUERY_LEDGER_ROOT="$tagreg" "$tool" untagged "$tagreg"
 
 echo
 if [ "$fails" -eq 0 ]; then echo "test_topic_query: ALL PASS"; exit 0; fi

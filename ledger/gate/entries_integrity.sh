@@ -35,8 +35,10 @@ set -u
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 root="$(cd "$here/../.." && pwd)"
 extractor="$root/ledger/derive/extract_entries.py"
-law="$root/ledger/contracts/entry.ncl"
-apply="$root/ledger/contracts/entry_apply.ncl"
+law_dir="$root/ledger/contracts"
+law="$law_dir/entry.ncl"
+apply="$law_dir/entry_apply.ncl"
+compose_helper="$here/compose_tag_registry.sh"
 
 [ $# -ge 1 ] || { echo "usage: entries_integrity.sh <path> [path...]"; exit 2; }
 command -v python3 >/dev/null 2>&1 || { echo "ENV: python3 not found on PATH"; exit 2; }
@@ -44,6 +46,10 @@ command -v nickel >/dev/null 2>&1 || { echo "ENV: nickel not found on PATH"; exi
 [ -f "$extractor" ] || { echo "ENV: extractor missing: $extractor"; exit 2; }
 [ -f "$law" ] || { echo "ENV: law-file missing: $law"; exit 2; }
 [ -f "$apply" ] || { echo "ENV: apply-file missing: $apply"; exit 2; }
+[ -f "$law_dir/entries_query.ncl" ] || { echo "ENV: query-file missing: $law_dir/entries_query.ncl"; exit 2; }
+[ -f "$compose_helper" ] || { echo "ENV: compose helper missing: $compose_helper"; exit 2; }
+# shellcheck source=/dev/null
+. "$compose_helper"
 
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
@@ -54,15 +60,13 @@ trap 'rm -rf "$tmp"' EXIT
 # own comment on `tag_registry` explains why). A consuming project declares
 # its own vocabulary at <ledger-root>/tag_registry.ncl, sibling to the corpus
 # it tags — the SAME "if present" convention `.ledger/config.sh` already
-# establishes. Nickel's import is static and cannot conditionally resolve a
-# file that may not exist, so composition happens HERE, before nickel ever
-# runs: for each given path, its GOVERNING directory (itself if a directory,
-# else its parent) is checked for a sibling tag_registry.ncl; the first one
-# found is materialized beside a scratch copy of the law (the exact
-# copy-the-law idiom test_entry.sh's own mutation cases already use to vary
-# it), and $apply is repointed at that copy. Absent any project registry,
-# $apply stays the plugin's own file, importing the empty default above —
-# no tag admitted, the safe baseline.
+# establishes. For each given path, its GOVERNING directory (itself if a
+# directory, else its parent) is checked for a sibling tag_registry.ncl; the
+# first one found is composed in by compose_tag_registry.sh (shared with
+# topic_query.sh, which needs the identical idiom), and $apply is repointed
+# at the result. Absent any project registry, $apply stays the plugin's own
+# file, importing the empty default above — no tag admitted, the safe
+# baseline.
 registry=""
 for p in "$@"; do
   if [ -d "$p" ]; then
@@ -75,13 +79,8 @@ for p in "$@"; do
     break
   fi
 done
-if [ -n "$registry" ]; then
-  mkdir -p "$tmp/lawreg"
-  cp "$law" "$tmp/lawreg/entry.ncl"
-  cp "$registry" "$tmp/lawreg/tag_registry.ncl"
-  cp "$apply" "$tmp/lawreg/entry_apply.ncl"
-  apply="$tmp/lawreg/entry_apply.ncl"
-fi
+compose_tag_registry "$law_dir" "$registry" "$tmp/lawreg"
+apply="$COMPOSED_APPLY"
 
 python3 "$extractor" "$@" -o "$tmp/export.json" >"$tmp/extract.out" 2>"$tmp/extract.err"
 extract_rc=$?

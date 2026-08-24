@@ -52,7 +52,9 @@ set -u
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 root="$(cd "$here/../.." && pwd)"
 extractor="$root/ledger/derive/extract_entries.py"
-query="$root/ledger/contracts/entries_query.ncl"
+law_dir="$root/ledger/contracts"
+query="$law_dir/entries_query.ncl"
+compose_helper="$here/compose_tag_registry.sh"
 ledger_root="${TOPIC_QUERY_LEDGER_ROOT:-$root/.ledger}"
 views="awaiting_human runnable_now unpaid_cures unbacked chain_floor untagged"
 
@@ -70,10 +72,29 @@ command -v python3 >/dev/null 2>&1 || { echo "ENV: python3 not found on PATH"; e
 command -v nickel >/dev/null 2>&1 || { echo "ENV: nickel not found on PATH"; exit 2; }
 [ -f "$extractor" ] || { echo "ENV: extractor missing: $extractor"; exit 2; }
 [ -f "$query" ] || { echo "ENV: query missing: $query"; exit 2; }
+[ -f "$law_dir/entry.ncl" ] || { echo "ENV: law missing: $law_dir/entry.ncl"; exit 2; }
+[ -f "$law_dir/entry_apply.ncl" ] || { echo "ENV: apply-file missing: $law_dir/entry_apply.ncl"; exit 2; }
+[ -f "$compose_helper" ] || { echo "ENV: compose helper missing: $compose_helper"; exit 2; }
 [ -d "$ledger_root" ] || { echo "ENV: ledger root missing: $ledger_root"; exit 2; }
+# shellcheck source=/dev/null
+. "$compose_helper"
 
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
+
+# --- project-local tag registry composition ----------------------------------
+# tag_registry.ncl ships EMPTY
+# (.ledger/tech-debt/tag-registry-ships-predicate-vocabulary.yaml). A
+# consuming project declares its own vocabulary at
+# <ledger-root>/tag_registry.ncl -- $ledger_root above, never the caller's
+# own DISPLAY-scope paths ("$@"), since closure is computed over
+# $ledger_root and that is the corpus a registry is properly sibling to.
+# Composed by the SAME shared idiom entries_integrity.sh uses
+# (compose_tag_registry.sh) rather than a second copy of it.
+registry=""
+[ -f "$ledger_root/tag_registry.ncl" ] && registry="$ledger_root/tag_registry.ncl"
+compose_tag_registry "$law_dir" "$registry" "$tmp/lawreg"
+query="$COMPOSED_QUERY"
 
 # Resolve two file sets: SCOPE is exactly the caller's own paths (what gets
 # displayed); CORPUS is scope UNION the ledger root, de-duplicated by
