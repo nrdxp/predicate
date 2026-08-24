@@ -340,6 +340,14 @@
   # than a name to trust. Nothing here silently upgrades a string into a
   # record -- that is deliberate future authoring, per entry, never a bulk
   # reinterpretation of prose nobody re-read.
+  #
+  # NO INHERITANCE ACROSS `refutes` ([AD2]): a currency verdict about a
+  # refuted claim carries its OWN scope and its OWN anchor. There is no
+  # mechanism here that borrows a `refutes` target's freshness, and none
+  # should be added -- RF5 already forbids a refutation entry from
+  # inheriting its target's axes or backing, and a scope/anchor borrowed
+  # from the very claim being refuted would be exactly that shortcut in a
+  # new spelling.
   Freshness = {
     scope | NonEmptyString,  # a git pathspec; COVERAGE of the claim's real
                               # dependent set is a known gap this contract
