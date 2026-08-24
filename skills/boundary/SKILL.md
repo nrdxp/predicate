@@ -196,6 +196,39 @@ drops invariants it cannot rank).
 
 ---
 
+## When the loop is engaged
+
+The loop below protects one thing: launching a walk that is **expensive to
+re-run or hard to undo** on a frame that could not bound it. Run the
+engagement test before running the loop — name what it protects, then ask
+whether this dispatch threatens it.
+
+It is engaged when any of these holds:
+
+- **Costly to re-run.** An expensive tier, a long walk, or a walk whose
+  output other work will be built on before anyone checks it.
+- **Hard to undo.** A shared surface, an irreversible effect, a trust
+  boundary — anywhere a bad frame produces damage a revert does not reach.
+- **The frame is genuinely open.** The task names an outcome rather than a
+  defect, or a reasonable walker could read the goal two ways.
+
+It is **not** engaged when the dispatch names a specific defect, states the
+condition that would show it fixed, and works a surface one commit undoes.
+That IBC is checked against the sufficiency conditions and dispatched — no
+attack sweep, no comprehension probe, no approval gate. A bounded repair
+with a measured baseline gains nothing from a fixed-point search over its
+own framing, and the two extra round-trips are paid out of the same
+attention the loop exists to protect.
+
+Scaling **boundary mass** to walker capability (S7) and scaling **whether
+the loop runs at all** are different decisions. S7 governs how much the IBC
+must say; this governs whether the IBC is worth arguing about.
+
+The failure this clause fixes was measured, not anticipated: two composers
+in separate sessions each dispatched a day of autonomous workers without
+this loop, each believing itself compliant, because a rule that fires on
+every dispatch is a rule that gets read as fitting none of them.
+
 ## The Boundary Refinement Loop
 
 `/boundary` manufactures $\text{IBC}^*$ as the fixed point of a cheap
@@ -229,16 +262,17 @@ APPROVE ─→ DISPATCH  (human approves IBC*; expensive walk launches)
    verification evidence.
 4. **APPROVE:** The loop converges when an attack sweep yields zero
    grounded objections. The human reviews $\text{IBC}^*$ and makes the
-   dispatch decision. **This gate is mandatory:** no expensive walk
-   launches from an unapproved boundary.
+   dispatch decision. **Where the loop is engaged this gate is mandatory:**
+   no expensive walk launches from an unapproved boundary. Where it is not,
+   there is no gate to skip — the loop did not run.
 
 ## The Comprehension Probe — empirical sufficiency
 
 The ATTACK sweep argues about an IBC; the probe **simulates its
-consumer**. Before an IBC dispatches an autonomous worker (campaign
-worker IBCs especially — [campaign §ORCHESTRATE](../campaign/SKILL.md),
-[orchestration §JIT authoring](../orchestration/SKILL.md)), run a
-zero-context dry run:
+consumer**. Before an IBC dispatches an autonomous worker **on an engaged
+boundary** (campaign worker IBCs especially — [campaign
+§ORCHESTRATE](../campaign/SKILL.md), [orchestration §JIT
+authoring](../orchestration/SKILL.md)), run a zero-context dry run:
 
 - A cheap-tier agent receives ONLY the IBC plus the repository's
   committed record — no conversation history, no scratch, nothing the
