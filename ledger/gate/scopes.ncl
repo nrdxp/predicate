@@ -605,6 +605,27 @@ let GateEntry = {
     } | GateEntry,
 
     {
+      gate        = "ledger/gate/currency.py",
+      scope       = 'orchestration,
+      fires_when  = "run manually by a dev/agent — not currently wired into ci.yml; evaluates whether an anchored freshness cure is still current, per the architect's expiry ruling: a currency verdict holds iff nothing under its declared git pathspec changed since its anchor commit, and it reports anchor-not-an-ancestor loudly rather than treating a rewritten history as a silent lapse",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
+      gate        = "ledger/gate/test_currency.sh",
+      scope       = 'orchestration,
+      fires_when  = "run manually by a dev/agent — not currently wired into ci.yml; suite for currency.py covering lapse detection over a scope, the anchor-not-an-ancestor report the compiled model's rewrite precondition requires, and the refusal of a movable ref as an anchor",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
+      gate        = "ledger/gate/test_refutations_query.sh",
+      scope       = 'orchestration,
+      fires_when  = "run manually by a dev/agent — not currently wired into ci.yml; suite for entries_query.ncl's refutations and impeachment_queue views, proving the falsity edge's species are DERIVED rather than authored (born-false, became-false, unclassifiable-refutation) and that the collision queue surfaces the case the model proves contradictory: a sound closure and a true refutation at the same anchor",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
       gate        = "ledger/gate/test_entries_integrity.sh",
       scope       = 'orchestration,
       fires_when  = "run manually by a dev/agent — not currently wired into ci.yml; fixture suite for entries_integrity.sh proving the wrapper correctly invokes the extractor and the contract and correctly propagates their verdict as its own exit code, reusing test_entries_extract.sh's and test_corpus_ids.sh's existing fixtures rather than re-authoring them",
