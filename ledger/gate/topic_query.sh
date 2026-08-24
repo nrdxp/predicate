@@ -37,9 +37,13 @@
 # is such a fixture. Production callers never need to set it.
 #
 # Usage: topic_query.sh <view> <path> [path...]
-#   view: one of entries_query.ncl's exported views --
-#         awaiting_human | runnable_now | unpaid_cures | unbacked |
-#         chain_floor | untagged
+#   view:   one of entries_query.ncl's exported views --
+#           awaiting_human | runnable_now | unpaid_cures | unbacked |
+#           chain_floor | untagged
+#   <path>: SCOPE only -- selects what is DISPLAYED (see DISPLAY vs CLOSURE
+#           above). The ledger root closure is computed against is NOT
+#           derived from these -- it is TOPIC_QUERY_LEDGER_ROOT, defaulting
+#           to $root/.ledger.
 # Exit: 0  the query ran (an empty array is a real answer, not a failure).
 #       1  the extractor reported findings over the caller's own scope, or
 #          that scope's export did not satisfy the entry contract -- the
