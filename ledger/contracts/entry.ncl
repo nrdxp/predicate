@@ -141,6 +141,24 @@
   # file. Exposed as a field (the `matches`/`cure_for` idiom) so a consumer
   # that already imports `entry.ncl` — `entries_query.ncl` among them — reads
   # the registry off `law.tag_registry` rather than importing it a second way.
+  #
+  # `tag_registry.ncl` beside this file ships EMPTY by design
+  # (.ledger/tech-debt/tag-registry-ships-predicate-vocabulary.yaml): a
+  # direction marker's value is its own corpus's directions.md entry, so
+  # shipping one from the plugin is a category error, not a rough edge, and
+  # no topic vocabulary generalizes past the project that coined it either.
+  # Nickel's import is static — this file cannot conditionally resolve a
+  # project's own registry, which may or may not exist — so composition
+  # happens one layer OUT: a consuming project declares its own vocabulary
+  # at <ledger-root>/tag_registry.ncl (mirroring `.ledger/config.sh`'s own
+  # "if present" precedent; predicate's OWN vocabulary now lives at
+  # `.ledger/tag_registry.ncl`, moved out of this plugin by the same fix),
+  # and ledger/gate/entries_integrity.sh composes it in — materializing a
+  # scratch copy of THIS law beside the resolved registry before nickel ever
+  # runs, the same copy-the-law idiom this file's own mutation tests
+  # (test_entry.sh) already use to vary it. Absent a project registry, this
+  # import resolves to the plugin's empty default and no tag is admitted —
+  # the safe baseline for a project that never coined any vocabulary.
   tag_registry | doc "the admissible tag vocabulary (ledger/contracts/tag_registry.ncl); the coining bar's data half"
     = import "tag_registry.ncl",
 
@@ -160,7 +178,7 @@
   TagName = std.contract.custom (fun _label v =>
     if std.is_string v && std.record.has_field v tag_registry
     then 'Ok v
-    else 'Error { message = "TagName: `%{v}` is not in the admissible tag registry (ledger/contracts/tag_registry.ncl)" }
+    else 'Error { message = "TagName: `%{v}` is not in the admissible tag registry — declare it in your project's own tag_registry.ncl (conventionally <ledger-root>/tag_registry.ncl, e.g. .ledger/tag_registry.ncl; ledger/contracts/tag_registry.ncl ships empty by design)" }
   ),
 
   # --- Signer ---------------------------------------------------------------

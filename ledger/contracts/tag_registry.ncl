@@ -1,54 +1,29 @@
-# The admissible tag vocabulary — the coining bar itself.
+# The admissible tag vocabulary this PLUGIN ships — deliberately EMPTY.
 #
-# ledger/log/2026-08-12-tagging-hypothesis.md [G8]: "the risk is not in the
-# hypothesis but in shipping tags without their registry." An open tag
-# vocabulary becomes a second unmaintained namespace, which is the failure
-# already recorded for directions (.ledger/directions.md's own header: "This
-# document is not that text and must never become a copy of it"). So a tag is
-# never authored free-form on an entry — it is admitted here FIRST, by a
-# deliberate edit to this file, and entry.ncl's `TagName` contract (the
-# admission check) refuses anything this record does not declare.
+# .ledger/tech-debt/tag-registry-ships-predicate-vocabulary.yaml: this file
+# used to carry D1-D3 (predicate's OWN direction markers, pointing at
+# predicate's own .ledger/directions.md) plus six topic tags coined for
+# predicate's own development, and every project adopting this plugin
+# inherited them. That is a category error for the direction markers
+# specifically — a direction marker's value is its own corpus's own
+# directions.md entry, so it is per-corpus BY DEFINITION, never plugin
+# machinery — and an unjustified universal for the topics: nothing about
+# "conditioning", "failure-class", "gate-mechanism", "perf",
+# "record-integrity", or "verification-dual" generalizes to a project that
+# is not predicate's own development.
 #
-# `category` distinguishes DIRECTION tags — whose value is a direction's own
-# marker in .ledger/directions.md (D1, D2, D3) — from TOPIC tags, admission's
-# other class. entries_query.ncl's `with_tags` selector never reads this
-# field at all (it intersects on tag NAME alone, direction and topic in one
-# namespace by design); `category` stays recorded here purely as
-# classification metadata for a reader browsing the registry itself.
+# No admitted default ships here for the same reason applied the other
+# direction: no member of an open vocabulary is universal enough to bind
+# every adopting project, so binding none is the honest baseline rather
+# than an arbitrary pick. A consuming project declares its own vocabulary at
+# <ledger-root>/tag_registry.ncl (mirroring `.ledger/config.sh`'s own "if
+# present" precedent) — ledger/contracts/entry.ncl's own comment on
+# `tag_registry` explains the composition mechanism, and
+# ledger/gate/entries_integrity.sh is where it is wired. A project that
+# declares no registry of its own gets NO admitted tags: the safe baseline,
+# not a silent inheritance of some other project's vocabulary.
 #
-# `conditioning` was admitted after a node was found carrying it unadmitted.
-# The bar is admit-then-use and that node was written the other way round, so
-# the question at repair was which half to correct. Admitted rather than
-# struck because the conditioning layer is a standing subsystem a reader
-# would ask about; the same node's `cutting-pass` was struck instead, being
-# one pass's name rather than anything a second entry would ever carry.
-#
-# `perf` is the first registered topic tag (node/tag-query,
-# ledger/log/2026-08-12-tagging-hypothesis.md's own composer dispatch: "do
-# not tag any existing entry... ship the mechanism and the registry" no
-# longer bounds the registry to directions alone — a composed query spanning
-# a direction and a topic needed a real second class to prove against, not a
-# hypothetical one). Nothing in the corpus carries it yet; an admitted,
-# idle tag is the registry's honest starting state for a class, the same as
-# it was for D1–D3 before this pass.
-#
-# `verification-dual` was found used-then-never-admitted:
-# .ledger/log/2026-08-24-the-gate-stops-vetoing.md carries `tags:: D3
-# verification-dual` and landed clean through the exact hole this same pass
-# wires shut (the recorder's own commit gate never validated log/). Admitted
-# here as the least invasive fix, same as `conditioning` above — it names a
-# genuine, standing project concept (the Verification Dual doctrine) a
-# reader would ask about. Coining a topic tag from an unadmitted use is a
-# call this file's own bar reserves to a deliberate edit, not a corpus scan;
-# this admission is flagged to the head as reversible.
-{
-  D1 = { category = "direction" },
-  D2 = { category = "direction" },
-  D3 = { category = "direction" },
-  conditioning = { category = "topic" },
-  failure-class = { category = "topic" },
-  gate-mechanism = { category = "topic" },
-  perf = { category = "topic" },
-  record-integrity = { category = "topic" },
-  verification-dual = { category = "topic" },
-}
+# Predicate's OWN registry — the D1-D3 + six topics this file used to carry
+# — moved to `.ledger/tag_registry.ncl`, unchanged in content or in the
+# reasoning that admitted each entry.
+{}
