@@ -147,6 +147,70 @@ expect "corpus: directive carrying every legitimate companion -> export clean" 0
 expect "corpus: directive itself bears discharges -> DirectiveClosesByAuthority" 1 "DirectiveClosesByAuthority" \
   -- run "$fix/red-corpus-directive-discharges.yaml"
 
+# (mutation) prove DirectiveClosesByAuthority's own condition is load-bearing:
+# a mutant that widens it to always pass must flip the red fixture GREEN —
+# exactly the misclosure the predicate exists to refuse. The mutant lives in
+# its own tmp dir (law + registry + apply-file copied together, so the
+# relative imports resolve) rather than patching the tracked file in place.
+directive_pred_mut="$(mktemp -d)"
+cp "$law" "$directive_pred_mut/entry.ncl"
+cp "$root/ledger/contracts/tag_registry.ncl" "$directive_pred_mut/tag_registry.ncl"
+cp "$apply" "$directive_pred_mut/entry_apply.ncl"
+sed -i 's/if std.array.length (refs_of "discharges" d) == 0/if true/' "$directive_pred_mut/entry.ncl"
+grep -q 'if true' "$directive_pred_mut/entry.ncl" \
+  || { echo "ENV: DirectiveClosesByAuthority mutation did not apply — the literal moved"; exit 2; }
+mutant_out="$(cd "$root" && nickel export "$fix/red-corpus-directive-discharges.yaml" \
+  --apply-contract "$directive_pred_mut/entry_apply.ncl" 2>&1)"
+mutant_rc=$?
+if [ "$mutant_rc" -eq 0 ]; then
+  echo "PASS  (mutation) widened DirectiveClosesByAuthority lets the discharges fixture through — the predicate is load-bearing"
+else
+  echo "FAIL  (mutation) discharges fixture still fails under a widened predicate (rc=$mutant_rc) — the pin proves nothing"
+  printf '%s\n' "$mutant_out" | tail -3
+  fails=$((fails + 1))
+fi
+rm -rf "$directive_pred_mut"
+
+# (mutation) prove the EAGER forcing is load-bearing: `std.contract.apply`
+# alone stays lazy, so if `_directive_conformance` is folded but never
+# consulted by the final verdict, a misclosed directive slips through
+# unread — the exact gap `_entry_conformance`'s own forcing exists to close,
+# one level up. The mutant removes the wrapping `std.seq _directive_
+# conformance ( ... )`, leaving the fold computed but discarded.
+directive_force_mut="$(mktemp -d)"
+cp "$law" "$directive_force_mut/entry.ncl"
+cp "$root/ledger/contracts/tag_registry.ncl" "$directive_force_mut/tag_registry.ncl"
+cp "$apply" "$directive_force_mut/entry_apply.ncl"
+python3 - "$directive_force_mut/entry.ncl" <<'PYEOF'
+import sys
+path = sys.argv[1]
+src = open(path, encoding="utf-8").read()
+old = "    std.seq _entry_conformance (\n    std.seq _directive_conformance (\n"
+new = "    std.seq _entry_conformance (\n"
+assert old in src, "the eager-forcing wrapper was not found — the literal moved"
+src = src.replace(old, new, 1)
+old2 = "      else 'Ok value\n    ))\n  ),\n}"
+new2 = "      else 'Ok value\n    )\n  ),\n}"
+assert old2 in src, "the closing paren pair was not found — the literal moved"
+src = src.replace(old2, new2, 1)
+open(path, "w", encoding="utf-8").write(src)
+PYEOF
+if [ "$?" -ne 0 ]; then
+  echo "ENV: directive-force mutation could not be constructed — the literal moved"
+  exit 2
+fi
+mutant_out="$(cd "$root" && nickel export "$fix/red-corpus-directive-discharges.yaml" \
+  --apply-contract "$directive_force_mut/entry_apply.ncl" 2>&1)"
+mutant_rc=$?
+if [ "$mutant_rc" -eq 0 ]; then
+  echo "PASS  (mutation) dropping the eager force lets the discharges fixture slip through lazily — the wiring is load-bearing"
+else
+  echo "FAIL  (mutation) discharges fixture still fails with the eager force removed (rc=$mutant_rc) — the pin proves nothing"
+  printf '%s\n' "$mutant_out" | tail -3
+  fails=$((fails + 1))
+fi
+rm -rf "$directive_force_mut"
+
 # --- node/provenance-gate: TDD reds for the ProvenanceGate relaxation -------
 #
 # ruling-provenance-gate (ledger commit fcf009e): the 22 no-derivation-edge

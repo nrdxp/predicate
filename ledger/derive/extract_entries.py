@@ -405,6 +405,76 @@ def report_unmarked_assertions(leads: list[str], out: Extraction, doc: str,
                    "document that grades its claims; nothing types or counts it")
 
 
+def attach_companions(entry: dict, companions: dict[str, str], out: Extraction,
+                      doc: str, marker: str, anchor: str) -> None:
+    """Fill `entry`'s fields from whatever companions the node's author
+    wrote — shared verbatim by claims/questions AND directives (ruling
+    AI13: a derivation tool never omits a node or an edge for any reason;
+    judging admissibility belongs to the type layer). A directive's `Entry`
+    counterpart in entry.ncl declares a narrower field set than `Entry`
+    itself, so a companion this walk attaches but the directive's own
+    contract does not recognize is refused there, by name — never dropped
+    here on the strength of a guess about what a directive "should" carry."""
+    if "check" in companions:
+        # `ran` is unconditionally true here: the signer wrote this span
+        # into a SIGNED record, and that authorship is itself the
+        # attestation that the command ran (ruling AI13's correction —
+        # no punctuation convention stands in for a signer's testimony).
+        # The parser cannot observe a run and does not try to; a reader
+        # who doubts a specific claim re-runs the named command.
+        entry["check"] = {"command": companions["check"],
+                          "ran": True, "at": anchor}
+    if "source" in companions:
+        entry["witness"] = {"name": companions["source"], "at": anchor}
+    if "discharge" in companions:
+        entry["discharge"] = companions["discharge"]
+    if "closer" in companions:
+        closer = parse_closer(companions["closer"])
+        if closer is None:
+            out.report("bad-closer", doc, marker,
+                       "closer designation is not `kind[/name]` over "
+                       f"{sorted(CLOSER_KINDS)}: `{companions['closer']}`")
+        else:
+            entry["closer"] = closer
+    if "derives-from" in companions:
+        external = out.attach_refs(entry, "because",
+                                   companions["derives-from"], doc, marker,
+                                   tagged=True)
+        if external:
+            entry.setdefault("because", []).extend(
+                {"kind": "external", "name": x} for x in external)
+    if "axes" in companions:
+        axes, residue = parse_axes(companions["axes"])
+        if residue or not axes:
+            out.report("bad-axes", doc, marker,
+                       "axes:: expects +/- polarity tokens over "
+                       f"{list(AXIS_ORDER)}: `{companions['axes']}`")
+        if axes:
+            entry["axes"] = axes
+    if "freshness" in companions:
+        entry["freshness"] = companions["freshness"]
+    for token in CLOSURE_EDGES:
+        if token not in companions:
+            continue
+        external = out.attach_refs(entry, token, companions[token],
+                                   doc, marker)
+        if external:
+            # A closure edge onto something outside the corpus closes
+            # nothing queryable, so unlike derives-from it is NOT
+            # preserved as an external ref — that would file it where
+            # provenance lives and quietly lose the closure.
+            out.report("bad-edge", doc, marker,
+                       f"`{token}::` takes bracketed ids, plain or "
+                       f"qualified; cannot resolve {external}")
+    if "tags" in companions:
+        tags = parse_tags(companions["tags"])
+        if tags:
+            entry["tags"] = tags
+        else:
+            out.report("bad-tags", doc, marker,
+                       f"tags:: expects one or more tokens: `{companions['tags']}`")
+
+
 def extract_doc(path: Path, out: Extraction) -> None:
     text = path.read_text(encoding="utf-8")
     doc = path.stem
@@ -459,6 +529,7 @@ def extract_doc(path: Path, out: Extraction) -> None:
             entry = {"id": node_id, "statement": statement}
             if "provenance" in companions:
                 entry["provenance"] = companions["provenance"]
+            attach_companions(entry, companions, out, doc, marker, anchor)
             out.directives.append(entry)
             out.grades[node_id] = grade
             continue
@@ -475,64 +546,7 @@ def extract_doc(path: Path, out: Extraction) -> None:
             "backing": backing,
             "signer": signer,
         }
-        if "check" in companions:
-            # `ran` is unconditionally true here: the signer wrote this span
-            # into a SIGNED record, and that authorship is itself the
-            # attestation that the command ran (ruling AI13's correction —
-            # no punctuation convention stands in for a signer's testimony).
-            # The parser cannot observe a run and does not try to; a reader
-            # who doubts a specific claim re-runs the named command.
-            entry["check"] = {"command": companions["check"],
-                              "ran": True, "at": anchor}
-        if "source" in companions:
-            entry["witness"] = {"name": companions["source"], "at": anchor}
-        if "discharge" in companions:
-            entry["discharge"] = companions["discharge"]
-        if "closer" in companions:
-            closer = parse_closer(companions["closer"])
-            if closer is None:
-                out.report("bad-closer", doc, marker,
-                           "closer designation is not `kind[/name]` over "
-                           f"{sorted(CLOSER_KINDS)}: `{companions['closer']}`")
-            else:
-                entry["closer"] = closer
-        if "derives-from" in companions:
-            external = out.attach_refs(entry, "because",
-                                       companions["derives-from"], doc, marker,
-                                       tagged=True)
-            if external:
-                entry.setdefault("because", []).extend(
-                    {"kind": "external", "name": x} for x in external)
-        if "axes" in companions:
-            axes, residue = parse_axes(companions["axes"])
-            if residue or not axes:
-                out.report("bad-axes", doc, marker,
-                           "axes:: expects +/- polarity tokens over "
-                           f"{list(AXIS_ORDER)}: `{companions['axes']}`")
-            if axes:
-                entry["axes"] = axes
-        if "freshness" in companions:
-            entry["freshness"] = companions["freshness"]
-        for token in CLOSURE_EDGES:
-            if token not in companions:
-                continue
-            external = out.attach_refs(entry, token, companions[token],
-                                       doc, marker)
-            if external:
-                # A closure edge onto something outside the corpus closes
-                # nothing queryable, so unlike derives-from it is NOT
-                # preserved as an external ref — that would file it where
-                # provenance lives and quietly lose the closure.
-                out.report("bad-edge", doc, marker,
-                           f"`{token}::` takes bracketed ids, plain or "
-                           f"qualified; cannot resolve {external}")
-        if "tags" in companions:
-            tags = parse_tags(companions["tags"])
-            if tags:
-                entry["tags"] = tags
-            else:
-                out.report("bad-tags", doc, marker,
-                           f"tags:: expects one or more tokens: `{companions['tags']}`")
+        attach_companions(entry, companions, out, doc, marker, anchor)
         out.entries.append(entry)
         out.grades[node_id] = grade
 
