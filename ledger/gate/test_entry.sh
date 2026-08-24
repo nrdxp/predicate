@@ -121,6 +121,32 @@ expect "corpus: discharges resolves to a declared directive -> export clean" 0 "
 expect "corpus: ref naming nothing at all still dangles, directives present" 1 "dangling edge" \
   -- run "$fix/red-corpus-dangling-with-directives.yaml"
 
+# --- node/directive-shape: the Directive contract, and DirectiveClosesByAuthority
+#
+# `directives` entered the resolvable id space above (TC5/TC6) but nothing
+# validated a directive's OWN shape — a reported defect: a `discharges::`
+# span the extractor now faithfully carries through onto a directive node
+# had nowhere to be REFUSED, because `EntryStore` only ever read
+# `directives` for their ids. `Directive` is the closed shape (id, statement,
+# and the companions a directive legitimately carries: provenance, discharge,
+# closer, because, tags — the live corpus's own usage, `ledger/derive/
+# extract_entries.py`'s `attach_companions` companion, none of it ever
+# populated with `check`/`witness`/`axes`/`freshness` in practice, so those
+# stay refused as extras rather than declared and gated).
+# `DirectiveClosesByAuthority` is the one named predicate: a directive closes
+# by AUTHORITY (docs/entries.md "Directives — closure by authority"), so it
+# cannot ALSO carry a `discharges` edge — that would make it the evidence
+# carrier `DischargeBacked` already reserves for a corroborated or vouched
+# CLAIM. The message teaches the correct pattern rather than merely
+# rejecting: ruling-terminal-composition [TC1]/[TC6]'s own shape, pinned
+# green just above (green-corpus-discharges-directive.yaml) and again here
+# (green-corpus-directive-full-companions.yaml) — a SEPARATE claim citing the
+# directive as the thing it discharges.
+expect "corpus: directive carrying every legitimate companion -> export clean" 0 "" \
+  -- run "$fix/green-corpus-directive-full-companions.yaml"
+expect "corpus: directive itself bears discharges -> DirectiveClosesByAuthority" 1 "DirectiveClosesByAuthority" \
+  -- run "$fix/red-corpus-directive-discharges.yaml"
+
 # --- node/provenance-gate: TDD reds for the ProvenanceGate relaxation -------
 #
 # ruling-provenance-gate (ledger commit fcf009e): the 22 no-derivation-edge
