@@ -15,7 +15,7 @@ directives:
       - kind: external
         name: prior-art/directive-shape
     tags:
-      - D1
+      - example-topic
 entries:
   - id: e-ground
     statement: "Every claim and question already carries its companions honestly."

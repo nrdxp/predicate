@@ -34,6 +34,30 @@ command -v nickel >/dev/null 2>&1 || { echo "ENV: nickel not found on PATH"; exi
 [ -d "$fix" ] || { echo "ENV: fixtures dir missing: $fix"; exit 2; }
 [ -f "$apply" ] || { echo "ENV: apply-file missing: $apply"; exit 2; }
 
+# tag_registry.ncl ships EMPTY
+# (.ledger/tech-debt/tag-registry-ships-predicate-vocabulary.yaml). The
+# fixtures below incidentally carry predicate's own live tags (D1, D2, D3,
+# perf) to exercise extraction/query machinery, not the registry itself —
+# D3 is REGISTERED but deliberately unused by any fixture entry (see the
+# with_tags "registered-but-unused" case below) — so this suite composes a
+# scratch copy of the law beside a registry admitting exactly those four —
+# the same copy-the-law idiom test_entry.sh's own mutation cases use to vary
+# it — and reassigns $apply/$query to it for the rest of the file.
+mkdir -p "$tmp/lawreg"
+cp "$root/ledger/contracts/entry.ncl" "$tmp/lawreg/entry.ncl"
+cp "$apply" "$tmp/lawreg/entry_apply.ncl"
+cp "$query" "$tmp/lawreg/entries_query.ncl"
+cat > "$tmp/lawreg/tag_registry.ncl" <<'EOF'
+{
+  D1 = { category = "topic" },
+  D2 = { category = "topic" },
+  D3 = { category = "topic" },
+  perf = { category = "topic" },
+}
+EOF
+apply="$tmp/lawreg/entry_apply.ncl"
+query="$tmp/lawreg/entries_query.ncl"
+
 fails=0
 # expect DESC EXPECTED-RC KEYWORD -- COMMAND...
 #   KEYWORD="" skips the message check.

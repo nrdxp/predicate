@@ -1,5 +1,5 @@
 id: e-tagged
-statement: "This claim declares it serves direction D1."
+statement: "This claim carries a registered topic tag."
 assertion: claim
 backing: corroborated
 signer:
@@ -14,4 +14,4 @@ axes:
   certifiable: true
   monotone: true
 tags:
-  - D1
+  - example-topic

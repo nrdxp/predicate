@@ -21,6 +21,9 @@ clean="$root/ledger/fixtures/extract/ledger-note.md"
 dup="$root/ledger/fixtures/extract/red-dup-marker.md"
 plainfall="$root/ledger/fixtures/extract/corpus-ids/plainfall"
 ghost="$root/ledger/fixtures/extract/corpus-ids/ghost"
+tagreg_admitted="$root/ledger/fixtures/extract/tagreg-project/admitted.md"
+tagreg_unadmitted="$root/ledger/fixtures/extract/tagreg-project/unadmitted.md"
+tag_no_registry="$root/ledger/fixtures/extract/tag-no-project-registry.md"
 
 command -v python3 >/dev/null 2>&1 || { echo "ENV: python3 not found on PATH"; exit 2; }
 command -v nickel >/dev/null 2>&1 || { echo "ENV: nickel not found on PATH"; exit 2; }
@@ -28,6 +31,9 @@ command -v nickel >/dev/null 2>&1 || { echo "ENV: nickel not found on PATH"; exi
 [ -f "$dup" ] || { echo "ENV: dup fixture missing: $dup"; exit 2; }
 [ -d "$plainfall" ] || { echo "ENV: plainfall fixture missing: $plainfall"; exit 2; }
 [ -d "$ghost" ] || { echo "ENV: ghost fixture missing: $ghost"; exit 2; }
+[ -f "$tagreg_admitted" ] || { echo "ENV: tagreg admitted fixture missing: $tagreg_admitted"; exit 2; }
+[ -f "$tagreg_unadmitted" ] || { echo "ENV: tagreg unadmitted fixture missing: $tagreg_unadmitted"; exit 2; }
+[ -f "$tag_no_registry" ] || { echo "ENV: no-registry tag fixture missing: $tag_no_registry"; exit 2; }
 
 fails=0
 # expect DESC EXPECTED-RC KEYWORD -- COMMAND...
@@ -109,6 +115,30 @@ trap 'rm -rf "$tmp"' EXIT
 expect "the clean fixture, mutated to reuse a marker, goes red" 1 \
   "duplicate entry id" \
   -- "$gate" "$tmp/mutated.md"
+
+# --- project-local tag registry (tag-registry-ships-predicate-vocabulary.yaml) --
+#
+# ledger/contracts/tag_registry.ncl ships EMPTY: D1-D3 (direction markers)
+# and predicate's own six topic tags are per-project vocabulary, not plugin
+# machinery — a direction marker's value is its own corpus's directions.md
+# entry, so shipping one is a category error, not a rough edge. A consuming
+# project declares its own vocabulary at <ledger-root>/tag_registry.ncl,
+# sibling to the corpus it tags (mirroring .ledger/config.sh's own "if
+# present" precedent). Nickel's import is static and cannot conditionally
+# resolve a file that may not exist, so this gate composes it in: a scratch
+# copy of the law, materialized beside the resolved registry before nickel
+# ever runs — the same copy-the-law idiom test_entry.sh's own mutation
+# cases already use to vary it.
+expect "a project-local registry admits a tag the plugin default does not" 0 "" \
+  -- "$gate" "$tagreg_admitted"
+expect "a tag in neither registry is refused, naming TagName" 1 "TagName" \
+  -- "$gate" "$tagreg_unadmitted"
+expect "the refusal names the project's own registry location" 1 \
+  ".ledger/tag_registry.ncl" \
+  -- "$gate" "$tagreg_unadmitted"
+expect "a tag with no project registry present is refused (empty default)" 1 \
+  "TagName" \
+  -- "$gate" "$tag_no_registry"
 
 echo
 if [ "$fails" -eq 0 ]; then echo "test_entries_integrity: ALL PASS"; exit 0; fi

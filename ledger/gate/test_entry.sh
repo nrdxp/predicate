@@ -60,6 +60,22 @@ expect() {
 
 run() { nickel export "$1" --apply-contract "$apply"; }
 
+# tag_registry.ncl ships EMPTY
+# (.ledger/tech-debt/tag-registry-ships-predicate-vocabulary.yaml — direction
+# markers and topic vocabulary are per-project, not plugin machinery). A few
+# fixtures below carry an incidental tag to prove tags are a legitimate
+# companion or to exercise the coining bar itself — never to depend on any
+# project's real vocabulary — so this suite composes ONE minimal test-local
+# registry (a single synthetic topic), materializing a scratch copy of the
+# law beside it (the same copy-the-law idiom this file's own mutation cases
+# already use to vary it), and reuses it everywhere a fixture needs a tag
+# admitted. Torn down at the end of the file.
+tags_reg="$(mktemp -d)"
+cp "$law" "$tags_reg/entry.ncl"
+cp "$apply" "$tags_reg/entry_apply.ncl"
+printf '{ example-topic = { category = "topic" } }\n' > "$tags_reg/tag_registry.ncl"
+run_tagreg() { nickel export "$1" --apply-contract "$tags_reg/entry_apply.ncl"; }
+
 # --- greens: every inhabited cell and the ruled edge cases -------------------
 expect "proved claim (corroborated, check ran) -> export clean" 0 "" \
   -- run "$fix/green-proved-claim.yaml"
@@ -143,7 +159,7 @@ expect "corpus: ref naming nothing at all still dangles, directives present" 1 "
 # (green-corpus-directive-full-companions.yaml) — a SEPARATE claim citing the
 # directive as the thing it discharges.
 expect "corpus: directive carrying every legitimate companion -> export clean" 0 "" \
-  -- run "$fix/green-corpus-directive-full-companions.yaml"
+  -- run_tagreg "$fix/green-corpus-directive-full-companions.yaml"
 expect "corpus: directive itself bears discharges -> DirectiveClosesByAuthority" 1 "DirectiveClosesByAuthority" \
   -- run "$fix/red-corpus-directive-discharges.yaml"
 
@@ -288,10 +304,15 @@ expect "tagged depends element is refused -> NonEmptyString" 1 "NonEmptyString" 
 # by closed-set membership against tag_registry.ncl, enforced at the SHAPE
 # tier (TagName, beside SignerKind/Backing) — a registered tag exports clean,
 # an unregistered one is REFUSED, never merely reported.
-expect "claim tagged with a registered direction tag -> export clean" 0 "" \
-  -- run "$fix/green-tagged-claim.yaml"
+#
+# Reuses the shared test-local registry composed near the top of this file
+# (tags_reg/run_tagreg) rather than depending on any project's real
+# vocabulary — the coining bar itself is under test here, not any specific
+# tag.
+expect "claim tagged with a registered topic tag -> export clean" 0 "" \
+  -- run_tagreg "$fix/green-tagged-claim.yaml"
 expect "claim tagged with an unregistered tag -> TagName" 1 "TagName" \
-  -- run "$fix/red-unregistered-tag.yaml"
+  -- run_tagreg "$fix/red-unregistered-tag.yaml"
 
 # (mutation) prove the registry check is load-bearing: a mutant that widens
 # TagName to accept any string must make the unregistered-tag fixture go
@@ -762,6 +783,8 @@ else
   echo "FAIL  c14: found $provenance_gate_discharges 'discharges' occurrence(s) in ProvenanceGate"
   fails=$((fails + 1))
 fi
+
+rm -rf "$tags_reg"
 
 if [ "$fails" -ne 0 ]; then
   echo "FAIL: $fails entry case(s) mismatched"; exit 1
