@@ -40,19 +40,19 @@
 # Reuse, not redefinition (ruling-hooks-boundary.md's no-second-definition
 # rule; ruling-open-surface-node.md U4/U6). `law.corpus_edges_of` and
 # `law.refs_of` are entry.ncl's own EXPORTED primitives and are used exactly
-# as entries_query.ncl uses them. entries_query.ncl's own `is_open` is NOT
-# itself an importable binding: that file's only exported value is the bare
-# contract its two existing callers apply with `--apply-contract`
-# (test_corpus_ids.sh, test_entries_extract.sh), so wrapping a record export
-# around it to expose `is_open` as a field would change that contract's
-# shape for callers that never asked for one. This file's `closed_ids`/
-# `is_open` below is therefore the identical one-line closed-id-set
-# composition over `law.refs_of "discharges"/"supersedes"` entries_query.ncl
-# already uses — built from the actually-exported primitive, not a second,
-# divergent notion of openness. Named in the node's report as a gap between
-# what the boundary asked to reuse and what the file structure lets a caller
-# reuse.
+# as entries_query.ncl uses them. `is_open` itself is now IMPORTED, not
+# reimplemented: entries_query.ncl was restructured to follow entry.ncl's own
+# named-field pattern (a record with doc-stringed fields, the `Views`
+# contract among them, rather than a bare contract at the top level — see
+# entries_query.ncl's own header), so `query.is_open` is the SAME closed-id-
+# set composition over `law.refs_of "discharges"/"supersedes"` entries_query.ncl's
+# `Views` uses internally, applied to this file's own `entries`. The gap this
+# comment used to name — the closed-id-set logic here was a byte-identical
+# copy because nothing in entries_query.ncl could be imported — is closed;
+# the two were verified behaviorally equivalent over the live corpus (2462
+# entries, 0 mismatches) before this file stopped carrying its own copy.
 let law = import "../contracts/entry.ncl" in
+let query = import "../contracts/entries_query.ncl" in
 
 # record-as-set idiom (shared with entries_query.ncl / dag.ncl / layers.ncl):
 # O(1) membership via std.record.has_field rather than an array scan.
@@ -69,17 +69,8 @@ fun input =>
   let id_map = std.array.fold_left (fun acc e => std.record.insert e.id e acc) {} entries in
   let is_claim = fun e => law.matches e.assertion 'claim "claim" in
 
-  # --- openness (reused composition, see file header) ----------------------
-  let add_all = fun acc refs =>
-    std.array.fold_left (fun a r => set_insert r a) acc refs
-  in
-  let closed_ids =
-    std.array.fold_left
-      (fun acc e => add_all acc (law.refs_of "discharges" e @ law.refs_of "supersedes" e))
-      {}
-      entries
-  in
-  let is_open = fun e => !(std.record.has_field e.id closed_ids) in
+  # --- openness (IMPORTED, see file header) ---------------------------------
+  let is_open = query.is_open entries in
 
   # A backed claim (corroborated or vouched) is never a member of the open
   # surface, by construction, regardless of distance or discharge status

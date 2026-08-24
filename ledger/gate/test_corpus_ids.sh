@@ -45,7 +45,7 @@ root="$(cd "$here/../.." && pwd)"
 fix="$root/ledger/fixtures/extract/corpus-ids"
 extractor="$root/ledger/derive/extract_entries.py"
 apply="$root/ledger/contracts/entry_apply.ncl"
-query="$root/ledger/contracts/entries_query.ncl"
+query="$root/ledger/contracts/entries_query_apply.ncl"
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 

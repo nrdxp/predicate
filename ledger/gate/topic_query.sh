@@ -52,7 +52,7 @@ set -u
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 root="$(cd "$here/../.." && pwd)"
 extractor="$root/ledger/derive/extract_entries.py"
-query="$root/ledger/contracts/entries_query.ncl"
+query="$root/ledger/contracts/entries_query_apply.ncl"
 ledger_root="${TOPIC_QUERY_LEDGER_ROOT:-$root/.ledger}"
 views="awaiting_human runnable_now unpaid_cures unbacked chain_floor untagged"
 

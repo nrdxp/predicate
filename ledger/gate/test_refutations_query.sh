@@ -16,7 +16,7 @@
 set -u
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 root="$(cd "$here/../.." && pwd)"
-query="$root/ledger/contracts/entries_query.ncl"
+query="$root/ledger/contracts/entries_query_apply.ncl"
 fixture="$root/ledger/fixtures/entry/refutations-species.yaml"
 
 command -v python3 >/dev/null 2>&1 || { echo "ENV: python3 not found on PATH"; exit 2; }

@@ -1,7 +1,18 @@
 # The first queries over the typed-claim record — a Nickel evaluation over
-# the extractor's export, invoked as a value-transforming contract:
+# the extractor's export, invoked as a value-transforming contract via the
+# `Views` field this file exports:
 #
-#   nickel export <export>.yaml --apply-contract ledger/contracts/entries_query.ncl
+#   nickel export <export>.yaml --apply-contract ledger/contracts/entries_query_apply.ncl
+#
+# THIS FILE IS THE LAW, entry.ncl's own pattern (see that file's header): named
+# fields with doc strings, not a bare contract. `is_open` and the other
+# corpus-derived helpers below are therefore reachable to an importer —
+# ledger/derive/anchored_surface_core.ncl is the consumer that needed exactly
+# this and, before this fix, carried its own duplicate `is_open` because
+# nothing here could be imported. `entries_query_apply.ncl` re-exports the
+# `Views` field as the bare contract `--apply-contract` requires, mirroring
+# the entry.ncl / entry_apply.ncl split already used throughout
+# ledger/contracts/.
 #
 # Validation is not re-implemented: the export runs through the EXISTING
 # entry_apply.ncl before any view is computed, so an invalid corpus never
@@ -208,7 +219,49 @@ let get_or = fun name fallback r =>
   if std.record.has_field name r then r."%{name}" else fallback
 in
 
-std.contract.custom (fun label value =>
+{
+  # set-union: fold refs into an id-set record (the id_set idiom this
+  # corpus's contracts share throughout) — O(1) membership via
+  # std.record.has_field. Exported alongside `is_open` because both of
+  # `is_open`'s two production consumers (this file's own `Views` below, and
+  # ledger/derive/anchored_surface_core.ncl) build the SAME closed-id-set
+  # shape with it.
+  add_all
+    | doc "fold an array of ids into an existing id-set record; O(1) membership"
+    = fun acc refs =>
+      std.array.fold_left
+        (fun a r => if std.record.has_field r a then a else std.record.insert r true a)
+        acc
+        refs,
+
+  # openness, DERIVED, never authored (see the file header's OPENNESS
+  # paragraph): an entry is open iff no entry in the corpus names it in a
+  # `discharges` or `supersedes` edge. Curried on the corpus's `entries` so
+  # the O(E) closed-id-set fold runs ONCE per corpus rather than once per
+  # predicate call — `is_open entries` builds the set and returns the
+  # per-entry test, the same shape this file's own `Views` below and
+  # ledger/derive/anchored_surface_core.ncl both need. Behavior UNCHANGED
+  # from before this field existed: this was a LOCAL binding inside `Views`'
+  # contract body, unreachable to any importer, which is why
+  # anchored_surface_core.ncl carried an identical copy rather than one.
+  is_open
+    | doc "fun entries => fun entry => Bool -- an entry is open iff no entry in `entries` names it in a discharges or supersedes edge"
+    = fun entries =>
+      let closed_ids =
+        std.array.fold_left
+          (fun acc e =>
+            add_all acc (law.refs_of "discharges" e @ law.refs_of "supersedes" e))
+          {}
+          entries
+      in
+      fun e => !(std.record.has_field e.id closed_ids),
+
+  # the value-transforming --apply-contract entry point over a validated
+  # typed-claim corpus export. entries_query_apply.ncl re-exports this field
+  # as the bare contract `nickel export --apply-contract` requires.
+  Views
+    | doc "the corpus query contract: validates via entry_apply.ncl, then computes the exported views"
+    = std.contract.custom (fun label value =>
   std.contract.check apply label value
   |> match {
     'Error err => 'Error err,
@@ -229,27 +282,10 @@ std.contract.custom (fun label value =>
         }
       in
 
-      # --- openness -------------------------------------------------------
-      #
-      # The set of ids some entry closes, as a record used as a set (the
-      # id_set idiom the contract already uses): O(1) membership, so openness
-      # is a lookup per question rather than a scan of the whole corpus.
-      # EntryStore has already proved every one of these refs resolves, so a
-      # member here is always a real entry.
-      let add_all = fun acc refs =>
-        std.array.fold_left
-          (fun a r => if std.record.has_field r a then a else std.record.insert r true a)
-          acc
-          refs
-      in
-      let closed_ids =
-        std.array.fold_left
-          (fun acc e =>
-            add_all acc (law.refs_of "discharges" e @ law.refs_of "supersedes" e))
-          {}
-          entries
-      in
-      let is_open = fun e => !(std.record.has_field e.id closed_ids) in
+      # --- openness (the exported `is_open` field above, applied to this
+      # corpus's own `entries` -- NOT redefined here; see that field's doc
+      # string for why the closed-id-set fold is curried) -----------------
+      let is_open = is_open entries in
 
       # --- chain floors ---------------------------------------------------
       #
@@ -540,4 +576,5 @@ std.contract.custom (fun label value =>
           |> std.array.map (fun e => e.id),
       },
   }
-)
+    ),
+}

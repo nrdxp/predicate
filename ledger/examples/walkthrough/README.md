@@ -34,7 +34,7 @@ corpus proper is these two files.)
 Ask what is open, what is backed by nothing, and what only a person can settle:
 
 ```
-nickel export /tmp/wt.json --apply-contract ledger/contracts/entries_query.ncl
+nickel export /tmp/wt.json --apply-contract ledger/contracts/entries_query_apply.ncl
 ```
 
 → `awaiting_human` holds one question, `runnable_now` one, `unbacked` one.
@@ -122,7 +122,7 @@ it for being off-topic has thrown away the most expensive thing it produced.
 
 ```
 python3 ledger/derive/extract_entries.py ledger/examples/walkthrough/refused/unadmitted-tag.md -o /tmp/bad.json
-nickel export /tmp/bad.json --apply-contract ledger/contracts/entries_query.ncl
+nickel export /tmp/bad.json --apply-contract ledger/contracts/entries_query_apply.ncl
 ```
 
 → ``TagName: `speedup` is not in the admissible tag registry``, exit 1. A tag

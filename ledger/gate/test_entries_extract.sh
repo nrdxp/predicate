@@ -24,7 +24,7 @@ here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 root="$(cd "$here/../.." && pwd)"
 fix="$root/ledger/fixtures/extract"
 extractor="$root/ledger/derive/extract_entries.py"
-query="$root/ledger/contracts/entries_query.ncl"
+query="$root/ledger/contracts/entries_query_apply.ncl"
 apply="$root/ledger/contracts/entry_apply.ncl"
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
