@@ -31,6 +31,16 @@
 # hypothetical one). Nothing in the corpus carries it yet; an admitted,
 # idle tag is the registry's honest starting state for a class, the same as
 # it was for D1–D3 before this pass.
+#
+# `verification-dual` was found used-then-never-admitted:
+# .ledger/log/2026-08-24-the-gate-stops-vetoing.md carries `tags:: D3
+# verification-dual` and landed clean through the exact hole this same pass
+# wires shut (the recorder's own commit gate never validated log/). Admitted
+# here as the least invasive fix, same as `conditioning` above — it names a
+# genuine, standing project concept (the Verification Dual doctrine) a
+# reader would ask about. Coining a topic tag from an unadmitted use is a
+# call this file's own bar reserves to a deliberate edit, not a corpus scan;
+# this admission is flagged to the head as reversible.
 {
   D1 = { category = "direction" },
   D2 = { category = "direction" },
@@ -40,4 +50,5 @@
   gate-mechanism = { category = "topic" },
   perf = { category = "topic" },
   record-integrity = { category = "topic" },
+  verification-dual = { category = "topic" },
 }

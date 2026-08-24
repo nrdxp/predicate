@@ -22,6 +22,38 @@
 #          not silently pass) — a gate that no-ops when its tool is missing
 #          is not a gate.
 #
+#   1b. WHOLE-CORPUS log/ VALIDATION — log/ carries graded prose, not
+#      pure-data YAML, so it cannot be validated per-record like tech-debt/
+#      and process-feedback/ above: entry ids are document-qualified and
+#      refs cross namespaces, so only the WHOLE .ledger corpus is a sound
+#      validation scope (a staged file, or even log/ alone, produces
+#      spurious dangling-edge findings for refs that resolve fine against
+#      the full corpus). Wired via ledger/gate/entries_integrity.sh, already
+#      built and tested for exactly this. Fixtures below reproduce the two
+#      real defect classes that landed through this hole on 2026-08-24
+#      (.ledger/log/2026-08-24-the-recorder-gate-skips-log.md [RG4],
+#      corrected in .ledger commit 1cfeb5f) rather than inventing cases:
+#      (L1) A bare `[ID]` in one document citing a marker declared in
+#          ANOTHER document resolves against the CURRENT document (where it
+#          does not exist) and dangles — BLOCKED.
+#      (L2) The same citation, qualified with its document's stem
+#          (`[stem:ID]`), resolves correctly — PASSES.
+#      (L3) KNOWN GAP, not closed by this task: `derives-from:: K1, K2`
+#          (unbracketed, comma-separated) parses as ONE external citation
+#          literally named "K1, K2" — extract_entries.py's own documented
+#          design treats un-bracketed residue text as external prose
+#          ALWAYS, and nothing in entry.ncl validates an external ref's
+#          name shape. This case is PINNED as currently-accepted (exit 0),
+#          not asserted as caught — a green result here means the gap still
+#          exists, not that it is fixed.
+#      (L4) A commit BLOCKED by this validation unstages exactly the log/
+#          file(s) it examined, leaving the working-tree copy untouched —
+#          closing the trap named in
+#          .ledger/process-feedback/pc-blocked-commit-leaves-index.yaml
+#          (a refused commit does not refuse the `git add` that preceded
+#          it, so an unstaged-on-block index cannot be swept into a later,
+#          unrelated commit).
+#
 #   2. INIT/DEINIT WIRING (bootstrap/install.sh) — against a throwaway project:
 #      (f) `init` installs the recorder hook as an untracked symlink resolving
 #          to this plugin's recorder-pre-commit.sh.
@@ -268,11 +300,128 @@ rm -rf "$fx"
 
 fx="$(make_recorder_fixture)"
 echo "UNATTRIBUTED_CEILING=3" > "$fx/config.sh"
-printf 'a flight-log note\n' > "$fx/log/ceiling-note.md"
-git "${git_id[@]}" -C "$fx" add log/ceiling-note.md
+# README.md at the recorder root, NOT under any of the three routed
+# namespaces (tech-debt/, process-feedback/, log/) — genuinely inert, unlike
+# a log/ file, which is now itself a routed class (whole-corpus validation)
+# and would require nickel+python3 regardless of the ceiling config.
+printf '# fixture recorder\n' > "$fx/README.md"
+git "${git_id[@]}" -C "$fx" add README.md
 no_nickel_path="$(path_without_nickel)"
-expect "(u5) a commit touching no records PASSES even with nickel absent (ceiling check never invoked)" 0 \
+expect "(u5) a commit touching no records or log entries PASSES even with nickel absent (ceiling check never invoked)" 0 \
   env PATH="$no_nickel_path" git "${git_id[@]}" -C "$fx" commit -m "docs: a record-free commit under an active ceiling config"
+rm -rf "$fx"
+
+echo "== recorder gate: whole-corpus log/ validation (real 2026-08-24 specimens) =="
+
+# (L1) A bare [Z1] cited from a SEPARATE document resolves against the
+# CITING document's own namespace (where no Z1 exists) and dangles — the
+# real defect class named in .ledger/log/2026-08-24-the-recorder-gate-
+# skips-log.md [RG4]/[RG3] and fixed in .ledger commit 1cfeb5f.
+fx="$(make_recorder_fixture)"
+cat > "$fx/log/base.md" <<'EOF'
+# base document
+
+`signer:: agent/test-recorder-hook` · `at:: deadbeef`
+
+`[Z1] grade::proved` **A base claim used by another document.** `check:: true`
+EOF
+cat > "$fx/log/citer.md" <<'EOF'
+# citer document
+
+`signer:: agent/test-recorder-hook` · `at:: deadbeef`
+
+`[Z2] grade::synthesis` **Cites the base claim without qualifying the
+document it lives in.** `derives-from:: [Z1]`
+EOF
+git "${git_id[@]}" -C "$fx" add log/base.md log/citer.md
+expect "(L1) a bare cross-document [ID] ref dangles and is BLOCKED" 1 \
+  git "${git_id[@]}" -C "$fx" commit -m "docs: stage a dangling cross-document reference"
+git "${git_id[@]}" -C "$fx" reset -q -- log/base.md log/citer.md
+rm -rf "$fx"
+
+# (L2) The same citation, qualified with its document's stem, resolves and
+# PASSES — the fix commit 1cfeb5f actually applied.
+fx="$(make_recorder_fixture)"
+cat > "$fx/log/base.md" <<'EOF'
+# base document
+
+`signer:: agent/test-recorder-hook` · `at:: deadbeef`
+
+`[Z1] grade::proved` **A base claim used by another document.** `check:: true`
+EOF
+cat > "$fx/log/citer.md" <<'EOF'
+# citer document
+
+`signer:: agent/test-recorder-hook` · `at:: deadbeef`
+
+`[Z2] grade::synthesis` **Cites the base claim, correctly qualified with the
+document it lives in.** `derives-from:: [base:Z1]`
+EOF
+git "${git_id[@]}" -C "$fx" add log/base.md log/citer.md
+expect "(L2) the same ref, qualified with its document stem, PASSES" 0 \
+  git "${git_id[@]}" -C "$fx" commit -m "docs: stage a correctly qualified cross-document reference"
+rm -rf "$fx"
+
+# (L3) KNOWN GAP, not closed by this task — see the header comment above.
+# `derives-from:: K1, K2` (no brackets) parses as ONE external citation
+# literally named "K1, K2": extract_entries.py treats bracket-free residue
+# text as external prose ALWAYS (its own documented design), and entry.ncl
+# validates no external ref's name shape. This PINS current behavior
+# (exit 0 — silently accepted) so a future fix flips this test, rather than
+# claiming the gate catches a class it does not.
+fx="$(make_recorder_fixture)"
+cat > "$fx/log/comma.md" <<'EOF'
+# comma document
+
+`signer:: agent/test-recorder-hook` · `at:: deadbeef`
+
+`[K1] grade::proved` **First claim.** `check:: true`
+
+`[K2] grade::proved` **Second claim.** `check:: true`
+
+`[K3] grade::synthesis` **Cites K1 and K2 but forgot the brackets.**
+`derives-from:: K1, K2`
+EOF
+git "${git_id[@]}" -C "$fx" add log/comma.md
+expect "(L3 — KNOWN GAP) unbracketed comma-separated derives-from is currently ACCEPTED, not rejected" 0 \
+  git "${git_id[@]}" -C "$fx" commit -m "docs: stage an unbracketed comma-separated derives-from"
+rm -rf "$fx"
+
+# (L4) A commit BLOCKED by whole-corpus validation unstages exactly the
+# log/ file(s) it examined — closing the trap named in
+# .ledger/process-feedback/pc-blocked-commit-leaves-index.yaml (a refused
+# commit does not refuse the `git add` that preceded it).
+fx="$(make_recorder_fixture)"
+cat > "$fx/log/citer.md" <<'EOF'
+# citer document
+
+`signer:: agent/test-recorder-hook` · `at:: deadbeef`
+
+`[Z2] grade::synthesis` **Cites a marker that was never declared anywhere
+in this corpus.** `derives-from:: [Z1]`
+EOF
+git "${git_id[@]}" -C "$fx" add log/citer.md
+git "${git_id[@]}" -C "$fx" commit -m "docs: stage a dangling reference" >/dev/null 2>&1
+commit_rc=$?
+staged_after="$(git -C "$fx" diff --cached --name-only)"
+if [ "$commit_rc" -ne 0 ]; then
+  echo "PASS  ($commit_rc) (L4) the commit was actually blocked (precondition for the unstage check below)"
+else
+  echo "FAIL  (got 0, want non-zero) (L4) the commit was NOT blocked — the unstage check below would pass vacuously"
+  fails=$((fails + 1))
+fi
+if [ -z "$staged_after" ]; then
+  echo "PASS  (L4) a blocked commit unstages the refused log/ file"
+else
+  echo "FAIL  (L4) index still carries staged file(s) after a blocked commit: $staged_after"
+  fails=$((fails + 1))
+fi
+if [ -f "$fx/log/citer.md" ] && grep -q "Cites a marker" "$fx/log/citer.md"; then
+  echo "PASS  (L4) the working-tree copy of the refused file survives unstaging"
+else
+  echo "FAIL  (L4) the refused file's working-tree content was lost"
+  fails=$((fails + 1))
+fi
 rm -rf "$fx"
 
 # ─── LEVEL 2: INIT/DEINIT WIRING ─────────────────────────────────────────────

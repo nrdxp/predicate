@@ -17,25 +17,40 @@
 # init, never inlined — the same COMPOSED-not-inlined principle
 # hooks/install-hooks.sh already follows for the project's own hooks).
 #
-# Routing — TWO classes only, by staged path prefix:
-#   tech-debt/*.yaml          -> skills/record/tech_debt_apply.ncl
-#   process-feedback/*.yaml   -> skills/record/process_feedback_apply.ncl
+# Routing — THREE classes, by staged path prefix:
+#   tech-debt/*.yaml          -> skills/record/tech_debt_apply.ncl   (per-record)
+#   process-feedback/*.yaml   -> skills/record/process_feedback_apply.ncl (per-record)
+#   log/*.md                  -> whole-corpus validation (see below)
 #
 # A deposits/testimony namespace is named in doctrine that is drafted and
 # awaiting the head's ratification (see
 # .ledger/tech-debt/gate-paths-predate-namespace.yaml) — routing a gate
 # against a path that can still change would repeat that exact recorded
 # mistake, so it is deliberately NOT wired here. A staged file outside the
-# two live namespaces (log/, state/, config.sh[.example], ...) is not a
+# three live namespaces (state/, config.sh[.example], ...) is not a
 # record this gate knows about and is skipped.
 #
-# nickel MUST be on PATH to validate a staged record. If a record is staged
-# and nickel is absent, the gate fails LOUDLY (exit 2) rather than silently
-# passing — "a gate that no-ops when its tool is missing" is a defect class
-# this repository has hit repeatedly (see ledger/README.md's portability
-# note and td-import-dos). A commit that stages NO record incurs zero
-# overhead: nickel is never invoked and its absence never blocks unrelated
-# flight-log or state commits.
+# log/ cannot be validated per-record like the other two classes: entry ids
+# are document-qualified and refs cross namespaces (a log/ entry can
+# reference directions.md; a tech-debt discharge can name a log/ entry), so
+# validating a staged file — or even the whole log/ directory — in
+# isolation produces spurious dangling-edge findings for refs that resolve
+# fine against the full corpus. The only sound scope is the WHOLE .ledger
+# corpus, so a staged log/*.md file instead runs
+# ledger/gate/entries_integrity.sh (extract + apply-contract, already built
+# and tested for exactly this) over the entire recorder root — reused
+# rather than re-implemented, per ledger/README.md's own bar: "a runner
+# must never re-implement an invariant".
+#
+# nickel MUST be on PATH to validate a staged record; python3 MUST be on
+# PATH to validate a staged log/ entry (entries_integrity.sh's own
+# extractor). If either tool is absent while its class is staged, the gate
+# fails LOUDLY (exit 2) rather than silently passing — "a gate that no-ops
+# when its tool is missing" is a defect class this repository has hit
+# repeatedly (see ledger/README.md's portability note and td-import-dos). A
+# commit that stages neither a record nor a log/ entry incurs zero
+# overhead: neither tool is ever invoked and their absence never blocks
+# unrelated state commits.
 #
 # --- The unattributed-designation ceiling ----------------------------------
 #
@@ -64,13 +79,16 @@
 # ceiling converts the guard into a rubber stamp for the next agent who
 # reaches for `unattributed` rather than naming a real signer.
 #
-# Exit: 0 = every staged record validated against its contract, and the
-#           unattributed count is at or under the ceiling (or no record
-#           staged — true no-op)
-#       1 = a staged record failed its contract, or the unattributed
-#           ceiling was exceeded
-#       2 = a record is staged but nickel is not on PATH, or an existing
-#           record file could not be read while counting
+# Exit: 0 = every staged record validated against its contract, the
+#           unattributed count is at or under the ceiling, and (if a log/
+#           entry was staged) the whole corpus validates — or nothing in
+#           any of the three classes was staged — true no-op
+#       1 = a staged record failed its contract, the unattributed ceiling
+#           was exceeded, or the whole-corpus validation failed
+#       2 = a record is staged but nickel is not on PATH, a log/ entry is
+#           staged but nickel or python3 is not on PATH (or
+#           entries_integrity.sh's own environment checks fail), or an
+#           existing record file could not be read while counting
 set -u
 
 # $plugin = predicate's own machinery, resolved from THIS script's own real
@@ -87,25 +105,28 @@ root="$(git rev-parse --show-toplevel)"
 # same coordinate space `git diff --cached --name-only` always emits.
 mapfile -t staged < <(git diff --cached --name-only --diff-filter=ACMR)
 
-# Route each staged path to its class contract; anything outside the two
-# record namespaces is not this gate's concern.
+# Route each staged path to its class; anything outside the three record
+# namespaces is not this gate's concern.
 records=()
 contracts=()
+log_staged=()
 for f in "${staged[@]}"; do
   case "$f" in
     tech-debt/*.yaml)
       records+=("$f"); contracts+=("$plugin/skills/record/tech_debt_apply.ncl") ;;
     process-feedback/*.yaml)
       records+=("$f"); contracts+=("$plugin/skills/record/process_feedback_apply.ncl") ;;
+    log/*.md)
+      log_staged+=("$f") ;;
   esac
 done
 
-# Nothing to validate — true no-op, nickel never invoked.
-[ "${#records[@]}" -eq 0 ] && exit 0
+# Nothing to validate — true no-op, neither tool ever invoked.
+[ "${#records[@]}" -eq 0 ] && [ "${#log_staged[@]}" -eq 0 ] && exit 0
 
 if ! command -v nickel >/dev/null 2>&1; then
   echo "recorder-pre-commit: 'nickel' not on PATH — cannot validate staged record(s):" >&2
-  printf '  %s\n' "${records[@]}" >&2
+  printf '  %s\n' "${records[@]}" "${log_staged[@]}" >&2
   echo "  Enter the project shell (nix-shell / nix develop) to get nickel 1.14.0, then retry." >&2
   echo "  (A gate that cannot run its check is not a gate that passes — commit blocked.)" >&2
   exit 2
@@ -124,6 +145,28 @@ for i in "${!records[@]}"; do
     rc=1
   fi
 done
+
+# --- Whole-corpus validation (log/) -----------------------------------------
+#
+# See the header comment for why this cannot be scoped to the staged
+# file(s) or to log/ alone: refs are document-qualified and cross
+# namespaces, so only the whole .ledger corpus is a sound validation scope.
+# entries_integrity.sh already does exactly this (extract + apply-contract,
+# tested at ledger/gate/test_entries_integrity.sh) — invoked here rather
+# than re-implemented.
+if [ "${#log_staged[@]}" -gt 0 ]; then
+  out="$("$plugin/ledger/gate/entries_integrity.sh" "$root" 2>&1)"
+  status=$?
+  if [ "$status" -eq 2 ]; then
+    echo "recorder-pre-commit: whole-corpus record validation could not run:" >&2
+    printf '%s\n' "$out" | sed 's/^/  /' >&2
+    exit 2
+  elif [ "$status" -ne 0 ]; then
+    echo "recorder-pre-commit: WHOLE-CORPUS RECORD VALIDATION FAILED (staged: ${log_staged[*]}):" >&2
+    printf '%s\n' "$out" | sed 's/^/  /' >&2
+    rc=1
+  fi
+fi
 
 # Per-recorder override surface (config.sh.example documents this and every
 # other overridable constant). Absent config.sh, the conservative default (0)
@@ -179,5 +222,21 @@ fi
 
 if [ "$rc" -ne 0 ]; then
   echo "recorder-pre-commit: staged record gate failed — commit blocked." >&2
+  # A refused COMMIT does not refuse the STAGING that preceded it: `git add`
+  # already succeeded, so the index stays dirty after this hook exits
+  # non-zero. Left alone, that is a trap — a later unrelated `git add` (or
+  # `git commit -a`) sweeps the still-staged file into an unrelated commit
+  # under a message describing only the other change
+  # (.ledger/process-feedback/pc-blocked-commit-leaves-index.yaml recorded
+  # this happening for real). Unstage exactly what THIS run examined and
+  # refused — restoring the index to what it found — never anything else
+  # already staged. `git reset` only moves the index pointer; the working
+  # tree (the author's edits) is untouched, so nothing is lost, only
+  # unstaged for re-add once the underlying issue is fixed.
+  if [ "${#records[@]}" -gt 0 ] || [ "${#log_staged[@]}" -gt 0 ]; then
+    if git -C "$root" reset -q -- "${records[@]}" "${log_staged[@]}" 2>/dev/null; then
+      echo "recorder-pre-commit: unstaged the refused file(s) — fix and re-add." >&2
+    fi
+  fi
 fi
 exit "$rc"
