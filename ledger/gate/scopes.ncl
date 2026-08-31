@@ -591,6 +591,13 @@ let GateEntry = {
     } | GateEntry,
 
     {
+      gate        = "ledger/gate/compose_tag_registry.sh",
+      scope       = 'orchestration,
+      fires_when  = "not directly invoked — sourced by entries_integrity.sh and topic_query.sh, the two production entrypoints that admit a project-local tag registry (tech-debt/tag-registry-ships-predicate-vocabulary.yaml); materializes a scratch copy of the law (entry.ncl, entry_apply.ncl, entries_query.ncl, entries_query_apply.ncl) beside the caller-resolved <ledger-root>/tag_registry.ncl so Nickel's static import can admit a project's own vocabulary, and sets COMPOSED_APPLY/COMPOSED_QUERY to the composed bare-contract files (or the law-dir's own, importing the plugin's empty default, when no project registry was found)",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
       gate        = "ledger/gate/entries_integrity.sh",
       scope       = 'orchestration,
       fires_when  = "run manually by a dev/agent over one or more explicit corpus paths — not currently wired into ci.yml; formalizes the extract-then-apply-contract invocation into one reusable whole-corpus entry-law gate (tech-debt/direction-id-reused.yaml): reports a qualified reference the extractor itself could not place, or anything EntryStore's own corpus-level checks refuse (a reused target id, or an unresolved discharges/supersedes edge), deferring to the full entry_apply.ncl contract rather than narrowing to only those two conditions",
