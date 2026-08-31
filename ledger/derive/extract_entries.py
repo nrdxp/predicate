@@ -23,10 +23,19 @@ Grammar (the docs/entries.md §grammar standard, ledger dialect):
               fields; conversion-path is recognized prose and stays in the
               statement; anything else token-shaped is reported.
   mentions    a span of ANY mapped token with an EMPTY value is a MENTION of
-              the token, not a use of it: prose ABOUT the grammar. It fills no
-              field, never overwrites an earlier real use, and stays in the
-              statement where it was written. The rule is general over the
-              mapped set — present and future — not a per-token exception.
+              the token, not a use of it: prose ABOUT the grammar. So is a
+              NON-empty span quoted mid-clause — preceded, ignoring
+              whitespace, by a word character rather than a span/clause
+              boundary (a backtick, sentence-final punctuation, a bold-close,
+              a ref-close) — provided something still follows it in the
+              paragraph; a real trailing companion is never the grammatical
+              object of ongoing prose, even when plain wording rather than a
+              backtick precedes it (docs/entries.md's own worked examples,
+              corroborated over every mapped-token span in the flight
+              recorder). Either way it fills no field, never overwrites an
+              earlier real use, and stays in the statement where it was
+              written. The rule is general over the mapped set — present and
+              future — not a per-token exception.
   refs        a bracketed ref names the document whose stem it carries
               (`[stem:ID]`, QUALIFIED) or the document that wrote it (`[ID]`,
               PLAIN) — plain never widens to the corpus, so a reference's
@@ -129,6 +138,18 @@ CLOSER_KINDS = {"human", "agent", "source"}
 # `machine` is the legacy corpus's word for an unnamed agent, not a fourth
 # kind: the landed notes say `closer:: machine` and mean "any agent will do".
 CLOSER_ALIASES = {"machine": "agent"}
+# A companion embedded mid-clause is a MENTION even with a non-empty value.
+# Verified over every mapped-token span in .ledger (3945 of them): a real
+# companion sits at a span/clause boundary — another backtick, sentence-final
+# punctuation, a bold-close, a ref-close — 3936 times over. The 9 that do not:
+# 7 quote the token as the object of ongoing prose ("what `source:: same`
+# means", "wrote `closer:: {kind: agent, name: X}`") and keep talking past it;
+# 2 are real trailing companions that happen to follow plain prose instead of
+# a backtick (a citation's own annotation, `a ruling `tags:: D2`), and both
+# have nothing left in the paragraph after them. So a bare word before the
+# span is necessary but not sufficient — it must also not be the last thing
+# written.
+MIDCLAUSE_BEFORE_RE = re.compile(r"\w$")
 AXIS_TOKEN_RE = re.compile(r"([+-])(determined|certifiable|monotone)\b")
 # The contract's own field order, so the export diffs cleanly against a golden.
 AXIS_ORDER = ("determined", "certifiable", "monotone")
@@ -303,6 +324,17 @@ def resolve_qualified(out: Extraction) -> None:
             qual.entry.pop(qual.edge, None)
 
 
+def is_midclause_mention(rest: str, start: int, end: int) -> bool:
+    """A non-empty companion is still a MENTION when it is grammatically
+    embedded in a sentence that is still talking, rather than trailing it.
+    `start`/`end` bound the whole span (continuations included, so a
+    `derives-from::` mid-clause carries its trailing refs along rather than
+    splitting the check across two positions)."""
+    before = rest[:start].rstrip(" ")
+    after = rest[end:].strip()
+    return bool(MIDCLAUSE_BEFORE_RE.search(before)) and bool(after)
+
+
 def parse_node(rest: str, out: Extraction, doc: str, marker: str,
                last_source: list[str]) -> tuple[str, dict[str, str]]:
     """Walk the node's spans: collect companions, keep the rest as statement."""
@@ -322,14 +354,18 @@ def parse_node(rest: str, out: Extraction, doc: str, marker: str,
                     link = cont.group(1) or cont.group(2)
                     value = f"{value}, {link}" if value else link
                     end += cont.end()
-            if not value:
+            if not value or is_midclause_mention(rest, span.start(), end):
                 # MENTION, not use — the span names the token in prose about
-                # the grammar. Tested AFTER continuations, so `derives-from::`
-                # carrying only a trailing [[wiki]] ref is still a use. It
+                # the grammar, either because it carries no value or because
+                # it is quoted mid-sentence rather than trailing the
+                # statement. Tested AFTER continuations, so `derives-from::`
+                # carrying only a trailing [[wiki]] ref is still a use, and a
+                # mid-clause `derives-from::` keeps its continuation with it
+                # rather than splitting the mention across two positions. It
                 # fills no field, so it cannot clobber an earlier real value
                 # with the empty string the contract would then reject.
-                statement_parts.append(span.group(0))
-                pos = span.end()
+                statement_parts.append(rest[span.start():end])
+                pos = end
                 continue
             if token == "source" and value == "same":
                 if last_source:

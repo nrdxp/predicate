@@ -680,6 +680,39 @@ else
   fails=$((fails + 1))
 fi
 
+# A NON-empty-valued span is still a mention when it sits mid-clause, quoted as
+# the object of ongoing prose rather than trailing the statement: K1 quotes
+# `source:: same` inside a sentence that keeps talking past it, exactly the
+# corpus shape (docs/entries.md's own worked example, and .ledger's gate:R6)
+# that must not attach a witness or fire the anaphora check. K2 is the
+# regression guard the same rule must not eat: a trailing companion preceded
+# by plain prose (not a backtick) and followed by nothing is still a real use.
+python3 "$extractor" "$fix/mention-midclause-companion.md" \
+  -o "$tmp/midclause.yaml" 2>"$tmp/midclause.err"; mcrc=$?
+nickel export "$tmp/midclause.yaml" --apply-contract "$apply" \
+  > /dev/null 2>&1; mcnrc=$?
+midclause_ok=1
+{ [ "$mcrc" -eq 0 ] || [ "$mcrc" -eq 3 ]; } || midclause_ok=0
+[ "$mcnrc" -eq 0 ] || midclause_ok=0
+grep -q "unresolved-anaphora" "$tmp/midclause.err" && midclause_ok=0
+python3 - "$tmp/midclause.yaml" <<'EOF' || midclause_ok=0
+import json, sys
+doc = json.load(open(sys.argv[1]))
+[k1] = [e for e in doc["entries"] if e["id"] == "mention-midclause-companion:K1"]
+[k2] = [e for e in doc["entries"] if e["id"] == "mention-midclause-companion:K2"]
+assert "witness" not in k1, k1
+assert "source:: same" in k1["statement"], k1
+assert k2.get("tags") == ["D1"], k2
+assert k2["check"]["command"] == "true", k2
+EOF
+if [ "$midclause_ok" -eq 1 ]; then
+  echo "PASS  (extract=$mcrc nickel=$mcnrc) mention: mid-clause tokens with a value are still mentions, excluded"
+else
+  echo "FAIL  (extract=$mcrc nickel=$mcnrc) mention: mid-clause tokens with a value are still mentions, excluded"
+  tail -5 "$tmp/midclause.err" 2>/dev/null
+  fails=$((fails + 1))
+fi
+
 # An unparseable closer designation is REPORTED, never guessed.
 expect "red: unparseable closer designation is reported, exit 3" 3 "bad-closer" \
   -- python3 "$extractor" "$fix/red-closer-unparseable.md"
