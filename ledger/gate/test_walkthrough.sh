@@ -24,7 +24,10 @@ root="$(cd "$here/../.." && pwd)"
 wt="$root/ledger/examples/walkthrough"
 extractor="$root/ledger/derive/extract_entries.py"
 convergence="$root/ledger/derive/convergence.py"
-query="$root/ledger/contracts/entries_query_apply.ncl"
+law_dir="$root/ledger/contracts"
+query="$law_dir/entries_query_apply.ncl"
+compose_helper="$root/ledger/gate/compose_tag_registry.sh"
+wt_registry="$wt/tag_registry.ncl"
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 
@@ -34,6 +37,21 @@ command -v nickel >/dev/null 2>&1 || { echo "ENV: nickel not found on PATH"; exi
 [ -f "$extractor" ] || { echo "ENV: extractor missing: $extractor"; exit 2; }
 [ -f "$convergence" ] || { echo "ENV: convergence.py missing: $convergence"; exit 2; }
 [ -f "$query" ] || { echo "ENV: query contract missing: $query"; exit 2; }
+[ -f "$compose_helper" ] || { echo "ENV: compose helper missing: $compose_helper"; exit 2; }
+[ -f "$wt_registry" ] || { echo "ENV: walkthrough tag registry missing: $wt_registry"; exit 2; }
+# shellcheck source=/dev/null
+. "$compose_helper"
+
+# deposit.md/directions.md carry the walkthrough's own project-local tags
+# ("perf", "gate-mechanism"), admitted the same way any adopting project's
+# would be: composed in beside a scratch copy of the law
+# (ledger/gate/compose_tag_registry.sh, shared with entries_integrity.sh and
+# topic_query.sh) rather than by the plugin's own tag_registry.ncl, which
+# ships empty by design (tech-debt/tag-registry-ships-predicate-vocabulary.yaml).
+# refused/unadmitted-tag.md has no sibling registry of its own, so it stays
+# checked against the plugin's bare (empty) $query below.
+compose_tag_registry "$law_dir" "$wt_registry" "$tmp/wt-law"
+wt_query="$COMPOSED_QUERY"
 
 fails=0
 # expect DESC EXPECTED-RC KEYWORD -- COMMAND...
@@ -77,7 +95,7 @@ expect "run-it: unscoped (whole-dir) extract is INCOMPLETE, exit 3" 3 "pre-stand
 # --- "Ask what is open ...": the query over the scoped export ---------------
 
 expect "run-it: query over the scoped export exits 0" 0 "" \
-  -- bash -c "nickel export '$tmp/wt.json' --apply-contract '$query' > '$tmp/q.json'"
+  -- bash -c "nickel export '$tmp/wt.json' --apply-contract '$wt_query' > '$tmp/q.json'"
 
 expect "run-it: awaiting_human/runnable_now/unbacked are 1/1/1" 0 "QUERY-OK" \
   -- python3 - "$tmp/q.json" <<'EOF'

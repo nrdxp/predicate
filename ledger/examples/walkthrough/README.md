@@ -17,6 +17,10 @@ what it wrote down while doing that.
   advancing. Directions never close; the questions under them do.
 - **`refused/`** — documents that are wrong on purpose, to show what the
   record declines to accept.
+- **`tag_registry.ncl`** — the two tags `deposit.md` uses (`perf`,
+  `gate-mechanism`), admitted the way any adopting project admits its own
+  vocabulary: `ledger/contracts/tag_registry.ncl` ships empty by design, so
+  a corpus that wants tags declares them beside itself.
 
 ## Run it
 
@@ -31,10 +35,16 @@ python3 ledger/derive/extract_entries.py ledger/examples/walkthrough/deposit.md 
 README and `refused/` — both hold graded-looking prose deliberately, so the
 corpus proper is these two files.)
 
-Ask what is open, what is backed by nothing, and what only a person can settle:
+Ask what is open, what is backed by nothing, and what only a person can settle.
+The query contract validates `deposit.md`'s tags against the admissible
+registry, so compose this corpus's own `tag_registry.ncl` in first —
+the same composition `ledger/gate/entries_integrity.sh` and
+`ledger/gate/topic_query.sh` perform via `ledger/gate/compose_tag_registry.sh`:
 
 ```
-nickel export /tmp/wt.json --apply-contract ledger/contracts/entries_query_apply.ncl
+source ledger/gate/compose_tag_registry.sh
+compose_tag_registry ledger/contracts ledger/examples/walkthrough/tag_registry.ncl /tmp/wt-law
+nickel export /tmp/wt.json --apply-contract "$COMPOSED_QUERY"
 ```
 
 → `awaiting_human` holds one question, `runnable_now` one, `unbacked` one.
