@@ -1,0 +1,32 @@
+# Corpus red: a `refutes` edge resolves, but to a QUESTION. `refutes` is the
+# dual of `discharges` (claim -> question-or-directive): it answers "is C
+# false", and only a claim asserts a C to be false, so its target must be a
+# claim.
+entries:
+  - id: e-refute-anchored
+    statement: "Refutes q-target, which is a question, not a claim."
+    assertion: claim
+    backing: corroborated
+    signer:
+      kind: agent
+      name: composer
+    check:
+      command: "true"
+      ran: true
+      at: "deadbeef01"
+    axes:
+      determined: true
+      certifiable: true
+      monotone: true
+    refutes:
+      - q-target
+  - id: q-target
+    statement: "Is X true?"
+    assertion: question
+    backing: unclosed
+    signer:
+      kind: agent
+      name: composer
+    discharge: "A determines whether X holds."
+    closer:
+      kind: agent

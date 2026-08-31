@@ -542,6 +542,13 @@ let GateEntry = {
     } | GateEntry,
 
     {
+      gate        = "ledger/gate/test_entry_shape.sh",
+      scope       = 'orchestration,
+      fires_when  = "run manually by a dev/agent -- not currently wired into ci.yml; suite for ledger/derive/entry_shape.py, the shape-discovery command over entry.ncl's Entry record and entries_query_apply.ncl's live output keys: pins that `closer` is reported as a record carrying a `kind` sub-field (never a bare string), that `is_open`/openness is named as a computed attribute distinct from every stored field and every view name, that the computed view set matches the contract's real output, and that the stored field set matches entry.ncl's own live Entry fields",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
       gate        = "ledger/gate/self_vouch.py",
       scope       = 'orchestration,
       fires_when  = "run manually by a dev/agent against the main tree's .ledger (directions:D3-T8); not CI-wired because .ledger is gitignored project state absent from every CI checkout, so a live run there has no corpus to read — the same reason recorder_close_check.sh is not a CI step either. Derives, for every directions-stem terminal target, whether any CORROBORATED satisfaction naming it in `discharges` is witnessed by the same party as its own document's declared signer; reports self-witnessed vouched/unclosed claims for visibility without counting them, and reports an unmet target as unmet rather than a violation",
@@ -587,6 +594,34 @@ let GateEntry = {
       gate        = "ledger/gate/entries_integrity.sh",
       scope       = 'orchestration,
       fires_when  = "run manually by a dev/agent over one or more explicit corpus paths — not currently wired into ci.yml; formalizes the extract-then-apply-contract invocation into one reusable whole-corpus entry-law gate (tech-debt/direction-id-reused.yaml): reports a qualified reference the extractor itself could not place, or anything EntryStore's own corpus-level checks refuse (a reused target id, or an unresolved discharges/supersedes edge), deferring to the full entry_apply.ncl contract rather than narrowing to only those two conditions",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
+      gate        = "ledger/gate/test_dependents_query.sh",
+      scope       = 'orchestration,
+      fires_when  = "run manually by a dev/agent — not currently wired into ci.yml; fixture suite for entries_query.ncl's dependents_of view, proving the reverse walk is transitive rather than one-level, terminates on a cycle without a node reporting itself as its own dependent, and stays inside the cost cap chain_floor's own generated-fixture guard uses",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
+      gate        = "ledger/gate/currency.py",
+      scope       = 'orchestration,
+      fires_when  = "run manually by a dev/agent — not currently wired into ci.yml; evaluates whether an anchored freshness cure is still current, per the architect's expiry ruling: a currency verdict holds iff nothing under its declared git pathspec changed since its anchor commit, and it reports anchor-not-an-ancestor loudly rather than treating a rewritten history as a silent lapse",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
+      gate        = "ledger/gate/test_currency.sh",
+      scope       = 'orchestration,
+      fires_when  = "run manually by a dev/agent — not currently wired into ci.yml; suite for currency.py covering lapse detection over a scope, the anchor-not-an-ancestor report the compiled model's rewrite precondition requires, and the refusal of a movable ref as an anchor",
+      applies_to  = "agent only",
+    } | GateEntry,
+
+    {
+      gate        = "ledger/gate/test_refutations_query.sh",
+      scope       = 'orchestration,
+      fires_when  = "run manually by a dev/agent — not currently wired into ci.yml; suite for entries_query.ncl's refutations and impeachment_queue views, proving the falsity edge's species are DERIVED rather than authored (born-false, became-false, unclassifiable-refutation) and that the collision queue surfaces the case the model proves contradictory: a sound closure and a true refutation at the same anchor",
       applies_to  = "agent only",
     } | GateEntry,
 

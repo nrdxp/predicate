@@ -1,0 +1,22 @@
+# Single-entry red: the anchored freshness record's `at` naming a movable
+# ref (a branch name) rather than a commit hash. CommitRef's hex-only shape
+# is the refusal mechanism (H2/[LM6]): a branch anchor re-smuggles the
+# current-state quantifier the whole design exists to avoid.
+id: r-freshness-movable-ref
+statement: "A freshness record anchored to a branch name instead of a commit."
+assertion: claim
+backing: corroborated
+signer:
+  kind: agent
+  name: composer
+check:
+  command: "true"
+  ran: true
+  at: "deadbeef01"
+axes:
+  determined: true
+  certifiable: true
+  monotone: false
+freshness:
+  scope: "ledger/contracts/entry.ncl"
+  at: "master"

@@ -24,7 +24,7 @@ root="$(cd "$here/../.." && pwd)"
 wt="$root/ledger/examples/walkthrough"
 extractor="$root/ledger/derive/extract_entries.py"
 convergence="$root/ledger/derive/convergence.py"
-query="$root/ledger/contracts/entries_query.ncl"
+query="$root/ledger/contracts/entries_query_apply.ncl"
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 

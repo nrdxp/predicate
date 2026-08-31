@@ -100,10 +100,11 @@ owner per the project Constitution; act on it like this:
 
 | Decision class | Required assent | How you act |
 | :--- | :--- | :--- |
-| Routine forward-motion (dispatch, dag-structure, reconcile-accept, rework) | `'single` | the owner acts alone |
+| Routine forward-motion (dispatch, dag-structure, boundary-design, convene, lifecycle, reconcile-accept, rework) | `'single` | the owner acts alone |
 | Judgment (classification, finding-resolution) | `'subset` | a quorum of seats must assent |
 | Merge | `'single` + maintainer consent | the lead-maintainer decides; the maintainer's assent is recorded |
-| Boundary-design, dag-amendment, scope-change | `'full` or `'human` | per the type's rule: full consensus and/or the head |
+| Dag-amendment (load-bearing) | `'single` + head ratification | the architect decides; the head MUST ratify |
+| Dag-amendment (mechanical), residue | `'single` | the architect and the auditor respectively act alone |
 | Terminal (close, release) | `'full` + head | the standing council reaches consensus; the head ratifies atop it |
 | Taste-fork | `'human` | the head arbitrates |
 | Governance-of-self (bar, guest-summon) | `'human` / driver | the head ratifies a bar; the driver may summon a guest |

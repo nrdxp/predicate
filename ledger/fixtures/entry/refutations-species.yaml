@@ -1,0 +1,107 @@
+# Fixture for entries_query.ncl's `refutations` / `impeachment_queue`
+# views. Five ref:T*/ref:R* pairs, one per species-derivation branch:
+#
+#   ref:T1 <- ref:R1   equal check anchors, T1 non-monotone -> born-false.
+#                      T1 is CLOSED (corroborated) -> appears in
+#                      impeachment_queue (the collision the `impeachment`
+#                      theorem names).
+#   ref:T2 <- ref:R2   DIFFERING check anchors, T2 non-monotone ->
+#                      became-false. T2 is closed but became-false is not
+#                      the collision species -> excluded from
+#                      impeachment_queue.
+#   ref:T3 <- ref:R3   DIFFERING check anchors, T3 MONOTONE -> born-false
+#                      by mechanical promotion regardless of the anchor
+#                      difference (monotone_refutation_is_born_false). T3
+#                      closed -> impeachment_queue.
+#   ref:T4 <- ref:R4   T4 carries no check/witness at all (unanchored) ->
+#                      unclassifiable-refutation, never guessed. T4 is also
+#                      `unclosed`, so it could not appear in
+#                      impeachment_queue even if the species were
+#                      born-false -- doubly excluded.
+#   ref:T5 <- ref:R5   equal WITNESS anchors (not check) -> born-false,
+#                      proving anchor_of reads either backing species. T5 is
+#                      closed (vouched) -> impeachment_queue.
+entries:
+  - id: ref:T1
+    statement: "Non-monotone target, corroborated."
+    assertion: claim
+    backing: corroborated
+    signer: { kind: agent, name: worker }
+    check: { command: "true", ran: true, at: "aaaaaaa1" }
+    axes: { determined: true, certifiable: true, monotone: false }
+    freshness: "re-run true over this fixture"
+  - id: ref:R1
+    statement: "Refutes T1 at the SAME anchor -> born-false."
+    assertion: claim
+    backing: corroborated
+    signer: { kind: agent, name: worker }
+    check: { command: "true", ran: true, at: "aaaaaaa1" }
+    axes: { determined: true, certifiable: true, monotone: true }
+    refutes: [ref:T1]
+
+  - id: ref:T2
+    statement: "Non-monotone target, corroborated, earlier anchor."
+    assertion: claim
+    backing: corroborated
+    signer: { kind: agent, name: worker }
+    check: { command: "true", ran: true, at: "aaaaaaa1" }
+    axes: { determined: true, certifiable: true, monotone: false }
+    freshness: "re-run true over this fixture"
+  - id: ref:R2
+    statement: "Refutes T2 at a LATER anchor -> became-false."
+    assertion: claim
+    backing: corroborated
+    signer: { kind: agent, name: worker }
+    check: { command: "true", ran: true, at: "aaaaaaa2" }
+    axes: { determined: true, certifiable: true, monotone: true }
+    refutes: [ref:T2]
+
+  - id: ref:T3
+    statement: "MONOTONE target, corroborated."
+    assertion: claim
+    backing: corroborated
+    signer: { kind: agent, name: worker }
+    check: { command: "true", ran: true, at: "aaaaaaa1" }
+    axes: { determined: true, certifiable: true, monotone: true }
+  - id: ref:R3
+    statement: "Refutes T3 at a DIFFERENT anchor -> born-false anyway, T3 is monotone."
+    assertion: claim
+    backing: corroborated
+    signer: { kind: agent, name: worker }
+    check: { command: "true", ran: true, at: "aaaaaaa9" }
+    axes: { determined: true, certifiable: true, monotone: true }
+    refutes: [ref:T3]
+
+  - id: ref:T4
+    statement: "Unanchored target: no check, no witness."
+    assertion: claim
+    backing: unclosed
+    signer: { kind: agent, name: worker }
+    because:
+      - kind: corpus
+        name: ref:T1
+  - id: ref:R4
+    statement: "Refutes T4, which carries no anchor -> unclassifiable-refutation."
+    assertion: claim
+    backing: corroborated
+    signer: { kind: agent, name: worker }
+    check: { command: "true", ran: true, at: "aaaaaaa1" }
+    axes: { determined: true, certifiable: true, monotone: true }
+    refutes: [ref:T4]
+
+  - id: ref:T5
+    statement: "Non-monotone target, VOUCHED."
+    assertion: claim
+    backing: vouched
+    signer: { kind: agent, name: worker }
+    witness: { name: "architect-seat", at: "aaaaaaa5" }
+    axes: { determined: true, certifiable: true, monotone: false }
+    freshness: "re-run true over this fixture"
+  - id: ref:R5
+    statement: "Refutes T5 at the SAME witness anchor -> born-false."
+    assertion: claim
+    backing: vouched
+    signer: { kind: agent, name: worker }
+    witness: { name: "architect-seat", at: "aaaaaaa5" }
+    axes: { determined: true, certifiable: true, monotone: true }
+    refutes: [ref:T5]

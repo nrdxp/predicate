@@ -22,7 +22,7 @@
 set -u
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 root="$(cd "$here/../.." && pwd)"
-query="$root/ledger/contracts/entries_query.ncl"
+query="$root/ledger/contracts/entries_query_apply.ncl"
 fixture="$root/ledger/fixtures/entry/dependents-of-chain.yaml"
 regression_fixture="$root/ledger/fixtures/entry/regression-chain-floor-scale.yaml"
 

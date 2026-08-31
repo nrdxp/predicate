@@ -1,7 +1,18 @@
 # The first queries over the typed-claim record — a Nickel evaluation over
-# the extractor's export, invoked as a value-transforming contract:
+# the extractor's export, invoked as a value-transforming contract via the
+# `Views` field this file exports:
 #
-#   nickel export <export>.yaml --apply-contract ledger/contracts/entries_query.ncl
+#   nickel export <export>.yaml --apply-contract ledger/contracts/entries_query_apply.ncl
+#
+# THIS FILE IS THE LAW, entry.ncl's own pattern (see that file's header): named
+# fields with doc strings, not a bare contract. `is_open` and the other
+# corpus-derived helpers below are therefore reachable to an importer —
+# ledger/derive/anchored_surface_core.ncl is the consumer that needed exactly
+# this and, before this fix, carried its own duplicate `is_open` because
+# nothing here could be imported. `entries_query_apply.ncl` re-exports the
+# `Views` field as the bare contract `--apply-contract` requires, mirroring
+# the entry.ncl / entry_apply.ncl split already used throughout
+# ledger/contracts/.
 #
 # Validation is not re-implemented: the export runs through the EXISTING
 # entry_apply.ncl before any view is computed, so an invalid corpus never
@@ -123,6 +134,35 @@
 #                    per-claim walk itself cheaper, so this reuses that
 #                    exact trade rather than inventing a second one.
 #
+#   refutations    — one row per `refutes` edge: {refutation, target, species}.
+#                    The SPECIES ("born-false" / "became-false" /
+#                    "unclassifiable-refutation") is DERIVED, never
+#                    authored — mirroring `is_open` above — from
+#                    anchor-comparison (the refuting entry's own check/
+#                    witness anchor against the target's) and the target's
+#                    axes (architect ruling .ledger/deposits/expiry-
+#                    mechanics/architect-seat/2026-08-24-ruling-expiry-
+#                    mechanics.md; .ledger/log/2026-08-24-refutation-is-
+#                    one-anchored-edge.md RF3/RF4). A target with no anchor
+#                    of its own is `unclassifiable-refutation`, never
+#                    guessed. GIT ANCESTRY of a non-equal anchor pair is
+#                    NOT decided here — this file has no repository access
+#                    — so the "became-false" branch trusts the corpus's own
+#                    append-only rail; ledger/gate/currency.py is the tool
+#                    that verifies that trust against the real repository
+#                    and reports `anchor-not-an-ancestor` when it does not
+#                    hold.
+#
+#   impeachment_queue — the born-false-on-CLOSED collision the `impeachment`
+#                    theorem names: a snapshot-sound closure and a true
+#                    refutation at the same anchor are jointly impossible,
+#                    so the model proves the pair contradictory and cannot
+#                    itself say which party lied. Every row here is a
+#                    `refutations` row whose target is `corroborated` or
+#                    `vouched` and whose species is `born-false` — routed to
+#                    a human closer, NEVER auto-resolved by this view or any
+#                    other.
+#
 # The parameterized TAG selector (ledger/log/2026-08-12-tagging-hypothesis.md
 # [G4]: ten of eleven wanted queries are tag SET OPERATIONS, not traversal).
 # node/tag-query's dispatch: the head's actual requirement is COMPOSITION —
@@ -179,7 +219,49 @@ let get_or = fun name fallback r =>
   if std.record.has_field name r then r."%{name}" else fallback
 in
 
-std.contract.custom (fun label value =>
+{
+  # set-union: fold refs into an id-set record (the id_set idiom this
+  # corpus's contracts share throughout) — O(1) membership via
+  # std.record.has_field. Exported alongside `is_open` because both of
+  # `is_open`'s two production consumers (this file's own `Views` below, and
+  # ledger/derive/anchored_surface_core.ncl) build the SAME closed-id-set
+  # shape with it.
+  add_all
+    | doc "fold an array of ids into an existing id-set record; O(1) membership"
+    = fun acc refs =>
+      std.array.fold_left
+        (fun a r => if std.record.has_field r a then a else std.record.insert r true a)
+        acc
+        refs,
+
+  # openness, DERIVED, never authored (see the file header's OPENNESS
+  # paragraph): an entry is open iff no entry in the corpus names it in a
+  # `discharges` or `supersedes` edge. Curried on the corpus's `entries` so
+  # the O(E) closed-id-set fold runs ONCE per corpus rather than once per
+  # predicate call — `is_open entries` builds the set and returns the
+  # per-entry test, the same shape this file's own `Views` below and
+  # ledger/derive/anchored_surface_core.ncl both need. Behavior UNCHANGED
+  # from before this field existed: this was a LOCAL binding inside `Views`'
+  # contract body, unreachable to any importer, which is why
+  # anchored_surface_core.ncl carried an identical copy rather than one.
+  is_open
+    | doc "fun entries => fun entry => Bool -- an entry is open iff no entry in `entries` names it in a discharges or supersedes edge"
+    = fun entries =>
+      let closed_ids =
+        std.array.fold_left
+          (fun acc e =>
+            add_all acc (law.refs_of "discharges" e @ law.refs_of "supersedes" e))
+          {}
+          entries
+      in
+      fun e => !(std.record.has_field e.id closed_ids),
+
+  # the value-transforming --apply-contract entry point over a validated
+  # typed-claim corpus export. entries_query_apply.ncl re-exports this field
+  # as the bare contract `nickel export --apply-contract` requires.
+  Views
+    | doc "the corpus query contract: validates via entry_apply.ncl, then computes the exported views"
+    = std.contract.custom (fun label value =>
   std.contract.check apply label value
   |> match {
     'Error err => 'Error err,
@@ -200,27 +282,10 @@ std.contract.custom (fun label value =>
         }
       in
 
-      # --- openness -------------------------------------------------------
-      #
-      # The set of ids some entry closes, as a record used as a set (the
-      # id_set idiom the contract already uses): O(1) membership, so openness
-      # is a lookup per question rather than a scan of the whole corpus.
-      # EntryStore has already proved every one of these refs resolves, so a
-      # member here is always a real entry.
-      let add_all = fun acc refs =>
-        std.array.fold_left
-          (fun a r => if std.record.has_field r a then a else std.record.insert r true a)
-          acc
-          refs
-      in
-      let closed_ids =
-        std.array.fold_left
-          (fun acc e =>
-            add_all acc (law.refs_of "discharges" e @ law.refs_of "supersedes" e))
-          {}
-          entries
-      in
-      let is_open = fun e => !(std.record.has_field e.id closed_ids) in
+      # --- openness (the exported `is_open` field above, applied to this
+      # corpus's own `entries` -- NOT redefined here; see that field's doc
+      # string for why the closed-id-set fold is curried) -----------------
+      let is_open = is_open entries in
 
       # --- chain floors ---------------------------------------------------
       #
@@ -355,6 +420,81 @@ std.contract.custom (fun label value =>
             direct
       in
 
+      # --- refutations (the falsity edge, species DERIVED) -----------------
+      #
+      # RF4/[R1]/[AD1]: one anchored edge, two derived verdicts, zero
+      # authored labels — the SAME derived-never-authored rule `is_open`
+      # already applies to closure. `anchor_of` reads the anchor Check/
+      # Witness already carry (RefutesAnchored, entry.ncl, guarantees a
+      # REFUTING entry always has one; a TARGET may not).
+      let anchor_of = fun e =>
+        if std.record.has_field "check" e then e.check.at
+        else if std.record.has_field "witness" e then e.witness.at
+        else null
+      in
+      # Species, per RF3/RF4/monotone_refutation_is_born_false:
+      #   - target unanchored                       -> unclassifiable-refutation
+      #   - target's own axes are +monotone          -> born-false, ALWAYS
+      #     (a monotone claim once true stays true, so a later-anchored
+      #     refutation convicts the claim's own birth anchor, mechanically —
+      #     no anchor comparison needed for this branch)
+      #   - refutation.anchor == target.anchor       -> born-false
+      #   - otherwise                                -> became-false
+      #     (git ANCESTRY of a non-equal anchor pair is not decidable inside
+      #     Nickel — no repository access here — so this branch assumes the
+      #     append-only ordering the corpus's own never-rewrite rail
+      #     maintains, per H1/[LM3]/[LM6]; ledger/gate/currency.py is the
+      #     tool that verifies that ordering against the real repository,
+      #     including the `anchor-not-an-ancestor` report when it does not
+      #     hold — a git-level precondition this pure-value derivation
+      #     cannot itself check.)
+      let refutation_species = fun refuting_anchor target =>
+        let target_anchor = anchor_of target in
+        if target_anchor == null then
+          "unclassifiable-refutation"
+        else if std.record.has_field "axes" target && target.axes.monotone then
+          "born-false"
+        else if refuting_anchor == target_anchor then
+          "born-false"
+        else
+          "became-false"
+      in
+      let refuting_entries =
+        std.array.filter (fun e => std.array.length (law.refs_of "refutes" e) > 0) entries
+      in
+      let refutation_rows =
+        std.array.fold_left
+          (fun acc e =>
+            let refuting_anchor = anchor_of e in
+            acc
+            @ (law.refs_of "refutes" e
+               |> std.array.map (fun tid =>
+                 if !(std.record.has_field tid by_id) then
+                   # EntryStore already refuses a dangling `refutes` at the
+                   # corpus granularity; this branch only guards a query run
+                   # over a lone, unvalidated entry export.
+                   { refutation = e.id, target = tid, species = "unclassifiable-refutation" }
+                 else
+                   { refutation = e.id, target = tid,
+                     species = refutation_species refuting_anchor by_id."%{tid}" })))
+          []
+          refuting_entries
+      in
+      # Impeachment queue: the born-false-on-CLOSED collision RF3/RF4/the
+      # `impeachment` theorem name — a snapshot-sound closure and a true
+      # refutation at the same anchor are jointly impossible, so the model
+      # proves the pair contradictory and cannot itself name which party
+      # lied. Routed to a human closer, NEVER auto-resolved: this view is a
+      # derived READ of the collision, not a resolution of it.
+      let impeachment_rows =
+        std.array.filter
+          (fun row =>
+            row.species == "born-false"
+            && std.record.has_field row.target by_id
+            && is_closed_evidence (by_id."%{row.target}"))
+          refutation_rows
+      in
+
       # --- tags -------------------------------------------------------------
       #
       # `has_tag`/`tags_of` read straight off the entry. The registry
@@ -423,6 +563,8 @@ std.contract.custom (fun label value =>
           |> std.array.filter is_claim
           |> std.array.map (fun e =>
             { id = e.id, dependents = std.record.fields (dependents_walk {} e.id) }),
+        refutations = refutation_rows,
+        impeachment_queue = impeachment_rows,
         with_tags | not_exported = fun required =>
           let checked = required | Array law.TagName in
           entries
@@ -434,4 +576,5 @@ std.contract.custom (fun label value =>
           |> std.array.map (fun e => e.id),
       },
   }
-)
+    ),
+}

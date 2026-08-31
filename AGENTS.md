@@ -22,6 +22,44 @@ synergistic halves:
 Correction without prevention corrects toward the wrong goal; prevention without
 correction drifts anyway over a long horizon. Together they bound drift.
 
+## Directions
+
+A **direction** is a coherent, non-terminal motivation the project moves toward
+and never completes. Directions are deliberately few; minting a new one is
+reserved to a human ruling, while serving an existing one is free. They are
+distinct from the goal hierarchy above: that hierarchy is *containment*
+(ecosystem ⊃ project ⊃ component) and governs where a defeater escalates, while
+directions are *concern* and form a lattice — a single piece of work can serve
+more than one, and cross-cutting work is usually where the leverage is. Work
+does not converge on a direction; it converges on a **terminal claim**, a
+checkable statement that, once corroborated, means that line of work is
+finished. A terminal claim carries the same backing discipline as any other
+claim under the Verification Dual — "is this done" is answered with evidence,
+never a bare assertion — and the fraction of a direction's terminal claims that
+have been discharged is the project's convergence signal.
+
+- **Predicate's claims are typed.** An agent that cannot state how well-backed a
+  claim is cannot be scrutinized, and drift stays invisible. Terminal
+  conditions: the typed-claim discipline is present in the shipped conditioning
+  at the correct load rung; the machinery that reads it is green and merged;
+  it computes a live work queue from the claims rather than one an agent
+  maintains by hand.
+- **A project's documents are internally consistent and serve its
+  requirements.** Grading a document's claims while it is drafted turns review
+  from taste into evidence, and gives a project a per-document foundation to
+  check a whole documentation surface against. Terminal conditions: grading a
+  draft measurably improves it against an ungraded review of the same
+  document; the always-on law's own clauses have been graded for backing
+  rather than only audited for redundancy; self-grading is shown not to be
+  performative, or a review requirement is designed to catch it if it is.
+- **Work is known to be finished by evidence rather than by assertion.**
+  Neither of the other two directions covers this alone — one motivates typing
+  claims, the other document coherence — and without a derived measure of
+  "finished," a walk declaring its own target will declare a reachable one.
+  This direction is what stops that: a piece of work counts as done only when
+  its terminal claim is corroborated, inheriting the same evidence discipline
+  rather than a separate one.
+
 ## Formal substrate
 
 An LLM is an autoregressive stochastic walk over a token state-space; in

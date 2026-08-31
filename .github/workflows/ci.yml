@@ -50,6 +50,9 @@ jobs:
           bash ledger/gate/test_refine_output.sh
           bash ledger/gate/test_tech_debt.sh
           bash ledger/gate/test_worker_ibc.sh
+          bash ledger/gate/test_currency.sh
+          bash ledger/gate/test_refutations_query.sh
+          bash ledger/gate/test_entry_shape.sh
 
       - name: contract typecheck (all ledger/contracts/*.ncl)
         run: bash ledger/gate/test_contract_typecheck.sh
